@@ -1,0 +1,185 @@
+---- Minecraft Crash Report ----
+// Who set us up the TNT?
+
+Time: 26/08/31 19:12
+Description: Rendering entity in world
+
+java.lang.RuntimeException: On init script : SuperRailBuilderX_RailPositionTest
+	at jp.ngt.rtm.render.PartsRenderer.execScriptFunc(PartsRenderer.java:67)
+	at jp.ngt.rtm.render.PartsRenderer.render(PartsRenderer.java:175)
+	at jp.ngt.rtm.render.ModelObject.lambda$renderWithTexture$0(ModelObject.java:217)
+	at jp.ngt.rtm.render.ModelObject$$Lambda$187/1315688903.accept(Unknown Source)
+	at java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:175)
+	at java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:948)
+	at java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:512)
+	at java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:502)
+	at java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:418)
+	at jp.ngt.rtm.render.ModelObject.renderWithTexture(ModelObject.java:200)
+	at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.renderBody(RenderVehicleBase.java:162)
+	at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.renderVehicleMain(RenderVehicleBase.java:118)
+	at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.renderVehicleBase(RenderVehicleBase.java:63)
+	at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.func_76986_a(RenderVehicleBase.java:420)
+	at net.minecraft.client.renderer.entity.RenderManager.func_147939_a(RenderManager.java:293)
+	at net.minecraft.client.renderer.entity.RenderManager.func_147936_a(RenderManager.java:271)
+	at net.minecraft.client.renderer.entity.RenderManager.func_147937_a(RenderManager.java:244)
+	at net.minecraft.client.renderer.RenderGlobal.func_147589_a(RenderGlobal.java:471)
+	at net.minecraft.client.renderer.EntityRenderer.func_78471_a(EntityRenderer.java:1224)
+	at net.minecraft.client.renderer.EntityRenderer.func_78480_b(EntityRenderer.java:1011)
+	at net.minecraft.client.Minecraft.func_71411_J(Minecraft.java:1001)
+	at net.minecraft.client.Minecraft.func_99999_d(Minecraft.java:898)
+	at net.minecraft.client.main.Main.main(SourceFile:148)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:497)
+	at net.minecraft.launchwrapper.Launch.launch(Launch.java:135)
+	at net.minecraft.launchwrapper.Launch.main(Launch.java:28)
+Caused by: java.lang.RuntimeException: Script exec error : render
+	at jp.ngt.ngtlib.io.ScriptUtil.doScriptFunction(ScriptUtil.java:60)
+	at jp.ngt.rtm.render.PartsRenderer.execScriptFunc(PartsRenderer.java:65)
+	... 32 more
+Caused by: javax.script.ScriptException: TypeError: Cannot call undefined in <eval> at line number 10370
+	at jdk.nashorn.api.scripting.NashornScriptEngine.throwAsScriptException(NashornScriptEngine.java:455)
+	at jdk.nashorn.api.scripting.NashornScriptEngine.invokeImpl(NashornScriptEngine.java:387)
+	at jdk.nashorn.api.scripting.NashornScriptEngine.invokeFunction(NashornScriptEngine.java:187)
+	at jp.ngt.ngtlib.io.ScriptUtil.doScriptFunction(ScriptUtil.java:58)
+	... 33 more
+Caused by: <eval>:10370 TypeError: Cannot call undefined
+	at jdk.nashorn.internal.runtime.ECMAErrors.error(ECMAErrors.java:57)
+	at jdk.nashorn.internal.runtime.ECMAErrors.typeError(ECMAErrors.java:213)
+	at jdk.nashorn.internal.runtime.ECMAErrors.typeError(ECMAErrors.java:185)
+	at jdk.nashorn.internal.runtime.ECMAErrors.typeError(ECMAErrors.java:172)
+	at jdk.nashorn.internal.runtime.Undefined.lookupTypeError(Undefined.java:128)
+	at jdk.nashorn.internal.runtime.Undefined.lookup(Undefined.java:100)
+	at jdk.nashorn.internal.runtime.linker.NashornLinker.getGuardedInvocation(NashornLinker.java:102)
+	at jdk.nashorn.internal.runtime.linker.NashornLinker.getGuardedInvocation(NashornLinker.java:94)
+	at jdk.internal.dynalink.support.CompositeTypeBasedGuardingDynamicLinker.getGuardedInvocation(CompositeTypeBasedGuardingDynamicLinker.java:176)
+	at jdk.internal.dynalink.support.CompositeGuardingDynamicLinker.getGuardedInvocation(CompositeGuardingDynamicLinker.java:124)
+	at jdk.internal.dynalink.support.LinkerServicesImpl.getGuardedInvocation(LinkerServicesImpl.java:149)
+	at jdk.internal.dynalink.DynamicLinker.relink(DynamicLinker.java:233)
+	at jdk.nashorn.internal.scripts.Script$Recompilation$7565$432779AA$\^eval\_.findCandidates(<eval>:10370)
+	at jdk.nashorn.internal.scripts.Script$Recompilation$7552$438743AAA$\^eval\_.render(<eval>:10504)
+	at jdk.nashorn.internal.runtime.ScriptFunctionData.invoke(ScriptFunctionData.java:642)
+	at jdk.nashorn.internal.runtime.ScriptFunction.invoke(ScriptFunction.java:229)
+	at jdk.nashorn.internal.runtime.ScriptRuntime.apply(ScriptRuntime.java:387)
+	at jdk.nashorn.api.scripting.ScriptObjectMirror.callMember(ScriptObjectMirror.java:192)
+	at jdk.nashorn.api.scripting.NashornScriptEngine.invokeImpl(NashornScriptEngine.java:381)
+	... 35 more
+
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- Head --
+Stacktrace:
+	at jp.ngt.rtm.render.PartsRenderer.execScriptFunc(PartsRenderer.java:67)
+	at jp.ngt.rtm.render.PartsRenderer.render(PartsRenderer.java:175)
+	at jp.ngt.rtm.render.ModelObject.lambda$renderWithTexture$0(ModelObject.java:217)
+	at jp.ngt.rtm.render.ModelObject$$Lambda$187/1315688903.accept(Unknown Source)
+	at java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:175)
+	at java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:948)
+	at java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:512)
+	at java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:502)
+	at java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:418)
+	at jp.ngt.rtm.render.ModelObject.renderWithTexture(ModelObject.java:200)
+	at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.renderBody(RenderVehicleBase.java:162)
+	at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.renderVehicleMain(RenderVehicleBase.java:118)
+	at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.renderVehicleBase(RenderVehicleBase.java:63)
+	at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.func_76986_a(RenderVehicleBase.java:420)
+
+-- Entity being rendered --
+Details:
+	Entity Type: RTM.RTM.E.Car (jp.ngt.rtm.entity.vehicle.EntityCar)
+	Entity ID: 46242
+	Entity Name: entity.RTM.RTM.E.Car.name
+	Entity's Exact location: 380.05, 9.30, -138.43
+	Entity's Block location: World: (380,9,-139), Chunk: (at 12,0,5 in 23,-9; contains blocks 368,0,-144 to 383,255,-129), Region: (0,-1; contains chunks 0,-32 to 31,-1, blocks 0,0,-512 to 511,255,-1)
+	Entity's Momentum: 0.00, 0.00, 0.00
+
+-- Renderer details --
+Details:
+	Assigned renderer: jp.ngt.rtm.entity.vehicle.RenderVehicleBase@7bf2f5fc
+	Location: 0.00,1.35,0.00 - World: (0,1,0), Chunk: (at 0,0,0 in 0,0; contains blocks 0,0,0 to 15,255,15), Region: (0,0; contains chunks 0,0 to 31,31, blocks 0,0,0 to 511,255,511)
+	Rotation: 0.0
+	Delta: 0.7303416
+Stacktrace:
+	at net.minecraft.client.renderer.entity.RenderManager.func_147939_a(RenderManager.java:293)
+	at net.minecraft.client.renderer.entity.RenderManager.func_147936_a(RenderManager.java:271)
+	at net.minecraft.client.renderer.entity.RenderManager.func_147937_a(RenderManager.java:244)
+	at net.minecraft.client.renderer.RenderGlobal.func_147589_a(RenderGlobal.java:471)
+	at net.minecraft.client.renderer.EntityRenderer.func_78471_a(EntityRenderer.java:1224)
+
+-- Affected level --
+Details:
+	Level name: MpServer
+	All players: 1 total; [EntityClientPlayerMP['hi03'/239, l='MpServer', x=380.05, y=7.95, z=-138.43]]
+	Chunk stats: MultiplayerChunkCache: 1086, 1086
+	Level seed: 0
+	Level generator: ID 01 - flat, ver 0. Features enabled: false
+	Level generator options: 
+	Level spawn location: World: (656,4,-50), Chunk: (at 0,0,14 in 41,-4; contains blocks 656,0,-64 to 671,255,-49), Region: (1,-1; contains chunks 32,-32 to 63,-1, blocks 512,0,-512 to 1023,255,-1)
+	Level time: 322482 game time, 1 day time
+	Level dimension: 0
+	Level storage version: 0x00000 - Unknown?
+	Level weather: Rain time: 0 (now: false), thunder time: 0 (now: false)
+	Level game mode: Game mode: creative (ID 1). Hardcore: false. Cheats: false
+	Forced entities: 2 total; [EntityClientPlayerMP['hi03'/239, l='MpServer', x=380.05, y=7.95, z=-138.43], EntityCar['entity.RTM.RTM.E.Car.name'/46242, l='MpServer', x=380.05, y=9.30, z=-138.43]]
+	Retry entities: 0 total; []
+	Server brand: fml,forge
+	Server type: Integrated singleplayer server
+Stacktrace:
+	at net.minecraft.client.multiplayer.WorldClient.func_72914_a(WorldClient.java:373)
+	at net.minecraft.client.Minecraft.func_71396_d(Minecraft.java:2444)
+	at net.minecraft.client.Minecraft.func_99999_d(Minecraft.java:919)
+	at net.minecraft.client.main.Main.main(SourceFile:148)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:497)
+	at net.minecraft.launchwrapper.Launch.launch(Launch.java:135)
+	at net.minecraft.launchwrapper.Launch.main(Launch.java:28)
+
+-- System Details --
+Details:
+	Minecraft Version: 1.7.10
+	Operating System: Windows 10 (amd64) version 10.0
+	Java Version: 1.8.0_51, Oracle Corporation
+	Java VM Version: Java HotSpot(TM) 64-Bit Server VM (mixed mode), Oracle Corporation
+	Memory: 913182184 bytes (870 MB) / 3323985920 bytes (3170 MB) up to 12884901888 bytes (12288 MB)
+	JVM Flags: 6 total; -XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump -Xms1G -Xmx12G -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=120
+	AABB Pool Size: 0 (0 bytes; 0 MB) allocated, 0 (0 bytes; 0 MB) used
+	IntCache: cache: 0, tcache: 0, allocated: 0, tallocated: 0
+	FML: MCP v9.05 FML v7.10.99.99 Minecraft Forge 10.13.4.1614 8 mods loaded, 8 mods active
+	States: 'U' = Unloaded 'L' = Loaded 'C' = Constructed 'H' = Pre-initialized 'I' = Initialized 'J' = Post-initialized 'A' = Available 'D' = Disabled 'E' = Errored
+	UCHIJAAAA	mcp{9.05} [Minecraft Coder Pack] (minecraft.jar) 
+	UCHIJAAAA	FML{7.10.99.99} [Forge Mod Loader] (forge-1.7.10-10.13.4.1614-1.7.10.jar) 
+	UCHIJAAAA	Forge{10.13.4.1614} [Minecraft Forge] (forge-1.7.10-10.13.4.1614-1.7.10.jar) 
+	UCHIJAAAA	BambooMod{Minecraft@MC_VERSION@ var@VERSION@} [BambooMod] (Bamboo-2.6.8.5.jar) 
+	UCHIJAAAA	RTM{1.7.10.41 KaizPatchX/1.10.3} [RealTrainMod] (src1.7.10_20200822+KaizPatchX-1.10.3.jar) 
+	UCHIJAAAA	MCTE{1.7.10.16 KaizPatchX/1.10.3} [MCTerrainEditor] (src1.7.10_20200822+KaizPatchX-1.10.3.jar) 
+	UCHIJAAAA	NGTLib{1.7.10.32 KaizPatchX/1.10.3} [NGTLib] (src1.7.10_20200822+KaizPatchX-1.10.3.jar) 
+	UCHIJAAAA	worldedit{6.1.1} [WorldEdit] (worldedit-forge-mc1.7.10-6.1.1-dist.jar) 
+	GL info: ' Vendor: 'NVIDIA Corporation' Version: '4.6.0 NVIDIA 591.86' Renderer: 'NVIDIA GeForce RTX 3080 Ti/PCIe/SSE2'
+	Launched Version: 1.7.10-Forge10.13.4.1614-1.7.10
+	LWJGL: 2.9.1
+	OpenGL: NVIDIA GeForce RTX 3080 Ti/PCIe/SSE2 GL version 4.6.0 NVIDIA 591.86, NVIDIA Corporation
+	GL Caps: Using GL 1.3 multitexturing.
+Using framebuffer objects because OpenGL 3.0 is supported and separate blending is supported.
+Anisotropic filtering is supported and maximum anisotropy is 16.
+Shaders are available because OpenGL 2.1 is supported.
+
+	Is Modded: Definitely; Client brand changed to 'fml,forge'
+	Type: Client (map_client.txt)
+	Resource Packs: [hi03ExSoundLib.zip]
+	Current Language: “ú–{Œê (“ú–{)
+	Profiler Position: N/A (disabled)
+	Vec3 Pool Size: 0 (0 bytes; 0 MB) allocated, 0 (0 bytes; 0 MB) used
+	Anisotropic Filtering: Off (1)
