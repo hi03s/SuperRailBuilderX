@@ -22,6 +22,7 @@
 - 同じ接続端点にある2本の同時移動は回帰修正後の実機確認済み。通常レールの見かけ上の交差は、道床を追加できない障害物を保持したまま移動する方式へ変更（実機再検証待ち）。
 - 自動分割レールの交差は、他レールの通常道床との重なり・走行に成功するケースを実機確認済み。他レールコアとの交差を、分割コア配置衝突と曲線途中の交差に分けて扱う試験修正を追加（実機検証待ち）。
 - 自動分割レールの端点移動後に、再分割せず単一コアの通常レールとして再生成する別モデル `SuperRailBuilderX_RailPositionNormalTest` を追加済み（実機検証待ち）。
+- レール敷設、自動分割、自由点移動、道床更新、クライアント同期の知見を `docs/rail-generation-and-free-positioning.md` に集約済み。
 
 ## 作業中
 
@@ -88,6 +89,19 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 ## 作業記録
 
 新しい記録を上に追加します。詳細な議論がGitHub Issueにある場合は、要点とリンクだけを記載します。
+
+### 2026-09-01 Web側Codex — レール生成・自由点移動の技術資料
+
+- KaizPatchX v1.10.3一次ソースと現行compat実装を照合し、`docs/rail-generation-and-free-positioning.md` を追加。
+- RailPositionの基準ブロック座標・精密座標・オフセット、RailMapBasic、コアと道床TileEntityの関係を整理。
+- 通常レールの直接生成と `BlockMarker.createRail` の違い、`RailProperty.autoSplit`、チャンク境界によるセクション生成を説明。
+- 通常レールと自動分割レールそれぞれの自由点移動、道床の差分追加、論理レールの撤去・再生成、失敗時復元を手順化。
+- `markDirty`、TileEntityパケット、ブロック更新、クライアントRailMapキャッシュ再生成の役割を整理。
+- 接続端点の一括移動、道床所有権、他レールコアとの交差、分岐器、サーバー・クライアント分離、ゲーム内検証項目を記載。
+- READMEから技術資料へリンクを追加。
+- `git diff --check` に成功。Markdownのみの変更のためビルドは省略。
+- コミット: https://github.com/hi03s/SuperRailBuilderX/commit/5bedb3e397f9d2edf4630ae76df81b55a8e0f1f3
+- 同期: `origin/main` へ同期済み。
 
 ### 2026-09-01 Web側Codex — 通常レール再生成テストモデル
 
