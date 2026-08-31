@@ -5,6 +5,9 @@ export type RailCorePos = [x: number, y: number, z: number];
 export class RailPositionCompat {
 	static getRailCorePos(core: TileEntityLargeRailCore): RailCorePos;
 	static canMoveRailPosition(core: TileEntityLargeRailCore): boolean;
+	static getRailPositionUnsupportedReason(
+		core: TileEntityLargeRailCore,
+	): string;
 	static refreshRailPositionClient(
 		core: TileEntityLargeRailCore,
 		index: number,

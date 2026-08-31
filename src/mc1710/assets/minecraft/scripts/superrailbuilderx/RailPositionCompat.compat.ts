@@ -12,6 +12,13 @@ export class RailPositionCompat {
 		return false;
 	}
 
+	static getRailPositionUnsupportedReason(
+		core: TileEntityLargeRailCore,
+	): string {
+		void core;
+		return "unsupported_target";
+	}
+
 	static refreshRailPositionClient(
 		core: TileEntityLargeRailCore,
 		index: number,

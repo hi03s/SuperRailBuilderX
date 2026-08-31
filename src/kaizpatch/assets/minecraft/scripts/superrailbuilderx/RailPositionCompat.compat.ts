@@ -1,5 +1,11 @@
 import { NGTUtil } from "jp.ngt.ngtlib.util";
 import { TileEntityLargeRailCore } from "jp.ngt.rtm.rail";
+import { RailPosition } from "jp.ngt.rtm.rail.util";
+
+type RailSectionCore = TileEntityLargeRailCore & {
+	getLogicalRailPositions(): RailPosition[] | null;
+	getRailGroupCorePositions(): { size(): number } | null;
+};
 
 declare const Packages: {
 	jp: {
@@ -23,14 +29,23 @@ export class RailPositionCompat {
 	}
 
 	static canMoveRailPosition(core: TileEntityLargeRailCore): boolean {
-		return (
-			core !== null &&
-			!(
-				core instanceof
-				Packages.jp.kaiz.kaizpatch.rtm.rail
-					.TileEntityLargeRailSectionCore
-			)
-		);
+		return this.getRailPositionUnsupportedReason(core) === "";
+	}
+
+	static getRailPositionUnsupportedReason(
+		core: TileEntityLargeRailCore,
+	): string {
+		if (!core) return "missing_core";
+		if (
+			core instanceof
+			Packages.jp.kaiz.kaizpatch.rtm.rail.TileEntityLargeRailSectionCore
+		) {
+			const sectionCore = core as RailSectionCore;
+			const logicalPositions = sectionCore.getLogicalRailPositions();
+			const groupPositions = sectionCore.getRailGroupCorePositions();
+			return `sectioned(groupCores=${groupPositions ? groupPositions.size() : -1}, logicalPositions=${logicalPositions ? logicalPositions.length : -1})`;
+		}
+		return "";
 	}
 
 	static refreshRailPositionClient(

@@ -13,8 +13,8 @@
 - RailPosition自由化を確認する試験ツールを実装済み。
 - RailPosition自由化の調査結果を `docs/rail-position-free-positioning.md` に記録済み。
 - `pnpm gen` と全3ターゲットの `pnpm build` が成功する状態を確認済み。
-- RailPosition試験ツールへ、候補探索の例外ガード・診断ログと適用後のクライアントRailMap再生成を追加済み。
-- NGTOBuilder2と同じ共有compatパスによるキャッシュ衝突を避けるため、RailPosition専用APIをSuperRailBuilderX固有compatへ分離済み（実機再確認待ち）。
+- RailPosition試験ツールへ、候補探索の例外ガード・診断ログと適用後のクライアントRailMap再生成を追加済み。適用直後の描画更新は実機確認済み。
+- NGTOBuilder2と同じ共有compatパスによるキャッシュ衝突を避けるため、RailPosition専用APIをSuperRailBuilderX固有compatへ分離済み。NGTOBuilder2併用環境で未定義エラー解消を確認済み。
 - `lib_hi03toolkit_1_0` は今後編集しない参照専用領域とし、共通スクリプトは `src/common/assets/minecraft/scripts/superrailbuilderx` に置く方針を恒久化済み。
 
 ## 作業中
@@ -32,10 +32,8 @@
 
 ## 未解決・確認待ち
 
-- 再デバッグでは探索対象15件すべてが `getRailCorePos` の `TypeError: Cannot call undefined` になった。NGTOBuilder2と共有するcompatパスの衝突を避ける固有compatへ分離済みで、NGTOBuilder2を導入したまま実機再確認が必要。
-- 選択できるレール端とできないレール端がある。compat衝突により前回は全候補の判定前に失敗したため、修正版の `candidate scan` で候補数、距離除外、対象外コア、取得失敗、例外数を改めて確認する必要がある。
-- 適用成功時にクライアント側RailPosition・RailMap・描画フラグを更新する処理を追加済み。再入場せずに表示へ反映されるか実機確認が必要。
-- 自動分割された `TileEntityLargeRailSectionCore` の編集は、初版では対象外。
+- レールマーカーで設置したレールはKaizPatchXの自動分割 `TileEntityLargeRailSectionCore` となり、現在の安全制限により選択対象外。論理RailPositionはコピーとして返るため、対応にはセクション群の専用再構築・再分割処理が必要。
+- 自動分割レールについて、グループコア数と論理端点数を `unsupported core` ログへ追加済み。実機ログを回収し、再構築対象の構成を確認する必要がある。
 - RailPositionを大きく移動した場合に必要となるレール構成ブロックの再配置方法は未実装。
 - RailPosition移動後のUndoは未実装。
 - 仮のボタンテクスチャは未配置のパスを指定している。
@@ -43,9 +41,9 @@
 
 ## 次に行うこと
 
-1. NGTOBuilder2を導入したまま修正版をゲーム内で再検証し、`getRailCorePos` エラーの解消、端点の選択可否、適用直後の描画更新を確認する。
-2. 選択できない端点でも右クリックし、`latest.log` の `[SuperRailBuilderX RailPosition] candidate scan` と詳細エラーを回収する。
-3. 再検証結果とログから探索条件を調整し、その後スナップや接続成立判定の仕様を決める。
+1. レールマーカー設置レールの端点で右クリックし、専用の対象外メッセージと `unsupported core` の `groupCores`・`logicalPositions` を確認する。
+2. セクション群を論理レール単位で安全に再構築・再分割する処理を設計する。
+3. セクション対応後、スナップや接続成立判定の仕様を決める。
 
 ## 開発者からCodexへの連絡欄
 
@@ -70,13 +68,26 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 ```
 
 - 2026-08-31 ローカルCodex:
-  確認してほしいこと: NGTOBuilder2を導入したまま、`getRailCorePos` エラーが解消するか、以前選択できなかった端点を選択できるか、Enter適用直後にレール形状が更新されるか。
-  確認方法: 選択できない端点でも右クリックする。候補がない場合はチャットにログ確認案内が表示される。問題発生後にゲームを終了し、`latest.log` を保存する。
-  結果の記入先: 結果をチャットで共有し、ログは `logs/rail-position-retest2-YYYYMMDD-HHMM-client.log` の形式で配置する。
+  確認してほしいこと: レールマーカー設置レールで「自動分割されたレールは現在選択できません」と表示され、クラッシュしないこと。ログへ `unsupported core` が出ること。
+  確認方法: レールマーカー設置レールの両端付近でそれぞれ右クリックし、その後ゲームを終了する。
+  結果の記入先: 結果をチャットで共有し、`latest.log` を `logs/rail-position-section-diagnostic-YYYYMMDD-HHMM-client.log` として配置する。
 
 ## 作業記録
 
 新しい記録を上に追加します。詳細な議論がGitHub Issueにある場合は、要点とリンクだけを記載します。
+
+### 2026-08-31 ローカルCodex — レールマーカー設置レールの対象外診断
+
+- `logs/latest.log` を確認。レールマーカー設置レールでは `uniqueCores=2, unsupportedCores=2, errors=0`、SRB3生成レールでは `unsupportedCores=0, candidates=1` だった。
+- KaizPatchX 1.10.3の `TileEntityLargeRailSectionCore` を確認。レールマーカー設置レールは自動分割セクションで、`getLogicalRailPositions()` がコピーを返すため、通常レール用の更新処理をそのまま適用できないことを再確認。
+- 対象外コアの理由、グループコア数、論理端点数を `unsupported core` として出力する診断をSuperRailBuilderX固有compatへ追加。
+- 自動分割レールだけが見つかった場合、汎用の候補なし案内ではなく、現在選択対象外であることをチャットに明示するよう変更。
+- 適用直後のレール描画更新が正常になったという実機結果を反映。
+- ログを `logs/rail-position-retest2-20260831-211401-client.log` へ改名して保存。
+- `pnpm build` はkaizpatch・mc1710・mc1122の全ターゲットで成功。
+- ゲーム内での新しい診断表示は未検証。上記連絡欄の手順で再確認が必要。
+- コミット: 未コミット
+- 同期: 未実施。
 
 ### 2026-08-31 ローカルCodex — ツールキットを参照専用化
 
