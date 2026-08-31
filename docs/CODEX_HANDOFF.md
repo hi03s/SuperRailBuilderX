@@ -88,8 +88,8 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - ログを `logs/rail-position-section-diagnostic-20260831-214139-client.log` へ改名して保存。
 - `pnpm build` はkaizpatch・mc1710・mc1122の全ターゲットで成功。
 - ゲーム内検証は未実施。レールを一度撤去・再配置する試験機能のため、バックアップ済みテストワールドで上記手順による再デバッグが必要。
-- コミット: 未コミット
-- 同期: 未実施。
+- コミット: https://github.com/hi03s/SuperRailBuilderX/commit/957ba58d54e49eb633de66a5700a765af938c272
+- 同期: `origin/main` へ同期済み。
 
 ### 2026-08-31 ローカルCodex — レールマーカー設置レールの対象外診断
 
