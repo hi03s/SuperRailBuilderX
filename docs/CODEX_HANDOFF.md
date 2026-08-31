@@ -85,8 +85,8 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - ログを `logs/rail-position-retest-20260831-205024-client.log` へ改名して保存。
 - `pnpm build` はkaizpatch・mc1710・mc1122の全ターゲットで成功。生成物が共有compatと異なる `scripts_superrailbuilderx_RailPositionCompat_1suqebq` を使い、KaizPatchX実装に対象メソッドが含まれることも確認。
 - ゲーム内再検証は未実施。NGTOBuilder2を導入したまま上記の連絡欄に沿って再デバッグが必要。
-- コミット: 未コミット
-- 同期: 未実施。
+- コミット: https://github.com/hi03s/SuperRailBuilderX/commit/cbc49b6bb6634f64ad30607a493f4a7e394ff084
+- 同期: `origin/main` へ同期済み。
 
 ### 2026-08-31 ローカルCodex — 実機フィードバック対応と診断強化
 
