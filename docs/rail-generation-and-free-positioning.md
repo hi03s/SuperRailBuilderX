@@ -1,0 +1,352 @@
+# KaizPatchXのレール生成・RailPosition自由点移動
+
+## 1. この文書の目的
+
+この文書は、SuperRailBuilderXの試験実装とKaizPatchX v1.10.3の一次ソースから得られた、次の処理に関する知見をまとめたものです。
+
+- スクリプトから通常レールを敷設する方法
+- KaizPatchXの自動分割レールが生成される仕組み
+- `RailPosition#setPosition` による自由点移動
+- RailPosition移動後にRailMapと道床を更新する必要性
+- 自動分割レールの端点を変更する際の撤去・再生成
+- サーバーでの変更を保存し、クライアント描画へ反映する方法
+- 交差、接続点、チャンク、分岐器に関する制約
+
+対象は主にMinecraft 1.7.10向けKaizPatchX v1.10.3です。通常RTMや1.12.2ターゲットには存在しないAPIがあるため、実装では必ずtarget別compat層を使用してください。
+
+## 2. レールを構成する主要要素
+
+### 2.1 RailPosition
+
+`RailPosition` は曲線端点の位置と向きを保持します。重要な座標は2系統あります。
+
+| データ | 意味 |
+| --- | --- |
+| `blockX / blockY / blockZ` | RailPositionを所有する基準ブロック座標 |
+| `posX / posY / posZ` | 曲線計算に使われる精密なワールド座標 |
+| `offsetX / offsetY / offsetZ` | 標準位置から精密座標までの差分 |
+| `direction` | 基準となる8方向 |
+| `anchorYaw / anchorPitch` | 曲線端の接線方向 |
+| `anchorLengthHorizontal / Vertical` | 曲線制御点の長さ |
+| `cantCenter / cantEdge / cantRandom` | カントに関する値 |
+
+`setPosition(x, y, z)` は `blockX/Y/Z` を変更しません。ブロック座標と方向から求まる標準位置との差をオフセットへ保存し、`init()`で`posX/Y/Z`を再計算します。
+
+```ts
+railPosition.setPosition(worldX, worldY, worldZ);
+```
+
+オフセットはNBTの `OffsetX / OffsetY / OffsetZ` に保存されます。したがって、正しくコアをdirty状態にして保存すればワールド再読込後も自由点は維持されます。
+
+### 2.2 RailMapBasic
+
+`RailMapBasic` は始点・終点のRailPositionからベジェ曲線を構築し、次の処理に使われます。
+
+- 曲線上の座標、高さ、Yaw、Pitch、Rollの計算
+- レール描画
+- 列車の走行位置計算
+- 必要な道床ブロック座標の算出
+- 道床TileEntityの配置・撤去
+
+RailPositionだけを書き換えても、コアが保持しているRailMapキャッシュは古いままです。通常レールでは `setRailPositions()` の後に `createRailMap()` を呼び、キャッシュを再生成します。
+
+### 2.3 コアと道床TileEntity
+
+通常レールは、おおむね次の構造です。
+
+- 1個の `TileEntityLargeRailCore`
+- 曲線に沿って配置される複数の `TileEntityLargeRailBase`
+- 各道床TileEntityが保持する、所有コアの始点座標
+
+列車は見た目のRailMapだけをたどるのではありません。走行位置にある道床TileEntityから所有コアを取得し、そのRailMapを参照します。そのため、曲線だけを移動して新しい経路上に道床が存在しないと、途中で `Rail not found` になります。
+
+## 3. 通常レールの生成
+
+KaizPatchX標準の通常レール生成は、概ね次の順序です。
+
+1. 始点・終点のRailPositionを用意する。
+2. `RailMapBasic` を生成する。
+3. `canPlaceRail()` で配置可能性を検査する。
+4. `RailMapBasic#setRail()` で道床を配置する。
+5. 始点ブロックへ `RTMRail.largeRailCore0` を配置する。
+6. コアへRailPosition、RailProperty、始点座標、RailMapバージョンを設定する。
+7. RailMapを生成し、保存・同期する。
+
+概念コードは次のようになります。
+
+```ts
+const railMap = new RailMapBasic(
+	start,
+	end,
+	RailMapBasic.fixRTMRailMapVersionCurrent,
+);
+
+railMap.setRail(
+	world,
+	RTMRail.largeRailBase0,
+	start.blockX,
+	start.blockY,
+	start.blockZ,
+	property,
+);
+
+world.setBlock(
+	start.blockX,
+	start.blockY,
+	start.blockZ,
+	RTMRail.largeRailCore0,
+	0,
+	2,
+);
+
+const core = world.getTileEntity(
+	start.blockX,
+	start.blockY,
+	start.blockZ,
+) as TileEntityLargeRailCore;
+
+core.setRailPositions([start, end]);
+core.setProperty(property);
+core.setStartPoint(start.blockX, start.blockY, start.blockZ);
+core.createRailMap();
+core.markDirty();
+```
+
+実際のrtm-tsではJavaの `RailPosition[]` が必要になるため、通常のTypeScript配列ではなく `java.lang.reflect.Array.newInstance()` などでJava配列を作る必要があります。
+
+### 3.1 RailProperty.autoSplitの影響
+
+`BlockMarker.createRail()` は、2点の通常レールを生成する内部で `property.autoSplit` を確認します。自動分割が有効で、`RailChunkSectioner.split()` の結果が複数区間なら、単一コアではなく自動分割レールを生成します。
+
+つまり、次の2つは同じ結果になりません。
+
+| 生成方法 | `autoSplit=true` の結果 |
+| --- | --- |
+| `BlockMarker.createRail()` | 必要に応じて自動分割される |
+| `RailMapBasic#setRail()`とコア直接設置 | 分割処理を通らず通常レールになる |
+
+SuperRailBuilderXの通常レール再生成テストでは、後者を使用してSuperRailBuilder3に近い単一コアレールを生成しています。
+
+## 4. 自動分割レールの生成
+
+### 4.1 分割位置の決定
+
+`RailChunkSectioner` は論理RailMapを1 mあたり4サンプル程度で走査し、通過チャンクが変わる境界を探します。境界付近の曲線上に新しいRailPositionを作り、チャンクごとの連続区間へ分割します。
+
+境界RailPositionには次の値が設定されます。
+
+- 曲線上の精密座標
+- 曲線のYaw、Pitch、Roll
+- 元RailPositionから引き継いだ幅・高さ制限とカント
+- 中間コアを置くブロック座標
+
+区間終端側では方向とYawを180度反転させ、次区間の始端と同じ精密座標を共有するRailPositionを作ります。
+
+### 4.2 セクションの生成
+
+自動分割レールでは、各区間について次の処理を行います。
+
+1. 論理RailMap全体を元に `RailMapSection` を作る。
+2. 各セクションの道床を配置する。
+3. セクション始点にメタデータ1の `largeRailCore0` を配置する。
+4. `TileEntityLargeRailSectionCore` へグループ情報を設定する。
+5. RailProperty、始点、RailMapバージョンを設定する。
+6. セクション用RailMapを生成して保存する。
+
+各セクションコアは次の情報を持ちます。
+
+- グループUUID
+- 論理レール全体の始点・終点
+- 自分のセクション始点・終点
+- 論理曲線上で担当する開始比率・終了比率
+- グループに属する全コア座標
+
+`getLogicalRailPositions()` は内部データのコピーを返します。返されたRailPositionへ `setPosition()` を呼ぶだけでは、セクションコア内部の論理情報は変更されません。
+
+## 5. 通常レールの自由点移動
+
+通常レールはコアが論理レール全体を直接保持しているため、比較的単純に更新できます。
+
+1. `getRailPositions()` から対象端点を取得する。
+2. 選択時の元座標と現在座標が一致するか確認する。
+3. `setPosition()` で精密座標を変更する。
+4. `setRailPositions()` と `createRailMap()` を呼ぶ。
+5. 新しいRailMapに必要な道床を補う。
+6. 保存・サーバーからクライアントへの同期を行う。
+
+```ts
+const positions = core.getRailPositions();
+positions[index].setPosition(x, y, z);
+core.setRailPositions(positions);
+core.createRailMap();
+addMissingRoadbed(core);
+core.markDirty();
+NGTUtil.sendPacketToClient(core);
+world.markBlockForUpdate(coreX, coreY, coreZ);
+```
+
+### 5.1 不足道床の追加
+
+新しいRailMapから `getRailBlockList(property)` を取得し、各座標を調べます。
+
+- 空気またはレールマーカーなら新しい道床を配置する。
+- 既存の別レール道床は上書きしない。
+- レールコアや通常ブロックがある場合は、そのブロックを保持して道床追加を省略する。
+- 移動前の旧道床は、安全のため自動削除しない。
+
+旧道床を削除するには「その道床が移動対象だけに所有されている」ことを判定する必要があります。RTMの道床は所有コア座標を1個しか保持できず、複数レールが重なる状況では単純な差分削除が他レールを壊す可能性があります。
+
+## 6. 自動分割レールの自由点移動
+
+自動分割レールでは、1個のセクションだけを変更してはいけません。論理端点の移動によって曲線が通過するチャンクが変わり、必要なセクション数やコア位置も変化するためです。
+
+安全側の処理順序は次のとおりです。
+
+1. グループUUIDで同じ論理レールを識別する。
+2. 論理RailPositionと全コア座標を取得する。
+3. 全コアがロード済みで同じグループに属することを確認する。
+4. `isLogicalRailOccupied()` で、どのセクションにも列車がいないことを確認する。
+5. RailPosition、RailProperty、信号、サブレールを退避する。
+6. 移動後のRailPositionと道床・新コア位置を事前検証する。
+7. `breakLogicalRail()` で論理レール全体を撤去する。
+8. 移動後RailPositionからレール全体を再生成する。
+9. 信号とサブレールを新しいコアへ戻す。
+10. 失敗時は退避したRailPositionから元のレールを復元する。
+
+標準の再生成に `BlockMarker.createRail()` を使うと、`autoSplit`と新しい曲線に基づいてセクション数が再計算されます。
+
+### 6.1 単一コア通常レールとして再生成する場合
+
+自動分割レールを通常レールへ変換する場合は、撤去後に `BlockMarker.createRail()` を呼びません。代わりに「3. 通常レールの生成」の直接設置手順を使います。
+
+これによりRailPropertyの `autoSplit` が有効でも単一コアになります。ただし、自動分割が避けていた次の問題が戻る可能性があります。
+
+- コアのあるチャンクが未ロードだと、遠方セクションで所有コアを取得できない。
+- 長距離レールの描画・走行・チャンク管理が単一コアへ集中する。
+- コア位置から遠い道床の同期やロード順の影響を受ける。
+
+## 7. クライアントへの反映
+
+レール変更はサーバー側で行います。サーバー側で正しく保存できても、クライアントに古いRailMapキャッシュが残ると、再入場まで見た目が変わらないことがあります。
+
+### 7.1 サーバー側で必要な処理
+
+```ts
+core.createRailMap();
+core.markDirty();
+NGTUtil.sendPacketToClient(core);
+world.markBlockForUpdate(coreX, coreY, coreZ);
+```
+
+| 処理 | 目的 |
+| --- | --- |
+| `createRailMap()` | サーバー側の曲線キャッシュを再生成 |
+| `markDirty()` | TileEntityを保存対象にする |
+| `sendPacketToClient()` | 更新NBTをクライアントへ送信 |
+| `markBlockForUpdate()` | ブロック更新・再描画を促す |
+
+### 7.2 クライアント側のRailMap再生成
+
+通常レールでは、NBT受信後も既存RailMapが残るケースに備え、成功応答を受けたクライアント側で対象RailPositionを更新し、`createRailMap()`と再描画フラグを設定する方法が有効でした。
+
+```ts
+positions[index].setPosition(x, y, z);
+core.setRailPositions(positions);
+core.createRailMap();
+core.shouldRerenderRail = true;
+world.markBlockForUpdate(coreX, coreY, coreZ);
+```
+
+自動分割レールの再生成では古いコア自体が撤去されるため、古いJavaオブジェクトへクライアント更新を適用してはいけません。新規コアのブロック更新・TileEntity同期を利用します。
+
+## 8. 接続点を複数レールで共有する場合
+
+同じ精密座標に複数レール端点がある場合、1本だけ動かすと接続が切れます。SuperRailBuilderXでは1 mm以内の端点を同じ接続点としてまとめ、1回の要求で同じ移動先へ送ります。
+
+サーバーは適用前に全対象を検証します。
+
+- 全端点が同じ元座標にあるか
+- 対象レールがまだ存在するか
+- RailPositionが選択後に変更されていないか
+- 全セクションがロード済みか
+- 列車が在線していないか
+- 道床や新コア位置に致命的な衝突がないか
+
+全対象を先に検証してから順番に適用しても、適用中に予期しない例外が起きる可能性は残ります。途中失敗は `partial_target_...` として、何本目まで適用したかをログへ残す必要があります。
+
+## 9. 交差とブロック所有権
+
+### 9.1 道床同士の重なり
+
+RTM標準の `canPlaceRail()` は非コア道床との重なりを許可します。ただし、同じブロックにTileEntityを2個保存することはできないため、後から配置した道床が所有コア情報を上書きする場合があります。
+
+### 9.2 コア同士の衝突
+
+新しいセクションコア位置が他レールコアと一致する場合、両方を同じブロックへ置けません。この場合は既存レールを壊さず、生成を停止する必要があります。
+
+曲線途中が他レールコアを横切るだけなら、既存コアを保持し、その座標への道床配置を省略する試験実装は可能です。ただし、交差位置で対象レールの所有道床がなくなるため、必ず双方向走行で確認してください。
+
+## 10. 分岐器を通常レールと同じ方法で変更できない理由
+
+分岐器は3個以上のRailPositionと複数の `RailMapSwitch` を持ちます。`TileEntityLargeRailSwitchCore` は分岐状態と複数の曲線をまとめたオブジェクトをキャッシュします。
+
+通常レール用の `setRailPositions()` と `createRailMap()` だけでは、保存されたRailPosition、表示曲線、走行曲線、分岐状態が一致しない可能性があります。分岐器を自由点移動へ対応させるには、全RailPosition、全RailMap、分岐状態、道床を一体で再構築する専用処理が必要です。
+
+## 11. サーバー・クライアント分離
+
+推奨する責務分担は次のとおりです。
+
+| クライアント | サーバー |
+| --- | --- |
+| 視線判定 | 対象コアの再取得 |
+| 候補端点の探索・表示 | 元座標と対象状態の再検証 |
+| 右・左クリックの段階管理 | RailPosition・RailMap・道床の変更 |
+| 0.01 m丸めとプレビュー | 保存、パケット送信、結果返却 |
+| Enterで要求送信 | 失敗時の復元と診断ログ |
+
+クライアントから送られたコア座標、端点番号、元座標、移動先をそのまま信用してはいけません。適用時点でワールドからコアを再取得し、対象が選択時から変化していないことを確認します。
+
+## 12. 推奨する実装・検証手順
+
+### 実装時
+
+1. RailPositionをNBT経由でコピーし、元データを直接壊さず移動後曲線を試算する。
+2. 道床とコア位置の衝突を、撤去前に検証する。
+3. 通常レールと自動分割レールを別経路にする。
+4. 自動分割レールでは全グループコアのロードと在線を確認する。
+5. 変更するワールド処理をサーバースクリプトに限定する。
+6. `try/finally`で要求データを必ず消費し、例外の毎tick再実行を防ぐ。
+7. 再生成前に、復元に必要なRailPositionとRailPropertyを退避する。
+8. 保存処理とクライアント同期を両方行う。
+
+### ゲーム内検証
+
+1. バックアップ済みテストワールドを使用する。
+2. 通常レールを小さく移動し、即時描画と再入場後の保存を確認する。
+3. 移動後曲線全体を双方向に走行する。
+4. 自動分割レールでセクション数が増える移動と減る移動を試す。
+5. 同じ接続点を共有する2本を同時移動する。
+6. 別レール道床との重なり、別レールコアとの交差を分けて試す。
+7. 在線中の移動が拒否されることを確認する。
+8. 意図的に生成失敗させ、元レールが復元されることを確認する。
+9. `latest.log` の `Rail not found`、`partial_target`、再構築ログを確認する。
+
+## 13. SuperRailBuilderX内の参照先
+
+| 内容 | ファイル |
+| --- | --- |
+| クライアント操作・候補探索・描画 | `render_rail_position_test.ts` |
+| 自動分割再生成版サーバー | `server_rail_position_test.ts` |
+| 通常レール再生成版サーバー | `server_rail_position_normal_test.ts` |
+| KaizPatchX固有処理 | `src/kaizpatch/.../RailPositionCompat.compat.ts` |
+| 他ターゲットの安全な無効化 | `src/mc1710/...`、`src/mc1122/...` |
+| 調査・試験結果 | `docs/rail-position-free-positioning.md` |
+
+## 14. 一次ソース
+
+- [KaizPatchX RailPosition.java](https://github.com/Kai-Z-JP/KaizPatchX/blob/master/src/main/java/jp/ngt/rtm/rail/util/RailPosition.java)
+- [KaizPatchX RailMap.java](https://github.com/Kai-Z-JP/KaizPatchX/blob/master/src/main/java/jp/ngt/rtm/rail/util/RailMap.java)
+- [KaizPatchX BlockMarker.java](https://github.com/Kai-Z-JP/KaizPatchX/blob/master/src/main/java/jp/ngt/rtm/rail/BlockMarker.java)
+- [KaizPatchX TileEntityLargeRailSectionCore.kt](https://github.com/Kai-Z-JP/KaizPatchX/blob/master/src/main/java/jp/kaiz/kaizpatch/rtm/rail/TileEntityLargeRailSectionCore.kt)
+- [KaizPatchX RailChunkSectioner.kt](https://github.com/Kai-Z-JP/KaizPatchX/blob/master/src/main/java/jp/kaiz/kaizpatch/rtm/rail/util/RailChunkSectioner.kt)
+- [KaizPatchX v1.10.2 release](https://github.com/Kai-Z-JP/KaizPatchX/releases/tag/v1.10.2)
