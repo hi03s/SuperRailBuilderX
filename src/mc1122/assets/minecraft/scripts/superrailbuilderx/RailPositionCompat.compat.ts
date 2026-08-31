@@ -87,4 +87,30 @@ export class RailPositionCompat {
 		void z;
 		return "unsupported";
 	}
+
+	static validateRailPositionMoveAsNormal(
+		core: TileEntityLargeRailCore,
+		index: number,
+		originalX: number,
+		originalY: number,
+		originalZ: number,
+		x: number,
+		y: number,
+		z: number,
+	): string {
+		return "unsupported";
+	}
+
+	static moveRailPositionAsNormal(
+		core: TileEntityLargeRailCore,
+		index: number,
+		originalX: number,
+		originalY: number,
+		originalZ: number,
+		x: number,
+		y: number,
+		z: number,
+	): string {
+		return "unsupported";
+	}
 }

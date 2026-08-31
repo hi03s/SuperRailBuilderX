@@ -27,6 +27,10 @@ type RailSectionCore = TileEntityLargeRailCore & {
 	isRailSection(): boolean;
 };
 
+type NormalRailCore = TileEntityLargeRailCore & {
+	fixRTMRailMapVersion: number;
+};
+
 type RailSectionPlan = {
 	getStartRatio(): number;
 	getEndRatio(): number;
@@ -718,6 +722,231 @@ export class RailPositionCompat {
 			core.zCoord,
 		);
 		return "ok";
+	}
+
+	static validateRailPositionMoveAsNormal(
+		core: TileEntityLargeRailCore,
+		index: number,
+		originalX: number,
+		originalY: number,
+		originalZ: number,
+		x: number,
+		y: number,
+		z: number,
+	): string {
+		if (!this.canMoveRailPosition(core)) return "unsupported";
+		const positions = this.getEditableRailPositions(core);
+		if (!positions || index < 0 || index >= positions.length)
+			return "not_found";
+		const position = positions[index];
+		const tolerance = 0.001;
+		if (
+			Math.abs(position.posX - originalX) > tolerance ||
+			Math.abs(position.posY - originalY) > tolerance ||
+			Math.abs(position.posZ - originalZ) > tolerance
+		)
+			return "changed";
+		const movedPositions = this.createMovedPositions(
+			positions,
+			index,
+			x,
+			y,
+			z,
+		);
+		const roadbedValidation = this.validateRoadbedPath(
+			core,
+			movedPositions,
+			false,
+		);
+		if (roadbedValidation !== "ok") return roadbedValidation;
+		if (!this.isSectionCore(core)) return "ok";
+		if (core.isLogicalRailOccupied()) return "occupied";
+		const groupPositions = core.getRailGroupCorePositions();
+		if (!groupPositions || groupPositions.size() === 0)
+			return "invalid_section";
+		const world = this.getCoreWorld(core);
+		for (let i = 0; i < groupPositions.size(); i++) {
+			const pos = groupPositions.get(i);
+			const tile = world.getTileEntity(pos[0], pos[1], pos[2]);
+			if (!(tile instanceof TileEntityLargeRailBase))
+				return "section_unloaded";
+			const groupCore = tile.getRailCore();
+			if (!groupCore || !core.isSameLogicalRail(groupCore))
+				return "section_unloaded";
+		}
+		return "ok";
+	}
+
+	static moveRailPositionAsNormal(
+		core: TileEntityLargeRailCore,
+		index: number,
+		originalX: number,
+		originalY: number,
+		originalZ: number,
+		x: number,
+		y: number,
+		z: number,
+	): string {
+		const validation = this.validateRailPositionMoveAsNormal(
+			core,
+			index,
+			originalX,
+			originalY,
+			originalZ,
+			x,
+			y,
+			z,
+		);
+		if (validation !== "ok") return validation;
+		if (!this.isSectionCore(core))
+			return this.moveRailPosition(
+				core,
+				index,
+				originalX,
+				originalY,
+				originalZ,
+				x,
+				y,
+				z,
+			);
+		return this.moveSectionedRailPositionAsNormal(
+			core,
+			index,
+			originalX,
+			originalY,
+			originalZ,
+			x,
+			y,
+			z,
+		);
+	}
+
+	private static createNormalRail(
+		core: TileEntityLargeRailCore,
+		positions: RailPosition[],
+		property: RailProperty,
+	): TileEntityLargeRailCore | null {
+		const world = this.getCoreWorld(core);
+		const start = positions[0];
+		const railMap = new RailMapBasic(
+			positions[0],
+			positions[1],
+			RailMapBasic.fixRTMRailMapVersionCurrent,
+		);
+		railMap.setRail(
+			world,
+			RTMRail.largeRailBase0,
+			start.blockX,
+			start.blockY,
+			start.blockZ,
+			property,
+		);
+		world.setBlock(
+			start.blockX,
+			start.blockY,
+			start.blockZ,
+			RTMRail.largeRailCore0,
+			0,
+			2,
+		);
+		const tile = world.getTileEntity(
+			start.blockX,
+			start.blockY,
+			start.blockZ,
+		);
+		if (!(tile instanceof TileEntityLargeRailCore)) return null;
+		const normalCore = tile as NormalRailCore;
+		normalCore.setRailPositions(this.toRailPositionArray(positions));
+		normalCore.setProperty(property);
+		normalCore.setStartPoint(start.blockX, start.blockY, start.blockZ);
+		normalCore.fixRTMRailMapVersion = railMap.fixRTMRailMapVersion;
+		normalCore.createRailMap();
+		normalCore.markDirty();
+		NGTUtil.sendPacketToClient(normalCore);
+		world.markBlockForUpdate(start.blockX, start.blockY, start.blockZ);
+		return normalCore;
+	}
+
+	private static moveSectionedRailPositionAsNormal(
+		core: RailSectionCore,
+		index: number,
+		originalX: number,
+		originalY: number,
+		originalZ: number,
+		x: number,
+		y: number,
+		z: number,
+	): string {
+		const logicalPositions = core.getLogicalRailPositions();
+		if (!logicalPositions || logicalPositions.length !== 2)
+			return "invalid_section";
+		if (index < 0 || index >= logicalPositions.length) return "not_found";
+		const position = logicalPositions[index];
+		const tolerance = 0.001;
+		if (
+			Math.abs(position.posX - originalX) > tolerance ||
+			Math.abs(position.posY - originalY) > tolerance ||
+			Math.abs(position.posZ - originalZ) > tolerance
+		)
+			return "changed";
+		const world = this.getCoreWorld(core);
+		const originalPositions = this.copyRailPositions(logicalPositions);
+		const movedPositions = this.copyRailPositions(logicalPositions);
+		movedPositions[index].setPosition(x, y, z);
+		const property = core.getProperty();
+		const signal = core.getSignal();
+		const subRails = new ArrayList<RailProperty>();
+		for (let i = 0; i < core.subRails.size(); i++)
+			subRails.add(core.subRails.get(i));
+		NGTLog.debug(
+			`[SuperRailBuilderX RailPosition Normal] rebuilding as a single normal rail: oldGroupCores=${core.getRailGroupCorePositions().size()}, index=${index}`,
+		);
+		let newCore: TileEntityLargeRailCore | null = null;
+		try {
+			core.breakLogicalRail();
+			newCore = this.createNormalRail(core, movedPositions, property);
+		} catch (error) {
+			NGTLog.debug(
+				`[SuperRailBuilderX RailPosition Normal] normal rail rebuild exception: ${error}`,
+			);
+		}
+		if (!newCore) {
+			const partialTile = world.getTileEntity(
+				movedPositions[0].blockX,
+				movedPositions[0].blockY,
+				movedPositions[0].blockZ,
+			);
+			if (partialTile instanceof TileEntityLargeRailBase) {
+				const partialCore = partialTile.getRailCore();
+				if (partialCore) partialCore.breakLogicalRail();
+			}
+			let restored = false;
+			try {
+				restored = BlockMarker.createRail(
+					world,
+					originalPositions[0].blockX,
+					originalPositions[0].blockY,
+					originalPositions[0].blockZ,
+					this.toJavaList(originalPositions),
+					property,
+					true,
+					true,
+				);
+			} catch (error) {
+				NGTLog.debug(
+					`[SuperRailBuilderX RailPosition Normal] rollback exception: ${error}`,
+				);
+			}
+			return restored
+				? "normal_rebuild_failed"
+				: "normal_rollback_failed";
+		}
+		newCore.setSignal(signal);
+		for (let i = 0; i < subRails.size(); i++)
+			newCore.addSubRail(subRails.get(i));
+		newCore.markDirty();
+		NGTUtil.sendPacketToClient(newCore);
+		return "ok_normal";
 	}
 
 	private static moveSectionedRailPosition(

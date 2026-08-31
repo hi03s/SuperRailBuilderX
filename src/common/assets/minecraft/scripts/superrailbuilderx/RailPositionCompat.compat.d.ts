@@ -40,4 +40,24 @@ export class RailPositionCompat {
 		y: number,
 		z: number,
 	): string;
+	static validateRailPositionMoveAsNormal(
+		core: TileEntityLargeRailCore,
+		index: number,
+		originalX: number,
+		originalY: number,
+		originalZ: number,
+		x: number,
+		y: number,
+		z: number,
+	): string;
+	static moveRailPositionAsNormal(
+		core: TileEntityLargeRailCore,
+		index: number,
+		originalX: number,
+		originalY: number,
+		originalZ: number,
+		x: number,
+		y: number,
+		z: number,
+	): string;
 }
