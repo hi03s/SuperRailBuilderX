@@ -1,0 +1,51 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    dependencies:
+      rtm-ts:
+        specifier: 0.12.0
+        version: 0.12.0
+    devDependencies:
+      prettier:
+        specifier: ^3.9.6
+        version: 3.9.6
+
+packages:
+
+  commander@12.1.0:
+    resolution: {integrity: sha512-Vw8qHK3bZM9y/P10u3Vib8o/DdkvA2OtPtZvD871QKjy74Wj1WSKFILMPRPSdUSx5RFK1arlJzEtA4PkFgnbuA==}
+    engines: {node: '>=18'}
+
+  prettier@3.9.6:
+    resolution: {integrity: sha512-OpN0zzVdiaiAhxpuuj5efpIS4sY9j7bY6uR5mnj5yPzGkdkjNKSJeUThPb60Jw29QuAZgA4o+/iB49kFiaBX6g==}
+    engines: {node: '>=14'}
+    hasBin: true
+
+  rtm-ts@0.12.0:
+    resolution: {integrity: sha512-FkJaz1Vmnhh3sVplcNciRiU7Nw5dxnw1ItTh+ObO36ELXNqYMbB/DdFVqUSYT0UZVbew2FDvyDY/SCSRIXUV7g==}
+    engines: {node: '>=18'}
+    hasBin: true
+
+  typescript@5.9.3:
+    resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
+snapshots:
+
+  commander@12.1.0: {}
+
+  prettier@3.9.6: {}
+
+  rtm-ts@0.12.0:
+    dependencies:
+      commander: 12.1.0
+      typescript: 5.9.3
+
+  typescript@5.9.3: {}
