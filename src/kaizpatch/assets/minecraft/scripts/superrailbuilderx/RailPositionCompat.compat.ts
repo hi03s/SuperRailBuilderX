@@ -30,6 +30,10 @@ declare const Packages: {
 };
 
 export class RailPositionCompat {
+	private static getCoreWorld(core: TileEntityLargeRailCore) {
+		return core.getWorldObj();
+	}
+
 	private static isSectionCore(
 		core: TileEntityLargeRailCore,
 	): core is RailSectionCore {
@@ -118,11 +122,48 @@ export class RailPositionCompat {
 		core.setRailPositions(positions);
 		core.createRailMap();
 		core.shouldRerenderRail = true;
-		core.getWorldObj().markBlockForUpdate(
+		this.getCoreWorld(core).markBlockForUpdate(
 			core.xCoord,
 			core.yCoord,
 			core.zCoord,
 		);
+	}
+
+	static validateRailPositionMove(
+		core: TileEntityLargeRailCore,
+		index: number,
+		originalX: number,
+		originalY: number,
+		originalZ: number,
+	): string {
+		if (!this.canMoveRailPosition(core)) return "unsupported";
+		const positions = this.getEditableRailPositions(core);
+		if (!positions || index < 0 || index >= positions.length)
+			return "not_found";
+		const position = positions[index];
+		const tolerance = 0.001;
+		if (
+			Math.abs(position.posX - originalX) > tolerance ||
+			Math.abs(position.posY - originalY) > tolerance ||
+			Math.abs(position.posZ - originalZ) > tolerance
+		)
+			return "changed";
+		if (!this.isSectionCore(core)) return "ok";
+		if (core.isLogicalRailOccupied()) return "occupied";
+		const groupPositions = core.getRailGroupCorePositions();
+		if (!groupPositions || groupPositions.size() === 0)
+			return "invalid_section";
+		const world = this.getCoreWorld(core);
+		for (let i = 0; i < groupPositions.size(); i++) {
+			const pos = groupPositions.get(i);
+			const tile = world.getTileEntity(pos[0], pos[1], pos[2]);
+			if (!(tile instanceof TileEntityLargeRailBase))
+				return "section_unloaded";
+			const groupCore = tile.getRailCore();
+			if (!groupCore || !core.isSameLogicalRail(groupCore))
+				return "section_unloaded";
+		}
+		return "ok";
 	}
 
 	static moveRailPosition(
@@ -135,7 +176,14 @@ export class RailPositionCompat {
 		y: number,
 		z: number,
 	): string {
-		if (!this.canMoveRailPosition(core)) return "sectioned";
+		const validation = this.validateRailPositionMove(
+			core,
+			index,
+			originalX,
+			originalY,
+			originalZ,
+		);
+		if (validation !== "ok") return validation;
 		if (this.isSectionCore(core))
 			return this.moveSectionedRailPosition(
 				core,
@@ -162,7 +210,7 @@ export class RailPositionCompat {
 		core.createRailMap();
 		core.markDirty();
 		NGTUtil.sendPacketToClient(core);
-		core.getWorldObj().markBlockForUpdate(
+		this.getCoreWorld(core).markBlockForUpdate(
 			core.xCoord,
 			core.yCoord,
 			core.zCoord,
@@ -199,7 +247,7 @@ export class RailPositionCompat {
 			Math.abs(position.posZ - originalZ) > tolerance
 		)
 			return "changed";
-		const world = core.getWorldObj();
+		const world = this.getCoreWorld(core);
 		for (let i = 0; i < groupPositions.size(); i++) {
 			const pos = groupPositions.get(i);
 			const tile = world.getTileEntity(pos[0], pos[1], pos[2]);

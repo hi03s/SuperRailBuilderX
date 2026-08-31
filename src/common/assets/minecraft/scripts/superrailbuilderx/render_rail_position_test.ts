@@ -25,9 +25,11 @@ declare const renderer: VehiclePartsRenderer;
 
 const VERSION = "0.1.0";
 const SEARCH_RADIUS = 1.05;
+const CONNECTED_ENDPOINT_TOLERANCE = 0.001;
 
 type Candidate = {
 	core: TileEntityLargeRailCore;
+	railKey: string;
 	coreX: number;
 	coreY: number;
 	coreZ: number;
@@ -35,9 +37,14 @@ type Candidate = {
 	position: [number, number, number];
 };
 
+type SelectedEndpoint = {
+	candidates: Candidate[];
+	position: [number, number, number];
+};
+
 type EditorState = {
 	stage: number;
-	selected: Candidate | null;
+	selected: SelectedEndpoint | null;
 	destination: [number, number, number] | null;
 };
 
@@ -104,11 +111,16 @@ function logCandidateErrorOnce(
 	const key = `${phase}:${x},${y},${z}`;
 	if (loggedCandidateErrors[key]) return;
 	loggedCandidateErrors[key] = true;
-	ErrorLogger.log("SuperRailBuilderX RailPosition candidate scan", phase, error, {
-		x,
-		y,
-		z,
-	});
+	ErrorLogger.log(
+		"SuperRailBuilderX RailPosition candidate scan",
+		phase,
+		error,
+		{
+			x,
+			y,
+			z,
+		},
+	);
 }
 
 function logCandidateScan(
@@ -178,7 +190,9 @@ function findCandidates(
 					diagnostics.uniqueCores++;
 					phase = "getRailPositionUnsupportedReason";
 					const unsupportedReason =
-						RailPositionCompat.getRailPositionUnsupportedReason(core);
+						RailPositionCompat.getRailPositionUnsupportedReason(
+							core,
+						);
 					if (unsupportedReason !== "") {
 						diagnostics.unsupportedCores++;
 						if (unsupportedReason.indexOf("sectioned(") === 0)
@@ -204,12 +218,16 @@ function findCandidates(
 						const dx = rp.posX - looking.posX;
 						const dy = rp.posY - looking.posY;
 						const dz = rp.posZ - looking.posZ;
-						if (Math.sqrt(dx * dx + dy * dy + dz * dz) > SEARCH_RADIUS) {
+						if (
+							Math.sqrt(dx * dx + dy * dy + dz * dz) >
+							SEARCH_RADIUS
+						) {
 							diagnostics.outOfRangePositions++;
 							continue;
 						}
 						candidates.push({
 							core,
+							railKey: coreKey,
 							coreX: corePos[0],
 							coreY: corePos[1],
 							coreZ: corePos[2],
@@ -225,14 +243,15 @@ function findCandidates(
 		}
 	}
 	lastCandidateScanDiagnostics = diagnostics;
-	if (logDiagnostics) logCandidateScan(looking, diagnostics, candidates.length);
+	if (logDiagnostics)
+		logCandidateScan(looking, diagnostics, candidates.length);
 	return candidates;
 }
 
 function nearestCandidate(
 	candidates: Candidate[],
 	partialTicks: number,
-): Candidate | null {
+): SelectedEndpoint | null {
 	const looking = NGTOBuilderUtilClient.getLookingPos(partialTicks);
 	if (!looking || candidates.length === 0) return null;
 	let nearest = candidates[0];
@@ -248,7 +267,25 @@ function nearestCandidate(
 			nearestDistance = distance;
 		}
 	}
-	return nearest;
+	const connected: Candidate[] = [];
+	const seen: { [key: string]: boolean } = {};
+	for (let i = 0; i < candidates.length; i++) {
+		const candidate = candidates[i];
+		if (
+			Math.abs(candidate.position[0] - nearest.position[0]) >
+				CONNECTED_ENDPOINT_TOLERANCE ||
+			Math.abs(candidate.position[1] - nearest.position[1]) >
+				CONNECTED_ENDPOINT_TOLERANCE ||
+			Math.abs(candidate.position[2] - nearest.position[2]) >
+				CONNECTED_ENDPOINT_TOLERANCE
+		)
+			continue;
+		const key = `${candidate.railKey}:${candidate.index}`;
+		if (seen[key]) continue;
+		seen[key] = true;
+		connected.push(candidate);
+	}
+	return { candidates: connected, position: nearest.position };
 }
 
 function renderMarker(
@@ -327,13 +364,11 @@ function handleInput(
 		state.destination
 	) {
 		const request: RailPositionMoveRequest = {
-			core: [
-				state.selected.coreX,
-				state.selected.coreY,
-				state.selected.coreZ,
-			],
-			index: state.selected.index,
-			original: state.selected.position,
+			targets: state.selected.candidates.map((candidate) => ({
+				core: [candidate.coreX, candidate.coreY, candidate.coreZ],
+				index: candidate.index,
+				original: candidate.position,
+			})),
 			destination: state.destination,
 		};
 		NGTOBuilderUtil.sendJsonData(dataMap, "railPositionMove", request);
@@ -342,29 +377,31 @@ function handleInput(
 	}
 	const result = dataMap.getString("applyResult");
 	if (result !== "" && result !== "waiting") {
-		if (result === "ok" || result === "ok_sectioned") {
+		if (result === "ok") {
 			if (state.selected && state.destination) {
-				try {
-					if (result === "ok")
+				for (let i = 0; i < state.selected.candidates.length; i++) {
+					const candidate = state.selected.candidates[i];
+					try {
 						RailPositionCompat.refreshRailPositionClient(
-							state.selected.core,
-							state.selected.index,
+							candidate.core,
+							candidate.index,
 							state.destination[0],
 							state.destination[1],
 							state.destination[2],
 						);
-				} catch (error) {
-					ErrorLogger.log(
-						"SuperRailBuilderX RailPosition apply",
-						"refreshRailPositionClient",
-						error,
-						{
-							coreX: state.selected.coreX,
-							coreY: state.selected.coreY,
-							coreZ: state.selected.coreZ,
-							index: state.selected.index,
-						},
-					);
+					} catch (error) {
+						ErrorLogger.log(
+							"SuperRailBuilderX RailPosition apply",
+							"refreshRailPositionClient",
+							error,
+							{
+								coreX: candidate.coreX,
+								coreY: candidate.coreY,
+								coreZ: candidate.coreZ,
+								index: candidate.index,
+							},
+						);
+					}
 				}
 			}
 			NGTLog.sendChatMessage(

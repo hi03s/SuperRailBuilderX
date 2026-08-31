@@ -46,6 +46,21 @@ export class RailPositionCompat {
 		void z;
 	}
 
+	static validateRailPositionMove(
+		core: TileEntityLargeRailCore,
+		index: number,
+		originalX: number,
+		originalY: number,
+		originalZ: number,
+	): string {
+		void core;
+		void index;
+		void originalX;
+		void originalY;
+		void originalZ;
+		return "unsupported";
+	}
+
 	static moveRailPosition(
 		core: TileEntityLargeRailCore,
 		index: number,

@@ -20,6 +20,13 @@ export class RailPositionCompat {
 		y: number,
 		z: number,
 	): void;
+	static validateRailPositionMove(
+		core: TileEntityLargeRailCore,
+		index: number,
+		originalX: number,
+		originalY: number,
+		originalZ: number,
+	): string;
 	static moveRailPosition(
 		core: TileEntityLargeRailCore,
 		index: number,
