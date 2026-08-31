@@ -6,11 +6,7 @@ import {
 	GLHelper,
 	NGTObjectRenderer,
 } from "jp.ngt.ngtlib.renderer";
-import {
-	MCWrapperClient,
-	NGTUtil,
-	NGTUtilClient,
-} from "jp.ngt.ngtlib.util";
+import { MCWrapperClient, NGTUtil, NGTUtilClient } from "jp.ngt.ngtlib.util";
 import { NGTWorld } from "jp.ngt.ngtlib.world";
 import { ModelPackManager } from "jp.ngt.rtm.modelpack";
 import {
@@ -98,7 +94,11 @@ export class RTMApiCompatClient {
 		const player = MCWrapperClient.getPlayer();
 		const start = player.getPositionEyes(partialTicks);
 		const look = player.getLook(partialTicks);
-		const end = start.add(look.x * distance, look.y * distance, look.z * distance);
+		const end = start.add(
+			look.x * distance,
+			look.y * distance,
+			look.z * distance,
+		);
 		const mop = NGTUtil.getClientWorld().rayTraceBlocks(
 			start,
 			end,
@@ -190,7 +190,13 @@ export class RTMApiCompatClient {
 				world = new NGTWorld(NGTUtil.getClientWorld(), ngto);
 				RTMApiCompatClient.ngtoWorld.put(ngto, world);
 			}
-			NGTObjectRenderer.INSTANCE.renderNGTObject(world, ngto, true, 0, pass);
+			NGTObjectRenderer.INSTANCE.renderNGTObject(
+				world,
+				ngto,
+				true,
+				0,
+				pass,
+			);
 			renderer.bindTexture(defaultTexture);
 		}
 	}

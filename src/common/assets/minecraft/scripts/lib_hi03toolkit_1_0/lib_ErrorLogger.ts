@@ -73,7 +73,8 @@ export class ErrorLogger {
 	static getJavaClassName(value: unknown): string | null {
 		try {
 			const javaObject = value as JavaObjectLike;
-			if (!javaObject || typeof javaObject.getClass !== "function") return null;
+			if (!javaObject || typeof javaObject.getClass !== "function")
+				return null;
 			const javaClass = javaObject.getClass();
 			return javaClass ? String(javaClass.getName()) : null;
 		} catch (error) {
@@ -90,10 +91,12 @@ export class ErrorLogger {
 		NGTLog.debug(`exception:${ErrorLogger.safeString(error)}`);
 		try {
 			const errorLike = error as ErrorLike;
-			if (errorLike.name) NGTLog.debug(`exception.name:${errorLike.name}`);
+			if (errorLike.name)
+				NGTLog.debug(`exception.name:${errorLike.name}`);
 			if (errorLike.message)
 				NGTLog.debug(`exception.message:${errorLike.message}`);
-			if (errorLike.stack) NGTLog.debug(`exception.stack:\n${errorLike.stack}`);
+			if (errorLike.stack)
+				NGTLog.debug(`exception.stack:\n${errorLike.stack}`);
 		} catch (detailError) {
 			NGTLog.debug(
 				`exception JS details unavailable:${ErrorLogger.safeString(detailError)}`,
@@ -103,7 +106,8 @@ export class ErrorLogger {
 		try {
 			const errorLike = error as ErrorLike;
 			let cause =
-				errorLike.javaException || (error as unknown as JavaThrowableLike);
+				errorLike.javaException ||
+				(error as unknown as JavaThrowableLike);
 			for (let depth = 0; cause && depth < 8; depth++) {
 				NGTLog.debug(
 					`javaCause[${depth}]:${ErrorLogger.getJavaClassName(cause) || "unknown"}: ${ErrorLogger.safeString(cause)}`,
@@ -111,11 +115,15 @@ export class ErrorLogger {
 				if (typeof cause.getStackTrace === "function") {
 					const stackTrace = cause.getStackTrace();
 					for (let i = 0; i < stackTrace.length; i++) {
-						NGTLog.debug(`  at ${ErrorLogger.safeString(stackTrace[i])}`);
+						NGTLog.debug(
+							`  at ${ErrorLogger.safeString(stackTrace[i])}`,
+						);
 					}
 				}
 				cause =
-					typeof cause.getCause === "function" ? cause.getCause() : null;
+					typeof cause.getCause === "function"
+						? cause.getCause()
+						: null;
 			}
 		} catch (detailError) {
 			NGTLog.debug(

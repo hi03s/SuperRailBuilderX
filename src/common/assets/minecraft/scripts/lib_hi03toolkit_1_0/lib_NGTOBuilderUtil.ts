@@ -24,8 +24,7 @@ import { Method } from "java.lang.reflect";
 export type Pos = [x: number, y: number, z: number];
 
 export type combineNGTOList =
-	| [ngto: NGTObject, offsetX: number, offsetY: number, offsetZ: number]
-	| null;
+	[ngto: NGTObject, offsetX: number, offsetY: number, offsetZ: number] | null;
 
 //### NGTOBuilderUtil ###
 /**
@@ -161,7 +160,14 @@ export class NGTOBuilderUtil {
 			const y = rbs.local_y + offsetY;
 			const z = rbs.local_z + offsetZ;
 			//範囲外はスキップ
-			if (x < 0 || x >= width || y < 0 || y >= height || z < 0 || z >= depth)
+			if (
+				x < 0 ||
+				x >= width ||
+				y < 0 ||
+				y >= height ||
+				z < 0 ||
+				z >= depth
+			)
 				continue;
 			const index = (x * height + y) * depth + z;
 			const nbt = rbs.blockSet.writeToNBT();
@@ -190,7 +196,10 @@ export class NGTOBuilderUtil {
 				let layerCount = 0;
 				for (let xIdx = 0; xIdx < ngto.xSize; xIdx++) {
 					const blockSet = ngto.getBlockSet(xIdx, yIdx, zIdx);
-					if (!isPlaceAirBlock && Block.getIdFromBlock(blockSet.block) === 0)
+					if (
+						!isPlaceAirBlock &&
+						Block.getIdFromBlock(blockSet.block) === 0
+					)
 						continue;
 					const rbs = new RotatableBlockSet(blockSet, xIdx, yIdx, 0);
 					const nbt = blockSet.writeToNBT();
@@ -257,7 +266,14 @@ export class NGTOBuilderUtil {
 			const y = pos[1] + offsetY;
 			const z = pos[2] + offsetZ;
 			//範囲外はスキップ
-			if (x < 0 || x >= width || y < 0 || y >= height || z < 0 || z >= depth)
+			if (
+				x < 0 ||
+				x >= width ||
+				y < 0 ||
+				y >= height ||
+				z < 0 ||
+				z >= depth
+			)
 				continue;
 			const index = (x * height + y) * depth + z;
 			list.set(index, blockSet);
@@ -417,7 +433,9 @@ export class NGTOBuilderUtil {
 	static combineNGTO(ngtoList: combineNGTOList[]): NGTObject {
 		//[[ngto, offsetX, offsetY, offsetZ], ...]
 		if (ngtoList.length === 0)
-			return NGTOBuilderUtil.createNGTOWithPosList(BlockSet.AIR, [[0, 0, 0]]);
+			return NGTOBuilderUtil.createNGTOWithPosList(BlockSet.AIR, [
+				[0, 0, 0],
+			]);
 
 		// 結合後の境界を計算
 		let minX = Number.POSITIVE_INFINITY;
@@ -543,9 +561,17 @@ export class NGTOBuilderUtil {
 					for (let i = 0; i < railMapList.length; i++) {
 						const rm = railMapList[i];
 						const split = Math.floor(rm.getLength() * 2);
-						const nearestIdx = rm.getNearlestPoint(split, posX, posZ);
+						const nearestIdx = rm.getNearlestPoint(
+							split,
+							posX,
+							posZ,
+						);
 						const posZX = rm.getRailPos(split, nearestIdx);
-						const vec = new Vec3(posZX[1] - posX, 0, posZX[0] - posZ);
+						const vec = new Vec3(
+							posZX[1] - posX,
+							0,
+							posZX[0] - posZ,
+						);
 						const len = vec.length();
 						if (len < distance) {
 							distance = len;
@@ -574,7 +600,11 @@ export class NGTOBuilderUtil {
 			rm2StartRP.blockY,
 			rm2StartRP.blockZ,
 		];
-		const rm2EPos: Pos = [rm2EndRP.blockX, rm2EndRP.blockY, rm2EndRP.blockZ];
+		const rm2EPos: Pos = [
+			rm2EndRP.blockX,
+			rm2EndRP.blockY,
+			rm2EndRP.blockZ,
+		];
 		if (
 			connectPos1 &&
 			(NGTOBuilderUtil.isSamePos(connectPos1, rm2SPos) ||
@@ -601,11 +631,15 @@ export class NGTOBuilderUtil {
 			return null;
 		return [
 			Math.floor(
-				railPos.blockX + 0.5 + RailPosition.REVISION[railPos.direction][0] * 2,
+				railPos.blockX +
+					0.5 +
+					RailPosition.REVISION[railPos.direction][0] * 2,
 			),
 			railPos.blockY,
 			Math.floor(
-				railPos.blockZ + 0.5 + RailPosition.REVISION[railPos.direction][1] * 2,
+				railPos.blockZ +
+					0.5 +
+					RailPosition.REVISION[railPos.direction][1] * 2,
 			),
 		];
 	}

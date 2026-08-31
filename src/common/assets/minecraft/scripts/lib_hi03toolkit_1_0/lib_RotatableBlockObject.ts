@@ -75,7 +75,10 @@ export class RotatableBlockObject {
 			for (let xIdx = 0; xIdx < ngto.xSize; xIdx++) {
 				for (let zIdx = 0; zIdx < ngto.zSize; zIdx++) {
 					const blockSet = ngto.getBlockSet(xIdx, yIdx, zIdx);
-					if (isPlaceAirBlock || Block.getIdFromBlock(blockSet.block) !== 0) {
+					if (
+						isPlaceAirBlock ||
+						Block.getIdFromBlock(blockSet.block) !== 0
+					) {
 						const rotatableBlockSet = new RotatableBlockSet(
 							blockSet,
 							xIdx,
@@ -355,7 +358,10 @@ export class RotatableBlockObject {
 	}
 
 	//axisは"X"/"Z"のいずれか
-	private mirroredBlockSet(currentBlockSet: BlockSet, axis: string): BlockSet {
+	private mirroredBlockSet(
+		currentBlockSet: BlockSet,
+		axis: string,
+	): BlockSet {
 		let isChangeMetaData = false;
 		const block = currentBlockSet.block;
 		const metadata = currentBlockSet.metadata;
@@ -399,7 +405,10 @@ export class RotatableBlockObject {
 			//metadata反転処理
 			let mappedIndex = currentDirIndex;
 			if (axis === "X") {
-				if (block instanceof BlockLadder || block instanceof BlockFenceGate) {
+				if (
+					block instanceof BlockLadder ||
+					block instanceof BlockFenceGate
+				) {
 					if (currentDirIndex === 1) mappedIndex = 3;
 					else if (currentDirIndex === 3) mappedIndex = 1;
 				} else {
@@ -407,7 +416,10 @@ export class RotatableBlockObject {
 					else if (currentDirIndex === 2) mappedIndex = 0;
 				}
 			} else if (axis === "Z") {
-				if (block instanceof BlockLadder || block instanceof BlockFenceGate) {
+				if (
+					block instanceof BlockLadder ||
+					block instanceof BlockFenceGate
+				) {
 					if (currentDirIndex === 0) mappedIndex = 2;
 					else if (currentDirIndex === 2) mappedIndex = 0;
 				} else {
@@ -417,7 +429,9 @@ export class RotatableBlockObject {
 			}
 			const newDir = directions[mappedIndex];
 			const newMetadata =
-				block instanceof BlockLadder ? newDir : option2 | option1 | newDir;
+				block instanceof BlockLadder
+					? newDir
+					: option2 | option1 | newDir;
 			const prevNBT = currentBlockSet.nbt;
 			return prevNBT
 				? new BlockSet(currentBlockSet.block, newMetadata, prevNBT)

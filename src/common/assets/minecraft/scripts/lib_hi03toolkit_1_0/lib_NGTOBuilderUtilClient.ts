@@ -51,7 +51,8 @@ export class NGTOBuilderUtilClient {
 	private static renderRailMapCache: HashMap<string, [DisplayList, string]> =
 		new HashMap();
 
-	private static scriptEngineCache: HashMap<string, Invocable> = new HashMap();
+	private static scriptEngineCache: HashMap<string, Invocable> =
+		new HashMap();
 
 	/**
 	 * 視線の先の座標/ブロック座標/ブロック側面座標を取得する。
@@ -81,9 +82,12 @@ export class NGTOBuilderUtilClient {
 	 */
 	static getInterpolatedPos(entity: Entity, partialTicks: number): Pos {
 		return [
-			entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * partialTicks,
-			entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * partialTicks,
-			entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * partialTicks,
+			entity.lastTickPosX +
+				(entity.posX - entity.lastTickPosX) * partialTicks,
+			entity.lastTickPosY +
+				(entity.posY - entity.lastTickPosY) * partialTicks,
+			entity.lastTickPosZ +
+				(entity.posZ - entity.lastTickPosZ) * partialTicks,
 		];
 	}
 
@@ -120,11 +124,16 @@ export class NGTOBuilderUtilClient {
 		if (Keyboard.isKeyDown(keyCode)) {
 			if (pressStart === 0) {
 				pressStart = now;
-				dataMap.setString(`keyDownStartTime_${name}`, pressStart.toString(), 0);
+				dataMap.setString(
+					`keyDownStartTime_${name}`,
+					pressStart.toString(),
+					0,
+				);
 			}
 			return now - pressStart >= requiredMillis;
 		}
-		if (pressStart !== 0) dataMap.setString(`keyDownStartTime_${name}`, "0", 0);
+		if (pressStart !== 0)
+			dataMap.setString(`keyDownStartTime_${name}`, "0", 0);
 		return false;
 	}
 
@@ -198,7 +207,8 @@ export class NGTOBuilderUtilClient {
 				const modelSet = RTMApiCompatClient.getRailModelSet(
 					railCore,
 				) as ModelSetBase<RailConfig>;
-				const railModelObj = RTMApiCompatClient.getModelObject(modelSet);
+				const railModelObj =
+					RTMApiCompatClient.getModelObject(modelSet);
 				//const railRenderer = modelSet.model.renderer as RailPartsRenderer;//modelSet.model = ModelObject : modelSetBase.modelObj = ModelObject  prop.getResourceSet() = ModelSetRail
 				const railRenderer = railModelObj.renderer as RailPartsRenderer;
 				const glList = RTMApiCompatClient.generateGLList();
@@ -237,7 +247,11 @@ export class NGTOBuilderUtilClient {
 					const pos = railMap.getRailPos(split, rmIdx); //絶対座標
 					const posY = railMap.getRailHeight(split, rmIdx);
 					const yaw = RTMApiCompat.getRailYaw(railMap, split, rmIdx);
-					const pitch = RTMApiCompat.getRailPitch(railMap, split, rmIdx);
+					const pitch = RTMApiCompat.getRailPitch(
+						railMap,
+						split,
+						rmIdx,
+					);
 					const roll = RTMApiCompat.getCant(railMap, split, rmIdx);
 					GL11.glPushMatrix();
 					GL11.glTranslatef(pos[1], posY, pos[0]);
@@ -245,7 +259,11 @@ export class NGTOBuilderUtilClient {
 					GL11.glRotatef(pitch, 1, 0, 0);
 					GL11.glRotatef(roll, 0, 0, 1);
 					//## 描画 ##
-					for (let groupIdx = 0; groupIdx < groupObjects.size(); groupIdx++) {
+					for (
+						let groupIdx = 0;
+						groupIdx < groupObjects.size();
+						groupIdx++
+					) {
 						const group = groupObjects.get(groupIdx);
 						const name = new java.lang.String(group.name);
 						const pos = java.lang.Integer.valueOf(rmIdx);
@@ -293,7 +311,10 @@ export class NGTOBuilderUtilClient {
 
 				//色を重ねる
 				GL11.glEnable(GL11.GL_BLEND);
-				GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+				GL11.glBlendFunc(
+					GL11.GL_SRC_ALPHA,
+					GL11.GL_ONE_MINUS_SRC_ALPHA,
+				);
 				GL11.glDisable(GL11.GL_TEXTURE_2D);
 				GL11.glColor4f(r, g, b, a);
 
@@ -555,7 +576,8 @@ export class NGTOBuilderUtilClient {
 		const textures = modelObj.textures;
 		for (let i = 0; i < textures.length; i++) {
 			const matId = textures[i].material.id;
-			if (pass === 0) NGTUtilClient.bindTexture(textures[i].material.texture);
+			if (pass === 0)
+				NGTUtilClient.bindTexture(textures[i].material.texture);
 			else if (pass === 1) {
 				if (!textures[i].doAlphaBlend) continue;
 				NGTUtilClient.bindTexture(textures[i].material.texture);

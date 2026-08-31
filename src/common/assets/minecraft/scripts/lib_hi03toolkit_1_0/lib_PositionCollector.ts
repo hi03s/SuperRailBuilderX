@@ -147,7 +147,10 @@ export class PositionCollector {
 		for (let i = 0; i < posList.length; i++) {
 			const pos = posList[i];
 			if (!pos) continue;
-			keySet.put(PositionCollector.createKey(pos[0], pos[1], pos[2]), true);
+			keySet.put(
+				PositionCollector.createKey(pos[0], pos[1], pos[2]),
+				true,
+			);
 		}
 		this.keyMap.put(entity, keySet);
 	}

@@ -151,13 +151,15 @@ export class RTMApiCompatClient {
 		const lookingPos = RTMApiCompatClient.getLookingPos(partialTicks);
 		if (!lookingPos) return null;
 		const player = MCWrapperClient.getPlayer();
-		const eyeX = player.prevPosX + (player.posX - player.prevPosX) * partialTicks;
+		const eyeX =
+			player.prevPosX + (player.posX - player.prevPosX) * partialTicks;
 		const eyeY =
 			player.prevPosY +
 			(player.posY - player.prevPosY) * partialTicks +
 			1.62 -
 			player.yOffset;
-		const eyeZ = player.prevPosZ + (player.posZ - player.prevPosZ) * partialTicks;
+		const eyeZ =
+			player.prevPosZ + (player.posZ - player.prevPosZ) * partialTicks;
 		const dx = lookingPos.posX - eyeX;
 		const dy = lookingPos.posY - eyeY;
 		const dz = lookingPos.posZ - eyeZ;

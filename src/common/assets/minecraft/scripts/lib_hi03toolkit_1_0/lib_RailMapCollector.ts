@@ -58,7 +58,10 @@ export class RailMapCollector {
 		for (let i = 0; i < railMapList.length; i++) {
 			const rm = railMapList[i];
 			if (rm) {
-				const bool = NGTOBuilderUtil.isConnectedRail(rm, lookingRailMap);
+				const bool = NGTOBuilderUtil.isConnectedRail(
+					rm,
+					lookingRailMap,
+				);
 				if (bool) return true;
 			}
 		}

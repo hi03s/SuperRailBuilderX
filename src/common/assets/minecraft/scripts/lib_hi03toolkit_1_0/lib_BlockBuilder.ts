@@ -75,20 +75,34 @@ export class BlockBuilder {
 			pos[2],
 		);
 		const block = RTMApiCompat.getBlock(world, pos[0], pos[1], pos[2]);
-		const metadata = RTMApiCompat.getMetadata(world, pos[0], pos[1], pos[2]);
+		const metadata = RTMApiCompat.getMetadata(
+			world,
+			pos[0],
+			pos[1],
+			pos[2],
+		);
 		if (block !== null && metadata !== null) {
 			let nbt = null;
 			let blockRotation = 0;
-			if (tileEntity && !(tileEntity instanceof TileEntityLargeRailBase)) {
-				if (block instanceof TileEntityPlaceable) blockRotation = block.getRotation();
+			if (
+				tileEntity &&
+				!(tileEntity instanceof TileEntityLargeRailBase)
+			) {
+				if (block instanceof TileEntityPlaceable)
+					blockRotation = block.getRotation();
 				try {
 					nbt = RTMApiCompat.createNBTFromTileEntity(tileEntity);
 				} catch (error) {
-					ErrorLogger.log("addBackup", "createNBTFromTileEntity", error, {
-						world: world,
-						tileEntity: tileEntity,
-						pos: `[${pos[0]}, ${pos[1]}, ${pos[2]}]`,
-					});
+					ErrorLogger.log(
+						"addBackup",
+						"createNBTFromTileEntity",
+						error,
+						{
+							world: world,
+							tileEntity: tileEntity,
+							pos: `[${pos[0]}, ${pos[1]}, ${pos[2]}]`,
+						},
+					);
 				}
 			}
 			const blockSet = !nbt
@@ -159,8 +173,10 @@ export class BlockBuilder {
 					const doublePlantBlock = blockSet.block as unknown as Block;
 					const lowerY = (blockSet.metadata & 8) !== 0 ? y - 1 : y;
 					const upperY = lowerY + 1;
-					const lowerData = doublePlantPlacements[`${x},${lowerY},${z}`];
-					const upperData = doublePlantPlacements[`${x},${upperY},${z}`];
+					const lowerData =
+						doublePlantPlacements[`${x},${lowerY},${z}`];
+					const upperData =
+						doublePlantPlacements[`${x},${upperY},${z}`];
 					if (
 						!lowerData ||
 						!upperData ||
@@ -168,12 +184,14 @@ export class BlockBuilder {
 						upperData[0].block !== doublePlantBlock ||
 						(lowerData[0].metadata & 8) !== 0 ||
 						(upperData[0].metadata & 8) === 0 ||
-						RTMApiCompat.getBlock(world, x, lowerY, z) !== airBlock ||
+						RTMApiCompat.getBlock(world, x, lowerY, z) !==
+							airBlock ||
 						RTMApiCompat.getBlock(world, x, upperY, z) !== airBlock
 					)
 						continue;
 				}
-				if (RTMApiCompat.getBlock(world, x, y, z) !== airBlock) continue;
+				if (RTMApiCompat.getBlock(world, x, y, z) !== airBlock)
+					continue;
 				if (
 					blockSet.block instanceof BlockDoor &&
 					blockSet.metadata < 8 &&
@@ -238,7 +256,8 @@ export class BlockBuilder {
 			const blockRotation = data[4];
 			const replaceBlock = RTMApiCompat.getBlock(world, x, y, z);
 			const replaceBlockMeta = RTMApiCompat.getMetadata(world, x, y, z);
-			if (replaceBlock === block && replaceBlockMeta === metadata) continue;
+			if (replaceBlock === block && replaceBlockMeta === metadata)
+				continue;
 			const tile = RTMApiCompat.getTileEntity(world, x, y, z);
 			if (tile instanceof TileEntityLargeRailBase) continue;
 			if (block instanceof BlockDoublePlant) {

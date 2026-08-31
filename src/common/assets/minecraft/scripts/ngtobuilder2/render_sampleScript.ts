@@ -50,7 +50,12 @@ function init(par1: ModelSetVehicle, par2: ModelObject): void {
 	keyManager.register("showHelp", Keyboard.KEY_H, false, `ヘルプを表示`);
 	keyManager.register("endEdit", Keyboard.KEY_Q, false, `ツールを終了`);
 	keyManager.register("build", Keyboard.KEY_RETURN, false, `生成する`);
-	keyManager.register("cancelBuild", Keyboard.KEY_BACK, true, `生成を中止する`);
+	keyManager.register(
+		"cancelBuild",
+		Keyboard.KEY_BACK,
+		true,
+		`生成を中止する`,
+	);
 	keyManager.register("undo", Keyboard.KEY_Z, true, `Undo`);
 
 	//keyManager.registerの書き方
@@ -84,14 +89,23 @@ function keyInput(
 
 	//ヘルプ表示
 	if (keyManager.pressed("showHelp")) {
-		NGTLog.sendChatMessage(sender, `---NGTO Builder2 テスト機能 操作方法---`);
+		NGTLog.sendChatMessage(
+			sender,
+			`---NGTO Builder2 テスト機能 操作方法---`,
+		);
 		NGTLog.sendChatMessage(sender, keyManager.getDescription("endEdit"));
 		NGTLog.sendChatMessage(sender, keyManager.getDescription("build"));
-		NGTLog.sendChatMessage(sender, keyManager.getDescription("cancelBuild"));
+		NGTLog.sendChatMessage(
+			sender,
+			keyManager.getDescription("cancelBuild"),
+		);
 		NGTLog.sendChatMessage(sender, keyManager.getDescription("undo"));
 		NGTLog.sendChatMessage(sender, `[右クリック] 座標を選択`);
 		NGTLog.sendChatMessage(sender, `[左クリック] 最後の選択を解除`);
-		NGTLog.sendChatMessage(sender, `[NGTO Builder2] チャット欄を開き、上へスクロールするとすべての操作説明を確認できます。`);
+		NGTLog.sendChatMessage(
+			sender,
+			`[NGTO Builder2] チャット欄を開き、上へスクロールするとすべての操作説明を確認できます。`,
+		);
 	}
 
 	//ツールを終了
@@ -223,7 +237,10 @@ function render(entity: EntityVehicle, pass: number, par3: number): void {
 	const player = MCWrapperClient.getPlayer();
 	const hostPlayerEntityId = dataMap.getString("hostPlayerEntityId");
 	let hostPlayer = null;
-	if (hostPlayerEntityId !== "") hostPlayer = world.getEntityByID(Number(hostPlayerEntityId)) as unknown as EntityPlayer;
+	if (hostPlayerEntityId !== "")
+		hostPlayer = world.getEntityByID(
+			Number(hostPlayerEntityId),
+		) as unknown as EntityPlayer;
 	const prevIsLeftClick = dataMap.getBoolean("prevIsLeftClick");
 	const prevIsRightClick = dataMap.getBoolean("prevIsRightClick");
 	if (hostPlayer === null) {
@@ -240,10 +257,16 @@ function render(entity: EntityVehicle, pass: number, par3: number): void {
 	const isVersionChecked = dataMap.getBoolean("isVersionChecked");
 	RTMApiCompat.doFollowing(entity, hostPlayer); //1.12用
 	if (hostPlayer && hostPlayer === player) {
-		if (isLeftClick !== prevIsLeftClick) dataMap.setBoolean("prevIsLeftClick", isLeftClick, 0);
-		if (isRightClick !== prevIsRightClick) dataMap.setBoolean("prevIsRightClick", isRightClick, 0);
+		if (isLeftClick !== prevIsLeftClick)
+			dataMap.setBoolean("prevIsLeftClick", isLeftClick, 0);
+		if (isRightClick !== prevIsRightClick)
+			dataMap.setBoolean("prevIsRightClick", isRightClick, 0);
 		if (renderer.currentMatId === 0 && pass === 0) keyManager.update();
-		if (VERSIONS_server !== "" && VERSIONS_server != Version && !isVersionChecked) {
+		if (
+			VERSIONS_server !== "" &&
+			VERSIONS_server != Version &&
+			!isVersionChecked
+		) {
 			dataMap.setBoolean("isVersionChecked", true, 0);
 			NGTLog.sendChatMessage(sender, `§cVersions don't match!`);
 			NGTLog.sendChatMessage(sender, `§cClient: ${Version}`);
@@ -252,9 +275,18 @@ function render(entity: EntityVehicle, pass: number, par3: number): void {
 		const showHelpMessage = dataMap.getBoolean("showHelpMessage");
 		if (!showHelpMessage) {
 			dataMap.setBoolean("showHelpMessage", true, 0);
-			NGTLog.sendChatMessage(sender, keyManager.getDescription("showHelp"));
+			NGTLog.sendChatMessage(
+				sender,
+				keyManager.getDescription("showHelp"),
+			);
 		}
-		if (!isOpenGUI && pass === 0 && renderer.currentMatId === 0) keyInput(hostPlayer, entity, !prevIsRightClick && isRightClick, !prevIsLeftClick && isLeftClick);
+		if (!isOpenGUI && pass === 0 && renderer.currentMatId === 0)
+			keyInput(
+				hostPlayer,
+				entity,
+				!prevIsRightClick && isRightClick,
+				!prevIsLeftClick && isLeftClick,
+			);
 		renderForToolUser(entity, pass, par3);
 	}
 }

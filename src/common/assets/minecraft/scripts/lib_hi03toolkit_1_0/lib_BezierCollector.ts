@@ -44,7 +44,8 @@ export class BezierCollector {
 		}
 		//始点
 		const startAnchorYaw = RTMApiCompat.getHorizontalAnchorYaw(startRP);
-		const startAnchorLength = RTMApiCompat.getHorizontalAnchorLength(startRP);
+		const startAnchorLength =
+			RTMApiCompat.getHorizontalAnchorLength(startRP);
 		const startAnchorVec = new Vec3(0, 0, startAnchorLength)
 			.rotateAroundX(startAnchorPitch)
 			.rotateAroundY(startAnchorYaw);

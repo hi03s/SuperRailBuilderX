@@ -114,9 +114,15 @@ export class RotatableBlockObjectMapper {
 		for (let i = 0; i < rbo.blockSetList.length; i++) {
 			const rbs = rbo.blockSetList[i];
 			if (!rbs) continue;
-			const worldX = RotatableBlockObjectMapper.toBlockCoord(rbs.local_x + x);
-			const worldY = RotatableBlockObjectMapper.toBlockCoord(rbs.local_y + y);
-			const worldZ = RotatableBlockObjectMapper.toBlockCoord(rbs.local_z + z);
+			const worldX = RotatableBlockObjectMapper.toBlockCoord(
+				rbs.local_x + x,
+			);
+			const worldY = RotatableBlockObjectMapper.toBlockCoord(
+				rbs.local_y + y,
+			);
+			const worldZ = RotatableBlockObjectMapper.toBlockCoord(
+				rbs.local_z + z,
+			);
 			const block = RTMApiCompat.getBlock(world, worldX, worldY, worldZ);
 			if (block !== RTMApiCompat.getBlockAir())
 				list.push([worldX, worldY, worldZ]);
@@ -158,9 +164,15 @@ export class RotatableBlockObjectMapper {
 		for (let i = 0; i < rbo.blockSetList.length; i++) {
 			const rbs = rbo.blockSetList[i];
 			if (!rbs) continue;
-			const worldX = RotatableBlockObjectMapper.toBlockCoord(rbs.local_x + x);
-			const worldY = RotatableBlockObjectMapper.toBlockCoord(rbs.local_y + y);
-			const worldZ = RotatableBlockObjectMapper.toBlockCoord(rbs.local_z + z);
+			const worldX = RotatableBlockObjectMapper.toBlockCoord(
+				rbs.local_x + x,
+			);
+			const worldY = RotatableBlockObjectMapper.toBlockCoord(
+				rbs.local_y + y,
+			);
+			const worldZ = RotatableBlockObjectMapper.toBlockCoord(
+				rbs.local_z + z,
+			);
 			const block = RTMApiCompat.getBlock(world, worldX, worldY, worldZ);
 			if (block !== RTMApiCompat.getBlockAir())
 				list.push([rbs.blockSet, worldX, worldY, worldZ, rbs.yaw]);
@@ -182,7 +194,12 @@ export class BlockDiffusionMode {
 	static readonly CLASSIC = 3;
 
 	private static readonly modes: BlockDiffusionMode[] = [
-		new BlockDiffusionMode(BlockDiffusionMode.XZ, "xz", `XZ拡散 [Medium]`, 0.2),
+		new BlockDiffusionMode(
+			BlockDiffusionMode.XZ,
+			"xz",
+			`XZ拡散 [Medium]`,
+			0.2,
+		),
 		new BlockDiffusionMode(
 			BlockDiffusionMode.CLASSIC,
 			"classic",

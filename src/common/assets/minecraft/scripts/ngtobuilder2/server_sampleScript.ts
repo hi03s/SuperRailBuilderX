@@ -113,7 +113,10 @@ function onUpdate2(
 		builder.doBuild(entity, blockLimit);
 		//生成完了の処理
 		if (builder.isFinished(entity)) {
-			RTMApiCompat.sendChatMessage(hostPlayer, `[NGTO Builder2] 生成終了`);
+			RTMApiCompat.sendChatMessage(
+				hostPlayer,
+				`[NGTO Builder2] 生成終了`,
+			);
 			builder.clear(entity);
 			dataMap.setBoolean("isInitializedBuild", false, 1);
 			dataMap.setBoolean("isBuilding", false, 1);

@@ -42,7 +42,10 @@ export class Quaternion {
 	 */
 	normalizeSelf(): Quaternion {
 		const length = Math.sqrt(
-			this.w * this.w + this.x * this.x + this.y * this.y + this.z * this.z,
+			this.w * this.w +
+				this.x * this.x +
+				this.y * this.y +
+				this.z * this.z,
 		);
 		if (length === 0) {
 			this.w = 1;
@@ -61,7 +64,10 @@ export class Quaternion {
 	 */
 	normalize(): Quaternion {
 		const length = Math.sqrt(
-			this.w * this.w + this.x * this.x + this.y * this.y + this.z * this.z,
+			this.w * this.w +
+				this.x * this.x +
+				this.y * this.y +
+				this.z * this.z,
 		);
 		if (length === 0) return new Quaternion(1, 0, 0, 0);
 		return new Quaternion(
@@ -109,7 +115,10 @@ export class Quaternion {
 	extractYaw(): number {
 		// 精度と割り当てを抑えるため、直接計算して角度を返す（[deg]）
 		const length = Math.sqrt(
-			this.w * this.w + this.x * this.x + this.y * this.y + this.z * this.z,
+			this.w * this.w +
+				this.x * this.x +
+				this.y * this.y +
+				this.z * this.z,
 		);
 		let w = this.w,
 			x = this.x,
@@ -288,7 +297,9 @@ export class Quaternion {
 		axisZ: number,
 		angleDeg: number,
 	): Quaternion {
-		const axisLength = Math.sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ);
+		const axisLength = Math.sqrt(
+			axisX * axisX + axisY * axisY + axisZ * axisZ,
+		);
 
 		if (axisLength === 0) {
 			return new Quaternion(1, 0, 0, 0);
@@ -366,7 +377,24 @@ export class Quaternion {
 		const m21 = 2 * (yz + wx);
 		const m22 = 1 - 2 * (xx + yy);
 
-		return [m00, m10, m20, 0, m01, m11, m21, 0, m02, m12, m22, 0, 0, 0, 0, 1];
+		return [
+			m00,
+			m10,
+			m20,
+			0,
+			m01,
+			m11,
+			m21,
+			0,
+			m02,
+			m12,
+			m22,
+			0,
+			0,
+			0,
+			0,
+			1,
+		];
 	}
 
 	private static degToRad(deg: number): number {
