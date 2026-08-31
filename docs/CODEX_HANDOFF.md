@@ -84,8 +84,8 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - SuperRailBuilderXの共通スクリプトは `src/common/assets/minecraft/scripts/superrailbuilderx` に格納し、ツールキット拡張も固有ラッパーとして実装する方針を追加。
 - multi-target固有compatのみ、各ターゲットの同名 `superrailbuilderx` ディレクトリへ実装を置く例外を明記。
 - 検証: `git diff --check` を実施。
-- コミット: 未コミット
-- 同期: 未実施。
+- コミット: https://github.com/hi03s/SuperRailBuilderX/commit/2b37c97fc04eeb34cea3c6f3caff26fe0a57cb59
+- 同期: `origin/main` へ同期済み。
 
 ### 2026-08-31 ローカルCodex — NGTOBuilder2とのcompat衝突回避
 
