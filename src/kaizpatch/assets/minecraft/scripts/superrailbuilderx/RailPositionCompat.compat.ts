@@ -12,6 +12,15 @@ import { RailMapBasic, RailPosition, RailProperty } from "jp.ngt.rtm.rail.util";
 import { ArrayList } from "java.util";
 
 type RailSectionCore = TileEntityLargeRailCore & {
+	fixRTMRailMapVersion: number;
+	configureRailSection(
+		groupId: java.util.UUID,
+		logicalPositions: JavaObjectArray<RailPosition>,
+		sectionPositions: JavaObjectArray<RailPosition>,
+		startRatio: number,
+		endRatio: number,
+		corePositions: java.util.List<number[]>,
+	): void;
 	getLogicalRailPositions(): JavaObjectArray<RailPosition> | null;
 	getRailGroupCorePositions(): java.util.List<number[]> | null;
 	getRailGroupId(): { toString(): string } | null;
@@ -19,8 +28,21 @@ type RailSectionCore = TileEntityLargeRailCore & {
 };
 
 type RailSectionPlan = {
+	getStartRatio(): number;
+	getEndRatio(): number;
 	getStartRP(): RailPosition;
 	getEndRP(): RailPosition;
+};
+
+type RailSectionMap = {
+	setRail(
+		world: net.minecraft.world.World,
+		block: net.minecraft.block.Block,
+		x: number,
+		y: number,
+		z: number,
+		property: RailProperty,
+	): void;
 };
 
 declare const Packages: {
@@ -36,6 +58,13 @@ declare const Packages: {
 									source: RailMapBasic,
 								): java.util.List<RailSectionPlan>;
 							};
+							RailMapSection: new (
+								source: RailMapBasic,
+								start: RailPosition,
+								end: RailPosition,
+								startRatio: number,
+								endRatio: number,
+							) => RailSectionMap;
 						};
 					};
 				};
@@ -77,6 +106,62 @@ export class RailPositionCompat {
 		return list;
 	}
 
+	private static toRailPositionArray(
+		positions: RailPosition[],
+	): JavaObjectArray<RailPosition> {
+		const result = java.lang.reflect.Array.newInstance(
+			RailPosition.class,
+			positions.length,
+		) as JavaObjectArray<RailPosition>;
+		for (let i = 0; i < positions.length; i++) result[i] = positions[i];
+		return result;
+	}
+
+	private static createIntPosition(
+		x: number,
+		y: number,
+		z: number,
+	): number[] {
+		const result = java.lang.reflect.Array.newInstance(
+			java.lang.Integer.TYPE,
+			3,
+		) as number[];
+		java.lang.reflect.Array.setInt(result, 0, x);
+		java.lang.reflect.Array.setInt(result, 1, y);
+		java.lang.reflect.Array.setInt(result, 2, z);
+		return result;
+	}
+
+	private static positionKey(x: number, y: number, z: number): string {
+		return `${x},${y},${z}`;
+	}
+
+	private static createSectionPlan(
+		core: TileEntityLargeRailCore,
+		positions: RailPosition[],
+	): {
+		source: RailMapBasic;
+		sections: java.util.List<RailSectionPlan>;
+		coreKeys: { [key: string]: boolean };
+	} {
+		const currentMap = core.getRailMap(null);
+		const mapVersion =
+			currentMap instanceof RailMapBasic
+				? currentMap.fixRTMRailMapVersion
+				: RailMapBasic.fixRTMRailMapVersionCurrent;
+		const source = new RailMapBasic(positions[0], positions[1], mapVersion);
+		const sections =
+			Packages.jp.kaiz.kaizpatch.rtm.rail.util.RailChunkSectioner.split(
+				source,
+			);
+		const coreKeys: { [key: string]: boolean } = {};
+		for (let i = 0; i < sections.size(); i++) {
+			const rp = sections.get(i).getStartRP();
+			coreKeys[this.positionKey(rp.blockX, rp.blockY, rp.blockZ)] = true;
+		}
+		return { source, sections, coreKeys };
+	}
+
 	private static createMovedPositions(
 		positions: { length: number; [index: number]: RailPosition },
 		index: number,
@@ -107,9 +192,16 @@ export class RailPositionCompat {
 			mapVersion,
 		);
 		const blocks = railMap.getRailBlockList(property);
+		const sectionPlan = strict
+			? this.createSectionPlan(core, positions)
+			: null;
 		let conflicts = 0;
+		let plannedCoreConflicts = 0;
+		let retainedCrossingCores = 0;
 		let overlappingForeignRoadbeds = 0;
 		const samples: string[] = [];
+		const plannedCoreSamples: string[] = [];
+		const plannedCoreConflictKeys: { [key: string]: boolean } = {};
 		for (let i = 0; i < blocks.size(); i++) {
 			const pos = blocks.get(i);
 			if (world.isAirBlock(pos[0], pos[1], pos[2])) continue;
@@ -125,12 +217,62 @@ export class RailPositionCompat {
 					overlappingForeignRoadbeds++;
 					continue;
 				}
+				if (
+					sectionPlan &&
+					!sectionPlan.coreKeys[
+						this.positionKey(pos[0], pos[1], pos[2])
+					]
+				) {
+					retainedCrossingCores++;
+					continue;
+				}
+				if (sectionPlan) {
+					const key = this.positionKey(pos[0], pos[1], pos[2]);
+					if (!plannedCoreConflictKeys[key]) plannedCoreConflicts++;
+					plannedCoreConflictKeys[key] = true;
+					if (plannedCoreSamples.length < 8)
+						plannedCoreSamples.push(
+							`${pos[0]},${pos[1]},${pos[2]}:${block.getUnlocalizedName()}`,
+						);
+					continue;
+				}
 			}
 			conflicts++;
 			if (samples.length < 8)
 				samples.push(
 					`${pos[0]},${pos[1]},${pos[2]}:${block.getUnlocalizedName()}`,
 				);
+		}
+		if (sectionPlan) {
+			for (let i = 0; i < sectionPlan.sections.size(); i++) {
+				const rp = sectionPlan.sections.get(i).getStartRP();
+				const key = this.positionKey(rp.blockX, rp.blockY, rp.blockZ);
+				if (plannedCoreConflictKeys[key]) continue;
+				const block = world.getBlock(rp.blockX, rp.blockY, rp.blockZ);
+				if (!(block instanceof BlockLargeRailBase) || !block.isCore())
+					continue;
+				const tile = world.getTileEntity(
+					rp.blockX,
+					rp.blockY,
+					rp.blockZ,
+				);
+				if (tile instanceof TileEntityLargeRailBase) {
+					const owner = tile.getRailCore();
+					if (owner && core.isSameLogicalRail(owner)) continue;
+				}
+				plannedCoreConflictKeys[key] = true;
+				plannedCoreConflicts++;
+				if (plannedCoreSamples.length < 8)
+					plannedCoreSamples.push(
+						`${rp.blockX},${rp.blockY},${rp.blockZ}:${block.getUnlocalizedName()}`,
+					);
+			}
+		}
+		if (plannedCoreConflicts > 0) {
+			NGTLog.debug(
+				`[SuperRailBuilderX RailPosition] planned section core conflict: count=${plannedCoreConflicts}, samples=${plannedCoreSamples.join(";")}`,
+			);
+			return `section_core_conflict(${plannedCoreConflicts})`;
 		}
 		if (conflicts > 0) {
 			NGTLog.debug(
@@ -142,6 +284,10 @@ export class RailPositionCompat {
 			NGTLog.debug(
 				`[SuperRailBuilderX RailPosition] allowing overlapping foreign roadbed: count=${overlappingForeignRoadbeds}`,
 			);
+		if (retainedCrossingCores > 0)
+			NGTLog.debug(
+				`[SuperRailBuilderX RailPosition] allowing section crossing over retained foreign cores: count=${retainedCrossingCores}`,
+			);
 		return "ok";
 	}
 
@@ -151,20 +297,7 @@ export class RailPositionCompat {
 	): void {
 		try {
 			const world = this.getCoreWorld(core);
-			const currentMap = core.getRailMap(null);
-			const mapVersion =
-				currentMap instanceof RailMapBasic
-					? currentMap.fixRTMRailMapVersion
-					: RailMapBasic.fixRTMRailMapVersionCurrent;
-			const source = new RailMapBasic(
-				positions[0],
-				positions[1],
-				mapVersion,
-			);
-			const sections =
-				Packages.jp.kaiz.kaizpatch.rtm.rail.util.RailChunkSectioner.split(
-					source,
-				);
+			const sections = this.createSectionPlan(core, positions).sections;
 			const samples: string[] = [];
 			for (let i = 0; i < sections.size() && i < 12; i++) {
 				const rp = sections.get(i).getStartRP();
@@ -187,6 +320,172 @@ export class RailPositionCompat {
 			NGTLog.debug(
 				`[SuperRailBuilderX RailPosition] planned section core diagnostic failed: ${error}`,
 			);
+		}
+	}
+
+	private static hasRetainedForeignCoreCrossing(
+		core: RailSectionCore,
+		positions: RailPosition[],
+	): boolean {
+		const world = this.getCoreWorld(core);
+		const plan = this.createSectionPlan(core, positions);
+		const blocks = plan.source.getRailBlockList(core.getProperty());
+		for (let i = 0; i < blocks.size(); i++) {
+			const pos = blocks.get(i);
+			const block = world.getBlock(pos[0], pos[1], pos[2]);
+			if (!(block instanceof BlockLargeRailBase) || !block.isCore())
+				continue;
+			const tile = world.getTileEntity(pos[0], pos[1], pos[2]);
+			if (tile instanceof TileEntityLargeRailBase) {
+				const owner = tile.getRailCore();
+				if (owner && core.isSameLogicalRail(owner)) continue;
+			}
+			if (!plan.coreKeys[this.positionKey(pos[0], pos[1], pos[2])])
+				return true;
+		}
+		return false;
+	}
+
+	private static createSectionedRailPreservingForeignCores(
+		core: RailSectionCore,
+		positions: RailPosition[],
+		property: RailProperty,
+	): boolean {
+		const world = this.getCoreWorld(core);
+		const plan = this.createSectionPlan(core, positions);
+		if (plan.sections.size() <= 1) return false;
+		const groupId = java.util.UUID.randomUUID();
+		const logicalPositions = this.copyRailPositions(positions);
+		const logicalArray = this.toRailPositionArray(logicalPositions);
+		const corePositions = new ArrayList<number[]>();
+		const placedCoreKeys: { [key: string]: boolean } = {};
+		for (let i = 0; i < plan.sections.size(); i++) {
+			const rp = plan.sections.get(i).getStartRP();
+			corePositions.add(
+				this.createIntPosition(rp.blockX, rp.blockY, rp.blockZ),
+			);
+		}
+		try {
+			plan.source.prepareBaseBlocks(
+				world,
+				logicalPositions[0].blockX,
+				logicalPositions[0].blockY,
+				logicalPositions[0].blockZ,
+			);
+			for (let i = 0; i < plan.sections.size(); i++) {
+				const section = plan.sections.get(i);
+				const sectionMap =
+					new Packages.jp.kaiz.kaizpatch.rtm.rail.util.RailMapSection(
+						plan.source,
+						section.getStartRP(),
+						section.getEndRP(),
+						section.getStartRatio(),
+						section.getEndRatio(),
+					);
+				const rp = section.getStartRP();
+				sectionMap.setRail(
+					world,
+					RTMRail.largeRailBase0,
+					rp.blockX,
+					rp.blockY,
+					rp.blockZ,
+					property,
+				);
+			}
+			for (let i = 0; i < plan.sections.size(); i++) {
+				const section = plan.sections.get(i);
+				const sectionStart = RailPosition.readFromNBT(
+					section.getStartRP().writeToNBT(),
+				);
+				const sectionEnd = RailPosition.readFromNBT(
+					section.getEndRP().writeToNBT(),
+				);
+				if (
+					!world.setBlock(
+						sectionStart.blockX,
+						sectionStart.blockY,
+						sectionStart.blockZ,
+						RTMRail.largeRailCore0,
+						1,
+						2,
+					)
+				)
+					throw new Error(
+						`failed to place section core at ${sectionStart.blockX},${sectionStart.blockY},${sectionStart.blockZ}`,
+					);
+				placedCoreKeys[
+					this.positionKey(
+						sectionStart.blockX,
+						sectionStart.blockY,
+						sectionStart.blockZ,
+					)
+				] = true;
+				const tile = world.getTileEntity(
+					sectionStart.blockX,
+					sectionStart.blockY,
+					sectionStart.blockZ,
+				);
+				if (
+					!(tile instanceof TileEntityLargeRailCore) ||
+					!this.isSectionCore(tile)
+				)
+					throw new Error(
+						`section core tile missing at ${sectionStart.blockX},${sectionStart.blockY},${sectionStart.blockZ}`,
+					);
+				tile.configureRailSection(
+					groupId,
+					logicalArray,
+					this.toRailPositionArray([sectionStart, sectionEnd]),
+					section.getStartRatio(),
+					section.getEndRatio(),
+					corePositions,
+				);
+				tile.setProperty(property);
+				tile.setStartPoint(
+					sectionStart.blockX,
+					sectionStart.blockY,
+					sectionStart.blockZ,
+				);
+				tile.fixRTMRailMapVersion = plan.source.fixRTMRailMapVersion;
+				tile.createRailMap();
+				tile.markDirty();
+				world.markBlockForUpdate(
+					sectionStart.blockX,
+					sectionStart.blockY,
+					sectionStart.blockZ,
+				);
+			}
+			NGTLog.debug(
+				`[SuperRailBuilderX RailPosition] tolerant section rebuild created: sections=${plan.sections.size()}`,
+			);
+			return true;
+		} catch (error) {
+			NGTLog.debug(
+				`[SuperRailBuilderX RailPosition] tolerant section rebuild exception: ${error}`,
+			);
+			for (let i = 0; i < plan.sections.size(); i++) {
+				const rp = plan.sections.get(i).getStartRP();
+				if (
+					!placedCoreKeys[
+						this.positionKey(rp.blockX, rp.blockY, rp.blockZ)
+					]
+				)
+					continue;
+				const tile = world.getTileEntity(
+					rp.blockX,
+					rp.blockY,
+					rp.blockZ,
+				);
+				if (
+					tile instanceof TileEntityLargeRailCore &&
+					this.isSectionCore(tile)
+				) {
+					world.setBlockToAir(rp.blockX, rp.blockY, rp.blockZ);
+					world.removeTileEntity(rp.blockX, rp.blockY, rp.blockZ);
+					world.markBlockForUpdate(rp.blockX, rp.blockY, rp.blockZ);
+				}
+			}
+			return false;
 		}
 	}
 
@@ -469,22 +768,32 @@ export class RailPositionCompat {
 		for (let i = 0; i < core.subRails.size(); i++)
 			subRails.add(core.subRails.get(i));
 		this.logSectionCorePlan(core, movedPositions);
+		const preserveForeignCores = this.hasRetainedForeignCoreCrossing(
+			core,
+			movedPositions,
+		);
 		NGTLog.debug(
-			`[SuperRailBuilderX RailPosition] rebuilding sectioned rail: groupCores=${groupPositions.size()}, index=${index}`,
+			`[SuperRailBuilderX RailPosition] rebuilding sectioned rail: groupCores=${groupPositions.size()}, index=${index}, preserveForeignCores=${preserveForeignCores}`,
 		);
 		let created = false;
 		try {
 			core.breakLogicalRail();
-			created = BlockMarker.createRail(
-				world,
-				movedPositions[0].blockX,
-				movedPositions[0].blockY,
-				movedPositions[0].blockZ,
-				this.toJavaList(movedPositions),
-				property,
-				true,
-				true,
-			);
+			created = preserveForeignCores
+				? this.createSectionedRailPreservingForeignCores(
+						core,
+						movedPositions,
+						property,
+					)
+				: BlockMarker.createRail(
+						world,
+						movedPositions[0].blockX,
+						movedPositions[0].blockY,
+						movedPositions[0].blockZ,
+						this.toJavaList(movedPositions),
+						property,
+						true,
+						true,
+					);
 		} catch (error) {
 			NGTLog.debug(
 				`[SuperRailBuilderX RailPosition] sectioned rail rebuild exception: ${error}`,
