@@ -15,6 +15,7 @@
 - `pnpm gen` と全3ターゲットの `pnpm build` が成功する状態を確認済み。
 - RailPosition試験ツールへ、候補探索の例外ガード・診断ログと適用後のクライアントRailMap再生成を追加済み。
 - NGTOBuilder2と同じ共有compatパスによるキャッシュ衝突を避けるため、RailPosition専用APIをSuperRailBuilderX固有compatへ分離済み（実機再確認待ち）。
+- `lib_hi03toolkit_1_0` は今後編集しない参照専用領域とし、共通スクリプトは `src/common/assets/minecraft/scripts/superrailbuilderx` に置く方針を恒久化済み。
 
 ## 作業中
 
@@ -76,6 +77,15 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 ## 作業記録
 
 新しい記録を上に追加します。詳細な議論がGitHub Issueにある場合は、要点とリンクだけを記載します。
+
+### 2026-08-31 ローカルCodex — ツールキットを参照専用化
+
+- `src/common/assets/minecraft/scripts/lib_hi03toolkit_1_0` 内は今後編集・機能追加しないルールを `AGENTS.md` へ追加。
+- SuperRailBuilderXの共通スクリプトは `src/common/assets/minecraft/scripts/superrailbuilderx` に格納し、ツールキット拡張も固有ラッパーとして実装する方針を追加。
+- multi-target固有compatのみ、各ターゲットの同名 `superrailbuilderx` ディレクトリへ実装を置く例外を明記。
+- 検証: `git diff --check` を実施。
+- コミット: 未コミット
+- 同期: 未実施。
 
 ### 2026-08-31 ローカルCodex — NGTOBuilder2とのcompat衝突回避
 

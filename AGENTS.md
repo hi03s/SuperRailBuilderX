@@ -32,6 +32,13 @@
 - 既存のユーザー変更を、明確な理由なく上書きまたは削除しない。
 - 不明点が結果を大きく左右する場合は、その部分の実装を止めて確認する。
 
+## スクリプトの配置とツールキット
+
+- `src/common/assets/minecraft/scripts/lib_hi03toolkit_1_0` 内のファイルはNGTOBuilder2と共有する参照専用ツールキットとして扱い、編集・機能追加しない。
+- SuperRailBuilderXで編集・追加する共通スクリプトは、`src/common/assets/minecraft/scripts/superrailbuilderx` 内に格納する。
+- ツールキットの処理を変更または拡張する必要がある場合も、`lib_hi03toolkit_1_0` は変更せず、`superrailbuilderx` 内にラッパーまたは固有実装を作成する。
+- multi-targetのためにターゲット固有compatが必要な場合に限り、共通宣言を上記の共通ディレクトリへ置き、実装を各ターゲットの `assets/minecraft/scripts/superrailbuilderx` 内へ置く。
+
 ## 操作設計
 
 - NGTOBuilder2に近い段階式操作を基本とする。
