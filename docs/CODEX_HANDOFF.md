@@ -12,6 +12,7 @@
 - NGTOBuilder2のツールキット、サンプルスクリプト、暫定モデル・テクスチャを導入済み。
 - RailPosition自由化を確認する試験ツールを実装済み。
 - RailPosition自由化の調査結果を `docs/rail-position-free-positioning.md` に記録済み。
+- `pnpm gen` と全3ターゲットの `pnpm build` が成功する状態を確認済み。
 
 ## 作業中
 
@@ -33,13 +34,13 @@
 - RailPositionを大きく移動した場合に必要となるレール構成ブロックの再配置方法は未実装。
 - RailPosition移動後のUndoは未実装。
 - 仮のボタンテクスチャは未配置のパスを指定している。
+- Prettier 3.9.6では既存のTypeScript 28ファイルが `pnpm format:check` に失敗する。全体整形を別作業として行うか判断が必要。
 
 ## 次に行うこと
 
-1. ローカル環境で `pnpm gen` と `pnpm build` を実行する。
-2. ゲーム内で通常レール端点の探索、選択、移動先確定、Enter適用を確認する。
-3. エラーや想定外の挙動があれば、ログと再現手順をこのファイルかGitHub Issueへ記録する。
-4. 試験結果をもとに、スナップや接続成立判定の仕様を決める。
+1. ゲーム内で通常レール端点の探索、選択、移動先確定、Enter適用を確認する。
+2. エラーや想定外の挙動があれば、ログと再現手順をこのファイルかGitHub Issueへ記録する。
+3. 試験結果をもとに、スナップや接続成立判定の仕様を決める。
 
 ## 開発者からCodexへの連絡欄
 
@@ -66,6 +67,24 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 ## 作業記録
 
 新しい記録を上に追加します。詳細な議論がGitHub Issueにある場合は、要点とリンクだけを記載します。
+
+### 2026-08-31 Codex — コミット・同期運用の明文化
+
+- 変更作業は、ユーザーから明示的に止められていない限り、検証と差分確認後にコミットする方針を `AGENTS.md` へ追加。
+- コミット後は現在のブランチをリモートへpushし、同期結果を引継ぎ帳へ残す方針を追加。
+- コミット: https://github.com/hi03s/SuperRailBuilderX/commit/71844d445c1d38ec2ce90d35f38c829f1c4ce6ef
+- 同期: `origin/main` へ同期済み。
+
+### 2026-08-31 Codex — 生成・ビルド検証とmulti-target互換修正
+
+- `pnpm gen` を実行し、kaizpatch・mc1710・mc1122の型定義とマッピング生成が成功。
+- 共通コードにあった1.7.10専用の `xCoord` 参照をcompat層へ移し、mc1122では `getPos()` を使用するよう修正。
+- KaizPatchの自動分割レール判定で、Javaオブジェクトの `getClass()` を明示的な補助型経由で呼ぶよう修正。
+- `pnpm build` は全3ターゲットで成功。
+- `pnpm format:check` は失敗。今回の変更前のHEAD版でも再現し、Prettier 3.9.6が既存のTypeScript 28ファイルを要整形と判定する。
+- ゲーム内動作確認は未実施。
+- コミット: https://github.com/hi03s/SuperRailBuilderX/commit/b6fba9f28e454268178fd6da38389657387cdbcc
+- 同期: `origin/main` へ同期済み。
 
 ### 2026-08-31 Codex — RailPosition試験ツール
 
