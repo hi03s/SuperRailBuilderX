@@ -81,6 +81,9 @@ function applyRequest(
 			target.original[0],
 			target.original[1],
 			target.original[2],
+			request.destination[0],
+			request.destination[1],
+			request.destination[2],
 		);
 		if (validation !== "ok") return `target_${i}:${validation}`;
 		resolved.push({ core, target });

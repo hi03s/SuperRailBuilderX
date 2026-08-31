@@ -1,11 +1,14 @@
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { NGTUtil } from "jp.ngt.ngtlib.util";
+import { RTMRail } from "jp.ngt.rtm";
 import {
+	BlockLargeRailBase,
 	BlockMarker,
 	TileEntityLargeRailBase,
 	TileEntityLargeRailCore,
+	TileEntityLargeRailSwitchCore,
 } from "jp.ngt.rtm.rail";
-import { RailPosition, RailProperty } from "jp.ngt.rtm.rail.util";
+import { RailMapBasic, RailPosition, RailProperty } from "jp.ngt.rtm.rail.util";
 import { ArrayList } from "java.util";
 
 type RailSectionCore = TileEntityLargeRailCore & {
@@ -62,6 +65,118 @@ export class RailPositionCompat {
 		return list;
 	}
 
+	private static createMovedPositions(
+		positions: { length: number; [index: number]: RailPosition },
+		index: number,
+		x: number,
+		y: number,
+		z: number,
+	): RailPosition[] {
+		const moved = this.copyRailPositions(positions);
+		moved[index].setPosition(x, y, z);
+		return moved;
+	}
+
+	private static validateRoadbedPath(
+		core: TileEntityLargeRailCore,
+		positions: RailPosition[],
+		rejectForeignRail: boolean,
+	): string {
+		const world = this.getCoreWorld(core);
+		const property = core.getProperty();
+		const currentMap = core.getRailMap(null);
+		const mapVersion =
+			currentMap instanceof RailMapBasic
+				? currentMap.fixRTMRailMapVersion
+				: RailMapBasic.fixRTMRailMapVersionCurrent;
+		const railMap = new RailMapBasic(
+			positions[0],
+			positions[1],
+			mapVersion,
+		);
+		const blocks = railMap.getRailBlockList(property);
+		let conflicts = 0;
+		let preservedForeignRails = 0;
+		const samples: string[] = [];
+		for (let i = 0; i < blocks.size(); i++) {
+			const pos = blocks.get(i);
+			if (world.isAirBlock(pos[0], pos[1], pos[2])) continue;
+			const block = world.getBlock(pos[0], pos[1], pos[2]);
+			if (block instanceof BlockMarker) continue;
+			if (block instanceof BlockLargeRailBase) {
+				const tile = world.getTileEntity(pos[0], pos[1], pos[2]);
+				if (tile instanceof TileEntityLargeRailBase) {
+					const owner = tile.getRailCore();
+					if (owner && core.isSameLogicalRail(owner)) continue;
+				}
+				if (!rejectForeignRail) {
+					preservedForeignRails++;
+					continue;
+				}
+			}
+			conflicts++;
+			if (samples.length < 8)
+				samples.push(
+					`${pos[0]},${pos[1]},${pos[2]}:${block.getUnlocalizedName()}`,
+				);
+		}
+		if (conflicts > 0) {
+			NGTLog.debug(
+				`[SuperRailBuilderX RailPosition] roadbed conflict: count=${conflicts}, samples=${samples.join(";")}`,
+			);
+			return `roadbed_conflict(${conflicts})`;
+		}
+		if (preservedForeignRails > 0)
+			NGTLog.debug(
+				`[SuperRailBuilderX RailPosition] preserving foreign rail roadbed: count=${preservedForeignRails}`,
+			);
+		return "ok";
+	}
+
+	private static addMissingRoadbed(core: TileEntityLargeRailCore): void {
+		const world = this.getCoreWorld(core);
+		const railMap = core.getRailMap(null);
+		if (!railMap) return;
+		const blocks = railMap.getRailBlockList(core.getProperty());
+		let added = 0;
+		let retained = 0;
+		for (let i = 0; i < blocks.size(); i++) {
+			const pos = blocks.get(i);
+			const block = world.getBlock(pos[0], pos[1], pos[2]);
+			if (
+				world.isAirBlock(pos[0], pos[1], pos[2]) ||
+				block instanceof BlockMarker
+			) {
+				if (
+					world.setBlock(
+						pos[0],
+						pos[1],
+						pos[2],
+						RTMRail.largeRailBase0,
+						0,
+						2,
+					)
+				) {
+					const tile = world.getTileEntity(pos[0], pos[1], pos[2]);
+					if (tile instanceof TileEntityLargeRailBase) {
+						tile.setStartPoint(
+							core.xCoord,
+							core.yCoord,
+							core.zCoord,
+						);
+						tile.markDirty();
+					}
+					added++;
+				}
+			} else {
+				retained++;
+			}
+		}
+		NGTLog.debug(
+			`[SuperRailBuilderX RailPosition] additive roadbed update: added=${added}, retained=${retained}, removed=0`,
+		);
+	}
+
 	static getRailCorePos(
 		core: TileEntityLargeRailCore,
 	): [number, number, number] {
@@ -94,6 +209,7 @@ export class RailPositionCompat {
 		core: TileEntityLargeRailCore,
 	): string {
 		if (!core) return "missing_core";
+		if (core instanceof TileEntityLargeRailSwitchCore) return "switch";
 		if (this.isSectionCore(core)) {
 			const logicalPositions = core.getLogicalRailPositions();
 			const groupPositions = core.getRailGroupCorePositions();
@@ -135,6 +251,9 @@ export class RailPositionCompat {
 		originalX: number,
 		originalY: number,
 		originalZ: number,
+		x: number,
+		y: number,
+		z: number,
 	): string {
 		if (!this.canMoveRailPosition(core)) return "unsupported";
 		const positions = this.getEditableRailPositions(core);
@@ -148,6 +267,19 @@ export class RailPositionCompat {
 			Math.abs(position.posZ - originalZ) > tolerance
 		)
 			return "changed";
+		const movedPositions = this.createMovedPositions(
+			positions,
+			index,
+			x,
+			y,
+			z,
+		);
+		const roadbedValidation = this.validateRoadbedPath(
+			core,
+			movedPositions,
+			this.isSectionCore(core),
+		);
+		if (roadbedValidation !== "ok") return roadbedValidation;
 		if (!this.isSectionCore(core)) return "ok";
 		if (core.isLogicalRailOccupied()) return "occupied";
 		const groupPositions = core.getRailGroupCorePositions();
@@ -182,6 +314,9 @@ export class RailPositionCompat {
 			originalX,
 			originalY,
 			originalZ,
+			x,
+			y,
+			z,
 		);
 		if (validation !== "ok") return validation;
 		if (this.isSectionCore(core))
@@ -208,6 +343,7 @@ export class RailPositionCompat {
 		position.setPosition(x, y, z);
 		core.setRailPositions(positions);
 		core.createRailMap();
+		this.addMissingRoadbed(core);
 		core.markDirty();
 		NGTUtil.sendPacketToClient(core);
 		this.getCoreWorld(core).markBlockForUpdate(

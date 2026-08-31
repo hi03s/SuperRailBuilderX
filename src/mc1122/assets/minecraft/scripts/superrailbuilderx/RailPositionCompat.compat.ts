@@ -52,12 +52,18 @@ export class RailPositionCompat {
 		originalX: number,
 		originalY: number,
 		originalZ: number,
+		x: number,
+		y: number,
+		z: number,
 	): string {
 		void core;
 		void index;
 		void originalX;
 		void originalY;
 		void originalZ;
+		void x;
+		void y;
+		void z;
 		return "unsupported";
 	}
 

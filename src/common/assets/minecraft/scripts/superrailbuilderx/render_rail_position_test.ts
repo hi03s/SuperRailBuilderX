@@ -46,6 +46,7 @@ type EditorState = {
 	stage: number;
 	selected: SelectedEndpoint | null;
 	destination: [number, number, number] | null;
+	awaitingResult: boolean;
 };
 
 type CandidateScanDiagnostics = {
@@ -54,6 +55,7 @@ type CandidateScanDiagnostics = {
 	missingCores: number;
 	unsupportedCores: number;
 	sectionedCores: number;
+	switchCores: number;
 	invalidPositions: number;
 	outOfRangePositions: number;
 	errors: number;
@@ -80,7 +82,12 @@ function init(par1: ModelSetVehicle, par2: ModelObject): void {
 function getState(entity: EntityVehicle): EditorState {
 	let state = states.get(entity);
 	if (!state) {
-		state = { stage: 0, selected: null, destination: null };
+		state = {
+			stage: 0,
+			selected: null,
+			destination: null,
+			awaitingResult: false,
+		};
 		states.put(entity, state);
 	}
 	return state;
@@ -129,7 +136,7 @@ function logCandidateScan(
 	candidateCount: number,
 ): void {
 	NGTLog.debug(
-		`[SuperRailBuilderX RailPosition] candidate scan: look=${looking.posX.toFixed(3)},${looking.posY.toFixed(3)},${looking.posZ.toFixed(3)}, candidates=${candidateCount}, railTiles=${diagnostics.railTiles}, uniqueCores=${diagnostics.uniqueCores}, missingCores=${diagnostics.missingCores}, unsupportedCores=${diagnostics.unsupportedCores}, sectionedCores=${diagnostics.sectionedCores}, invalidPositions=${diagnostics.invalidPositions}, outOfRangePositions=${diagnostics.outOfRangePositions}, errors=${diagnostics.errors}`,
+		`[SuperRailBuilderX RailPosition] candidate scan: look=${looking.posX.toFixed(3)},${looking.posY.toFixed(3)},${looking.posZ.toFixed(3)}, candidates=${candidateCount}, railTiles=${diagnostics.railTiles}, uniqueCores=${diagnostics.uniqueCores}, missingCores=${diagnostics.missingCores}, unsupportedCores=${diagnostics.unsupportedCores}, sectionedCores=${diagnostics.sectionedCores}, switchCores=${diagnostics.switchCores}, invalidPositions=${diagnostics.invalidPositions}, outOfRangePositions=${diagnostics.outOfRangePositions}, errors=${diagnostics.errors}`,
 	);
 }
 
@@ -159,6 +166,7 @@ function findCandidates(
 		missingCores: 0,
 		unsupportedCores: 0,
 		sectionedCores: 0,
+		switchCores: 0,
 		invalidPositions: 0,
 		outOfRangePositions: 0,
 		errors: 0,
@@ -197,6 +205,8 @@ function findCandidates(
 						diagnostics.unsupportedCores++;
 						if (unsupportedReason.indexOf("sectioned(") === 0)
 							diagnostics.sectionedCores++;
+						if (unsupportedReason === "switch")
+							diagnostics.switchCores++;
 						if (logDiagnostics)
 							logUnsupportedCore(corePos, unsupportedReason);
 						continue;
@@ -346,11 +356,16 @@ function handleInput(
 			const sectioned =
 				lastCandidateScanDiagnostics &&
 				lastCandidateScanDiagnostics.sectionedCores > 0;
+			const switchRail =
+				lastCandidateScanDiagnostics &&
+				lastCandidateScanDiagnostics.switchCores > 0;
 			NGTLog.sendChatMessage(
 				sender,
-				sectioned
-					? "§e[SuperRailBuilderX] 自動分割されたレールは現在選択できません"
-					: "§e[SuperRailBuilderX] 候補がありません。latest.logのcandidate scanを確認してください",
+				switchRail
+					? "§e[SuperRailBuilderX] 分岐器は現在の試験ツールでは移動できません"
+					: sectioned
+						? "§e[SuperRailBuilderX] 自動分割されたレールは現在選択できません"
+						: "§e[SuperRailBuilderX] 候補がありません。latest.logのcandidate scanを確認してください",
 			);
 		}
 	} else if (rightClick && state.stage === 1) {
@@ -373,10 +388,12 @@ function handleInput(
 		};
 		NGTOBuilderUtil.sendJsonData(dataMap, "railPositionMove", request);
 		dataMap.setString("applyResult", "waiting", 1);
+		state.awaitingResult = true;
 		NGTLog.sendChatMessage(sender, "[SuperRailBuilderX] 移動を適用中...");
 	}
 	const result = dataMap.getString("applyResult");
-	if (result !== "" && result !== "waiting") {
+	if (state.awaitingResult && result !== "" && result !== "waiting") {
+		state.awaitingResult = false;
 		if (result === "ok") {
 			if (state.selected && state.destination) {
 				for (let i = 0; i < state.selected.candidates.length; i++) {

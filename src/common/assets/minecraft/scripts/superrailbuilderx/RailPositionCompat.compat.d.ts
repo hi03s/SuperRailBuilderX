@@ -26,6 +26,9 @@ export class RailPositionCompat {
 		originalX: number,
 		originalY: number,
 		originalZ: number,
+		x: number,
+		y: number,
+		z: number,
 	): string;
 	static moveRailPosition(
 		core: TileEntityLargeRailCore,
