@@ -6,11 +6,21 @@ import { NBTTagCompound } from "net.minecraft.nbt";
 import { ResourceLocation } from "net.minecraft.util";
 import { NGTUtil } from "jp.ngt.ngtlib.util";
 
+type JavaObjectWithClass = {
+	getClass(): { getName(): string };
+};
+
 export class RTMApiCompat {
+	static getRailCorePos(core: TileEntityLargeRailCore): [number, number, number] {
+		return [core.xCoord, core.yCoord, core.zCoord];
+	}
+
 	static canMoveRailPosition(core: TileEntityLargeRailCore): boolean {
 		return (
 			core !== null &&
-			String(core.getClass().getName()).indexOf(
+			String(
+				(core as unknown as JavaObjectWithClass).getClass().getName(),
+			).indexOf(
 				"TileEntityLargeRailSectionCore",
 			) < 0
 		);

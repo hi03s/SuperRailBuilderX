@@ -109,6 +109,7 @@ export class RTMApiCompat {
 		wireStack: ItemStack,
 	): void;
 	static getModelNameFromItem(itemStack: ItemStack): string;
+	static getRailCorePos(core: TileEntityLargeRailCore): Pos;
 	static canMoveRailPosition(core: TileEntityLargeRailCore): boolean;
 	static moveRailPosition(
 		core: TileEntityLargeRailCore,

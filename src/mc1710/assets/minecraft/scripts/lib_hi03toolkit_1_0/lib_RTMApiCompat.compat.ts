@@ -35,6 +35,10 @@ declare const Packages: {
 export type Pos = [x: number, y: number, z: number];
 
 export class RTMApiCompat {
+	static getRailCorePos(core: TileEntityLargeRailCore): Pos {
+		return [core.xCoord, core.yCoord, core.zCoord];
+	}
+
 	static canMoveRailPosition(core: TileEntityLargeRailCore): boolean {
 		return false;
 	}

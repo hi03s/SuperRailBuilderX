@@ -98,7 +98,8 @@ function findCandidates(
 				if (!(tile instanceof TileEntityLargeRailBase)) continue;
 				const core = tile.getRailCore();
 				if (!core || !RTMApiCompat.canMoveRailPosition(core)) continue;
-				const coreKey = `${core.xCoord},${core.yCoord},${core.zCoord}`;
+				const corePos = RTMApiCompat.getRailCorePos(core);
+				const coreKey = `${corePos[0]},${corePos[1]},${corePos[2]}`;
 				if (seen[coreKey]) continue;
 				seen[coreKey] = true;
 				const positions = core.getRailPositions();
@@ -111,9 +112,9 @@ function findCandidates(
 						continue;
 					candidates.push({
 						core,
-						coreX: core.xCoord,
-						coreY: core.yCoord,
-						coreZ: core.zCoord,
+						coreX: corePos[0],
+						coreY: corePos[1],
+						coreZ: corePos[2],
 						index,
 						position: [rp.posX, rp.posY, rp.posZ],
 					});

@@ -54,6 +54,11 @@ type ResourceStateTileEntity = TileEntity & {
 };
 
 export class RTMApiCompat {
+	static getRailCorePos(core: TileEntityLargeRailCore): Pos {
+		const pos = core.getPos();
+		return [pos.getX(), pos.getY(), pos.getZ()];
+	}
+
 	static canMoveRailPosition(core: TileEntityLargeRailCore): boolean {
 		return false;
 	}
