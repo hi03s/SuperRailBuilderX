@@ -170,7 +170,9 @@ function findCandidates(
 					}
 					phase = "getRailCorePos";
 					const corePos = RailPositionCompat.getRailCorePos(core);
-					const coreKey = `${corePos[0]},${corePos[1]},${corePos[2]}`;
+					phase = "getRailPositionCandidateKey";
+					const coreKey =
+						RailPositionCompat.getRailPositionCandidateKey(core);
 					if (seen[coreKey]) continue;
 					seen[coreKey] = true;
 					diagnostics.uniqueCores++;
@@ -185,8 +187,9 @@ function findCandidates(
 							logUnsupportedCore(corePos, unsupportedReason);
 						continue;
 					}
-					phase = "getRailPositions";
-					const positions = core.getRailPositions();
+					phase = "getEditableRailPositions";
+					const positions =
+						RailPositionCompat.getEditableRailPositions(core);
 					if (!positions || positions.length === 0) {
 						diagnostics.invalidPositions++;
 						continue;
@@ -339,16 +342,17 @@ function handleInput(
 	}
 	const result = dataMap.getString("applyResult");
 	if (result !== "" && result !== "waiting") {
-		if (result === "ok") {
+		if (result === "ok" || result === "ok_sectioned") {
 			if (state.selected && state.destination) {
 				try {
-					RailPositionCompat.refreshRailPositionClient(
-						state.selected.core,
-						state.selected.index,
-						state.destination[0],
-						state.destination[1],
-						state.destination[2],
-					);
+					if (result === "ok")
+						RailPositionCompat.refreshRailPositionClient(
+							state.selected.core,
+							state.selected.index,
+							state.destination[0],
+							state.destination[1],
+							state.destination[2],
+						);
 				} catch (error) {
 					ErrorLogger.log(
 						"SuperRailBuilderX RailPosition apply",

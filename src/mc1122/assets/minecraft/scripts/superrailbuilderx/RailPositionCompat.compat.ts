@@ -1,4 +1,5 @@
 import { TileEntityLargeRailCore } from "jp.ngt.rtm.rail";
+import { RailPosition } from "jp.ngt.rtm.rail.util";
 
 export class RailPositionCompat {
 	static getRailCorePos(
@@ -6,6 +7,17 @@ export class RailPositionCompat {
 	): [number, number, number] {
 		const pos = core.getPos();
 		return [pos.getX(), pos.getY(), pos.getZ()];
+	}
+
+	static getRailPositionCandidateKey(core: TileEntityLargeRailCore): string {
+		const pos = core.getPos();
+		return `core:${pos.getX()},${pos.getY()},${pos.getZ()}`;
+	}
+
+	static getEditableRailPositions(
+		core: TileEntityLargeRailCore,
+	): JavaObjectArray<RailPosition> {
+		return core.getRailPositions();
 	}
 
 	static canMoveRailPosition(core: TileEntityLargeRailCore): boolean {
