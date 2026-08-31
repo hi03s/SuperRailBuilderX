@@ -86,8 +86,8 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - ログを `logs/rail-position-retest2-20260831-211401-client.log` へ改名して保存。
 - `pnpm build` はkaizpatch・mc1710・mc1122の全ターゲットで成功。
 - ゲーム内での新しい診断表示は未検証。上記連絡欄の手順で再確認が必要。
-- コミット: 未コミット
-- 同期: 未実施。
+- コミット: https://github.com/hi03s/SuperRailBuilderX/commit/623bd590021f469837f4707a4f94477b04c937fc
+- 同期: `origin/main` へ同期済み。
 
 ### 2026-08-31 ローカルCodex — ツールキットを参照専用化
 
