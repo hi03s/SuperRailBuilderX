@@ -1,0 +1,10 @@
+{
+	"extends": "./tsconfig.base.json",
+	"compilerOptions": {
+		"paths": {
+			"@target/*": ["src/common/*.compat.d.ts"]
+		}
+	},
+	"include": ["src/common/**/*.ts", "generated/common/typings/**/*.d.ts"],
+	"exclude": ["src/kaizpatch", "src/mc1710", "src/mc1122"]
+}

@@ -1,34 +1,118 @@
 {
 	"name": "SuperRailBuilderX",
-	"srcDir": "src",
 	"outDir": "dist",
-	"scan": {
-		"minecraftVersion": "1.7.10",
-		"forgeVersion": "10.13.4.1614",
-		"channel": "stable",
-		"mappingsVersion": "12",
-		"mods": ["com.github.Kai-Z-JP:KaizPatchX:v1.10.3"],
-		"packages": [
-			"net.minecraft",
-			"net.minecraftforge",
-			"cpw.mods",
-			"jp.ngt",
-			"org.lwjgl",
-			"java.util",
-			"java.nio",
-			"java.lang.System",
-			"javax.script",
-			"java.lang.String",
-			"java.lang.Integer",
-			"java.lang.Class",
-			"java.lang.reflect"
-		]
-	},
-	"compilerOptions": {
-		"strict": false,
-		"target": "ES5",
-		"module": "none",
-		"noEmitOnError": true,
-		"skipLibCheck": true
+	"commonApiPolicy": "allow",
+	"targets": {
+		"kaizpatch": {
+			"compatFallbackTarget": "mc1710",
+			"runtimeDispatch": "Packages.jp.ngt.rtm.RTMCore.VERSION.indexOf('KaizPatch') !== -1",
+			"srcDirs": ["src/common", "src/kaizpatch"],
+			"outDir": "dist/assets/minecraft/__targets__/kaizpatch",
+			"scan": {
+				"minecraftVersion": "1.7.10",
+				"forgeVersion": "10.13.4.1614",
+				"channel": "stable",
+				"mappingsVersion": "12",
+				"mods": ["com.github.Kai-Z-JP:KaizPatchX:v1.10.3"],
+				"packages": [
+					"net.minecraft",
+					"net.minecraftforge",
+					"cpw.mods",
+					"jp.ngt",
+					"org.lwjgl",
+					"java.util",
+					"java.nio",
+					"java.lang.System",
+					"javax.script",
+					"java.lang.String",
+					"java.lang.Integer",
+					"java.lang.Class",
+					"java.lang.reflect"
+				]
+			},
+			"compilerOptions": {
+				"strict": false,
+				"target": "ES5",
+				"module": "none",
+				"noEmitOnError": true,
+				"skipLibCheck": true
+			}
+		},
+		"mc1710": {
+			"runtimeDispatch": "Packages.jp.ngt.rtm.RTMCore.VERSION.indexOf('1.7.10') >= 0",
+			"srcDirs": ["src/common", "src/mc1710"],
+			"outDir": "dist/assets/minecraft/__targets__/mc1710",
+			"scan": {
+				"minecraftVersion": "1.7.10",
+				"forgeVersion": "10.13.4.1614",
+				"channel": "stable",
+				"mappingsVersion": "12",
+				"mods": [
+					"curse.maven:ngtlib-288989:6505474",
+					"curse.maven:realtrainmod-288988:6505479",
+					"curse.maven:mc-terrain-editor-289840:4030456"
+				],
+				"packages": [
+					"net.minecraft",
+					"net.minecraftforge",
+					"cpw.mods",
+					"jp.ngt",
+					"org.lwjgl",
+					"java.util",
+					"java.nio",
+					"java.lang.System",
+					"javax.script",
+					"java.lang.String",
+					"java.lang.Integer",
+					"java.lang.Class",
+					"java.lang.reflect"
+				]
+			},
+			"compilerOptions": {
+				"strict": false,
+				"target": "ES5",
+				"module": "none",
+				"noEmitOnError": true,
+				"skipLibCheck": true
+			}
+		},
+		"mc1122": {
+			"runtimeDispatch": "true",
+			"srcDirs": ["src/common", "src/mc1122"],
+			"outDir": "dist/assets/minecraft/__targets__/mc1122",
+			"scan": {
+				"minecraftVersion": "1.12.2",
+				"forgeVersion": "14.23.5.2860",
+				"channel": "stable",
+				"mappingsVersion": "39",
+				"mods": [
+					"curse.maven:ngtlib-288989:4641592",
+					"curse.maven:realtrainmod-288988:4641603",
+					"curse.maven:mc-terrain-editor-289840:4641597"
+				],
+				"packages": [
+					"net.minecraft",
+					"net.minecraftforge",
+					"net.minecraftforge.fml",
+					"jp.ngt",
+					"org.lwjgl",
+					"java.util",
+					"java.nio",
+					"java.lang.System",
+					"javax.script",
+					"java.lang.String",
+					"java.lang.Integer",
+					"java.lang.Class",
+					"java.lang.reflect"
+				]
+			},
+			"compilerOptions": {
+				"strict": false,
+				"target": "ES5",
+				"module": "none",
+				"noEmitOnError": true,
+				"skipLibCheck": true
+			}
+		}
 	}
 }

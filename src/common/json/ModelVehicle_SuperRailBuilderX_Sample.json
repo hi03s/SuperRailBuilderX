@@ -1,0 +1,29 @@
+{
+	"name": "SuperRailBuilderX_Sample",
+	"model": {
+		"modelFile": "ngtobuilder2/model_sample.mqo",
+		"textures": [
+			["mat1", "textures/ngtobuilder2/liner/sample.png", "AlphaBlend"]
+		],
+		"rendererPath": "scripts/ngtobuilder2/render_sampleScript.js"
+	},
+	"buttonTexture": "textures/ngtobuilder2/liner/button_sample.png",
+	"serverScriptPath": "scripts/ngtobuilder2/server_sampleScript.js",
+	"playerPos": [[0, 0, 0]],
+	"vehicleType": "Car",
+	"size": [1, 1],
+	"vibration": [0.0, 0.0],
+	"friction": [0.0, 0.0],
+	"acceleration": [0.0, 0.0],
+	"maxSpeed": [0.0, 0.0],
+	"maxYaw": [0.0, 0.0],
+	"pitchCoefficient": [0.0, 0.0],
+	"yawCoefficient": [0.0, 0.0],
+	"useCustomColor": false,
+	"smoothing": true,
+	"doCulling": false,
+	"changeYawOnStopping": false,
+	"accuracy": "LOW",
+	"tags": "super rail builder x sample hi03",
+	"customIconTexture": "textures/ngtobuilder2/liner/icon_sample.png"
+}

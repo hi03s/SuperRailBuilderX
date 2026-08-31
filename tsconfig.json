@@ -1,14 +1,9 @@
 {
-	"compilerOptions": {
-		"target": "ES5",
-		"lib": ["ES5"],
-		"module": "commonjs",
-		"moduleResolution": "node",
-		"downlevelIteration": true,
-		"strict": false,
-		"skipLibCheck": true,
-		"noEmit": true,
-		"baseUrl": "."
-	},
-	"include": ["src/**/*.ts", "generated/typings/**/*.d.ts"]
+	"files": [],
+	"references": [
+		{ "path": "./tsconfig.common.json" },
+		{ "path": "./tsconfig.kaizpatch.json" },
+		{ "path": "./tsconfig.mc1710.json" },
+		{ "path": "./tsconfig.mc1122.json" }
+	]
 }
