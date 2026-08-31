@@ -1,0 +1,2 @@
+# SuperRailBuilderX
+KaizPatchX向けのレール生成支援ツール
