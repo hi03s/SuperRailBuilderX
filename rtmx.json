@@ -1,0 +1,34 @@
+{
+	"name": "SuperRailBuilderX",
+	"srcDir": "src",
+	"outDir": "dist",
+	"scan": {
+		"minecraftVersion": "1.7.10",
+		"forgeVersion": "10.13.4.1614",
+		"channel": "stable",
+		"mappingsVersion": "12",
+		"mods": ["com.github.Kai-Z-JP:KaizPatchX:v1.10.3"],
+		"packages": [
+			"net.minecraft",
+			"net.minecraftforge",
+			"cpw.mods",
+			"jp.ngt",
+			"org.lwjgl",
+			"java.util",
+			"java.nio",
+			"java.lang.System",
+			"javax.script",
+			"java.lang.String",
+			"java.lang.Integer",
+			"java.lang.Class",
+			"java.lang.reflect"
+		]
+	},
+	"compilerOptions": {
+		"strict": false,
+		"target": "ES5",
+		"module": "none",
+		"noEmitOnError": true,
+		"skipLibCheck": true
+	}
+}

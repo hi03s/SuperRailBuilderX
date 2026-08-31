@@ -1,0 +1,23 @@
+{
+	"name": "super-rail-builder-x",
+	"version": "0.1.0",
+	"private": true,
+	"license": "MIT",
+	"scripts": {
+		"pregen": "node -e \"require('fs').rmSync('generated',{recursive:true,force:true})\"",
+		"gen": "rtmx generate",
+		"prebuild": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+		"build": "rtmx build",
+		"prezip": "pnpm run build",
+		"zip": "rtmx zip",
+		"clean": "node -e \"['dist','generated','artifacts'].forEach(d=>require('fs').rmSync(d,{recursive:true,force:true}))\"",
+		"format": "prettier --write \"src/**/*.ts\"",
+		"format:check": "prettier --check \"src/**/*.ts\""
+	},
+	"dependencies": {
+		"rtm-ts": "0.12.0"
+	},
+	"devDependencies": {
+		"prettier": "^3.9.6"
+	}
+}

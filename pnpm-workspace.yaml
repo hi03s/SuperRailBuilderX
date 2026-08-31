@@ -1,0 +1,2 @@
+minimumReleaseAgeExclude:
+  - rtm-ts@0.12.0
