@@ -1,0 +1,552 @@
+[00:48:52] [main/INFO]: Loading tweak class name cpw.mods.fml.common.launcher.FMLTweaker
+[00:48:52] [main/INFO]: Using primary tweak class name cpw.mods.fml.common.launcher.FMLTweaker
+[00:48:52] [main/INFO]: Calling tweak class cpw.mods.fml.common.launcher.FMLTweaker
+[00:48:52] [main/INFO]: Forge Mod Loader version 7.99.40.1614 for Minecraft 1.7.10 loading
+[00:48:52] [main/INFO]: Java is Java HotSpot(TM) 64-Bit Server VM, version 1.8.0_51, running on Windows 10:amd64:10.0, installed at C:\Program Files (x86)\Minecraft Launcher\runtime\jre-legacy\windows-x64\jre-legacy
+[00:48:52] [main/INFO]: Loading tweak class name cpw.mods.fml.common.launcher.FMLInjectionAndSortingTweaker
+[00:48:52] [main/INFO]: Loading tweak class name cpw.mods.fml.common.launcher.FMLDeobfTweaker
+[00:48:52] [main/INFO]: Calling tweak class cpw.mods.fml.common.launcher.FMLInjectionAndSortingTweaker
+[00:48:52] [main/INFO]: Calling tweak class cpw.mods.fml.common.launcher.FMLInjectionAndSortingTweaker
+[00:48:52] [main/INFO]: Calling tweak class cpw.mods.fml.relauncher.CoreModManager$FMLPluginWrapper
+[00:48:53] [main/INFO]: Found valid fingerprint for Minecraft Forge. Certificate fingerprint e3c3d50c7c986df74c645c0ac54639741c90a557
+[00:48:53] [main/INFO]: Found valid fingerprint for Minecraft. Certificate fingerprint cd99959656f753dc28d863b46769f7f8fbaefcfc
+[00:48:53] [main/INFO]: Calling tweak class cpw.mods.fml.relauncher.CoreModManager$FMLPluginWrapper
+[00:48:53] [main/INFO]: Calling tweak class cpw.mods.fml.relauncher.CoreModManager$FMLPluginWrapper
+[00:48:53] [main/INFO]: Calling tweak class cpw.mods.fml.common.launcher.FMLDeobfTweaker
+[00:48:53] [main/INFO]: Loading tweak class name cpw.mods.fml.common.launcher.TerminalTweaker
+[00:48:53] [main/INFO]: Calling tweak class cpw.mods.fml.common.launcher.TerminalTweaker
+[00:48:53] [main/INFO]: Launching wrapped minecraft {net.minecraft.client.main.Main}
+[00:48:53] [main/INFO]: Setting user: hi03
+[00:48:54] [Client thread/INFO]: LWJGL Version: 2.9.1
+[00:48:54] [Client thread/INFO]: [cpw.mods.fml.client.SplashProgress:start:188]: ---- Minecraft Crash Report ----
+// You should try our sister game, Minceraft!
+
+Time: 26/09/01 0:48
+Description: Loading screen debug info
+
+This is just a prompt for computer specs to be printed. THIS IS NOT A ERROR
+
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- System Details --
+Details:
+	Minecraft Version: 1.7.10
+	Operating System: Windows 10 (amd64) version 10.0
+	Java Version: 1.8.0_51, Oracle Corporation
+	Java VM Version: Java HotSpot(TM) 64-Bit Server VM (mixed mode), Oracle Corporation
+	Memory: 828687112 bytes (790 MB) / 1073741824 bytes (1024 MB) up to 12884901888 bytes (12288 MB)
+	JVM Flags: 6 total; -XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump -Xms1G -Xmx12G -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=120
+	AABB Pool Size: 0 (0 bytes; 0 MB) allocated, 0 (0 bytes; 0 MB) used
+	IntCache: cache: 0, tcache: 0, allocated: 0, tallocated: 0
+	FML: 
+	GL info: ' Vendor: 'NVIDIA Corporation' Version: '4.6.0 NVIDIA 591.86' Renderer: 'NVIDIA GeForce RTX 3080 Ti/PCIe/SSE2'
+[00:48:54] [Client thread/INFO]: Attempting early MinecraftForge initialization
+[00:48:54] [Client thread/INFO]: MinecraftForge v10.13.4.1614 Initialized
+[00:48:54] [Client thread/INFO]: Replaced 183 ore recipies
+[00:48:54] [Client thread/INFO]: Completed early MinecraftForge initialization
+[00:48:54] [Client thread/INFO]: Found 0 mods from the command line. Injecting into mod discoverer
+[00:48:54] [Client thread/INFO]: Searching C:\.minecraft\1.7.10\mods for mods
+[00:48:54] [Client thread/INFO]: Also searching C:\.minecraft\1.7.10\mods\1.7.10 for mods
+[00:48:57] [Client thread/INFO]: Forge Mod Loader has identified 8 mods to load
+[00:48:57] [Client thread/INFO]: FML has found a non-mod file [RTM]Baru'sRail.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[00:48:57] [Client thread/INFO]: FML has found a non-mod file [東京近郊_一般]ObjectPack (1).zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[00:48:57] [Client thread/INFO]: FML has found a non-mod file E259-1.7.10.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[00:48:57] [Client thread/INFO]: FML has found a non-mod file hi03 ATS-P Transponder.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[00:48:57] [Client thread/INFO]: FML has found a non-mod file hi03 ATS-Ps Transponder.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[00:48:57] [Client thread/INFO]: FML has found a non-mod file hi03 ATS-Sx Transponder.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[00:48:57] [Client thread/INFO]: FML has found a non-mod file hi03CatenaryPack Common v02.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[00:48:57] [Client thread/INFO]: FML has found a non-mod file hi03CatenaryPack Pole A.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[00:48:57] [Client thread/INFO]: FML has found a non-mod file hi03MelodySwitch.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[00:48:57] [Client thread/INFO]: FML has found a non-mod file KeiseiHokusoPack.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[00:48:57] [Client thread/INFO]: FML has found a non-mod file NGTO Builder.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[00:48:57] [Client thread/INFO]: FML has found a non-mod file NGTOBuilder2.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[00:48:57] [Client thread/INFO]: FML has found a non-mod file RTM-ATS-P.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[00:48:57] [Client thread/INFO]: FML has found a non-mod file ShinanoRailwayPack.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[00:48:57] [Client thread/INFO]: FML has found a non-mod file SuperRailBuilder3.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[00:48:57] [Client thread/INFO]: FML has found a non-mod file SuperRailBuilderX railposition-test-v2.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[00:48:57] [Client thread/INFO]: FML has found a non-mod file tree-brush-preset-pack.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[00:48:57] [Client thread/INFO]: Attempting connection with missing mods [mcp, FML, Forge, BambooMod, RTM, MCTE, NGTLib, worldedit] at CLIENT
+[00:48:57] [Client thread/INFO]: Attempting connection with missing mods [mcp, FML, Forge, BambooMod, RTM, MCTE, NGTLib, worldedit] at SERVER
+[00:48:58] [Client thread/INFO]: Reloading ResourceManager: Default, FMLFileResourcePack:Forge Mod Loader, FMLFileResourcePack:Minecraft Forge, FMLFileResourcePack:BambooMod, FMLFileResourcePack:RealTrainMod, FMLFileResourcePack:MCTerrainEditor, FMLFileResourcePack:NGTLib, FMLFileResourcePack:WorldEdit
+[00:48:58] [Client thread/INFO]: Processing ObjectHolder annotations
+[00:48:58] [Client thread/INFO]: Found 341 ObjectHolder annotations
+[00:48:58] [Client thread/INFO]: Identifying ItemStackHolder annotations
+[00:48:58] [Client thread/INFO]: Found 0 ItemStackHolder annotations
+[00:48:58] [Client thread/INFO]: Configured a dormant chunk cache size of 0
+[00:48:59] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: com.google.gson.JsonSyntaxException: java.lang.IllegalStateException: Expected BEGIN_OBJECT but was STRING at line 1 column 1
+[00:48:59] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.gson.Gson.fromJson(Gson.java:815)
+[00:48:59] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.gson.Gson.fromJson(Gson.java:768)
+[00:48:59] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.gson.Gson.fromJson(Gson.java:717)
+[00:48:59] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.gson.Gson.fromJson(Gson.java:689)
+[00:48:59] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at net.minecraftforge.common.ForgeVersion$1.run(ForgeVersion.java:94)
+[00:48:59] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: Caused by: java.lang.IllegalStateException: Expected BEGIN_OBJECT but was STRING at line 1 column 1
+[00:48:59] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.gson.stream.JsonReader.beginObject(JsonReader.java:374)
+[00:48:59] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.gson.internal.bind.MapTypeAdapterFactory$Adapter.read(MapTypeAdapterFactory.java:183)
+[00:48:59] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.gson.internal.bind.MapTypeAdapterFactory$Adapter.read(MapTypeAdapterFactory.java:145)
+[00:48:59] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.gson.Gson.fromJson(Gson.java:803)
+[00:48:59] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	... 4 more
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: java.io.FileNotFoundException: https://dl.dropboxusercontent.com/u/37248864/update.json
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.net.www.protocol.http.HttpURLConnection.getInputStream0(HttpURLConnection.java:1835)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.net.www.protocol.http.HttpURLConnection.access$200(HttpURLConnection.java:90)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.net.www.protocol.http.HttpURLConnection$9.run(HttpURLConnection.java:1432)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.net.www.protocol.http.HttpURLConnection$9.run(HttpURLConnection.java:1430)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at java.security.AccessController.doPrivileged(Native Method)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at java.security.AccessController.doPrivileged(AccessController.java:713)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.net.www.protocol.http.HttpURLConnection.getInputStream(HttpURLConnection.java:1429)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.net.www.protocol.https.HttpsURLConnectionImpl.getInputStream(HttpsURLConnectionImpl.java:254)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at java.net.URL.openStream(URL.java:1038)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at ruby.bamboo.UpdateNotify.run(UpdateNotify.java:43)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at java.lang.Thread.run(Thread.java:745)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at ruby.bamboo.BambooCore.preLoad(BambooCore.java:59)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at java.lang.reflect.Method.invoke(Method.java:497)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at cpw.mods.fml.common.FMLModContainer.handleModStateEvent(FMLModContainer.java:532)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at java.lang.reflect.Method.invoke(Method.java:497)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.EventSubscriber.handleEvent(EventSubscriber.java:74)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.SynchronizedEventSubscriber.handleEvent(SynchronizedEventSubscriber.java:47)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.EventBus.dispatch(EventBus.java:322)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.EventBus.dispatchQueuedEvents(EventBus.java:304)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.EventBus.post(EventBus.java:275)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at cpw.mods.fml.common.LoadController.sendEventToModContainer(LoadController.java:212)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at cpw.mods.fml.common.LoadController.propogateStateMessage(LoadController.java:190)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at java.lang.reflect.Method.invoke(Method.java:497)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.EventSubscriber.handleEvent(EventSubscriber.java:74)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.SynchronizedEventSubscriber.handleEvent(SynchronizedEventSubscriber.java:47)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.EventBus.dispatch(EventBus.java:322)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.EventBus.dispatchQueuedEvents(EventBus.java:304)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.EventBus.post(EventBus.java:275)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at cpw.mods.fml.common.LoadController.distributeStateMessage(LoadController.java:119)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at cpw.mods.fml.common.Loader.preinitializeMods(Loader.java:556)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at cpw.mods.fml.client.FMLClientHandler.beginMinecraftLoading(FMLClientHandler.java:243)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at net.minecraft.client.Minecraft.func_71384_a(Minecraft.java:480)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at net.minecraft.client.Minecraft.func_99999_d(Minecraft.java:878)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at net.minecraft.client.main.Main.main(SourceFile:148)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at java.lang.reflect.Method.invoke(Method.java:497)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at net.minecraft.launchwrapper.Launch.launch(Launch.java:135)
+[00:48:59] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at net.minecraft.launchwrapper.Launch.main(Launch.java:28)
+[00:48:59] [Client thread/INFO]: [NGTFL] Add mods dir : [C:\.minecraft\1.7.10\mods, C:\.minecraft\1.7.10\jar-mods-cache\v1\mods]
+[00:49:00] [Client thread/INFO]: Applying holder lookups
+[00:49:00] [Client thread/INFO]: Holder lookups applied
+[00:49:00] [Client thread/INFO]: Injecting itemstacks
+[00:49:00] [Client thread/INFO]: Itemstack injection complete
+[00:49:00] [Client thread/INFO]: [RTM](Client) Start loading sounds
+[00:49:00] [Client thread/INFO]: [RTM](Client) Start registering sounds.json
+[00:49:00] [Sound Library Loader/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: 
+[00:49:00] [Sound Library Loader/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: Starting up SoundSystem...
+[00:49:00] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_rtm-ats-p
+[00:49:00] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_object
+[00:49:00] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_hi03melodyswitch
+[00:49:00] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_keiseihokuso
+[00:49:00] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_hi03nex
+[00:49:00] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_hi03shinano
+[00:49:00] [Thread-11/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: Initializing LWJGL OpenAL
+[00:49:00] [Thread-11/INFO]: [paulscode.sound.SoundSystemLogger:message:69]:     (The LWJGL binding of OpenAL.  For more information, see http://www.lwjgl.org)
+[00:49:00] [Thread-11/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: OpenAL initialized.
+[00:49:00] [Sound Library Loader/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: 
+[00:49:00] [Sound Library Loader/INFO]: Sound engine started
+[00:49:01] [Client thread/INFO]: Created: 16x16 textures/blocks-atlas
+[00:49:01] [Client thread/INFO]: Clear 0 GL Lists
+[00:49:01] [Client thread/INFO]: Created: 16x16 textures/items-atlas
+[00:49:01] [Client thread/INFO]: Clear 0 GL Lists
+[00:49:01] [Client thread/INFO]: Injecting itemstacks
+[00:49:01] [Client thread/INFO]: Itemstack injection complete
+[00:49:01] [Client thread/INFO]: WorldEdit for Forge (version 6.1.1) is loaded
+[00:49:01] [Client thread/INFO]: Forge Mod Loader has successfully loaded 8 mods
+[00:49:01] [Client thread/INFO]: Reloading ResourceManager: Default, FMLFileResourcePack:Forge Mod Loader, FMLFileResourcePack:Minecraft Forge, FMLFileResourcePack:BambooMod, FMLFileResourcePack:RealTrainMod, FMLFileResourcePack:MCTerrainEditor, FMLFileResourcePack:NGTLib, FMLFileResourcePack:WorldEdit
+[00:49:01] [Client thread/INFO]: Created: 512x256 textures/blocks-atlas
+[00:49:01] [Client thread/INFO]: Clear 0 GL Lists
+[00:49:02] [Client thread/INFO]: Created: 512x256 textures/items-atlas
+[00:49:02] [Client thread/INFO]: Clear 0 GL Lists
+[00:49:02] [Client thread/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: 
+[00:49:02] [Client thread/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: SoundSystem shutting down...
+[00:49:02] [Client thread/INFO]: [paulscode.sound.SoundSystemLogger:importantMessage:90]:     Author: Paul Lamb, www.paulscode.com
+[00:49:02] [Client thread/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: 
+[00:49:02] [Client thread/INFO]: [RTM](Client) Start loading sounds
+[00:49:02] [Client thread/INFO]: [RTM](Client) Start registering sounds.json
+[00:49:02] [Sound Library Loader/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: 
+[00:49:02] [Sound Library Loader/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: Starting up SoundSystem...
+[00:49:02] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_rtm-ats-p
+[00:49:02] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_object
+[00:49:02] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_hi03melodyswitch
+[00:49:02] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_keiseihokuso
+[00:49:02] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_hi03nex
+[00:49:02] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_hi03shinano
+[00:49:02] [Thread-13/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: Initializing LWJGL OpenAL
+[00:49:02] [Thread-13/INFO]: [paulscode.sound.SoundSystemLogger:message:69]:     (The LWJGL binding of OpenAL.  For more information, see http://www.lwjgl.org)
+[00:49:02] [Thread-13/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: OpenAL initialized.
+[00:49:03] [Sound Library Loader/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: 
+[00:49:03] [Sound Library Loader/INFO]: Sound engine started
+[00:49:03] [ForkJoinPool-1-worker-7/INFO]: [NGTO Builder2] Plants block load error: sample:trees: treeA.ngtz: java.io.FileNotFoundException: On get stream : treeA.ngtz
+[00:49:03] [Client thread/ERROR]: +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+[00:49:03] [Client thread/ERROR]: The following texture errors were found.
+[00:49:03] [Client thread/ERROR]: ==================================================
+[00:49:03] [Client thread/ERROR]:   DOMAIN minecraft
+[00:49:03] [Client thread/ERROR]: --------------------------------------------------
+[00:49:03] [Client thread/ERROR]:   domain minecraft is missing 2 textures
+[00:49:03] [Client thread/ERROR]:     domain minecraft has 4 locations:
+[00:49:03] [Client thread/ERROR]:       unknown resourcepack type net.minecraft.client.resources.DefaultResourcePack : Default
+[00:49:03] [Client thread/ERROR]:       mod RTM resources at C:\.minecraft\1.7.10\mods\src1.7.10_20200822+KaizPatchX-SNAPSHOT (5).jar
+[00:49:03] [Client thread/ERROR]:       mod MCTE resources at C:\.minecraft\1.7.10\mods\src1.7.10_20200822+KaizPatchX-SNAPSHOT (5).jar
+[00:49:03] [Client thread/ERROR]:       mod NGTLib resources at C:\.minecraft\1.7.10\mods\src1.7.10_20200822+KaizPatchX-SNAPSHOT (5).jar
+[00:49:03] [Client thread/ERROR]: -------------------------
+[00:49:03] [Client thread/ERROR]:     The missing resources for domain minecraft are:
+[00:49:03] [Client thread/ERROR]:       textures/blocks/MISSING_ICON_BLOCK_484_plant_ornament.png
+[00:49:03] [Client thread/ERROR]:       textures/items/ngtlib.missing.png
+[00:49:03] [Client thread/ERROR]: -------------------------
+[00:49:03] [Client thread/ERROR]:     No other errors exist for domain minecraft
+[00:49:03] [Client thread/ERROR]: ==================================================
+[00:49:03] [Client thread/ERROR]: ==================================================
+[00:49:03] [Client thread/ERROR]:   DOMAIN missing_icon_block_440_rtm
+[00:49:03] [Client thread/ERROR]: --------------------------------------------------
+[00:49:03] [Client thread/ERROR]:   domain missing_icon_block_440_rtm is missing 1 texture
+[00:49:03] [Client thread/ERROR]:     domain missing_icon_block_440_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[00:49:03] [Client thread/ERROR]: -------------------------
+[00:49:03] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_440_rtm are:
+[00:49:03] [Client thread/ERROR]:       textures/blocks/fluorescent.png
+[00:49:03] [Client thread/ERROR]: -------------------------
+[00:49:03] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_440_rtm
+[00:49:03] [Client thread/ERROR]: ==================================================
+[00:49:03] [Client thread/ERROR]: ==================================================
+[00:49:03] [Client thread/ERROR]:   DOMAIN missing_icon_block_472_rtm
+[00:49:03] [Client thread/ERROR]: --------------------------------------------------
+[00:49:03] [Client thread/ERROR]:   domain missing_icon_block_472_rtm is missing 1 texture
+[00:49:03] [Client thread/ERROR]:     domain missing_icon_block_472_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[00:49:03] [Client thread/ERROR]: -------------------------
+[00:49:03] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_472_rtm are:
+[00:49:03] [Client thread/ERROR]:       textures/blocks/converterCore.png
+[00:49:03] [Client thread/ERROR]: -------------------------
+[00:49:03] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_472_rtm
+[00:49:03] [Client thread/ERROR]: ==================================================
+[00:49:03] [Client thread/ERROR]: ==================================================
+[00:49:03] [Client thread/ERROR]:   DOMAIN missing_icon_block_456_rtm
+[00:49:03] [Client thread/ERROR]: --------------------------------------------------
+[00:49:03] [Client thread/ERROR]:   domain missing_icon_block_456_rtm is missing 1 texture
+[00:49:03] [Client thread/ERROR]:     domain missing_icon_block_456_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[00:49:03] [Client thread/ERROR]: -------------------------
+[00:49:03] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_456_rtm are:
+[00:49:03] [Client thread/ERROR]:       textures/blocks/ticketVendor.png
+[00:49:03] [Client thread/ERROR]: -------------------------
+[00:49:03] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_456_rtm
+[00:49:03] [Client thread/ERROR]: ==================================================
+[00:49:03] [Client thread/ERROR]: ==================================================
+[00:49:03] [Client thread/ERROR]:   DOMAIN rtm
+[00:49:03] [Client thread/ERROR]: --------------------------------------------------
+[00:49:03] [Client thread/ERROR]:   domain rtm is missing 1 texture
+[00:49:03] [Client thread/ERROR]:     domain rtm has 3 locations:
+[00:49:03] [Client thread/ERROR]:       mod RTM resources at C:\.minecraft\1.7.10\mods\src1.7.10_20200822+KaizPatchX-SNAPSHOT (5).jar
+[00:49:03] [Client thread/ERROR]:       mod MCTE resources at C:\.minecraft\1.7.10\mods\src1.7.10_20200822+KaizPatchX-SNAPSHOT (5).jar
+[00:49:03] [Client thread/ERROR]:       mod NGTLib resources at C:\.minecraft\1.7.10\mods\src1.7.10_20200822+KaizPatchX-SNAPSHOT (5).jar
+[00:49:03] [Client thread/ERROR]: -------------------------
+[00:49:03] [Client thread/ERROR]:     The missing resources for domain rtm are:
+[00:49:03] [Client thread/ERROR]:       textures/blocks/connector.png
+[00:49:03] [Client thread/ERROR]: -------------------------
+[00:49:03] [Client thread/ERROR]:     No other errors exist for domain rtm
+[00:49:03] [Client thread/ERROR]: ==================================================
+[00:49:03] [Client thread/ERROR]: ==================================================
+[00:49:03] [Client thread/ERROR]:   DOMAIN missing_icon_block_454_rtm
+[00:49:03] [Client thread/ERROR]: --------------------------------------------------
+[00:49:03] [Client thread/ERROR]:   domain missing_icon_block_454_rtm is missing 1 texture
+[00:49:03] [Client thread/ERROR]:     domain missing_icon_block_454_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[00:49:03] [Client thread/ERROR]: -------------------------
+[00:49:03] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_454_rtm are:
+[00:49:03] [Client thread/ERROR]:       textures/blocks/signboard.png
+[00:49:03] [Client thread/ERROR]: -------------------------
+[00:49:03] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_454_rtm
+[00:49:03] [Client thread/ERROR]: ==================================================
+[00:49:03] [Client thread/ERROR]: ==================================================
+[00:49:03] [Client thread/ERROR]:   DOMAIN missing_icon_block_465_rtm
+[00:49:03] [Client thread/ERROR]: --------------------------------------------------
+[00:49:03] [Client thread/ERROR]:   domain missing_icon_block_465_rtm is missing 1 texture
+[00:49:03] [Client thread/ERROR]:     domain missing_icon_block_465_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[00:49:03] [Client thread/ERROR]: -------------------------
+[00:49:03] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_465_rtm are:
+[00:49:03] [Client thread/ERROR]:       textures/blocks/pipe.png
+[00:49:03] [Client thread/ERROR]: -------------------------
+[00:49:03] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_465_rtm
+[00:49:03] [Client thread/ERROR]: ==================================================
+[00:49:03] [Client thread/ERROR]: ==================================================
+[00:49:03] [Client thread/ERROR]:   DOMAIN missing_icon_block_452_rtm
+[00:49:03] [Client thread/ERROR]: --------------------------------------------------
+[00:49:03] [Client thread/ERROR]:   domain missing_icon_block_452_rtm is missing 1 texture
+[00:49:03] [Client thread/ERROR]:     domain missing_icon_block_452_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[00:49:03] [Client thread/ERROR]: -------------------------
+[00:49:03] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_452_rtm are:
+[00:49:03] [Client thread/ERROR]:       textures/blocks/point.png
+[00:49:03] [Client thread/ERROR]: -------------------------
+[00:49:03] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_452_rtm
+[00:49:03] [Client thread/ERROR]: ==================================================
+[00:49:03] [Client thread/ERROR]: ==================================================
+[00:49:03] [Client thread/ERROR]:   DOMAIN missing_icon_block_444_rtm
+[00:49:03] [Client thread/ERROR]: --------------------------------------------------
+[00:49:03] [Client thread/ERROR]:   domain missing_icon_block_444_rtm is missing 1 texture
+[00:49:03] [Client thread/ERROR]:     domain missing_icon_block_444_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[00:49:03] [Client thread/ERROR]: -------------------------
+[00:49:03] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_444_rtm are:
+[00:49:03] [Client thread/ERROR]:       textures/blocks/crossing.png
+[00:49:03] [Client thread/ERROR]: -------------------------
+[00:49:03] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_444_rtm
+[00:49:03] [Client thread/ERROR]: ==================================================
+[00:49:03] [Client thread/ERROR]: ==================================================
+[00:49:03] [Client thread/ERROR]:   DOMAIN missing_icon_block_462_rtm
+[00:49:03] [Client thread/ERROR]: --------------------------------------------------
+[00:49:03] [Client thread/ERROR]:   domain missing_icon_block_462_rtm is missing 1 texture
+[00:49:03] [Client thread/ERROR]:     domain missing_icon_block_462_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[00:49:03] [Client thread/ERROR]: -------------------------
+[00:49:03] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_462_rtm are:
+[00:49:03] [Client thread/ERROR]:       textures/blocks/speaker.png
+[00:49:03] [Client thread/ERROR]: -------------------------
+[00:49:03] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_462_rtm
+[00:49:03] [Client thread/ERROR]: ==================================================
+[00:49:03] [Client thread/ERROR]: ==================================================
+[00:49:03] [Client thread/ERROR]:   DOMAIN missing_icon_block_473_rtm
+[00:49:03] [Client thread/ERROR]: --------------------------------------------------
+[00:49:03] [Client thread/ERROR]:   domain missing_icon_block_473_rtm is missing 1 texture
+[00:49:03] [Client thread/ERROR]:     domain missing_icon_block_473_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[00:49:03] [Client thread/ERROR]: -------------------------
+[00:49:03] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_473_rtm are:
+[00:49:03] [Client thread/ERROR]:       textures/blocks/converterBase.png
+[00:49:03] [Client thread/ERROR]: -------------------------
+[00:49:03] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_473_rtm
+[00:49:03] [Client thread/ERROR]: ==================================================
+[00:49:03] [Client thread/ERROR]: ==================================================
+[00:49:03] [Client thread/ERROR]:   DOMAIN missing_icon_block_481_rtm
+[00:49:03] [Client thread/ERROR]: --------------------------------------------------
+[00:49:03] [Client thread/ERROR]:   domain missing_icon_block_481_rtm is missing 1 texture
+[00:49:03] [Client thread/ERROR]:     domain missing_icon_block_481_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[00:49:03] [Client thread/ERROR]: -------------------------
+[00:49:03] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_481_rtm are:
+[00:49:03] [Client thread/ERROR]:       textures/blocks/paint.png
+[00:49:03] [Client thread/ERROR]: -------------------------
+[00:49:03] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_481_rtm
+[00:49:03] [Client thread/ERROR]: ==================================================
+[00:49:03] [Client thread/ERROR]: ==================================================
+[00:49:03] [Client thread/ERROR]:   DOMAIN missing_icon_block_451_rtm
+[00:49:03] [Client thread/ERROR]: --------------------------------------------------
+[00:49:03] [Client thread/ERROR]:   domain missing_icon_block_451_rtm is missing 1 texture
+[00:49:03] [Client thread/ERROR]:     domain missing_icon_block_451_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[00:49:03] [Client thread/ERROR]: -------------------------
+[00:49:03] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_451_rtm are:
+[00:49:03] [Client thread/ERROR]:       textures/blocks/turnstile.png
+[00:49:03] [Client thread/ERROR]: -------------------------
+[00:49:03] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_451_rtm
+[00:49:03] [Client thread/ERROR]: ==================================================
+[00:49:03] [Client thread/ERROR]: ==================================================
+[00:49:03] [Client thread/ERROR]:   DOMAIN missing_icon_block_486_mcte
+[00:49:03] [Client thread/ERROR]: --------------------------------------------------
+[00:49:03] [Client thread/ERROR]:   domain missing_icon_block_486_mcte is missing 1 texture
+[00:49:03] [Client thread/ERROR]:     domain missing_icon_block_486_mcte is missing a resource manager - it is probably a side-effect of automatic texture processing
+[00:49:03] [Client thread/ERROR]: -------------------------
+[00:49:03] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_486_mcte are:
+[00:49:03] [Client thread/ERROR]:       textures/blocks/miniature.png
+[00:49:03] [Client thread/ERROR]: -------------------------
+[00:49:03] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_486_mcte
+[00:49:03] [Client thread/ERROR]: ==================================================
+[00:49:03] [Client thread/ERROR]: +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+[00:49:07] [RTM ModelPack Load/INFO]: Load time:7223043000
+[00:49:24] [Server thread/INFO]: Starting integrated minecraft server version 1.7.10
+[00:49:24] [Server thread/INFO]: Generating keypair
+[00:49:24] [Server thread/INFO]: Injecting existing block and item data into this server instance
+[00:49:24] [Server thread/INFO]: Applying holder lookups
+[00:49:24] [Server thread/INFO]: Holder lookups applied
+[00:49:24] [Server thread/INFO]: Loading dimension 0 (新規ワールド のコピー) (net.minecraft.server.integrated.IntegratedServer@4c3904c3)
+[00:49:24] [Server thread/INFO]: Loading dimension 1 (新規ワールド のコピー) (net.minecraft.server.integrated.IntegratedServer@4c3904c3)
+[00:49:24] [Server thread/INFO]: Loading dimension -1 (新規ワールド のコピー) (net.minecraft.server.integrated.IntegratedServer@4c3904c3)
+[00:49:24] [Server thread/INFO]: Preparing start region for level 0
+[00:49:24] [Server thread/INFO]: Clear 0 Editors
+[00:49:24] [Server thread/INFO]: Changing view distance to 16, from 10
+[00:49:25] [Netty Client IO #0/INFO]: Server protocol version 2
+[00:49:25] [Netty IO #1/INFO]: Client protocol version 2
+[00:49:25] [Netty IO #1/INFO]: Client attempting to join with 8 mods : MCTE@1.7.10.16 KaizPatchX/1.10.3,NGTLib@1.7.10.32 KaizPatchX/1.10.3,FML@7.10.99.99,BambooMod@Minecraft@MC_VERSION@ var@VERSION@,worldedit@6.1.1,Forge@10.13.4.1614,RTM@1.7.10.41 KaizPatchX/1.10.3,mcp@9.05
+[00:49:25] [Netty IO #1/INFO]: Attempting connection with missing mods [] at CLIENT
+[00:49:25] [Netty Client IO #0/INFO]: Attempting connection with missing mods [] at SERVER
+[00:49:25] [Client thread/INFO]: [Client thread] Client side modded connection established
+[00:49:25] [Server thread/INFO]: [Server thread] Server side modded connection established
+[00:49:25] [Server thread/INFO]: hi03[local:E:155bdab9] logged in with entity id 217 at (382.8876333237041, 15.19034225079687, -95.90638109520094)
+[00:49:25] [Server thread/INFO]: hi03 がゲームに参加しました
+[00:50:31] [Server thread/INFO]: Saving and pausing game...
+[00:50:31] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/Overworld
+[00:50:31] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/Nether
+[00:50:31] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/The End
+[00:50:32] [Server thread/INFO]: Stopping server
+[00:50:32] [Server thread/INFO]: Saving players
+[00:50:32] [Server thread/INFO]: Saving worlds
+[00:50:32] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/Overworld
+[00:50:32] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/Nether
+[00:50:32] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/The End
+[00:50:32] [Server thread/INFO]: Unloading dimension 0
+[00:50:32] [Server thread/INFO]: Unloading dimension -1
+[00:50:32] [Server thread/INFO]: Unloading dimension 1
+[00:50:32] [Server thread/INFO]: Applying holder lookups
+[00:50:32] [Server thread/INFO]: Holder lookups applied
+[00:50:35] [Server thread/INFO]: Starting integrated minecraft server version 1.7.10
+[00:50:35] [Server thread/INFO]: Generating keypair
+[00:50:35] [Server thread/WARN]: FMLServerStartingEvent occurred when FMLServerStoppingEvent hasn't
+[00:50:35] [Server thread/INFO]: Injecting existing block and item data into this server instance
+[00:50:35] [Server thread/INFO]: Applying holder lookups
+[00:50:35] [Server thread/INFO]: Holder lookups applied
+[00:50:35] [Server thread/INFO]: Loading dimension 0 (新規ワールド のコピー) (net.minecraft.server.integrated.IntegratedServer@62d1cba7)
+[00:50:35] [Server thread/INFO]: Loading dimension 1 (新規ワールド のコピー) (net.minecraft.server.integrated.IntegratedServer@62d1cba7)
+[00:50:35] [Server thread/INFO]: Loading dimension -1 (新規ワールド のコピー) (net.minecraft.server.integrated.IntegratedServer@62d1cba7)
+[00:50:35] [Server thread/INFO]: Preparing start region for level 0
+[00:50:35] [Server thread/INFO]: Clear 0 Editors
+[00:50:35] [Server thread/INFO]: Changing view distance to 16, from 10
+[00:50:35] [Netty Client IO #1/INFO]: Server protocol version 2
+[00:50:35] [Netty IO #3/INFO]: Client protocol version 2
+[00:50:35] [Netty IO #3/INFO]: Client attempting to join with 8 mods : MCTE@1.7.10.16 KaizPatchX/1.10.3,NGTLib@1.7.10.32 KaizPatchX/1.10.3,FML@7.10.99.99,BambooMod@Minecraft@MC_VERSION@ var@VERSION@,worldedit@6.1.1,Forge@10.13.4.1614,RTM@1.7.10.41 KaizPatchX/1.10.3,mcp@9.05
+[00:50:35] [Netty IO #3/INFO]: Attempting connection with missing mods [] at CLIENT
+[00:50:35] [Netty Client IO #1/INFO]: Attempting connection with missing mods [] at SERVER
+[00:50:35] [Server thread/INFO]: [Server thread] Server side modded connection established
+[00:50:35] [Server thread/INFO]: hi03[local:E:a150da77] logged in with entity id 214068 at (378.8488417310831, 5.125205995702594, -64.07620187074569)
+[00:50:35] [Server thread/INFO]: hi03 がゲームに参加しました
+[00:50:35] [Client thread/INFO]: [Client thread] Client side modded connection established
+[00:50:50] [Client thread/INFO]: [CHAT] FlySpeed set 10.0
+[00:51:50] [Client thread/WARN]: Failed to load texture: minecraft:textures/superrailbuilderx/button_rail_position_test.png
+java.io.FileNotFoundException: minecraft:textures/superrailbuilderx/button_rail_position_test.png
+	at net.minecraft.client.resources.FallbackResourceManager.func_110536_a(SourceFile:51) ~[bqq.class:?]
+	at net.minecraft.client.resources.SimpleReloadableResourceManager.func_110536_a(SimpleReloadableResourceManager.java:67) ~[brg.class:?]
+	at net.minecraft.client.renderer.texture.SimpleTexture.func_110551_a(SourceFile:29) ~[bpu.class:?]
+	at net.minecraft.client.renderer.texture.TextureManager.func_110579_a(TextureManager.java:89) [bqf.class:?]
+	at net.minecraft.client.renderer.texture.TextureManager.func_110577_a(TextureManager.java:45) [bqf.class:?]
+	at jp.ngt.rtm.modelpack.modelset.ModelSetVehicleBaseClient.renderSelectButton(ModelSetVehicleBaseClient.java:84) [ModelSetVehicleBaseClient.class:?]
+	at jp.ngt.rtm.gui.GuiButtonSelectModel.func_146112_a(GuiButtonSelectModel.java:33) [GuiButtonSelectModel.class:?]
+	at net.minecraft.client.gui.GuiScreen.func_73863_a(GuiScreen.java:52) [bdw.class:?]
+	at jp.ngt.ngtlib.gui.GuiScreenCustom.func_73863_a(GuiScreenCustom.java:125) [GuiScreenCustom.class:?]
+	at jp.ngt.rtm.gui.GuiSelectModel.func_73863_a(GuiSelectModel.java:185) [GuiSelectModel.class:?]
+	at net.minecraft.client.renderer.EntityRenderer.func_78480_b(EntityRenderer.java:1061) [blt.class:?]
+	at net.minecraft.client.Minecraft.func_71411_J(Minecraft.java:1001) [bao.class:?]
+	at net.minecraft.client.Minecraft.func_99999_d(Minecraft.java:898) [bao.class:?]
+	at net.minecraft.client.main.Main.main(SourceFile:148) [Main.class:?]
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:1.8.0_51]
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62) ~[?:1.8.0_51]
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:1.8.0_51]
+	at java.lang.reflect.Method.invoke(Method.java:497) ~[?:1.8.0_51]
+	at net.minecraft.launchwrapper.Launch.launch(Launch.java:135) [launchwrapper-1.12.jar:?]
+	at net.minecraft.launchwrapper.Launch.main(Launch.java:28) [launchwrapper-1.12.jar:?]
+[00:51:50] [Server thread/INFO]: Saving and pausing game...
+[00:51:50] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/Overworld
+[00:51:50] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/Nether
+[00:51:50] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/The End
+[00:51:51] [Client thread/INFO]: Invalid data : 
+[00:53:04] [Server thread/INFO]: Saving and pausing game...
+[00:53:04] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/Overworld
+[00:53:04] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/Nether
+[00:53:04] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/The End
+[00:53:05] [Client thread/INFO]: Invalid data : 
+[00:53:13] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=353.763,4.063,-145.995, candidates=2, railTiles=20, uniqueCores=4, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=6, errors=0
+[00:53:19] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[00:53:20] [Server thread/INFO]: [SuperRailBuilderX RailPosition] preserving foreign rail roadbed: count=46
+[00:53:20] [Server thread/INFO]: [SuperRailBuilderX RailPosition] roadbed conflict: count=60, samples=357,4,-147:tile.rtm:LRBase;355,4,-147:tile.rtm:LRBase;357,4,-146:tile.rtm:LRBase;355,4,-146:tile.rtm:LRBase;356,4,-146:tile.rtm:LRBase;357,4,-145:tile.rtm:LRBase;355,4,-145:tile.rtm:LRBase;356,4,-145:tile.rtm:LRCore
+[00:53:20] [Client thread/INFO]: [CHAT] §c[SuperRailBuilderX] 適用失敗: target_1:roadbed_conflict(60)
+[00:53:44] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[00:53:44] [Server thread/INFO]: [SuperRailBuilderX RailPosition] preserving foreign rail roadbed: count=49
+[00:53:44] [Server thread/INFO]: [SuperRailBuilderX RailPosition] roadbed conflict: count=59, samples=357,4,-146:tile.rtm:LRBase;355,4,-146:tile.rtm:LRBase;357,4,-145:tile.rtm:LRBase;355,4,-145:tile.rtm:LRBase;356,4,-145:tile.rtm:LRCore;357,4,-144:tile.rtm:LRBase;355,4,-144:tile.rtm:LRBase;356,4,-144:tile.rtm:LRBase
+[00:53:44] [Client thread/INFO]: [CHAT] §c[SuperRailBuilderX] 適用失敗: target_1:roadbed_conflict(59)
+[00:53:56] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[00:53:56] [Server thread/INFO]: [SuperRailBuilderX RailPosition] preserving foreign rail roadbed: count=46
+[00:53:56] [Server thread/INFO]: [SuperRailBuilderX RailPosition] roadbed conflict: count=62, samples=357,4,-148:tile.rtm:LRBase;355,4,-148:tile.rtm:LRBase;356,4,-148:tile.rtm:LRBase;357,4,-147:tile.rtm:LRBase;355,4,-147:tile.rtm:LRBase;356,4,-147:tile.rtm:LRCore;357,4,-146:tile.rtm:LRBase;355,4,-146:tile.rtm:LRBase
+[00:53:56] [Client thread/INFO]: [CHAT] §c[SuperRailBuilderX] 適用失敗: target_1:roadbed_conflict(62)
+[00:54:02] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[00:54:02] [Server thread/INFO]: [SuperRailBuilderX RailPosition] roadbed conflict: count=2, samples=354,4,-147:tile.rtm:LRBase;352,4,-147:tile.rtm:LRBase
+[00:54:02] [Client thread/INFO]: [CHAT] §c[SuperRailBuilderX] 適用失敗: target_1:roadbed_conflict(2)
+[00:54:05] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[00:54:05] [Server thread/INFO]: [SuperRailBuilderX RailPosition] applying connected endpoint: targets=2
+[00:54:05] [Server thread/INFO]: [SuperRailBuilderX RailPosition] additive roadbed update: added=71, retained=54, removed=0
+[00:54:05] [Server thread/INFO]: [SuperRailBuilderX RailPosition] roadbed conflict: count=2, samples=350,4,-146:tile.rtm:LRBase;348,4,-146:tile.rtm:LRBase
+[00:54:05] [Server thread/INFO]: [SuperRailBuilderX RailPosition] connected endpoint apply failed: target=1, applied=1, result=roadbed_conflict(2)
+[00:54:05] [Client thread/INFO]: [CHAT] §c[SuperRailBuilderX] 適用失敗: partial_target_1:roadbed_conflict(2)
+[00:54:12] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=356.538,4.063,-145.914, candidates=2, railTiles=20, uniqueCores=4, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=6, errors=0
+[00:54:13] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[00:54:14] [Server thread/INFO]: [SuperRailBuilderX RailPosition] applying connected endpoint: targets=2
+[00:54:14] [Server thread/INFO]: [SuperRailBuilderX RailPosition] rebuilding sectioned rail: groupCores=3, index=0
+[00:54:14] [Server thread/INFO]: [SuperRailBuilderX RailPosition] sectioned rail rebuild succeeded: oldGroupCores=3, newGroupCores=3
+[00:54:14] [Server thread/INFO]: [SuperRailBuilderX RailPosition] roadbed conflict: count=2, samples=361,4,-146:tile.rtm:LRBase;363,4,-146:tile.rtm:LRBase
+[00:54:14] [Server thread/INFO]: [SuperRailBuilderX RailPosition] connected endpoint apply failed: target=1, applied=1, result=roadbed_conflict(2)
+[00:54:14] [Client thread/INFO]: [CHAT] §c[SuperRailBuilderX] 適用失敗: partial_target_1:roadbed_conflict(2)
+[00:54:22] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=352.254,4.063,-185.689, candidates=2, railTiles=15, uniqueCores=2, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=2, errors=0
+[00:54:23] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[00:54:23] [Server thread/INFO]: [SuperRailBuilderX RailPosition] roadbed conflict: count=45, samples=348,3,-147:tile.grass;350,3,-147:tile.grass;349,3,-147:tile.grass;348,3,-149:tile.grass;350,3,-149:tile.grass;349,3,-149:tile.grass;348,3,-150:tile.grass;350,3,-150:tile.grass
+[00:54:23] [Client thread/INFO]: [CHAT] §c[SuperRailBuilderX] 適用失敗: target_1:roadbed_conflict(45)
+[00:54:25] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[00:54:25] [Server thread/INFO]: [SuperRailBuilderX RailPosition] roadbed conflict: count=45, samples=348,3,-149:tile.grass;350,3,-149:tile.grass;349,3,-149:tile.grass;346,3,-163:tile.grass;348,3,-164:tile.grass;347,3,-163:tile.grass;346,3,-164:tile.grass;347,3,-164:tile.grass
+[00:54:25] [Client thread/INFO]: [CHAT] §c[SuperRailBuilderX] 適用失敗: target_1:roadbed_conflict(45)
+[00:54:44] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=364.345,4.000,-105.739, candidates=0, railTiles=0, uniqueCores=0, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=0, errors=0
+[00:54:44] [Client thread/INFO]: [CHAT] §e[SuperRailBuilderX] 候補がありません。latest.logのcandidate scanを確認してください
+[00:54:46] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=356.586,4.063,-105.918, candidates=2, railTiles=20, uniqueCores=4, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=6, errors=0
+[00:54:46] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[00:54:47] [Server thread/INFO]: [SuperRailBuilderX RailPosition] applying connected endpoint: targets=2
+[00:54:47] [Server thread/INFO]: [SuperRailBuilderX RailPosition] rebuilding sectioned rail: groupCores=4, index=0
+[00:54:47] [Server thread/INFO]: [SuperRailBuilderX RailPosition] sectioned rail rebuild succeeded: oldGroupCores=4, newGroupCores=4
+[00:54:47] [Server thread/INFO]: [SuperRailBuilderX RailPosition] roadbed conflict: count=2, samples=360,4,-106:tile.rtm:LRBase;362,4,-106:tile.rtm:LRBase
+[00:54:47] [Server thread/INFO]: [SuperRailBuilderX RailPosition] connected endpoint apply failed: target=1, applied=1, result=roadbed_conflict(2)
+[00:54:47] [Client thread/INFO]: [CHAT] §c[SuperRailBuilderX] 適用失敗: partial_target_1:roadbed_conflict(2)
+[00:54:50] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=352.994,4.063,-106.138, candidates=2, railTiles=15, uniqueCores=2, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=2, errors=0
+[00:54:51] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[00:54:51] [Server thread/INFO]: [SuperRailBuilderX RailPosition] applying connected endpoint: targets=2
+[00:54:51] [Server thread/INFO]: [SuperRailBuilderX RailPosition] rebuilding sectioned rail: groupCores=4, index=1
+[00:54:51] [Server thread/INFO]: [SuperRailBuilderX RailPosition] sectioned rail rebuild failed: restored=true
+[00:54:51] [Server thread/INFO]: [SuperRailBuilderX RailPosition] connected endpoint apply failed: target=0, applied=0, result=section_rebuild_failed
+[00:54:51] [Client thread/INFO]: [CHAT] §c[SuperRailBuilderX] 適用失敗: target_0:section_rebuild_failed
+[00:54:56] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=380.225,4.063,-136.210, candidates=1, railTiles=9, uniqueCores=1, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=1, errors=0
+[00:54:57] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[00:54:57] [Server thread/INFO]: [SuperRailBuilderX RailPosition] applying connected endpoint: targets=1
+[00:54:57] [Server thread/INFO]: [SuperRailBuilderX RailPosition] rebuilding sectioned rail: groupCores=3, index=1
+[00:54:57] [Server thread/INFO]: [SuperRailBuilderX RailPosition] sectioned rail rebuild succeeded: oldGroupCores=3, newGroupCores=3
+[00:54:57] [Client thread/INFO]: [CHAT] §a[SuperRailBuilderX] 移動しました
+[00:54:59] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=376.771,4.063,-136.918, candidates=1, railTiles=9, uniqueCores=1, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=1, errors=0
+[00:55:01] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[00:55:01] [Server thread/INFO]: [SuperRailBuilderX RailPosition] roadbed conflict: count=34, samples=383,4,-157:tile.rtm:LRBase;383,4,-156:tile.rtm:LRBase;383,4,-155:tile.rtm:LRBase;383,4,-154:tile.rtm:LRBase;383,4,-153:tile.rtm:LRBase;383,4,-152:tile.rtm:LRBase;383,4,-151:tile.rtm:LRBase;383,4,-150:tile.rtm:LRBase
+[00:55:01] [Client thread/INFO]: [CHAT] §c[SuperRailBuilderX] 適用失敗: target_0:roadbed_conflict(34)
+[00:55:04] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[00:55:04] [Server thread/INFO]: [SuperRailBuilderX RailPosition] applying connected endpoint: targets=1
+[00:55:04] [Server thread/INFO]: [SuperRailBuilderX RailPosition] rebuilding sectioned rail: groupCores=3, index=1
+[00:55:04] [Server thread/INFO]: [SuperRailBuilderX RailPosition] sectioned rail rebuild succeeded: oldGroupCores=3, newGroupCores=3
+[00:55:04] [Client thread/INFO]: [CHAT] §a[SuperRailBuilderX] 移動しました
+[00:55:06] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=377.562,4.063,-141.548, candidates=1, railTiles=11, uniqueCores=1, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=1, errors=0
+[00:55:08] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[00:55:08] [Server thread/INFO]: [SuperRailBuilderX RailPosition] roadbed conflict: count=48, samples=383,4,-157:tile.rtm:LRBase;383,4,-156:tile.rtm:LRBase;383,4,-155:tile.rtm:LRBase;383,4,-154:tile.rtm:LRBase;383,4,-153:tile.rtm:LRBase;383,4,-152:tile.rtm:LRBase;383,4,-151:tile.rtm:LRBase;383,4,-150:tile.rtm:LRBase
+[00:55:08] [Client thread/INFO]: [CHAT] §c[SuperRailBuilderX] 適用失敗: target_0:roadbed_conflict(48)
+[00:55:09] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[00:55:09] [Server thread/INFO]: [SuperRailBuilderX RailPosition] roadbed conflict: count=44, samples=383,4,-164:tile.rtm:LRBase;383,4,-163:tile.rtm:LRBase;383,4,-162:tile.rtm:LRBase;383,4,-161:tile.rtm:LRBase;383,4,-160:tile.rtm:LRBase;384,4,-159:tile.rtm:LRBase;383,4,-159:tile.rtm:LRBase;383,4,-158:tile.rtm:LRBase
+[00:55:09] [Client thread/INFO]: [CHAT] §c[SuperRailBuilderX] 適用失敗: target_0:roadbed_conflict(44)
+[00:55:11] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[00:55:11] [Server thread/INFO]: [SuperRailBuilderX RailPosition] roadbed conflict: count=30, samples=383,4,-166:tile.rtm:LRBase;383,4,-165:tile.rtm:LRBase;383,4,-164:tile.rtm:LRBase;383,4,-163:tile.rtm:LRBase;384,4,-163:tile.rtm:LRBase;383,4,-162:tile.rtm:LRBase;384,4,-162:tile.rtm:LRBase;383,4,-161:tile.rtm:LRBase
+[00:55:11] [Client thread/INFO]: [CHAT] §c[SuperRailBuilderX] 適用失敗: target_0:roadbed_conflict(30)
+[00:55:12] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[00:55:12] [Server thread/INFO]: [SuperRailBuilderX RailPosition] roadbed conflict: count=29, samples=383,4,-167:tile.rtm:LRBase;383,4,-166:tile.rtm:LRBase;383,4,-165:tile.rtm:LRBase;383,4,-164:tile.rtm:LRBase;384,4,-164:tile.rtm:LRBase;383,4,-163:tile.rtm:LRBase;384,4,-163:tile.rtm:LRBase;383,4,-162:tile.rtm:LRBase
+[00:55:12] [Client thread/INFO]: [CHAT] §c[SuperRailBuilderX] 適用失敗: target_0:roadbed_conflict(29)
+[00:55:13] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[00:55:13] [Server thread/INFO]: [SuperRailBuilderX RailPosition] roadbed conflict: count=45, samples=383,4,-164:tile.rtm:LRBase;383,4,-163:tile.rtm:LRBase;383,4,-162:tile.rtm:LRBase;383,4,-161:tile.rtm:LRBase;383,4,-160:tile.rtm:LRBase;383,4,-159:tile.rtm:LRBase;384,4,-159:tile.rtm:LRBase;383,4,-158:tile.rtm:LRBase
+[00:55:13] [Client thread/INFO]: [CHAT] §c[SuperRailBuilderX] 適用失敗: target_0:roadbed_conflict(45)
+[00:55:15] [Server thread/INFO]: Saving and pausing game...
+[00:55:15] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/Overworld
+[00:55:15] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/Nether
+[00:55:15] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/The End
+[00:55:20] [Server thread/INFO]: Stopping server
+[00:55:20] [Server thread/INFO]: Saving players
+[00:55:20] [Server thread/INFO]: Saving worlds
+[00:55:20] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/Overworld
+[00:55:20] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/Nether
+[00:55:20] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/The End
+[00:55:20] [Server thread/INFO]: Unloading dimension 0
+[00:55:20] [Server thread/INFO]: Unloading dimension -1
+[00:55:20] [Server thread/INFO]: Unloading dimension 1
+[00:55:20] [Server thread/INFO]: Applying holder lookups
+[00:55:20] [Server thread/INFO]: Holder lookups applied
+[00:55:21] [Client thread/INFO]: Stopping!
+[00:55:21] [Client thread/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: 
+[00:55:21] [Client thread/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: SoundSystem shutting down...
+[00:55:21] [Client thread/INFO]: [paulscode.sound.SoundSystemLogger:importantMessage:90]:     Author: Paul Lamb, www.paulscode.com
+[00:55:21] [Client thread/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: 

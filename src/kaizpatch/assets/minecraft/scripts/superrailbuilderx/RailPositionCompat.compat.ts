@@ -80,7 +80,6 @@ export class RailPositionCompat {
 	private static validateRoadbedPath(
 		core: TileEntityLargeRailCore,
 		positions: RailPosition[],
-		rejectForeignRail: boolean,
 	): string {
 		const world = this.getCoreWorld(core);
 		const property = core.getProperty();
@@ -96,7 +95,7 @@ export class RailPositionCompat {
 		);
 		const blocks = railMap.getRailBlockList(property);
 		let conflicts = 0;
-		let preservedForeignRails = 0;
+		let overlappingForeignRoadbeds = 0;
 		const samples: string[] = [];
 		for (let i = 0; i < blocks.size(); i++) {
 			const pos = blocks.get(i);
@@ -109,8 +108,8 @@ export class RailPositionCompat {
 					const owner = tile.getRailCore();
 					if (owner && core.isSameLogicalRail(owner)) continue;
 				}
-				if (!rejectForeignRail) {
-					preservedForeignRails++;
+				if (!block.isCore()) {
+					overlappingForeignRoadbeds++;
 					continue;
 				}
 			}
@@ -126,9 +125,9 @@ export class RailPositionCompat {
 			);
 			return `roadbed_conflict(${conflicts})`;
 		}
-		if (preservedForeignRails > 0)
+		if (overlappingForeignRoadbeds > 0)
 			NGTLog.debug(
-				`[SuperRailBuilderX RailPosition] preserving foreign rail roadbed: count=${preservedForeignRails}`,
+				`[SuperRailBuilderX RailPosition] allowing overlapping foreign roadbed: count=${overlappingForeignRoadbeds}`,
 			);
 		return "ok";
 	}
@@ -277,7 +276,6 @@ export class RailPositionCompat {
 		const roadbedValidation = this.validateRoadbedPath(
 			core,
 			movedPositions,
-			this.isSectionCore(core),
 		);
 		if (roadbedValidation !== "ok") return roadbedValidation;
 		if (!this.isSectionCore(core)) return "ok";
