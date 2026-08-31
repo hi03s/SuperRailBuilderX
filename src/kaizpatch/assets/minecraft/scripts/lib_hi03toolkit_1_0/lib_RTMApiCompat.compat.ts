@@ -6,8 +6,18 @@ import { NBTTagCompound } from "net.minecraft.nbt";
 import { ResourceLocation } from "net.minecraft.util";
 import { NGTUtil } from "jp.ngt.ngtlib.util";
 
-type JavaObjectWithClass = {
-	getClass(): { getName(): string };
+declare const Packages: {
+	jp: {
+		kaiz: {
+			kaizpatch: {
+				rtm: {
+					rail: {
+						TileEntityLargeRailSectionCore: Function;
+					};
+				};
+			};
+		};
+	};
 };
 
 export class RTMApiCompat {
@@ -18,11 +28,30 @@ export class RTMApiCompat {
 	static canMoveRailPosition(core: TileEntityLargeRailCore): boolean {
 		return (
 			core !== null &&
-			String(
-				(core as unknown as JavaObjectWithClass).getClass().getName(),
-			).indexOf(
-				"TileEntityLargeRailSectionCore",
-			) < 0
+			!(
+				core instanceof
+				Packages.jp.kaiz.kaizpatch.rtm.rail.TileEntityLargeRailSectionCore
+			)
+		);
+	}
+
+	static refreshRailPositionClient(
+		core: TileEntityLargeRailCore,
+		index: number,
+		x: number,
+		y: number,
+		z: number,
+	): void {
+		const positions = core.getRailPositions();
+		if (!positions || index < 0 || index >= positions.length) return;
+		positions[index].setPosition(x, y, z);
+		core.setRailPositions(positions);
+		core.createRailMap();
+		core.shouldRerenderRail = true;
+		core.getWorldObj().markBlockForUpdate(
+			core.xCoord,
+			core.yCoord,
+			core.zCoord,
 		);
 	}
 

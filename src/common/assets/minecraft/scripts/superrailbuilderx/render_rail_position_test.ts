@@ -14,6 +14,7 @@ import { WeakHashMap } from "java.util";
 import { Keyboard, Mouse } from "org.lwjgl.input";
 import { GL11 } from "org.lwjgl.opengl";
 import { InputManager } from "../lib_hi03toolkit_1_0/lib_InputManager";
+import { ErrorLogger } from "../lib_hi03toolkit_1_0/lib_ErrorLogger";
 import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
 import { NGTOBuilderUtilClient } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtilClient";
 import { RTMApiCompat } from "@target/assets/minecraft/scripts/lib_hi03toolkit_1_0/lib_RTMApiCompat";
@@ -39,11 +40,22 @@ type EditorState = {
 	destination: [number, number, number] | null;
 };
 
+type CandidateScanDiagnostics = {
+	railTiles: number;
+	uniqueCores: number;
+	missingCores: number;
+	unsupportedCores: number;
+	invalidPositions: number;
+	outOfRangePositions: number;
+	errors: number;
+};
+
 let keys: InputManager;
 let body: Parts;
 let point: Parts;
 let selectedPoint: Parts;
 const states: WeakHashMap<EntityVehicle, EditorState> = new WeakHashMap();
+const loggedCandidateErrors: { [key: string]: boolean } = {};
 
 function init(par1: ModelSetVehicle, par2: ModelObject): void {
 	keys = new InputManager();
@@ -79,49 +91,117 @@ function getDestination(partialTicks: number): [number, number, number] | null {
 		: null;
 }
 
+function logCandidateErrorOnce(
+	phase: string,
+	x: number,
+	y: number,
+	z: number,
+	error: unknown,
+): void {
+	const key = `${phase}:${x},${y},${z}`;
+	if (loggedCandidateErrors[key]) return;
+	loggedCandidateErrors[key] = true;
+	ErrorLogger.log("SuperRailBuilderX RailPosition candidate scan", phase, error, {
+		x,
+		y,
+		z,
+	});
+}
+
+function logCandidateScan(
+	looking: { posX: number; posY: number; posZ: number },
+	diagnostics: CandidateScanDiagnostics,
+	candidateCount: number,
+): void {
+	NGTLog.debug(
+		`[SuperRailBuilderX RailPosition] candidate scan: look=${looking.posX.toFixed(3)},${looking.posY.toFixed(3)},${looking.posZ.toFixed(3)}, candidates=${candidateCount}, railTiles=${diagnostics.railTiles}, uniqueCores=${diagnostics.uniqueCores}, missingCores=${diagnostics.missingCores}, unsupportedCores=${diagnostics.unsupportedCores}, invalidPositions=${diagnostics.invalidPositions}, outOfRangePositions=${diagnostics.outOfRangePositions}, errors=${diagnostics.errors}`,
+	);
+}
+
 function findCandidates(
 	entity: EntityVehicle,
 	partialTicks: number,
+	logDiagnostics = false,
 ): Candidate[] {
 	const looking = NGTOBuilderUtilClient.getLookingPos(partialTicks);
 	if (!looking) return [];
 	const world = RTMApiCompat.getWorld(entity);
 	const candidates: Candidate[] = [];
 	const seen: { [key: string]: boolean } = {};
+	const diagnostics: CandidateScanDiagnostics = {
+		railTiles: 0,
+		uniqueCores: 0,
+		missingCores: 0,
+		unsupportedCores: 0,
+		invalidPositions: 0,
+		outOfRangePositions: 0,
+		errors: 0,
+	};
 	const centerX = Math.floor(looking.posX);
 	const centerY = Math.floor(looking.posY);
 	const centerZ = Math.floor(looking.posZ);
 	for (let x = centerX - 2; x <= centerX + 2; x++) {
 		for (let y = centerY - 2; y <= centerY + 2; y++) {
 			for (let z = centerZ - 2; z <= centerZ + 2; z++) {
-				const tile = RTMApiCompat.getTileEntity(world, x, y, z);
-				if (!(tile instanceof TileEntityLargeRailBase)) continue;
-				const core = tile.getRailCore();
-				if (!core || !RTMApiCompat.canMoveRailPosition(core)) continue;
-				const corePos = RTMApiCompat.getRailCorePos(core);
-				const coreKey = `${corePos[0]},${corePos[1]},${corePos[2]}`;
-				if (seen[coreKey]) continue;
-				seen[coreKey] = true;
-				const positions = core.getRailPositions();
-				for (let index = 0; index < positions.length; index++) {
-					const rp = positions[index] as RailPosition;
-					const dx = rp.posX - looking.posX;
-					const dy = rp.posY - looking.posY;
-					const dz = rp.posZ - looking.posZ;
-					if (Math.sqrt(dx * dx + dy * dy + dz * dz) > SEARCH_RADIUS)
+				let phase = "getTileEntity";
+				try {
+					const tile = RTMApiCompat.getTileEntity(world, x, y, z);
+					if (!(tile instanceof TileEntityLargeRailBase)) continue;
+					diagnostics.railTiles++;
+					phase = "getRailCore";
+					const core = tile.getRailCore();
+					if (!core) {
+						diagnostics.missingCores++;
 						continue;
-					candidates.push({
-						core,
-						coreX: corePos[0],
-						coreY: corePos[1],
-						coreZ: corePos[2],
-						index,
-						position: [rp.posX, rp.posY, rp.posZ],
-					});
+					}
+					phase = "getRailCorePos";
+					const corePos = RTMApiCompat.getRailCorePos(core);
+					const coreKey = `${corePos[0]},${corePos[1]},${corePos[2]}`;
+					if (seen[coreKey]) continue;
+					seen[coreKey] = true;
+					diagnostics.uniqueCores++;
+					phase = "canMoveRailPosition";
+					if (!RTMApiCompat.canMoveRailPosition(core)) {
+						diagnostics.unsupportedCores++;
+						continue;
+					}
+					phase = "getRailPositions";
+					const positions = core.getRailPositions();
+					if (!positions || positions.length === 0) {
+						diagnostics.invalidPositions++;
+						continue;
+					}
+					for (let index = 0; index < positions.length; index++) {
+						phase = `readRailPosition[${index}]`;
+						const rp = positions[index] as RailPosition;
+						if (!rp) {
+							diagnostics.invalidPositions++;
+							continue;
+						}
+						const dx = rp.posX - looking.posX;
+						const dy = rp.posY - looking.posY;
+						const dz = rp.posZ - looking.posZ;
+						if (Math.sqrt(dx * dx + dy * dy + dz * dz) > SEARCH_RADIUS) {
+							diagnostics.outOfRangePositions++;
+							continue;
+						}
+						candidates.push({
+							core,
+							coreX: corePos[0],
+							coreY: corePos[1],
+							coreZ: corePos[2],
+							index,
+							position: [rp.posX, rp.posY, rp.posZ],
+						});
+					}
+				} catch (error) {
+					diagnostics.errors++;
+					logCandidateErrorOnce(phase, x, y, z, error);
 				}
 			}
 		}
 	}
+	if (logDiagnostics) logCandidateScan(looking, diagnostics, candidates.length);
 	return candidates;
 }
 
@@ -196,10 +276,17 @@ function handleInput(
 	}
 	if (rightClick && state.stage === 0) {
 		state.selected = nearestCandidate(
-			findCandidates(entity, partialTicks),
+			findCandidates(entity, partialTicks, true),
 			partialTicks,
 		);
-		if (state.selected) state.stage = 1;
+		if (state.selected) {
+			state.stage = 1;
+		} else {
+			NGTLog.sendChatMessage(
+				sender,
+				"§e[SuperRailBuilderX] 候補がありません。latest.logのcandidate scanを確認してください",
+			);
+		}
 	} else if (rightClick && state.stage === 1) {
 		state.destination = getDestination(partialTicks);
 		if (state.destination) state.stage = 2;
@@ -227,6 +314,29 @@ function handleInput(
 	const result = dataMap.getString("applyResult");
 	if (result !== "" && result !== "waiting") {
 		if (result === "ok") {
+			if (state.selected && state.destination) {
+				try {
+					RTMApiCompat.refreshRailPositionClient(
+						state.selected.core,
+						state.selected.index,
+						state.destination[0],
+						state.destination[1],
+						state.destination[2],
+					);
+				} catch (error) {
+					ErrorLogger.log(
+						"SuperRailBuilderX RailPosition apply",
+						"refreshRailPositionClient",
+						error,
+						{
+							coreX: state.selected.coreX,
+							coreY: state.selected.coreY,
+							coreZ: state.selected.coreZ,
+							index: state.selected.index,
+						},
+					);
+				}
+			}
 			NGTLog.sendChatMessage(
 				sender,
 				"§a[SuperRailBuilderX] 移動しました",

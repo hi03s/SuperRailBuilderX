@@ -43,6 +43,14 @@ export class RTMApiCompat {
 		return false;
 	}
 
+	static refreshRailPositionClient(
+		core: TileEntityLargeRailCore,
+		index: number,
+		x: number,
+		y: number,
+		z: number,
+	): void {}
+
 	static moveRailPosition(
 		core: TileEntityLargeRailCore,
 		index: number,
