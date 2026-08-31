@@ -13,11 +13,12 @@
 - RailPosition自由化を確認する試験ツールを実装済み。
 - RailPosition自由化の調査結果を `docs/rail-position-free-positioning.md` に記録済み。
 - `pnpm gen` と全3ターゲットの `pnpm build` が成功する状態を確認済み。
-- RailPosition試験ツールへ、候補探索の例外ガード・診断ログと適用後のクライアントRailMap再生成を追加済み（実機再確認待ち）。
+- RailPosition試験ツールへ、候補探索の例外ガード・診断ログと適用後のクライアントRailMap再生成を追加済み。
+- NGTOBuilder2と同じ共有compatパスによるキャッシュ衝突を避けるため、RailPosition専用APIをSuperRailBuilderX固有compatへ分離済み（実機再確認待ち）。
 
 ## 作業中
 
-現在、共有されている作業中項目はありません。
+なし。
 
 作業を始める人またはCodexは、作業環境を識別できる担当名で次の形式により追記してください。
 
@@ -30,8 +31,8 @@
 
 ## 未解決・確認待ち
 
-- `findCandidates` のクラッシュ対策として、セクションレール判定からJavaリフレクションを除去し、探索フェーズ別の例外ガードと詳細ログを追加済み。実機でクラッシュが解消するか再確認が必要。
-- 選択できるレール端とできないレール端がある。右クリック時に候補数、距離除外、対象外コア、取得失敗、例外数を `candidate scan` として出力するようにしたため、実機ログで切り分ける必要がある。
+- 再デバッグでは探索対象15件すべてが `getRailCorePos` の `TypeError: Cannot call undefined` になった。NGTOBuilder2と共有するcompatパスの衝突を避ける固有compatへ分離済みで、NGTOBuilder2を導入したまま実機再確認が必要。
+- 選択できるレール端とできないレール端がある。compat衝突により前回は全候補の判定前に失敗したため、修正版の `candidate scan` で候補数、距離除外、対象外コア、取得失敗、例外数を改めて確認する必要がある。
 - 適用成功時にクライアント側RailPosition・RailMap・描画フラグを更新する処理を追加済み。再入場せずに表示へ反映されるか実機確認が必要。
 - 自動分割された `TileEntityLargeRailSectionCore` の編集は、初版では対象外。
 - RailPositionを大きく移動した場合に必要となるレール構成ブロックの再配置方法は未実装。
@@ -41,8 +42,8 @@
 
 ## 次に行うこと
 
-1. 修正版をゲーム内で再検証し、クラッシュの有無、端点の選択可否、適用直後の描画更新を確認する。
-2. 選択できない端点で右クリックし、`latest.log` の `[SuperRailBuilderX RailPosition] candidate scan` と詳細エラーを回収する。
+1. NGTOBuilder2を導入したまま修正版をゲーム内で再検証し、`getRailCorePos` エラーの解消、端点の選択可否、適用直後の描画更新を確認する。
+2. 選択できない端点でも右クリックし、`latest.log` の `[SuperRailBuilderX RailPosition] candidate scan` と詳細エラーを回収する。
 3. 再検証結果とログから探索条件を調整し、その後スナップや接続成立判定の仕様を決める。
 
 ## 開発者からCodexへの連絡欄
@@ -68,13 +69,24 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 ```
 
 - 2026-08-31 ローカルCodex:
-  確認してほしいこと: 修正版でクラッシュが再発しないか、以前選択できなかった端点の選択結果、Enter適用直後にレール形状が更新されるか。
+  確認してほしいこと: NGTOBuilder2を導入したまま、`getRailCorePos` エラーが解消するか、以前選択できなかった端点を選択できるか、Enter適用直後にレール形状が更新されるか。
   確認方法: 選択できない端点でも右クリックする。候補がない場合はチャットにログ確認案内が表示される。問題発生後にゲームを終了し、`latest.log` を保存する。
-  結果の記入先: 結果をチャットで共有し、ログは `logs/rail-position-retest-YYYYMMDD-HHMM-client.log` の形式で配置する。
+  結果の記入先: 結果をチャットで共有し、ログは `logs/rail-position-retest2-YYYYMMDD-HHMM-client.log` の形式で配置する。
 
 ## 作業記録
 
 新しい記録を上に追加します。詳細な議論がGitHub Issueにある場合は、要点とリンクだけを記載します。
+
+### 2026-08-31 ローカルCodex — NGTOBuilder2とのcompat衝突回避
+
+- `logs/latest.log` を確認し、探索したレールタイル15件すべてが `getRailCorePos` 呼び出し時の `TypeError: Cannot call undefined` で失敗していることを特定。
+- `lib_hi03toolkit_1_0/lib_RTMApiCompat` はNGTOBuilder2と同じパス・RTMXキャッシュ識別子を共有するため、NGTOBuilder2側の旧compatが先に初期化されるとSuperRailBuilderX追加メソッドが存在しない。ログの一律エラーと一致するため、これを原因と判断。
+- RailPosition固有APIを `scripts/superrailbuilderx/RailPositionCompat` へ分離し、呼び出し元も固有compatへ変更。共有ツールキットcompatにはプロジェクト固有APIを残さない構成にした。
+- ログを `logs/rail-position-retest-20260831-205024-client.log` へ改名して保存。
+- `pnpm build` はkaizpatch・mc1710・mc1122の全ターゲットで成功。生成物が共有compatと異なる `scripts_superrailbuilderx_RailPositionCompat_1suqebq` を使い、KaizPatchX実装に対象メソッドが含まれることも確認。
+- ゲーム内再検証は未実施。NGTOBuilder2を導入したまま上記の連絡欄に沿って再デバッグが必要。
+- コミット: 未コミット
+- 同期: 未実施。
 
 ### 2026-08-31 ローカルCodex — 実機フィードバック対応と診断強化
 

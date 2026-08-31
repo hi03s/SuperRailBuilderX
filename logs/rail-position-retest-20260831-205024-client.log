@@ -1,0 +1,1866 @@
+[20:45:45] [main/INFO]: Loading tweak class name cpw.mods.fml.common.launcher.FMLTweaker
+[20:45:45] [main/INFO]: Using primary tweak class name cpw.mods.fml.common.launcher.FMLTweaker
+[20:45:45] [main/INFO]: Calling tweak class cpw.mods.fml.common.launcher.FMLTweaker
+[20:45:45] [main/INFO]: Forge Mod Loader version 7.99.40.1614 for Minecraft 1.7.10 loading
+[20:45:45] [main/INFO]: Java is Java HotSpot(TM) 64-Bit Server VM, version 1.8.0_51, running on Windows 10:amd64:10.0, installed at C:\Program Files (x86)\Minecraft Launcher\runtime\jre-legacy\windows-x64\jre-legacy
+[20:45:45] [main/INFO]: Loading tweak class name cpw.mods.fml.common.launcher.FMLInjectionAndSortingTweaker
+[20:45:45] [main/INFO]: Loading tweak class name cpw.mods.fml.common.launcher.FMLDeobfTweaker
+[20:45:45] [main/INFO]: Calling tweak class cpw.mods.fml.common.launcher.FMLInjectionAndSortingTweaker
+[20:45:45] [main/INFO]: Calling tweak class cpw.mods.fml.common.launcher.FMLInjectionAndSortingTweaker
+[20:45:45] [main/INFO]: Calling tweak class cpw.mods.fml.relauncher.CoreModManager$FMLPluginWrapper
+[20:45:46] [main/INFO]: Found valid fingerprint for Minecraft Forge. Certificate fingerprint e3c3d50c7c986df74c645c0ac54639741c90a557
+[20:45:46] [main/INFO]: Found valid fingerprint for Minecraft. Certificate fingerprint cd99959656f753dc28d863b46769f7f8fbaefcfc
+[20:45:46] [main/INFO]: Calling tweak class cpw.mods.fml.relauncher.CoreModManager$FMLPluginWrapper
+[20:45:46] [main/INFO]: Calling tweak class cpw.mods.fml.relauncher.CoreModManager$FMLPluginWrapper
+[20:45:46] [main/INFO]: Calling tweak class cpw.mods.fml.common.launcher.FMLDeobfTweaker
+[20:45:46] [main/INFO]: Loading tweak class name cpw.mods.fml.common.launcher.TerminalTweaker
+[20:45:46] [main/INFO]: Calling tweak class cpw.mods.fml.common.launcher.TerminalTweaker
+[20:45:46] [main/INFO]: Launching wrapped minecraft {net.minecraft.client.main.Main}
+[20:45:47] [main/INFO]: Setting user: hi03
+[20:45:47] [Client thread/INFO]: LWJGL Version: 2.9.1
+[20:45:48] [Client thread/INFO]: [cpw.mods.fml.client.SplashProgress:start:188]: ---- Minecraft Crash Report ----
+// There are four lights!
+
+Time: 26/08/31 20:45
+Description: Loading screen debug info
+
+This is just a prompt for computer specs to be printed. THIS IS NOT A ERROR
+
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- System Details --
+Details:
+	Minecraft Version: 1.7.10
+	Operating System: Windows 10 (amd64) version 10.0
+	Java Version: 1.8.0_51, Oracle Corporation
+	Java VM Version: Java HotSpot(TM) 64-Bit Server VM (mixed mode), Oracle Corporation
+	Memory: 838908896 bytes (800 MB) / 1073741824 bytes (1024 MB) up to 12884901888 bytes (12288 MB)
+	JVM Flags: 6 total; -XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump -Xms1G -Xmx12G -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=120
+	AABB Pool Size: 0 (0 bytes; 0 MB) allocated, 0 (0 bytes; 0 MB) used
+	IntCache: cache: 0, tcache: 0, allocated: 0, tallocated: 0
+	FML: 
+	GL info: ' Vendor: 'NVIDIA Corporation' Version: '4.6.0 NVIDIA 591.86' Renderer: 'NVIDIA GeForce RTX 3080 Ti/PCIe/SSE2'
+[20:45:48] [Client thread/INFO]: Attempting early MinecraftForge initialization
+[20:45:48] [Client thread/INFO]: MinecraftForge v10.13.4.1614 Initialized
+[20:45:48] [Client thread/INFO]: Replaced 183 ore recipies
+[20:45:48] [Client thread/INFO]: Completed early MinecraftForge initialization
+[20:45:48] [Client thread/INFO]: Found 0 mods from the command line. Injecting into mod discoverer
+[20:45:48] [Client thread/INFO]: Searching C:\.minecraft\1.7.10\mods for mods
+[20:45:48] [Client thread/INFO]: Also searching C:\.minecraft\1.7.10\mods\1.7.10 for mods
+[20:45:51] [Client thread/INFO]: Forge Mod Loader has identified 8 mods to load
+[20:45:51] [Client thread/INFO]: FML has found a non-mod file [RTM]Baru'sRail.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[20:45:51] [Client thread/INFO]: FML has found a non-mod file [東京近郊_一般]ObjectPack (1).zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[20:45:51] [Client thread/INFO]: FML has found a non-mod file E259-1.7.10.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[20:45:51] [Client thread/INFO]: FML has found a non-mod file hi03 ATS-P Transponder.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[20:45:51] [Client thread/INFO]: FML has found a non-mod file hi03 ATS-Ps Transponder.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[20:45:51] [Client thread/INFO]: FML has found a non-mod file hi03 ATS-Sx Transponder.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[20:45:51] [Client thread/INFO]: FML has found a non-mod file hi03CatenaryPack Common v02.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[20:45:51] [Client thread/INFO]: FML has found a non-mod file hi03CatenaryPack Pole A.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[20:45:51] [Client thread/INFO]: FML has found a non-mod file hi03MelodySwitch.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[20:45:51] [Client thread/INFO]: FML has found a non-mod file KeiseiHokusoPack.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[20:45:51] [Client thread/INFO]: FML has found a non-mod file NGTO Builder.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[20:45:51] [Client thread/INFO]: FML has found a non-mod file NGTOBuilder2.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[20:45:51] [Client thread/INFO]: FML has found a non-mod file RTM-ATS-P.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[20:45:51] [Client thread/INFO]: FML has found a non-mod file ShinanoRailwayPack.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[20:45:51] [Client thread/INFO]: FML has found a non-mod file SuperRailBuilder3.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[20:45:51] [Client thread/INFO]: FML has found a non-mod file SuperRailBuilderX.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[20:45:51] [Client thread/INFO]: FML has found a non-mod file tree-brush-preset-pack.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[20:45:51] [Client thread/INFO]: Attempting connection with missing mods [mcp, FML, Forge, BambooMod, RTM, MCTE, NGTLib, worldedit] at CLIENT
+[20:45:51] [Client thread/INFO]: Attempting connection with missing mods [mcp, FML, Forge, BambooMod, RTM, MCTE, NGTLib, worldedit] at SERVER
+[20:45:52] [Client thread/INFO]: Reloading ResourceManager: Default, FMLFileResourcePack:Forge Mod Loader, FMLFileResourcePack:Minecraft Forge, FMLFileResourcePack:BambooMod, FMLFileResourcePack:RealTrainMod, FMLFileResourcePack:MCTerrainEditor, FMLFileResourcePack:NGTLib, FMLFileResourcePack:WorldEdit
+[20:45:52] [Client thread/INFO]: Processing ObjectHolder annotations
+[20:45:52] [Client thread/INFO]: Found 341 ObjectHolder annotations
+[20:45:52] [Client thread/INFO]: Identifying ItemStackHolder annotations
+[20:45:52] [Client thread/INFO]: Found 0 ItemStackHolder annotations
+[20:45:52] [Client thread/INFO]: Configured a dormant chunk cache size of 0
+[20:45:53] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: com.google.gson.JsonSyntaxException: java.lang.IllegalStateException: Expected BEGIN_OBJECT but was STRING at line 1 column 1
+[20:45:53] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.gson.Gson.fromJson(Gson.java:815)
+[20:45:53] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.gson.Gson.fromJson(Gson.java:768)
+[20:45:53] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.gson.Gson.fromJson(Gson.java:717)
+[20:45:53] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.gson.Gson.fromJson(Gson.java:689)
+[20:45:53] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at net.minecraftforge.common.ForgeVersion$1.run(ForgeVersion.java:94)
+[20:45:53] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: Caused by: java.lang.IllegalStateException: Expected BEGIN_OBJECT but was STRING at line 1 column 1
+[20:45:53] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.gson.stream.JsonReader.beginObject(JsonReader.java:374)
+[20:45:53] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.gson.internal.bind.MapTypeAdapterFactory$Adapter.read(MapTypeAdapterFactory.java:183)
+[20:45:53] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.gson.internal.bind.MapTypeAdapterFactory$Adapter.read(MapTypeAdapterFactory.java:145)
+[20:45:53] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.gson.Gson.fromJson(Gson.java:803)
+[20:45:53] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	... 4 more
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: java.io.FileNotFoundException: https://dl.dropboxusercontent.com/u/37248864/update.json
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.net.www.protocol.http.HttpURLConnection.getInputStream0(HttpURLConnection.java:1835)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.net.www.protocol.http.HttpURLConnection.access$200(HttpURLConnection.java:90)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.net.www.protocol.http.HttpURLConnection$9.run(HttpURLConnection.java:1432)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.net.www.protocol.http.HttpURLConnection$9.run(HttpURLConnection.java:1430)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at java.security.AccessController.doPrivileged(Native Method)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at java.security.AccessController.doPrivileged(AccessController.java:713)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.net.www.protocol.http.HttpURLConnection.getInputStream(HttpURLConnection.java:1429)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.net.www.protocol.https.HttpsURLConnectionImpl.getInputStream(HttpsURLConnectionImpl.java:254)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at java.net.URL.openStream(URL.java:1038)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at ruby.bamboo.UpdateNotify.run(UpdateNotify.java:43)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at java.lang.Thread.run(Thread.java:745)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at ruby.bamboo.BambooCore.preLoad(BambooCore.java:59)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at java.lang.reflect.Method.invoke(Method.java:497)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at cpw.mods.fml.common.FMLModContainer.handleModStateEvent(FMLModContainer.java:532)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at java.lang.reflect.Method.invoke(Method.java:497)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.EventSubscriber.handleEvent(EventSubscriber.java:74)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.SynchronizedEventSubscriber.handleEvent(SynchronizedEventSubscriber.java:47)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.EventBus.dispatch(EventBus.java:322)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.EventBus.dispatchQueuedEvents(EventBus.java:304)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.EventBus.post(EventBus.java:275)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at cpw.mods.fml.common.LoadController.sendEventToModContainer(LoadController.java:212)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at cpw.mods.fml.common.LoadController.propogateStateMessage(LoadController.java:190)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at java.lang.reflect.Method.invoke(Method.java:497)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.EventSubscriber.handleEvent(EventSubscriber.java:74)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.SynchronizedEventSubscriber.handleEvent(SynchronizedEventSubscriber.java:47)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.EventBus.dispatch(EventBus.java:322)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.EventBus.dispatchQueuedEvents(EventBus.java:304)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.EventBus.post(EventBus.java:275)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at cpw.mods.fml.common.LoadController.distributeStateMessage(LoadController.java:119)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at cpw.mods.fml.common.Loader.preinitializeMods(Loader.java:556)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at cpw.mods.fml.client.FMLClientHandler.beginMinecraftLoading(FMLClientHandler.java:243)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at net.minecraft.client.Minecraft.func_71384_a(Minecraft.java:480)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at net.minecraft.client.Minecraft.func_99999_d(Minecraft.java:878)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at net.minecraft.client.main.Main.main(SourceFile:148)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at java.lang.reflect.Method.invoke(Method.java:497)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at net.minecraft.launchwrapper.Launch.launch(Launch.java:135)
+[20:45:53] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at net.minecraft.launchwrapper.Launch.main(Launch.java:28)
+[20:45:53] [Client thread/INFO]: [NGTFL] Add mods dir : [C:\.minecraft\1.7.10\mods, C:\.minecraft\1.7.10\jar-mods-cache\v1\mods]
+[20:45:54] [Client thread/INFO]: Applying holder lookups
+[20:45:54] [Client thread/INFO]: Holder lookups applied
+[20:45:54] [Client thread/INFO]: Injecting itemstacks
+[20:45:54] [Client thread/INFO]: Itemstack injection complete
+[20:45:54] [Client thread/INFO]: [RTM](Client) Start loading sounds
+[20:45:54] [Client thread/INFO]: [RTM](Client) Start registering sounds.json
+[20:45:54] [Sound Library Loader/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: 
+[20:45:54] [Sound Library Loader/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: Starting up SoundSystem...
+[20:45:54] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_rtm-ats-p
+[20:45:54] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_object
+[20:45:54] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_hi03melodyswitch
+[20:45:54] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_keiseihokuso
+[20:45:54] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_hi03nex
+[20:45:54] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_hi03shinano
+[20:45:54] [Thread-12/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: Initializing LWJGL OpenAL
+[20:45:54] [Thread-12/INFO]: [paulscode.sound.SoundSystemLogger:message:69]:     (The LWJGL binding of OpenAL.  For more information, see http://www.lwjgl.org)
+[20:45:54] [Thread-12/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: OpenAL initialized.
+[20:45:54] [Sound Library Loader/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: 
+[20:45:54] [Sound Library Loader/INFO]: Sound engine started
+[20:45:55] [Client thread/INFO]: Created: 16x16 textures/blocks-atlas
+[20:45:55] [Client thread/INFO]: Clear 0 GL Lists
+[20:45:55] [Client thread/INFO]: Created: 16x16 textures/items-atlas
+[20:45:55] [Client thread/INFO]: Clear 0 GL Lists
+[20:45:55] [Client thread/INFO]: Injecting itemstacks
+[20:45:55] [Client thread/INFO]: Itemstack injection complete
+[20:45:55] [Client thread/INFO]: WorldEdit for Forge (version 6.1.1) is loaded
+[20:45:55] [Client thread/INFO]: Forge Mod Loader has successfully loaded 8 mods
+[20:45:55] [Client thread/INFO]: Reloading ResourceManager: Default, FMLFileResourcePack:Forge Mod Loader, FMLFileResourcePack:Minecraft Forge, FMLFileResourcePack:BambooMod, FMLFileResourcePack:RealTrainMod, FMLFileResourcePack:MCTerrainEditor, FMLFileResourcePack:NGTLib, FMLFileResourcePack:WorldEdit
+[20:45:55] [Client thread/INFO]: Created: 512x256 textures/blocks-atlas
+[20:45:55] [Client thread/INFO]: Clear 0 GL Lists
+[20:45:56] [Client thread/INFO]: Created: 512x256 textures/items-atlas
+[20:45:56] [Client thread/INFO]: Clear 0 GL Lists
+[20:45:56] [Client thread/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: 
+[20:45:56] [Client thread/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: SoundSystem shutting down...
+[20:45:56] [Client thread/INFO]: [paulscode.sound.SoundSystemLogger:importantMessage:90]:     Author: Paul Lamb, www.paulscode.com
+[20:45:56] [Client thread/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: 
+[20:45:56] [Client thread/INFO]: [RTM](Client) Start loading sounds
+[20:45:56] [Client thread/INFO]: [RTM](Client) Start registering sounds.json
+[20:45:56] [Sound Library Loader/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: 
+[20:45:56] [Sound Library Loader/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: Starting up SoundSystem...
+[20:45:56] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_rtm-ats-p
+[20:45:56] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_object
+[20:45:56] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_hi03melodyswitch
+[20:45:56] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_keiseihokuso
+[20:45:56] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_hi03nex
+[20:45:56] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_hi03shinano
+[20:45:56] [Thread-14/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: Initializing LWJGL OpenAL
+[20:45:56] [Thread-14/INFO]: [paulscode.sound.SoundSystemLogger:message:69]:     (The LWJGL binding of OpenAL.  For more information, see http://www.lwjgl.org)
+[20:45:56] [Thread-14/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: OpenAL initialized.
+[20:45:56] [Sound Library Loader/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: 
+[20:45:56] [Sound Library Loader/INFO]: Sound engine started
+[20:45:56] [ForkJoinPool-1-worker-7/INFO]: [NGTO Builder2] Plants block load error: sample:trees: treeA.ngtz: java.io.FileNotFoundException: On get stream : treeA.ngtz
+[20:45:57] [Client thread/ERROR]: +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+[20:45:57] [Client thread/ERROR]: The following texture errors were found.
+[20:45:57] [Client thread/ERROR]: ==================================================
+[20:45:57] [Client thread/ERROR]:   DOMAIN minecraft
+[20:45:57] [Client thread/ERROR]: --------------------------------------------------
+[20:45:57] [Client thread/ERROR]:   domain minecraft is missing 2 textures
+[20:45:57] [Client thread/ERROR]:     domain minecraft has 4 locations:
+[20:45:57] [Client thread/ERROR]:       unknown resourcepack type net.minecraft.client.resources.DefaultResourcePack : Default
+[20:45:57] [Client thread/ERROR]:       mod RTM resources at C:\.minecraft\1.7.10\mods\src1.7.10_20200822+KaizPatchX-1.10.3.jar
+[20:45:57] [Client thread/ERROR]:       mod MCTE resources at C:\.minecraft\1.7.10\mods\src1.7.10_20200822+KaizPatchX-1.10.3.jar
+[20:45:57] [Client thread/ERROR]:       mod NGTLib resources at C:\.minecraft\1.7.10\mods\src1.7.10_20200822+KaizPatchX-1.10.3.jar
+[20:45:57] [Client thread/ERROR]: -------------------------
+[20:45:57] [Client thread/ERROR]:     The missing resources for domain minecraft are:
+[20:45:57] [Client thread/ERROR]:       textures/blocks/MISSING_ICON_BLOCK_484_plant_ornament.png
+[20:45:57] [Client thread/ERROR]:       textures/items/ngtlib.missing.png
+[20:45:57] [Client thread/ERROR]: -------------------------
+[20:45:57] [Client thread/ERROR]:     No other errors exist for domain minecraft
+[20:45:57] [Client thread/ERROR]: ==================================================
+[20:45:57] [Client thread/ERROR]: ==================================================
+[20:45:57] [Client thread/ERROR]:   DOMAIN missing_icon_block_440_rtm
+[20:45:57] [Client thread/ERROR]: --------------------------------------------------
+[20:45:57] [Client thread/ERROR]:   domain missing_icon_block_440_rtm is missing 1 texture
+[20:45:57] [Client thread/ERROR]:     domain missing_icon_block_440_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[20:45:57] [Client thread/ERROR]: -------------------------
+[20:45:57] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_440_rtm are:
+[20:45:57] [Client thread/ERROR]:       textures/blocks/fluorescent.png
+[20:45:57] [Client thread/ERROR]: -------------------------
+[20:45:57] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_440_rtm
+[20:45:57] [Client thread/ERROR]: ==================================================
+[20:45:57] [Client thread/ERROR]: ==================================================
+[20:45:57] [Client thread/ERROR]:   DOMAIN missing_icon_block_472_rtm
+[20:45:57] [Client thread/ERROR]: --------------------------------------------------
+[20:45:57] [Client thread/ERROR]:   domain missing_icon_block_472_rtm is missing 1 texture
+[20:45:57] [Client thread/ERROR]:     domain missing_icon_block_472_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[20:45:57] [Client thread/ERROR]: -------------------------
+[20:45:57] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_472_rtm are:
+[20:45:57] [Client thread/ERROR]:       textures/blocks/converterCore.png
+[20:45:57] [Client thread/ERROR]: -------------------------
+[20:45:57] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_472_rtm
+[20:45:57] [Client thread/ERROR]: ==================================================
+[20:45:57] [Client thread/ERROR]: ==================================================
+[20:45:57] [Client thread/ERROR]:   DOMAIN missing_icon_block_456_rtm
+[20:45:57] [Client thread/ERROR]: --------------------------------------------------
+[20:45:57] [Client thread/ERROR]:   domain missing_icon_block_456_rtm is missing 1 texture
+[20:45:57] [Client thread/ERROR]:     domain missing_icon_block_456_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[20:45:57] [Client thread/ERROR]: -------------------------
+[20:45:57] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_456_rtm are:
+[20:45:57] [Client thread/ERROR]:       textures/blocks/ticketVendor.png
+[20:45:57] [Client thread/ERROR]: -------------------------
+[20:45:57] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_456_rtm
+[20:45:57] [Client thread/ERROR]: ==================================================
+[20:45:57] [Client thread/ERROR]: ==================================================
+[20:45:57] [Client thread/ERROR]:   DOMAIN rtm
+[20:45:57] [Client thread/ERROR]: --------------------------------------------------
+[20:45:57] [Client thread/ERROR]:   domain rtm is missing 1 texture
+[20:45:57] [Client thread/ERROR]:     domain rtm has 3 locations:
+[20:45:57] [Client thread/ERROR]:       mod RTM resources at C:\.minecraft\1.7.10\mods\src1.7.10_20200822+KaizPatchX-1.10.3.jar
+[20:45:57] [Client thread/ERROR]:       mod MCTE resources at C:\.minecraft\1.7.10\mods\src1.7.10_20200822+KaizPatchX-1.10.3.jar
+[20:45:57] [Client thread/ERROR]:       mod NGTLib resources at C:\.minecraft\1.7.10\mods\src1.7.10_20200822+KaizPatchX-1.10.3.jar
+[20:45:57] [Client thread/ERROR]: -------------------------
+[20:45:57] [Client thread/ERROR]:     The missing resources for domain rtm are:
+[20:45:57] [Client thread/ERROR]:       textures/blocks/connector.png
+[20:45:57] [Client thread/ERROR]: -------------------------
+[20:45:57] [Client thread/ERROR]:     No other errors exist for domain rtm
+[20:45:57] [Client thread/ERROR]: ==================================================
+[20:45:57] [Client thread/ERROR]: ==================================================
+[20:45:57] [Client thread/ERROR]:   DOMAIN missing_icon_block_454_rtm
+[20:45:57] [Client thread/ERROR]: --------------------------------------------------
+[20:45:57] [Client thread/ERROR]:   domain missing_icon_block_454_rtm is missing 1 texture
+[20:45:57] [Client thread/ERROR]:     domain missing_icon_block_454_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[20:45:57] [Client thread/ERROR]: -------------------------
+[20:45:57] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_454_rtm are:
+[20:45:57] [Client thread/ERROR]:       textures/blocks/signboard.png
+[20:45:57] [Client thread/ERROR]: -------------------------
+[20:45:57] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_454_rtm
+[20:45:57] [Client thread/ERROR]: ==================================================
+[20:45:57] [Client thread/ERROR]: ==================================================
+[20:45:57] [Client thread/ERROR]:   DOMAIN missing_icon_block_465_rtm
+[20:45:57] [Client thread/ERROR]: --------------------------------------------------
+[20:45:57] [Client thread/ERROR]:   domain missing_icon_block_465_rtm is missing 1 texture
+[20:45:57] [Client thread/ERROR]:     domain missing_icon_block_465_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[20:45:57] [Client thread/ERROR]: -------------------------
+[20:45:57] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_465_rtm are:
+[20:45:57] [Client thread/ERROR]:       textures/blocks/pipe.png
+[20:45:57] [Client thread/ERROR]: -------------------------
+[20:45:57] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_465_rtm
+[20:45:57] [Client thread/ERROR]: ==================================================
+[20:45:57] [Client thread/ERROR]: ==================================================
+[20:45:57] [Client thread/ERROR]:   DOMAIN missing_icon_block_452_rtm
+[20:45:57] [Client thread/ERROR]: --------------------------------------------------
+[20:45:57] [Client thread/ERROR]:   domain missing_icon_block_452_rtm is missing 1 texture
+[20:45:57] [Client thread/ERROR]:     domain missing_icon_block_452_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[20:45:57] [Client thread/ERROR]: -------------------------
+[20:45:57] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_452_rtm are:
+[20:45:57] [Client thread/ERROR]:       textures/blocks/point.png
+[20:45:57] [Client thread/ERROR]: -------------------------
+[20:45:57] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_452_rtm
+[20:45:57] [Client thread/ERROR]: ==================================================
+[20:45:57] [Client thread/ERROR]: ==================================================
+[20:45:57] [Client thread/ERROR]:   DOMAIN missing_icon_block_444_rtm
+[20:45:57] [Client thread/ERROR]: --------------------------------------------------
+[20:45:57] [Client thread/ERROR]:   domain missing_icon_block_444_rtm is missing 1 texture
+[20:45:57] [Client thread/ERROR]:     domain missing_icon_block_444_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[20:45:57] [Client thread/ERROR]: -------------------------
+[20:45:57] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_444_rtm are:
+[20:45:57] [Client thread/ERROR]:       textures/blocks/crossing.png
+[20:45:57] [Client thread/ERROR]: -------------------------
+[20:45:57] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_444_rtm
+[20:45:57] [Client thread/ERROR]: ==================================================
+[20:45:57] [Client thread/ERROR]: ==================================================
+[20:45:57] [Client thread/ERROR]:   DOMAIN missing_icon_block_462_rtm
+[20:45:57] [Client thread/ERROR]: --------------------------------------------------
+[20:45:57] [Client thread/ERROR]:   domain missing_icon_block_462_rtm is missing 1 texture
+[20:45:57] [Client thread/ERROR]:     domain missing_icon_block_462_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[20:45:57] [Client thread/ERROR]: -------------------------
+[20:45:57] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_462_rtm are:
+[20:45:57] [Client thread/ERROR]:       textures/blocks/speaker.png
+[20:45:57] [Client thread/ERROR]: -------------------------
+[20:45:57] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_462_rtm
+[20:45:57] [Client thread/ERROR]: ==================================================
+[20:45:57] [Client thread/ERROR]: ==================================================
+[20:45:57] [Client thread/ERROR]:   DOMAIN missing_icon_block_473_rtm
+[20:45:57] [Client thread/ERROR]: --------------------------------------------------
+[20:45:57] [Client thread/ERROR]:   domain missing_icon_block_473_rtm is missing 1 texture
+[20:45:57] [Client thread/ERROR]:     domain missing_icon_block_473_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[20:45:57] [Client thread/ERROR]: -------------------------
+[20:45:57] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_473_rtm are:
+[20:45:57] [Client thread/ERROR]:       textures/blocks/converterBase.png
+[20:45:57] [Client thread/ERROR]: -------------------------
+[20:45:57] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_473_rtm
+[20:45:57] [Client thread/ERROR]: ==================================================
+[20:45:57] [Client thread/ERROR]: ==================================================
+[20:45:57] [Client thread/ERROR]:   DOMAIN missing_icon_block_481_rtm
+[20:45:57] [Client thread/ERROR]: --------------------------------------------------
+[20:45:57] [Client thread/ERROR]:   domain missing_icon_block_481_rtm is missing 1 texture
+[20:45:57] [Client thread/ERROR]:     domain missing_icon_block_481_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[20:45:57] [Client thread/ERROR]: -------------------------
+[20:45:57] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_481_rtm are:
+[20:45:57] [Client thread/ERROR]:       textures/blocks/paint.png
+[20:45:57] [Client thread/ERROR]: -------------------------
+[20:45:57] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_481_rtm
+[20:45:57] [Client thread/ERROR]: ==================================================
+[20:45:57] [Client thread/ERROR]: ==================================================
+[20:45:57] [Client thread/ERROR]:   DOMAIN missing_icon_block_451_rtm
+[20:45:57] [Client thread/ERROR]: --------------------------------------------------
+[20:45:57] [Client thread/ERROR]:   domain missing_icon_block_451_rtm is missing 1 texture
+[20:45:57] [Client thread/ERROR]:     domain missing_icon_block_451_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[20:45:57] [Client thread/ERROR]: -------------------------
+[20:45:57] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_451_rtm are:
+[20:45:57] [Client thread/ERROR]:       textures/blocks/turnstile.png
+[20:45:57] [Client thread/ERROR]: -------------------------
+[20:45:57] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_451_rtm
+[20:45:57] [Client thread/ERROR]: ==================================================
+[20:45:57] [Client thread/ERROR]: ==================================================
+[20:45:57] [Client thread/ERROR]:   DOMAIN missing_icon_block_486_mcte
+[20:45:57] [Client thread/ERROR]: --------------------------------------------------
+[20:45:57] [Client thread/ERROR]:   domain missing_icon_block_486_mcte is missing 1 texture
+[20:45:57] [Client thread/ERROR]:     domain missing_icon_block_486_mcte is missing a resource manager - it is probably a side-effect of automatic texture processing
+[20:45:57] [Client thread/ERROR]: -------------------------
+[20:45:57] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_486_mcte are:
+[20:45:57] [Client thread/ERROR]:       textures/blocks/miniature.png
+[20:45:57] [Client thread/ERROR]: -------------------------
+[20:45:57] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_486_mcte
+[20:45:57] [Client thread/ERROR]: ==================================================
+[20:45:57] [Client thread/ERROR]: +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+[20:46:00] [RTM ModelPack Load/INFO]: Load time:6746737600
+[20:46:35] [Server thread/INFO]: Starting integrated minecraft server version 1.7.10
+[20:46:35] [Server thread/INFO]: Generating keypair
+[20:46:36] [Server thread/INFO]: Injecting existing block and item data into this server instance
+[20:46:36] [Server thread/INFO]: Applying holder lookups
+[20:46:36] [Server thread/INFO]: Holder lookups applied
+[20:46:36] [Server thread/INFO]: Loading dimension 0 (新規ワールド のコピー) (net.minecraft.server.integrated.IntegratedServer@1d5af9a0)
+[20:46:36] [Server thread/INFO]: Loading dimension 1 (新規ワールド のコピー) (net.minecraft.server.integrated.IntegratedServer@1d5af9a0)
+[20:46:36] [Server thread/INFO]: Loading dimension -1 (新規ワールド のコピー) (net.minecraft.server.integrated.IntegratedServer@1d5af9a0)
+[20:46:36] [Server thread/INFO]: Preparing start region for level 0
+[20:46:36] [Server thread/INFO]: Clear 0 Editors
+[20:46:36] [Server thread/INFO]: Changing view distance to 16, from 10
+[20:46:36] [Netty Client IO #0/INFO]: Server protocol version 2
+[20:46:36] [Netty IO #1/INFO]: Client protocol version 2
+[20:46:36] [Netty IO #1/INFO]: Client attempting to join with 8 mods : MCTE@1.7.10.16 KaizPatchX/1.10.3,NGTLib@1.7.10.32 KaizPatchX/1.10.3,FML@7.10.99.99,BambooMod@Minecraft@MC_VERSION@ var@VERSION@,worldedit@6.1.1,Forge@10.13.4.1614,RTM@1.7.10.41 KaizPatchX/1.10.3,mcp@9.05
+[20:46:36] [Netty IO #1/INFO]: Attempting connection with missing mods [] at CLIENT
+[20:46:36] [Netty Client IO #0/INFO]: Attempting connection with missing mods [] at SERVER
+[20:46:36] [Client thread/INFO]: [Client thread] Client side modded connection established
+[20:46:36] [Server thread/INFO]: [Server thread] Server side modded connection established
+[20:46:36] [Server thread/INFO]: hi03[local:E:9d3911d9] logged in with entity id 223 at (396.1259891720809, 13.290552112294957, -6.531718955235896)
+[20:46:36] [Server thread/INFO]: hi03 がゲームに参加しました
+[20:48:32] [Server thread/INFO]: <hi03> レール端部を見る
+[20:48:32] [Client thread/INFO]: [CHAT] <hi03> レール端部を見る
+[20:48:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:48:36] [Client thread/INFO]: phase:getRailCorePos
+[20:48:36] [Client thread/INFO]: x:409, xClass:java.lang.Double
+[20:48:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:48:36] [Client thread/INFO]: z:-15, zClass:java.lang.Double
+[20:48:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:48:36] [Client thread/INFO]: exception.name:TypeError
+[20:48:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:48:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:48:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:48:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:48:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:48:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:48:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:48:36] [Client thread/INFO]: phase:getRailCorePos
+[20:48:36] [Client thread/INFO]: x:410, xClass:java.lang.Double
+[20:48:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:48:36] [Client thread/INFO]: z:-15, zClass:java.lang.Double
+[20:48:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:48:36] [Client thread/INFO]: exception.name:TypeError
+[20:48:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:48:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:48:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:48:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:48:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:48:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:48:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:48:36] [Client thread/INFO]: phase:getRailCorePos
+[20:48:36] [Client thread/INFO]: x:411, xClass:java.lang.Double
+[20:48:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:48:36] [Client thread/INFO]: z:-15, zClass:java.lang.Double
+[20:48:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:48:36] [Client thread/INFO]: exception.name:TypeError
+[20:48:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:48:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:48:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:48:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:48:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:48:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:48:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:48:36] [Client thread/INFO]: phase:getRailCorePos
+[20:48:36] [Client thread/INFO]: x:409, xClass:java.lang.Double
+[20:48:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:48:36] [Client thread/INFO]: z:-16, zClass:java.lang.Double
+[20:48:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:48:36] [Client thread/INFO]: exception.name:TypeError
+[20:48:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:48:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:48:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:48:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:48:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:48:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:48:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:48:36] [Client thread/INFO]: phase:getRailCorePos
+[20:48:36] [Client thread/INFO]: x:410, xClass:java.lang.Double
+[20:48:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:48:36] [Client thread/INFO]: z:-16, zClass:java.lang.Double
+[20:48:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:48:36] [Client thread/INFO]: exception.name:TypeError
+[20:48:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:48:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:48:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:48:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:48:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:48:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:48:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:48:36] [Client thread/INFO]: phase:getRailCorePos
+[20:48:36] [Client thread/INFO]: x:411, xClass:java.lang.Double
+[20:48:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:48:36] [Client thread/INFO]: z:-16, zClass:java.lang.Double
+[20:48:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:48:36] [Client thread/INFO]: exception.name:TypeError
+[20:48:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:48:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:48:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:48:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:48:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:48:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:48:53] [Server thread/INFO]: <hi03> レール端部を右クリックする
+[20:48:53] [Client thread/INFO]: [CHAT] <hi03> レール端部を右クリックする
+[20:48:57] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=410.503,4.000,-13.058, candidates=0, railTiles=6, uniqueCores=0, missingCores=0, unsupportedCores=0, invalidPositions=0, outOfRangePositions=0, errors=6
+[20:48:57] [Client thread/INFO]: [CHAT] §e[SuperRailBuilderX] 候補がありません。latest.logのcandidate scanを確認してください
+[20:48:59] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:48:59] [Client thread/INFO]: phase:getRailCorePos
+[20:48:59] [Client thread/INFO]: x:409, xClass:java.lang.Double
+[20:48:59] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:48:59] [Client thread/INFO]: z:-17, zClass:java.lang.Double
+[20:48:59] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:48:59] [Client thread/INFO]: exception.name:TypeError
+[20:48:59] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:48:59] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:48:59] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:48:59] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:48:59] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:48:59] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:48:59] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:48:59] [Client thread/INFO]: phase:getRailCorePos
+[20:48:59] [Client thread/INFO]: x:410, xClass:java.lang.Double
+[20:48:59] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:48:59] [Client thread/INFO]: z:-17, zClass:java.lang.Double
+[20:48:59] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:48:59] [Client thread/INFO]: exception.name:TypeError
+[20:48:59] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:48:59] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:48:59] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:48:59] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:48:59] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:48:59] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:48:59] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:48:59] [Client thread/INFO]: phase:getRailCorePos
+[20:48:59] [Client thread/INFO]: x:411, xClass:java.lang.Double
+[20:48:59] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:48:59] [Client thread/INFO]: z:-17, zClass:java.lang.Double
+[20:48:59] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:48:59] [Client thread/INFO]: exception.name:TypeError
+[20:48:59] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:48:59] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:48:59] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:48:59] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:48:59] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:48:59] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:48:59] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=410.529,4.063,-14.731, candidates=0, railTiles=9, uniqueCores=0, missingCores=0, unsupportedCores=0, invalidPositions=0, outOfRangePositions=0, errors=9
+[20:48:59] [Client thread/INFO]: [CHAT] §e[SuperRailBuilderX] 候補がありません。latest.logのcandidate scanを確認してください
+[20:49:12] [Server thread/INFO]: <hi03> レール中央部を見る
+[20:49:12] [Client thread/INFO]: [CHAT] <hi03> レール中央部を見る
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:16] [Client thread/INFO]: phase:getRailCorePos
+[20:49:16] [Client thread/INFO]: x:411, xClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: z:-26, zClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.name:TypeError
+[20:49:16] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:16] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:16] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:16] [Client thread/INFO]: phase:getRailCorePos
+[20:49:16] [Client thread/INFO]: x:411, xClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: z:-25, zClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.name:TypeError
+[20:49:16] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:16] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:16] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:16] [Client thread/INFO]: phase:getRailCorePos
+[20:49:16] [Client thread/INFO]: x:411, xClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: z:-24, zClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.name:TypeError
+[20:49:16] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:16] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:16] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:16] [Client thread/INFO]: phase:getRailCorePos
+[20:49:16] [Client thread/INFO]: x:411, xClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: z:-23, zClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.name:TypeError
+[20:49:16] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:16] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:16] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:16] [Client thread/INFO]: phase:getRailCorePos
+[20:49:16] [Client thread/INFO]: x:411, xClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: z:-22, zClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.name:TypeError
+[20:49:16] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:16] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:16] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:16] [Client thread/INFO]: phase:getRailCorePos
+[20:49:16] [Client thread/INFO]: x:410, xClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: z:-26, zClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.name:TypeError
+[20:49:16] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:16] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:16] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:16] [Client thread/INFO]: phase:getRailCorePos
+[20:49:16] [Client thread/INFO]: x:410, xClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: z:-25, zClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.name:TypeError
+[20:49:16] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:16] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:16] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:16] [Client thread/INFO]: phase:getRailCorePos
+[20:49:16] [Client thread/INFO]: x:410, xClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: z:-24, zClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.name:TypeError
+[20:49:16] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:16] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:16] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:16] [Client thread/INFO]: phase:getRailCorePos
+[20:49:16] [Client thread/INFO]: x:410, xClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: z:-23, zClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.name:TypeError
+[20:49:16] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:16] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:16] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:16] [Client thread/INFO]: phase:getRailCorePos
+[20:49:16] [Client thread/INFO]: x:410, xClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: z:-22, zClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.name:TypeError
+[20:49:16] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:16] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:16] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:16] [Client thread/INFO]: phase:getRailCorePos
+[20:49:16] [Client thread/INFO]: x:409, xClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: z:-26, zClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.name:TypeError
+[20:49:16] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:16] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:16] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:16] [Client thread/INFO]: phase:getRailCorePos
+[20:49:16] [Client thread/INFO]: x:409, xClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: z:-25, zClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.name:TypeError
+[20:49:16] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:16] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:16] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:16] [Client thread/INFO]: phase:getRailCorePos
+[20:49:16] [Client thread/INFO]: x:409, xClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: z:-24, zClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.name:TypeError
+[20:49:16] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:16] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:16] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:16] [Client thread/INFO]: phase:getRailCorePos
+[20:49:16] [Client thread/INFO]: x:409, xClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: z:-23, zClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.name:TypeError
+[20:49:16] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:16] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:16] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:16] [Client thread/INFO]: phase:getRailCorePos
+[20:49:16] [Client thread/INFO]: x:409, xClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: z:-22, zClass:java.lang.Double
+[20:49:16] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.name:TypeError
+[20:49:16] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:16] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:16] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:16] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:16] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:16] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:29] [Server thread/INFO]: <hi03> レール中央部を右クリックする
+[20:49:29] [Client thread/INFO]: [CHAT] <hi03> レール中央部を右クリックする
+[20:49:30] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:30] [Client thread/INFO]: phase:getRailCorePos
+[20:49:30] [Client thread/INFO]: x:409, xClass:java.lang.Double
+[20:49:30] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:30] [Client thread/INFO]: z:-27, zClass:java.lang.Double
+[20:49:30] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:30] [Client thread/INFO]: exception.name:TypeError
+[20:49:30] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:30] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:30] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:30] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:30] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:30] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:30] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:30] [Client thread/INFO]: phase:getRailCorePos
+[20:49:30] [Client thread/INFO]: x:410, xClass:java.lang.Double
+[20:49:30] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:30] [Client thread/INFO]: z:-27, zClass:java.lang.Double
+[20:49:30] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:30] [Client thread/INFO]: exception.name:TypeError
+[20:49:30] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:30] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:30] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:30] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:30] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:30] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:30] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:30] [Client thread/INFO]: phase:getRailCorePos
+[20:49:30] [Client thread/INFO]: x:411, xClass:java.lang.Double
+[20:49:30] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:30] [Client thread/INFO]: z:-27, zClass:java.lang.Double
+[20:49:30] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:30] [Client thread/INFO]: exception.name:TypeError
+[20:49:30] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:30] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:30] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:30] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:30] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:30] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:31] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=411.136,4.063,-23.906, candidates=0, railTiles=15, uniqueCores=0, missingCores=0, unsupportedCores=0, invalidPositions=0, outOfRangePositions=0, errors=15
+[20:49:31] [Client thread/INFO]: [CHAT] §e[SuperRailBuilderX] 候補がありません。latest.logのcandidate scanを確認してください
+[20:49:32] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=409.914,4.063,-23.908, candidates=0, railTiles=15, uniqueCores=0, missingCores=0, unsupportedCores=0, invalidPositions=0, outOfRangePositions=0, errors=15
+[20:49:32] [Client thread/INFO]: [CHAT] §e[SuperRailBuilderX] 候補がありません。latest.logのcandidate scanを確認してください
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:375, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:28, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:375, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:29, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:375, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:30, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:375, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:31, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:375, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:32, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:376, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:28, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:376, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:29, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:376, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:30, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:376, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:31, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:376, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:32, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:377, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:28, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:377, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:29, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:377, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:30, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:377, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:31, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:377, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:32, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:388, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:45, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:389, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:45, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:390, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:45, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:391, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:45, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:392, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:45, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:385, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:43, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:385, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:44, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:385, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:45, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:386, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:43, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:386, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:44, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:386, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:45, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:387, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:43, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:387, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:44, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:387, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:45, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:388, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:43, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:388, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:44, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:389, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:43, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:389, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:44, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:382, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:47, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:382, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:48, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:382, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:49, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:382, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:50, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:382, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:51, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:381, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:49, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:381, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:50, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:381, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:51, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:381, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:52, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:381, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:53, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:382, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:52, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:36] [Client thread/INFO]: phase:getRailCorePos
+[20:49:36] [Client thread/INFO]: x:382, xClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: z:53, zClass:java.lang.Double
+[20:49:36] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.name:TypeError
+[20:49:36] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:36] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:36] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:36] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:36] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:36] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:37] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:37] [Client thread/INFO]: phase:getRailCorePos
+[20:49:37] [Client thread/INFO]: x:384, xClass:java.lang.Double
+[20:49:37] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:37] [Client thread/INFO]: z:43, zClass:java.lang.Double
+[20:49:37] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:37] [Client thread/INFO]: exception.name:TypeError
+[20:49:37] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:37] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:37] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:37] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:37] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:37] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:37] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:37] [Client thread/INFO]: phase:getRailCorePos
+[20:49:37] [Client thread/INFO]: x:384, xClass:java.lang.Double
+[20:49:37] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:37] [Client thread/INFO]: z:44, zClass:java.lang.Double
+[20:49:37] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:37] [Client thread/INFO]: exception.name:TypeError
+[20:49:37] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:37] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:37] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:37] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:37] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:37] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:37] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:37] [Client thread/INFO]: phase:getRailCorePos
+[20:49:37] [Client thread/INFO]: x:384, xClass:java.lang.Double
+[20:49:37] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:37] [Client thread/INFO]: z:45, zClass:java.lang.Double
+[20:49:37] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:37] [Client thread/INFO]: exception.name:TypeError
+[20:49:37] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:37] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:37] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:37] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:37] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:37] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:54] [Server thread/INFO]: <hi03> つながったレールの境目を見る
+[20:49:54] [Client thread/INFO]: [CHAT] <hi03> つながったレールの境目を見る
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:56] [Client thread/INFO]: phase:getRailCorePos
+[20:49:56] [Client thread/INFO]: x:385, xClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: z:-50, zClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.name:TypeError
+[20:49:56] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:56] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:56] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:56] [Client thread/INFO]: phase:getRailCorePos
+[20:49:56] [Client thread/INFO]: x:385, xClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: z:-49, zClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.name:TypeError
+[20:49:56] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:56] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:56] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:56] [Client thread/INFO]: phase:getRailCorePos
+[20:49:56] [Client thread/INFO]: x:385, xClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: z:-48, zClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.name:TypeError
+[20:49:56] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:56] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:56] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:56] [Client thread/INFO]: phase:getRailCorePos
+[20:49:56] [Client thread/INFO]: x:385, xClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: z:-47, zClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.name:TypeError
+[20:49:56] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:56] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:56] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:56] [Client thread/INFO]: phase:getRailCorePos
+[20:49:56] [Client thread/INFO]: x:385, xClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: z:-46, zClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.name:TypeError
+[20:49:56] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:56] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:56] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:56] [Client thread/INFO]: phase:getRailCorePos
+[20:49:56] [Client thread/INFO]: x:384, xClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: z:-50, zClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.name:TypeError
+[20:49:56] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:56] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:56] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:56] [Client thread/INFO]: phase:getRailCorePos
+[20:49:56] [Client thread/INFO]: x:384, xClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: z:-49, zClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.name:TypeError
+[20:49:56] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:56] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:56] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:56] [Client thread/INFO]: phase:getRailCorePos
+[20:49:56] [Client thread/INFO]: x:384, xClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: z:-48, zClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.name:TypeError
+[20:49:56] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:56] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:56] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:56] [Client thread/INFO]: phase:getRailCorePos
+[20:49:56] [Client thread/INFO]: x:384, xClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: z:-47, zClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.name:TypeError
+[20:49:56] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:56] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:56] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:56] [Client thread/INFO]: phase:getRailCorePos
+[20:49:56] [Client thread/INFO]: x:384, xClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: z:-46, zClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.name:TypeError
+[20:49:56] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:56] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:56] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:56] [Client thread/INFO]: phase:getRailCorePos
+[20:49:56] [Client thread/INFO]: x:383, xClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: z:-50, zClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.name:TypeError
+[20:49:56] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:56] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:56] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:56] [Client thread/INFO]: phase:getRailCorePos
+[20:49:56] [Client thread/INFO]: x:383, xClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: z:-49, zClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.name:TypeError
+[20:49:56] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:56] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:56] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:56] [Client thread/INFO]: phase:getRailCorePos
+[20:49:56] [Client thread/INFO]: x:383, xClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: z:-48, zClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.name:TypeError
+[20:49:56] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:56] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:56] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:56] [Client thread/INFO]: phase:getRailCorePos
+[20:49:56] [Client thread/INFO]: x:383, xClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: z:-47, zClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.name:TypeError
+[20:49:56] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:56] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:56] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[20:49:56] [Client thread/INFO]: phase:getRailCorePos
+[20:49:56] [Client thread/INFO]: x:383, xClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: z:-46, zClass:java.lang.Double
+[20:49:56] [Client thread/INFO]: exception:TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.name:TypeError
+[20:49:56] [Client thread/INFO]: exception.message:Cannot call undefined
+[20:49:56] [Client thread/INFO]: exception.stack:
+TypeError: Cannot call undefined
+	at findCandidates (<eval>:10494)
+	at render (<eval>:10668)
+[20:49:56] [Client thread/INFO]: javaCause[0]:unknown: TypeError: Cannot call undefined
+[20:49:56] [Client thread/INFO]:   at <<eval>>.findCandidates(<eval>:10494)
+[20:49:56] [Client thread/INFO]:   at <<eval>>.render(<eval>:10668)
+[20:49:56] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[20:50:06] [Server thread/INFO]: <hi03> つながったレールの境目を右クリック
+[20:50:06] [Client thread/INFO]: [CHAT] <hi03> つながったレールの境目を右クリック
+[20:50:07] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=384.683,4.063,-47.644, candidates=0, railTiles=15, uniqueCores=0, missingCores=0, unsupportedCores=0, invalidPositions=0, outOfRangePositions=0, errors=15
+[20:50:07] [Client thread/INFO]: [CHAT] §e[SuperRailBuilderX] 候補がありません。latest.logのcandidate scanを確認してください
+[20:50:08] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=383.746,4.063,-47.470, candidates=0, railTiles=15, uniqueCores=0, missingCores=0, unsupportedCores=0, invalidPositions=0, outOfRangePositions=0, errors=15
+[20:50:08] [Client thread/INFO]: [CHAT] §e[SuperRailBuilderX] 候補がありません。latest.logのcandidate scanを確認してください
+[20:50:19] [Server thread/INFO]: <hi03> 何もないところを右クリック
+[20:50:19] [Client thread/INFO]: [CHAT] <hi03> 何もないところを右クリック
+[20:50:20] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=407.268,4.000,-55.471, candidates=0, railTiles=0, uniqueCores=0, missingCores=0, unsupportedCores=0, invalidPositions=0, outOfRangePositions=0, errors=0
+[20:50:20] [Client thread/INFO]: [CHAT] §e[SuperRailBuilderX] 候補がありません。latest.logのcandidate scanを確認してください
+[20:50:22] [Server thread/INFO]: Saving and pausing game...
+[20:50:22] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/Overworld
+[20:50:22] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/Nether
+[20:50:22] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/The End
+[20:50:23] [Server thread/INFO]: Stopping server
+[20:50:23] [Server thread/INFO]: Saving players
+[20:50:23] [Server thread/INFO]: Saving worlds
+[20:50:23] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/Overworld
+[20:50:23] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/Nether
+[20:50:23] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/The End
+[20:50:23] [Server thread/INFO]: Unloading dimension 0
+[20:50:23] [Server thread/INFO]: Unloading dimension -1
+[20:50:23] [Server thread/INFO]: Unloading dimension 1
+[20:50:23] [Server thread/INFO]: Applying holder lookups
+[20:50:23] [Server thread/INFO]: Holder lookups applied
+[20:50:24] [Client thread/INFO]: Stopping!
+[20:50:24] [Client thread/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: 
+[20:50:24] [Client thread/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: SoundSystem shutting down...
+[20:50:24] [Client thread/INFO]: [paulscode.sound.SoundSystemLogger:importantMessage:90]:     Author: Paul Lamb, www.paulscode.com
+[20:50:24] [Client thread/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: 

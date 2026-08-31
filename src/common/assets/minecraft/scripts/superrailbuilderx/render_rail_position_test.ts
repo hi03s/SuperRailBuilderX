@@ -18,6 +18,7 @@ import { ErrorLogger } from "../lib_hi03toolkit_1_0/lib_ErrorLogger";
 import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
 import { NGTOBuilderUtilClient } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtilClient";
 import { RTMApiCompat } from "@target/assets/minecraft/scripts/lib_hi03toolkit_1_0/lib_RTMApiCompat";
+import { RailPositionCompat } from "@target/assets/minecraft/scripts/superrailbuilderx/RailPositionCompat";
 import { RailPositionMoveRequest } from "./server_rail_position_test";
 
 declare const renderer: VehiclePartsRenderer;
@@ -155,13 +156,13 @@ function findCandidates(
 						continue;
 					}
 					phase = "getRailCorePos";
-					const corePos = RTMApiCompat.getRailCorePos(core);
+					const corePos = RailPositionCompat.getRailCorePos(core);
 					const coreKey = `${corePos[0]},${corePos[1]},${corePos[2]}`;
 					if (seen[coreKey]) continue;
 					seen[coreKey] = true;
 					diagnostics.uniqueCores++;
 					phase = "canMoveRailPosition";
-					if (!RTMApiCompat.canMoveRailPosition(core)) {
+					if (!RailPositionCompat.canMoveRailPosition(core)) {
 						diagnostics.unsupportedCores++;
 						continue;
 					}
@@ -316,7 +317,7 @@ function handleInput(
 		if (result === "ok") {
 			if (state.selected && state.destination) {
 				try {
-					RTMApiCompat.refreshRailPositionClient(
+					RailPositionCompat.refreshRailPositionClient(
 						state.selected.core,
 						state.selected.index,
 						state.destination[0],

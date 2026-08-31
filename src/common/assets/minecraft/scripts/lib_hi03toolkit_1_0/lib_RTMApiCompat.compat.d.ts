@@ -2,7 +2,6 @@ import { BlockSet, NGTObject, TileEntityPlaceable } from "jp.ngt.ngtlib.block";
 import { TileEntityInsulator } from "jp.ngt.rtm.electric";
 import { EntityVehicle } from "jp.ngt.rtm.entity.vehicle";
 import { RailMap, RailPosition } from "jp.ngt.rtm.rail.util";
-import { TileEntityLargeRailCore } from "jp.ngt.rtm.rail";
 import { Block } from "net.minecraft.block";
 import { Entity } from "net.minecraft.entity";
 import { InventoryPlayer } from "net.minecraft.entity.player";
@@ -109,23 +108,4 @@ export class RTMApiCompat {
 		wireStack: ItemStack,
 	): void;
 	static getModelNameFromItem(itemStack: ItemStack): string;
-	static getRailCorePos(core: TileEntityLargeRailCore): Pos;
-	static canMoveRailPosition(core: TileEntityLargeRailCore): boolean;
-	static refreshRailPositionClient(
-		core: TileEntityLargeRailCore,
-		index: number,
-		x: number,
-		y: number,
-		z: number,
-	): void;
-	static moveRailPosition(
-		core: TileEntityLargeRailCore,
-		index: number,
-		originalX: number,
-		originalY: number,
-		originalZ: number,
-		x: number,
-		y: number,
-		z: number,
-	): string;
 }

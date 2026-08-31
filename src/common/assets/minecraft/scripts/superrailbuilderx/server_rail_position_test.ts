@@ -6,6 +6,7 @@ import { EntityPlayer } from "net.minecraft.entity.player";
 import { WeakHashMap } from "java.util";
 import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
 import { RTMApiCompat } from "@target/assets/minecraft/scripts/lib_hi03toolkit_1_0/lib_RTMApiCompat";
+import { RailPositionCompat } from "@target/assets/minecraft/scripts/superrailbuilderx/RailPositionCompat";
 
 const VERSION = "0.1.0";
 
@@ -32,7 +33,7 @@ function applyRequest(
 	if (!(tile instanceof TileEntityLargeRailBase)) return "rail_not_found";
 	const core = tile.getRailCore();
 	if (!core) return "rail_not_found";
-	return RTMApiCompat.moveRailPosition(
+	return RailPositionCompat.moveRailPosition(
 		core,
 		request.index,
 		request.original[0],
