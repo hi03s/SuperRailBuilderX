@@ -85,7 +85,8 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 適用成功後、クライアント側でもRailPositionを更新してRailMapを再生成し、`shouldRerenderRail` を有効化する処理を追加。
 - `pnpm build` はkaizpatch・mc1710・mc1122の全ターゲットで成功。
 - ゲーム内再検証は未実施。上記の連絡欄に再デバッグ手順を記載。
-- コミット: 未コミット
+- コミット: https://github.com/hi03s/SuperRailBuilderX/commit/4caaad5b0434b84870d6d4951c2ff59b6a5c124e
+- 同期: `origin/main` へ同期済み。
 
 ### 2026-08-31 ローカルCodex — RailPosition試験ツールの実機フィードバック調査
 
