@@ -18,6 +18,11 @@ type RailSectionCore = TileEntityLargeRailCore & {
 	isRailSection(): boolean;
 };
 
+type RailSectionPlan = {
+	getStartRP(): RailPosition;
+	getEndRP(): RailPosition;
+};
+
 declare const Packages: {
 	jp: {
 		kaiz: {
@@ -25,6 +30,13 @@ declare const Packages: {
 				rtm: {
 					rail: {
 						TileEntityLargeRailSectionCore: Function;
+						util: {
+							RailChunkSectioner: {
+								split(
+									source: RailMapBasic,
+								): java.util.List<RailSectionPlan>;
+							};
+						};
 					};
 				};
 			};
@@ -80,6 +92,7 @@ export class RailPositionCompat {
 	private static validateRoadbedPath(
 		core: TileEntityLargeRailCore,
 		positions: RailPosition[],
+		strict: boolean,
 	): string {
 		const world = this.getCoreWorld(core);
 		const property = core.getProperty();
@@ -121,15 +134,60 @@ export class RailPositionCompat {
 		}
 		if (conflicts > 0) {
 			NGTLog.debug(
-				`[SuperRailBuilderX RailPosition] roadbed conflict: count=${conflicts}, samples=${samples.join(";")}`,
+				`[SuperRailBuilderX RailPosition] ${strict ? "roadbed conflict" : "normal roadbed obstacles retained"}: count=${conflicts}, samples=${samples.join(";")}`,
 			);
-			return `roadbed_conflict(${conflicts})`;
+			if (strict) return `roadbed_conflict(${conflicts})`;
 		}
 		if (overlappingForeignRoadbeds > 0)
 			NGTLog.debug(
 				`[SuperRailBuilderX RailPosition] allowing overlapping foreign roadbed: count=${overlappingForeignRoadbeds}`,
 			);
 		return "ok";
+	}
+
+	private static logSectionCorePlan(
+		core: RailSectionCore,
+		positions: RailPosition[],
+	): void {
+		try {
+			const world = this.getCoreWorld(core);
+			const currentMap = core.getRailMap(null);
+			const mapVersion =
+				currentMap instanceof RailMapBasic
+					? currentMap.fixRTMRailMapVersion
+					: RailMapBasic.fixRTMRailMapVersionCurrent;
+			const source = new RailMapBasic(
+				positions[0],
+				positions[1],
+				mapVersion,
+			);
+			const sections =
+				Packages.jp.kaiz.kaizpatch.rtm.rail.util.RailChunkSectioner.split(
+					source,
+				);
+			const samples: string[] = [];
+			for (let i = 0; i < sections.size() && i < 12; i++) {
+				const rp = sections.get(i).getStartRP();
+				const block = world.getBlock(rp.blockX, rp.blockY, rp.blockZ);
+				const occupant = world.isAirBlock(
+					rp.blockX,
+					rp.blockY,
+					rp.blockZ,
+				)
+					? "air"
+					: block.getUnlocalizedName();
+				samples.push(
+					`${rp.blockX},${rp.blockY},${rp.blockZ}:${occupant}`,
+				);
+			}
+			NGTLog.debug(
+				`[SuperRailBuilderX RailPosition] planned section cores: count=${sections.size()}, samples=${samples.join(";")}`,
+			);
+		} catch (error) {
+			NGTLog.debug(
+				`[SuperRailBuilderX RailPosition] planned section core diagnostic failed: ${error}`,
+			);
+		}
 	}
 
 	private static addMissingRoadbed(core: TileEntityLargeRailCore): void {
@@ -210,8 +268,18 @@ export class RailPositionCompat {
 		if (!core) return "missing_core";
 		if (core instanceof TileEntityLargeRailSwitchCore) return "switch";
 		if (this.isSectionCore(core)) {
-			const logicalPositions = core.getLogicalRailPositions();
-			const groupPositions = core.getRailGroupCorePositions();
+			if (!core.isRailSection()) return "sectioned_uninitialized";
+			let logicalPositions: JavaObjectArray<RailPosition> | null = null;
+			let groupPositions: java.util.List<number[]> | null = null;
+			try {
+				logicalPositions = core.getLogicalRailPositions();
+				groupPositions = core.getRailGroupCorePositions();
+			} catch (error) {
+				NGTLog.debug(
+					`[SuperRailBuilderX RailPosition] invalid section core ignored: ${error}`,
+				);
+				return "sectioned_uninitialized";
+			}
 			if (
 				!logicalPositions ||
 				logicalPositions.length !== 2 ||
@@ -276,6 +344,7 @@ export class RailPositionCompat {
 		const roadbedValidation = this.validateRoadbedPath(
 			core,
 			movedPositions,
+			this.isSectionCore(core),
 		);
 		if (roadbedValidation !== "ok") return roadbedValidation;
 		if (!this.isSectionCore(core)) return "ok";
@@ -399,6 +468,7 @@ export class RailPositionCompat {
 		const subRails = new ArrayList<RailProperty>();
 		for (let i = 0; i < core.subRails.size(); i++)
 			subRails.add(core.subRails.get(i));
+		this.logSectionCorePlan(core, movedPositions);
 		NGTLog.debug(
 			`[SuperRailBuilderX RailPosition] rebuilding sectioned rail: groupCores=${groupPositions.size()}, index=${index}`,
 		);

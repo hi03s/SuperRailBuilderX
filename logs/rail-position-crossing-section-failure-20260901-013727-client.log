@@ -1,0 +1,890 @@
+[01:34:47] [main/INFO]: Loading tweak class name cpw.mods.fml.common.launcher.FMLTweaker
+[01:34:47] [main/INFO]: Using primary tweak class name cpw.mods.fml.common.launcher.FMLTweaker
+[01:34:47] [main/INFO]: Calling tweak class cpw.mods.fml.common.launcher.FMLTweaker
+[01:34:47] [main/INFO]: Forge Mod Loader version 7.99.40.1614 for Minecraft 1.7.10 loading
+[01:34:47] [main/INFO]: Java is Java HotSpot(TM) 64-Bit Server VM, version 1.8.0_51, running on Windows 10:amd64:10.0, installed at C:\Program Files (x86)\Minecraft Launcher\runtime\jre-legacy\windows-x64\jre-legacy
+[01:34:47] [main/INFO]: Loading tweak class name cpw.mods.fml.common.launcher.FMLInjectionAndSortingTweaker
+[01:34:47] [main/INFO]: Loading tweak class name cpw.mods.fml.common.launcher.FMLDeobfTweaker
+[01:34:47] [main/INFO]: Calling tweak class cpw.mods.fml.common.launcher.FMLInjectionAndSortingTweaker
+[01:34:47] [main/INFO]: Calling tweak class cpw.mods.fml.common.launcher.FMLInjectionAndSortingTweaker
+[01:34:47] [main/INFO]: Calling tweak class cpw.mods.fml.relauncher.CoreModManager$FMLPluginWrapper
+[01:34:48] [main/INFO]: Found valid fingerprint for Minecraft Forge. Certificate fingerprint e3c3d50c7c986df74c645c0ac54639741c90a557
+[01:34:48] [main/INFO]: Found valid fingerprint for Minecraft. Certificate fingerprint cd99959656f753dc28d863b46769f7f8fbaefcfc
+[01:34:48] [main/INFO]: Calling tweak class cpw.mods.fml.relauncher.CoreModManager$FMLPluginWrapper
+[01:34:48] [main/INFO]: Calling tweak class cpw.mods.fml.relauncher.CoreModManager$FMLPluginWrapper
+[01:34:48] [main/INFO]: Calling tweak class cpw.mods.fml.common.launcher.FMLDeobfTweaker
+[01:34:48] [main/INFO]: Loading tweak class name cpw.mods.fml.common.launcher.TerminalTweaker
+[01:34:48] [main/INFO]: Calling tweak class cpw.mods.fml.common.launcher.TerminalTweaker
+[01:34:48] [main/INFO]: Launching wrapped minecraft {net.minecraft.client.main.Main}
+[01:34:48] [main/INFO]: Setting user: hi03
+[01:34:49] [Client thread/INFO]: LWJGL Version: 2.9.1
+[01:34:49] [Client thread/INFO]: [cpw.mods.fml.client.SplashProgress:start:188]: ---- Minecraft Crash Report ----
+// Hey, that tickles! Hehehe!
+
+Time: 26/09/01 1:34
+Description: Loading screen debug info
+
+This is just a prompt for computer specs to be printed. THIS IS NOT A ERROR
+
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- System Details --
+Details:
+	Minecraft Version: 1.7.10
+	Operating System: Windows 10 (amd64) version 10.0
+	Java Version: 1.8.0_51, Oracle Corporation
+	Java VM Version: Java HotSpot(TM) 64-Bit Server VM (mixed mode), Oracle Corporation
+	Memory: 828640712 bytes (790 MB) / 1073741824 bytes (1024 MB) up to 12884901888 bytes (12288 MB)
+	JVM Flags: 6 total; -XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump -Xms1G -Xmx12G -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=120
+	AABB Pool Size: 0 (0 bytes; 0 MB) allocated, 0 (0 bytes; 0 MB) used
+	IntCache: cache: 0, tcache: 0, allocated: 0, tallocated: 0
+	FML: 
+	GL info: ' Vendor: 'NVIDIA Corporation' Version: '4.6.0 NVIDIA 591.86' Renderer: 'NVIDIA GeForce RTX 3080 Ti/PCIe/SSE2'
+[01:34:49] [Client thread/INFO]: Attempting early MinecraftForge initialization
+[01:34:49] [Client thread/INFO]: MinecraftForge v10.13.4.1614 Initialized
+[01:34:49] [Client thread/INFO]: Replaced 183 ore recipies
+[01:34:49] [Client thread/INFO]: Completed early MinecraftForge initialization
+[01:34:49] [Client thread/INFO]: Found 0 mods from the command line. Injecting into mod discoverer
+[01:34:49] [Client thread/INFO]: Searching C:\.minecraft\1.7.10\mods for mods
+[01:34:49] [Client thread/INFO]: Also searching C:\.minecraft\1.7.10\mods\1.7.10 for mods
+[01:34:52] [Client thread/INFO]: Forge Mod Loader has identified 8 mods to load
+[01:34:52] [Client thread/INFO]: FML has found a non-mod file [RTM]Baru'sRail.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[01:34:52] [Client thread/INFO]: FML has found a non-mod file [東京近郊_一般]ObjectPack (1).zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[01:34:52] [Client thread/INFO]: FML has found a non-mod file E259-1.7.10.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[01:34:52] [Client thread/INFO]: FML has found a non-mod file hi03 ATS-P Transponder.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[01:34:52] [Client thread/INFO]: FML has found a non-mod file hi03 ATS-Ps Transponder.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[01:34:52] [Client thread/INFO]: FML has found a non-mod file hi03 ATS-Sx Transponder.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[01:34:52] [Client thread/INFO]: FML has found a non-mod file hi03CatenaryPack Common v02.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[01:34:52] [Client thread/INFO]: FML has found a non-mod file hi03CatenaryPack Pole A.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[01:34:52] [Client thread/INFO]: FML has found a non-mod file hi03MelodySwitch.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[01:34:52] [Client thread/INFO]: FML has found a non-mod file KeiseiHokusoPack.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[01:34:52] [Client thread/INFO]: FML has found a non-mod file NGTO Builder.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[01:34:52] [Client thread/INFO]: FML has found a non-mod file NGTOBuilder2.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[01:34:52] [Client thread/INFO]: FML has found a non-mod file RTM-ATS-P.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[01:34:52] [Client thread/INFO]: FML has found a non-mod file ShinanoRailwayPack.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[01:34:52] [Client thread/INFO]: FML has found a non-mod file SuperRailBuilder3.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[01:34:52] [Client thread/INFO]: FML has found a non-mod file SuperRailBuilderX railposition-test-v2.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[01:34:52] [Client thread/INFO]: FML has found a non-mod file tree-brush-preset-pack.zip in your mods directory. It will now be injected into your classpath. This could severe stability issues, it should be removed if possible.
+[01:34:53] [Client thread/INFO]: Attempting connection with missing mods [mcp, FML, Forge, BambooMod, RTM, MCTE, NGTLib, worldedit] at CLIENT
+[01:34:53] [Client thread/INFO]: Attempting connection with missing mods [mcp, FML, Forge, BambooMod, RTM, MCTE, NGTLib, worldedit] at SERVER
+[01:34:54] [Client thread/INFO]: Reloading ResourceManager: Default, FMLFileResourcePack:Forge Mod Loader, FMLFileResourcePack:Minecraft Forge, FMLFileResourcePack:BambooMod, FMLFileResourcePack:RealTrainMod, FMLFileResourcePack:MCTerrainEditor, FMLFileResourcePack:NGTLib, FMLFileResourcePack:WorldEdit
+[01:34:54] [Client thread/INFO]: Processing ObjectHolder annotations
+[01:34:54] [Client thread/INFO]: Found 341 ObjectHolder annotations
+[01:34:54] [Client thread/INFO]: Identifying ItemStackHolder annotations
+[01:34:54] [Client thread/INFO]: Found 0 ItemStackHolder annotations
+[01:34:54] [Client thread/INFO]: Configured a dormant chunk cache size of 0
+[01:34:54] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: com.google.gson.JsonSyntaxException: java.lang.IllegalStateException: Expected BEGIN_OBJECT but was STRING at line 1 column 1
+[01:34:54] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.gson.Gson.fromJson(Gson.java:815)
+[01:34:54] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.gson.Gson.fromJson(Gson.java:768)
+[01:34:54] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.gson.Gson.fromJson(Gson.java:717)
+[01:34:54] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.gson.Gson.fromJson(Gson.java:689)
+[01:34:54] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at net.minecraftforge.common.ForgeVersion$1.run(ForgeVersion.java:94)
+[01:34:54] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: Caused by: java.lang.IllegalStateException: Expected BEGIN_OBJECT but was STRING at line 1 column 1
+[01:34:54] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.gson.stream.JsonReader.beginObject(JsonReader.java:374)
+[01:34:54] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.gson.internal.bind.MapTypeAdapterFactory$Adapter.read(MapTypeAdapterFactory.java:183)
+[01:34:54] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.gson.internal.bind.MapTypeAdapterFactory$Adapter.read(MapTypeAdapterFactory.java:145)
+[01:34:54] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.gson.Gson.fromJson(Gson.java:803)
+[01:34:54] [Forge Version Check/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	... 4 more
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: java.io.FileNotFoundException: https://dl.dropboxusercontent.com/u/37248864/update.json
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.net.www.protocol.http.HttpURLConnection.getInputStream0(HttpURLConnection.java:1835)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.net.www.protocol.http.HttpURLConnection.access$200(HttpURLConnection.java:90)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.net.www.protocol.http.HttpURLConnection$9.run(HttpURLConnection.java:1432)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.net.www.protocol.http.HttpURLConnection$9.run(HttpURLConnection.java:1430)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at java.security.AccessController.doPrivileged(Native Method)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at java.security.AccessController.doPrivileged(AccessController.java:713)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.net.www.protocol.http.HttpURLConnection.getInputStream(HttpURLConnection.java:1429)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.net.www.protocol.https.HttpsURLConnectionImpl.getInputStream(HttpsURLConnectionImpl.java:254)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at java.net.URL.openStream(URL.java:1038)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at ruby.bamboo.UpdateNotify.run(UpdateNotify.java:43)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at java.lang.Thread.run(Thread.java:745)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at ruby.bamboo.BambooCore.preLoad(BambooCore.java:59)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at java.lang.reflect.Method.invoke(Method.java:497)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at cpw.mods.fml.common.FMLModContainer.handleModStateEvent(FMLModContainer.java:532)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at java.lang.reflect.Method.invoke(Method.java:497)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.EventSubscriber.handleEvent(EventSubscriber.java:74)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.SynchronizedEventSubscriber.handleEvent(SynchronizedEventSubscriber.java:47)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.EventBus.dispatch(EventBus.java:322)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.EventBus.dispatchQueuedEvents(EventBus.java:304)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.EventBus.post(EventBus.java:275)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at cpw.mods.fml.common.LoadController.sendEventToModContainer(LoadController.java:212)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at cpw.mods.fml.common.LoadController.propogateStateMessage(LoadController.java:190)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at java.lang.reflect.Method.invoke(Method.java:497)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.EventSubscriber.handleEvent(EventSubscriber.java:74)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.SynchronizedEventSubscriber.handleEvent(SynchronizedEventSubscriber.java:47)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.EventBus.dispatch(EventBus.java:322)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.EventBus.dispatchQueuedEvents(EventBus.java:304)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at com.google.common.eventbus.EventBus.post(EventBus.java:275)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at cpw.mods.fml.common.LoadController.distributeStateMessage(LoadController.java:119)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at cpw.mods.fml.common.Loader.preinitializeMods(Loader.java:556)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at cpw.mods.fml.client.FMLClientHandler.beginMinecraftLoading(FMLClientHandler.java:243)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at net.minecraft.client.Minecraft.func_71384_a(Minecraft.java:480)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at net.minecraft.client.Minecraft.func_99999_d(Minecraft.java:878)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at net.minecraft.client.main.Main.main(SourceFile:148)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at java.lang.reflect.Method.invoke(Method.java:497)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at net.minecraft.launchwrapper.Launch.launch(Launch.java:135)
+[01:34:54] [Client thread/INFO]: [java.lang.Throwable$WrappedPrintStream:println:748]: 	at net.minecraft.launchwrapper.Launch.main(Launch.java:28)
+[01:34:55] [Client thread/INFO]: [NGTFL] Add mods dir : [C:\.minecraft\1.7.10\mods, C:\.minecraft\1.7.10\jar-mods-cache\v1\mods]
+[01:34:55] [Client thread/INFO]: Applying holder lookups
+[01:34:55] [Client thread/INFO]: Holder lookups applied
+[01:34:55] [Client thread/INFO]: Injecting itemstacks
+[01:34:55] [Client thread/INFO]: Itemstack injection complete
+[01:34:55] [Client thread/INFO]: [RTM](Client) Start loading sounds
+[01:34:55] [Client thread/INFO]: [RTM](Client) Start registering sounds.json
+[01:34:55] [Sound Library Loader/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: 
+[01:34:55] [Sound Library Loader/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: Starting up SoundSystem...
+[01:34:55] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_rtm-ats-p
+[01:34:55] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_object
+[01:34:55] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_hi03melodyswitch
+[01:34:55] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_keiseihokuso
+[01:34:55] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_hi03nex
+[01:34:55] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_hi03shinano
+[01:34:55] [Thread-11/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: Initializing LWJGL OpenAL
+[01:34:55] [Thread-11/INFO]: [paulscode.sound.SoundSystemLogger:message:69]:     (The LWJGL binding of OpenAL.  For more information, see http://www.lwjgl.org)
+[01:34:55] [Thread-11/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: OpenAL initialized.
+[01:34:56] [Sound Library Loader/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: 
+[01:34:56] [Sound Library Loader/INFO]: Sound engine started
+[01:34:56] [Client thread/INFO]: Created: 16x16 textures/blocks-atlas
+[01:34:56] [Client thread/INFO]: Clear 0 GL Lists
+[01:34:56] [Client thread/INFO]: Created: 16x16 textures/items-atlas
+[01:34:56] [Client thread/INFO]: Clear 0 GL Lists
+[01:34:56] [Client thread/INFO]: Injecting itemstacks
+[01:34:56] [Client thread/INFO]: Itemstack injection complete
+[01:34:56] [Client thread/INFO]: WorldEdit for Forge (version 6.1.1) is loaded
+[01:34:57] [Client thread/INFO]: Forge Mod Loader has successfully loaded 8 mods
+[01:34:57] [Client thread/INFO]: Reloading ResourceManager: Default, FMLFileResourcePack:Forge Mod Loader, FMLFileResourcePack:Minecraft Forge, FMLFileResourcePack:BambooMod, FMLFileResourcePack:RealTrainMod, FMLFileResourcePack:MCTerrainEditor, FMLFileResourcePack:NGTLib, FMLFileResourcePack:WorldEdit
+[01:34:57] [Client thread/INFO]: Created: 512x256 textures/blocks-atlas
+[01:34:57] [Client thread/INFO]: Clear 0 GL Lists
+[01:34:57] [Client thread/INFO]: Created: 512x256 textures/items-atlas
+[01:34:57] [Client thread/INFO]: Clear 0 GL Lists
+[01:34:57] [Client thread/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: 
+[01:34:57] [Client thread/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: SoundSystem shutting down...
+[01:34:57] [Client thread/INFO]: [paulscode.sound.SoundSystemLogger:importantMessage:90]:     Author: Paul Lamb, www.paulscode.com
+[01:34:57] [Client thread/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: 
+[01:34:57] [Client thread/INFO]: [RTM](Client) Start loading sounds
+[01:34:57] [Client thread/INFO]: [RTM](Client) Start registering sounds.json
+[01:34:57] [Sound Library Loader/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: 
+[01:34:57] [Sound Library Loader/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: Starting up SoundSystem...
+[01:34:57] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_rtm-ats-p
+[01:34:57] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_object
+[01:34:57] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_hi03melodyswitch
+[01:34:57] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_keiseihokuso
+[01:34:57] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_hi03nex
+[01:34:57] [Client thread/INFO]: [RTM](Client) Register sounds.json, domain:sound_hi03shinano
+[01:34:58] [Thread-13/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: Initializing LWJGL OpenAL
+[01:34:58] [Thread-13/INFO]: [paulscode.sound.SoundSystemLogger:message:69]:     (The LWJGL binding of OpenAL.  For more information, see http://www.lwjgl.org)
+[01:34:58] [Thread-13/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: OpenAL initialized.
+[01:34:58] [Sound Library Loader/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: 
+[01:34:58] [Sound Library Loader/INFO]: Sound engine started
+[01:34:58] [Client thread/ERROR]: +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+[01:34:58] [Client thread/ERROR]: The following texture errors were found.
+[01:34:58] [Client thread/ERROR]: ==================================================
+[01:34:58] [Client thread/ERROR]:   DOMAIN minecraft
+[01:34:58] [Client thread/ERROR]: --------------------------------------------------
+[01:34:58] [Client thread/ERROR]:   domain minecraft is missing 2 textures
+[01:34:58] [Client thread/ERROR]:     domain minecraft has 4 locations:
+[01:34:58] [Client thread/ERROR]:       unknown resourcepack type net.minecraft.client.resources.DefaultResourcePack : Default
+[01:34:58] [Client thread/ERROR]:       mod RTM resources at C:\.minecraft\1.7.10\mods\src1.7.10_20200822+KaizPatchX-SNAPSHOT (5).jar
+[01:34:58] [Client thread/ERROR]:       mod MCTE resources at C:\.minecraft\1.7.10\mods\src1.7.10_20200822+KaizPatchX-SNAPSHOT (5).jar
+[01:34:58] [Client thread/ERROR]:       mod NGTLib resources at C:\.minecraft\1.7.10\mods\src1.7.10_20200822+KaizPatchX-SNAPSHOT (5).jar
+[01:34:58] [Client thread/ERROR]: -------------------------
+[01:34:58] [Client thread/ERROR]:     The missing resources for domain minecraft are:
+[01:34:58] [Client thread/ERROR]:       textures/blocks/MISSING_ICON_BLOCK_484_plant_ornament.png
+[01:34:58] [Client thread/ERROR]:       textures/items/ngtlib.missing.png
+[01:34:58] [Client thread/ERROR]: -------------------------
+[01:34:58] [Client thread/ERROR]:     No other errors exist for domain minecraft
+[01:34:58] [Client thread/ERROR]: ==================================================
+[01:34:58] [Client thread/ERROR]: ==================================================
+[01:34:58] [Client thread/ERROR]:   DOMAIN missing_icon_block_440_rtm
+[01:34:58] [Client thread/ERROR]: --------------------------------------------------
+[01:34:58] [Client thread/ERROR]:   domain missing_icon_block_440_rtm is missing 1 texture
+[01:34:58] [Client thread/ERROR]:     domain missing_icon_block_440_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[01:34:58] [Client thread/ERROR]: -------------------------
+[01:34:58] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_440_rtm are:
+[01:34:58] [Client thread/ERROR]:       textures/blocks/fluorescent.png
+[01:34:58] [Client thread/ERROR]: -------------------------
+[01:34:58] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_440_rtm
+[01:34:58] [Client thread/ERROR]: ==================================================
+[01:34:58] [Client thread/ERROR]: ==================================================
+[01:34:58] [Client thread/ERROR]:   DOMAIN missing_icon_block_472_rtm
+[01:34:58] [Client thread/ERROR]: --------------------------------------------------
+[01:34:58] [Client thread/ERROR]:   domain missing_icon_block_472_rtm is missing 1 texture
+[01:34:58] [Client thread/ERROR]:     domain missing_icon_block_472_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[01:34:58] [Client thread/ERROR]: -------------------------
+[01:34:58] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_472_rtm are:
+[01:34:58] [Client thread/ERROR]:       textures/blocks/converterCore.png
+[01:34:58] [Client thread/ERROR]: -------------------------
+[01:34:58] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_472_rtm
+[01:34:58] [Client thread/ERROR]: ==================================================
+[01:34:58] [Client thread/ERROR]: ==================================================
+[01:34:58] [Client thread/ERROR]:   DOMAIN missing_icon_block_456_rtm
+[01:34:58] [Client thread/ERROR]: --------------------------------------------------
+[01:34:58] [Client thread/ERROR]:   domain missing_icon_block_456_rtm is missing 1 texture
+[01:34:58] [Client thread/ERROR]:     domain missing_icon_block_456_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[01:34:58] [Client thread/ERROR]: -------------------------
+[01:34:58] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_456_rtm are:
+[01:34:58] [Client thread/ERROR]:       textures/blocks/ticketVendor.png
+[01:34:58] [Client thread/ERROR]: -------------------------
+[01:34:58] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_456_rtm
+[01:34:58] [Client thread/ERROR]: ==================================================
+[01:34:58] [Client thread/ERROR]: ==================================================
+[01:34:58] [Client thread/ERROR]:   DOMAIN rtm
+[01:34:58] [Client thread/ERROR]: --------------------------------------------------
+[01:34:58] [Client thread/ERROR]:   domain rtm is missing 1 texture
+[01:34:58] [Client thread/ERROR]:     domain rtm has 3 locations:
+[01:34:58] [Client thread/ERROR]:       mod RTM resources at C:\.minecraft\1.7.10\mods\src1.7.10_20200822+KaizPatchX-SNAPSHOT (5).jar
+[01:34:58] [Client thread/ERROR]:       mod MCTE resources at C:\.minecraft\1.7.10\mods\src1.7.10_20200822+KaizPatchX-SNAPSHOT (5).jar
+[01:34:58] [Client thread/ERROR]:       mod NGTLib resources at C:\.minecraft\1.7.10\mods\src1.7.10_20200822+KaizPatchX-SNAPSHOT (5).jar
+[01:34:58] [Client thread/ERROR]: -------------------------
+[01:34:58] [Client thread/ERROR]:     The missing resources for domain rtm are:
+[01:34:58] [Client thread/ERROR]:       textures/blocks/connector.png
+[01:34:58] [Client thread/ERROR]: -------------------------
+[01:34:58] [Client thread/ERROR]:     No other errors exist for domain rtm
+[01:34:58] [Client thread/ERROR]: ==================================================
+[01:34:58] [Client thread/ERROR]: ==================================================
+[01:34:58] [Client thread/ERROR]:   DOMAIN missing_icon_block_454_rtm
+[01:34:58] [Client thread/ERROR]: --------------------------------------------------
+[01:34:58] [Client thread/ERROR]:   domain missing_icon_block_454_rtm is missing 1 texture
+[01:34:58] [Client thread/ERROR]:     domain missing_icon_block_454_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[01:34:58] [Client thread/ERROR]: -------------------------
+[01:34:58] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_454_rtm are:
+[01:34:58] [Client thread/ERROR]:       textures/blocks/signboard.png
+[01:34:58] [Client thread/ERROR]: -------------------------
+[01:34:58] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_454_rtm
+[01:34:58] [Client thread/ERROR]: ==================================================
+[01:34:58] [Client thread/ERROR]: ==================================================
+[01:34:58] [Client thread/ERROR]:   DOMAIN missing_icon_block_465_rtm
+[01:34:58] [Client thread/ERROR]: --------------------------------------------------
+[01:34:58] [Client thread/ERROR]:   domain missing_icon_block_465_rtm is missing 1 texture
+[01:34:58] [Client thread/ERROR]:     domain missing_icon_block_465_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[01:34:58] [Client thread/ERROR]: -------------------------
+[01:34:58] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_465_rtm are:
+[01:34:58] [Client thread/ERROR]:       textures/blocks/pipe.png
+[01:34:58] [Client thread/ERROR]: -------------------------
+[01:34:58] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_465_rtm
+[01:34:58] [Client thread/ERROR]: ==================================================
+[01:34:58] [Client thread/ERROR]: ==================================================
+[01:34:58] [Client thread/ERROR]:   DOMAIN missing_icon_block_452_rtm
+[01:34:58] [Client thread/ERROR]: --------------------------------------------------
+[01:34:58] [Client thread/ERROR]:   domain missing_icon_block_452_rtm is missing 1 texture
+[01:34:58] [Client thread/ERROR]:     domain missing_icon_block_452_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[01:34:58] [Client thread/ERROR]: -------------------------
+[01:34:58] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_452_rtm are:
+[01:34:58] [Client thread/ERROR]:       textures/blocks/point.png
+[01:34:58] [Client thread/ERROR]: -------------------------
+[01:34:58] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_452_rtm
+[01:34:58] [Client thread/ERROR]: ==================================================
+[01:34:58] [Client thread/ERROR]: ==================================================
+[01:34:58] [Client thread/ERROR]:   DOMAIN missing_icon_block_444_rtm
+[01:34:58] [Client thread/ERROR]: --------------------------------------------------
+[01:34:58] [Client thread/ERROR]:   domain missing_icon_block_444_rtm is missing 1 texture
+[01:34:58] [Client thread/ERROR]:     domain missing_icon_block_444_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[01:34:58] [Client thread/ERROR]: -------------------------
+[01:34:58] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_444_rtm are:
+[01:34:58] [Client thread/ERROR]:       textures/blocks/crossing.png
+[01:34:58] [Client thread/ERROR]: -------------------------
+[01:34:58] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_444_rtm
+[01:34:58] [Client thread/ERROR]: ==================================================
+[01:34:58] [Client thread/ERROR]: ==================================================
+[01:34:58] [Client thread/ERROR]:   DOMAIN missing_icon_block_462_rtm
+[01:34:58] [Client thread/ERROR]: --------------------------------------------------
+[01:34:58] [Client thread/ERROR]:   domain missing_icon_block_462_rtm is missing 1 texture
+[01:34:58] [Client thread/ERROR]:     domain missing_icon_block_462_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[01:34:58] [Client thread/ERROR]: -------------------------
+[01:34:58] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_462_rtm are:
+[01:34:58] [Client thread/ERROR]:       textures/blocks/speaker.png
+[01:34:58] [Client thread/ERROR]: -------------------------
+[01:34:58] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_462_rtm
+[01:34:58] [Client thread/ERROR]: ==================================================
+[01:34:58] [Client thread/ERROR]: ==================================================
+[01:34:58] [Client thread/ERROR]:   DOMAIN missing_icon_block_473_rtm
+[01:34:58] [Client thread/ERROR]: --------------------------------------------------
+[01:34:58] [Client thread/ERROR]:   domain missing_icon_block_473_rtm is missing 1 texture
+[01:34:58] [Client thread/ERROR]:     domain missing_icon_block_473_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[01:34:58] [Client thread/ERROR]: -------------------------
+[01:34:58] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_473_rtm are:
+[01:34:58] [Client thread/ERROR]:       textures/blocks/converterBase.png
+[01:34:58] [Client thread/ERROR]: -------------------------
+[01:34:58] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_473_rtm
+[01:34:58] [Client thread/ERROR]: ==================================================
+[01:34:58] [Client thread/ERROR]: ==================================================
+[01:34:58] [Client thread/ERROR]:   DOMAIN missing_icon_block_481_rtm
+[01:34:58] [Client thread/ERROR]: --------------------------------------------------
+[01:34:58] [Client thread/ERROR]:   domain missing_icon_block_481_rtm is missing 1 texture
+[01:34:58] [Client thread/ERROR]:     domain missing_icon_block_481_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[01:34:58] [Client thread/ERROR]: -------------------------
+[01:34:58] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_481_rtm are:
+[01:34:58] [Client thread/ERROR]:       textures/blocks/paint.png
+[01:34:58] [Client thread/ERROR]: -------------------------
+[01:34:58] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_481_rtm
+[01:34:58] [Client thread/ERROR]: ==================================================
+[01:34:58] [Client thread/ERROR]: ==================================================
+[01:34:58] [Client thread/ERROR]:   DOMAIN missing_icon_block_451_rtm
+[01:34:58] [Client thread/ERROR]: --------------------------------------------------
+[01:34:58] [Client thread/ERROR]:   domain missing_icon_block_451_rtm is missing 1 texture
+[01:34:58] [Client thread/ERROR]:     domain missing_icon_block_451_rtm is missing a resource manager - it is probably a side-effect of automatic texture processing
+[01:34:58] [Client thread/ERROR]: -------------------------
+[01:34:58] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_451_rtm are:
+[01:34:58] [Client thread/ERROR]:       textures/blocks/turnstile.png
+[01:34:58] [Client thread/ERROR]: -------------------------
+[01:34:58] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_451_rtm
+[01:34:58] [Client thread/ERROR]: ==================================================
+[01:34:58] [Client thread/ERROR]: ==================================================
+[01:34:58] [Client thread/ERROR]:   DOMAIN missing_icon_block_486_mcte
+[01:34:58] [Client thread/ERROR]: --------------------------------------------------
+[01:34:58] [Client thread/ERROR]:   domain missing_icon_block_486_mcte is missing 1 texture
+[01:34:58] [Client thread/ERROR]:     domain missing_icon_block_486_mcte is missing a resource manager - it is probably a side-effect of automatic texture processing
+[01:34:58] [Client thread/ERROR]: -------------------------
+[01:34:58] [Client thread/ERROR]:     The missing resources for domain missing_icon_block_486_mcte are:
+[01:34:58] [Client thread/ERROR]:       textures/blocks/miniature.png
+[01:34:58] [Client thread/ERROR]: -------------------------
+[01:34:58] [Client thread/ERROR]:     No other errors exist for domain missing_icon_block_486_mcte
+[01:34:58] [Client thread/ERROR]: ==================================================
+[01:34:58] [Client thread/ERROR]: +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=
+[01:34:58] [ForkJoinPool-1-worker-7/INFO]: [NGTO Builder2] Plants block load error: sample:trees: treeA.ngtz: java.io.FileNotFoundException: On get stream : treeA.ngtz
+[01:35:02] [RTM ModelPack Load/INFO]: Load time:7126987000
+[01:35:19] [Server thread/INFO]: Starting integrated minecraft server version 1.7.10
+[01:35:19] [Server thread/INFO]: Generating keypair
+[01:35:19] [Server thread/INFO]: Injecting existing block and item data into this server instance
+[01:35:19] [Server thread/INFO]: Applying holder lookups
+[01:35:19] [Server thread/INFO]: Holder lookups applied
+[01:35:19] [Server thread/INFO]: Loading dimension 0 (新規ワールド のコピー) (net.minecraft.server.integrated.IntegratedServer@3f32421)
+[01:35:19] [Server thread/INFO]: Loading dimension 1 (新規ワールド のコピー) (net.minecraft.server.integrated.IntegratedServer@3f32421)
+[01:35:19] [Server thread/INFO]: Loading dimension -1 (新規ワールド のコピー) (net.minecraft.server.integrated.IntegratedServer@3f32421)
+[01:35:19] [Server thread/INFO]: Preparing start region for level 0
+[01:35:19] [Server thread/INFO]: Clear 0 Editors
+[01:35:19] [Server thread/INFO]: Changing view distance to 16, from 10
+[01:35:20] [Netty Client IO #0/INFO]: Server protocol version 2
+[01:35:20] [Netty IO #1/INFO]: Client protocol version 2
+[01:35:20] [Netty IO #1/INFO]: Client attempting to join with 8 mods : MCTE@1.7.10.16 KaizPatchX/1.10.3,NGTLib@1.7.10.32 KaizPatchX/1.10.3,FML@7.10.99.99,BambooMod@Minecraft@MC_VERSION@ var@VERSION@,worldedit@6.1.1,Forge@10.13.4.1614,RTM@1.7.10.41 KaizPatchX/1.10.3,mcp@9.05
+[01:35:20] [Netty IO #1/INFO]: Attempting connection with missing mods [] at CLIENT
+[01:35:20] [Netty Client IO #0/INFO]: Attempting connection with missing mods [] at SERVER
+[01:35:20] [Server thread/INFO]: [Server thread] Server side modded connection established
+[01:35:20] [Server thread/INFO]: hi03[local:E:77a59559] logged in with entity id 232 at (379.1257999183182, 10.615556602232507, -131.46752122733295)
+[01:35:20] [Server thread/INFO]: hi03 がゲームに参加しました
+[01:35:20] [Client thread/INFO]: [Client thread] Client side modded connection established
+[01:35:29] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=380.680,4.063,-176.282, candidates=2, railTiles=15, uniqueCores=2, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=2, errors=0
+[01:35:30] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[01:35:30] [Server thread/INFO]: [SuperRailBuilderX RailPosition] applying connected endpoint: targets=2
+[01:35:30] [Server thread/INFO]: [SuperRailBuilderX RailPosition] rebuilding sectioned rail: groupCores=3, index=0
+[01:35:30] [Server thread/INFO]: [SuperRailBuilderX RailPosition] sectioned rail rebuild succeeded: oldGroupCores=3, newGroupCores=4
+[01:35:30] [Server thread/INFO]: [SuperRailBuilderX RailPosition] allowing overlapping foreign roadbed: count=2
+[01:35:30] [Server thread/INFO]: [SuperRailBuilderX RailPosition] rebuilding sectioned rail: groupCores=3, index=0
+[01:35:30] [Server thread/INFO]: [SuperRailBuilderX RailPosition] sectioned rail rebuild succeeded: oldGroupCores=3, newGroupCores=3
+[01:35:30] [Client thread/INFO]: [CHAT] §a[SuperRailBuilderX] 移動しました
+[01:35:31] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=377.652,4.063,-175.888, candidates=2, railTiles=15, uniqueCores=2, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=2, errors=0
+[01:35:33] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[01:35:33] [Server thread/INFO]: [SuperRailBuilderX RailPosition] roadbed conflict: count=1, samples=384,4,-177:tile.rtm:LRCore
+[01:35:33] [Client thread/INFO]: [CHAT] §c[SuperRailBuilderX] 適用失敗: target_0:roadbed_conflict(1)
+[01:35:35] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[01:35:35] [Server thread/INFO]: [SuperRailBuilderX RailPosition] roadbed conflict: count=1, samples=384,4,-193:tile.rtm:LRCore
+[01:35:35] [Client thread/INFO]: [CHAT] §c[SuperRailBuilderX] 適用失敗: target_0:roadbed_conflict(1)
+[01:35:37] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[01:35:37] [Server thread/INFO]: [SuperRailBuilderX RailPosition] allowing overlapping foreign roadbed: count=3
+[01:35:37] [Server thread/INFO]: [SuperRailBuilderX RailPosition] allowing overlapping foreign roadbed: count=3
+[01:35:37] [Server thread/INFO]: [SuperRailBuilderX RailPosition] applying connected endpoint: targets=2
+[01:35:37] [Server thread/INFO]: [SuperRailBuilderX RailPosition] allowing overlapping foreign roadbed: count=3
+[01:35:37] [Server thread/INFO]: [SuperRailBuilderX RailPosition] rebuilding sectioned rail: groupCores=4, index=0
+[01:35:37] [Server thread/INFO]: [SuperRailBuilderX RailPosition] sectioned rail rebuild succeeded: oldGroupCores=4, newGroupCores=4
+[01:35:37] [Server thread/INFO]: [SuperRailBuilderX RailPosition] allowing overlapping foreign roadbed: count=4
+[01:35:37] [Server thread/INFO]: [SuperRailBuilderX RailPosition] rebuilding sectioned rail: groupCores=3, index=0
+[01:35:37] [Server thread/INFO]: [SuperRailBuilderX RailPosition] sectioned rail rebuild succeeded: oldGroupCores=3, newGroupCores=3
+[01:35:37] [Client thread/INFO]: [CHAT] §a[SuperRailBuilderX] 移動しました
+[01:35:38] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=381.833,4.063,-175.375, candidates=2, railTiles=18, uniqueCores=4, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=6, errors=0
+[01:35:39] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[01:35:39] [Server thread/INFO]: [SuperRailBuilderX RailPosition] roadbed conflict: count=2, samples=384,4,-177:tile.rtm:LRCore;384,4,-193:tile.rtm:LRCore
+[01:35:39] [Client thread/INFO]: [CHAT] §c[SuperRailBuilderX] 適用失敗: target_0:roadbed_conflict(2)
+[01:35:42] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=381.876,4.063,-175.681, candidates=2, railTiles=18, uniqueCores=4, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=6, errors=0
+[01:35:43] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[01:35:43] [Server thread/INFO]: [SuperRailBuilderX RailPosition] allowing overlapping foreign roadbed: count=30
+[01:35:43] [Server thread/INFO]: [SuperRailBuilderX RailPosition] roadbed conflict: count=1, samples=384,4,-161:tile.rtm:LRCore
+[01:35:43] [Client thread/INFO]: [CHAT] §c[SuperRailBuilderX] 適用失敗: target_1:roadbed_conflict(1)
+[01:35:54] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=377.472,4.000,-140.745, candidates=1, railTiles=8, uniqueCores=1, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=1, errors=0
+[01:35:55] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[01:35:55] [Server thread/INFO]: [SuperRailBuilderX RailPosition] roadbed conflict: count=28, samples=383,3,-173:tile.grass;381,3,-173:tile.grass;382,3,-173:tile.grass;383,3,-172:tile.grass;381,3,-172:tile.grass;382,3,-172:tile.grass;384,4,-161:tile.rtm:LRCore;390,3,-155:tile.grass
+[01:35:55] [Client thread/INFO]: [CHAT] §c[SuperRailBuilderX] 適用失敗: target_0:roadbed_conflict(28)
+[01:36:01] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=383.928,4.063,-136.380, candidates=2, railTiles=15, uniqueCores=2, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=2, errors=0
+[01:36:02] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[01:36:03] [Server thread/INFO]: [SuperRailBuilderX RailPosition] allowing overlapping foreign roadbed: count=3
+[01:36:03] [Server thread/INFO]: [SuperRailBuilderX RailPosition] roadbed conflict: count=23, samples=386,4,-110:tile.woolCarpet;386,4,-111:tile.woolCarpet;386,4,-112:tile.woolCarpet;386,4,-113:tile.woolCarpet;386,4,-114:tile.woolCarpet;386,4,-115:tile.woolCarpet;386,4,-116:tile.woolCarpet;386,4,-117:tile.woolCarpet
+[01:36:03] [Client thread/INFO]: [CHAT] §c[SuperRailBuilderX] 適用失敗: target_1:roadbed_conflict(23)
+[01:36:11] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=395.252,4.000,-148.405, candidates=0, railTiles=0, uniqueCores=0, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=0, errors=0
+[01:36:11] [Client thread/INFO]: [CHAT] §e[SuperRailBuilderX] 候補がありません。latest.logのcandidate scanを確認してください
+[01:36:11] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[01:36:11] [Client thread/INFO]: phase:getRailPositionUnsupportedReason
+[01:36:11] [Client thread/INFO]: x:395, xClass:java.lang.Double
+[01:36:11] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[01:36:11] [Client thread/INFO]: z:-149, zClass:java.lang.Double
+[01:36:11] [Client thread/INFO]: exception:java.lang.NullPointerException: getLogicalRailPositions(...) must not be null
+[01:36:11] [Client thread/INFO]: exception.message:getLogicalRailPositions(...) must not be null
+[01:36:11] [Client thread/INFO]: javaCause[0]:java.lang.NullPointerException: java.lang.NullPointerException: getLogicalRailPositions(...) must not be null
+[01:36:11] [Client thread/INFO]:   at jp.kaiz.kaizpatch.rtm.rail.TileEntityLargeRailSectionCore.getLogicalRailPositions(TileEntityLargeRailSectionCore.kt:53)
+[01:36:11] [Client thread/INFO]:   at jdk.nashorn.internal.scripts.Script$Recompilation$7606$450691A$\^eval\_.RTMX_loadCompatTarget_kaizpatch_scripts_superrailbuilderx_RailPositionCompat_1suqebq$L:10801$RailPositionCompat$getRailPositionUnsupportedReason(<eval>:10927)
+[01:36:11] [Client thread/INFO]:   at jdk.nashorn.internal.scripts.Script$Recompilation$7594$470610AAA$\^eval\_.findCandidates(<eval>:11381)
+[01:36:11] [Client thread/INFO]:   at jdk.nashorn.internal.scripts.Script$Recompilation$7568$481931AAA$\^eval\_.render(<eval>:11584)
+[01:36:11] [Client thread/INFO]:   at jdk.nashorn.internal.runtime.ScriptFunctionData.invoke(ScriptFunctionData.java:642)
+[01:36:11] [Client thread/INFO]:   at jdk.nashorn.internal.runtime.ScriptFunction.invoke(ScriptFunction.java:229)
+[01:36:11] [Client thread/INFO]:   at jdk.nashorn.internal.runtime.ScriptRuntime.apply(ScriptRuntime.java:387)
+[01:36:11] [Client thread/INFO]:   at jdk.nashorn.api.scripting.ScriptObjectMirror.callMember(ScriptObjectMirror.java:192)
+[01:36:11] [Client thread/INFO]:   at jdk.nashorn.api.scripting.NashornScriptEngine.invokeImpl(NashornScriptEngine.java:381)
+[01:36:11] [Client thread/INFO]:   at jdk.nashorn.api.scripting.NashornScriptEngine.invokeFunction(NashornScriptEngine.java:187)
+[01:36:11] [Client thread/INFO]:   at jp.ngt.ngtlib.io.ScriptUtil.doScriptFunction(ScriptUtil.java:58)
+[01:36:11] [Client thread/INFO]:   at jp.ngt.rtm.render.PartsRenderer.execScriptFunc(PartsRenderer.java:65)
+[01:36:11] [Client thread/INFO]:   at jp.ngt.rtm.render.PartsRenderer.render(PartsRenderer.java:175)
+[01:36:11] [Client thread/INFO]:   at jp.ngt.rtm.render.ModelObject.lambda$renderWithTexture$0(ModelObject.java:217)
+[01:36:11] [Client thread/INFO]:   at jp.ngt.rtm.render.ModelObject$$Lambda$204/1090279747.accept(Unknown Source)
+[01:36:11] [Client thread/INFO]:   at java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+[01:36:11] [Client thread/INFO]:   at java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:175)
+[01:36:11] [Client thread/INFO]:   at java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:948)
+[01:36:11] [Client thread/INFO]:   at java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:512)
+[01:36:11] [Client thread/INFO]:   at java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:502)
+[01:36:11] [Client thread/INFO]:   at java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+[01:36:11] [Client thread/INFO]:   at java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+[01:36:11] [Client thread/INFO]:   at java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+[01:36:11] [Client thread/INFO]:   at java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:418)
+[01:36:11] [Client thread/INFO]:   at jp.ngt.rtm.render.ModelObject.renderWithTexture(ModelObject.java:200)
+[01:36:11] [Client thread/INFO]:   at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.renderBody(RenderVehicleBase.java:162)
+[01:36:11] [Client thread/INFO]:   at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.renderVehicleMain(RenderVehicleBase.java:118)
+[01:36:11] [Client thread/INFO]:   at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.renderVehicleBase(RenderVehicleBase.java:63)
+[01:36:11] [Client thread/INFO]:   at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.func_76986_a(RenderVehicleBase.java:420)
+[01:36:11] [Client thread/INFO]:   at net.minecraft.client.renderer.entity.RenderManager.func_147939_a(RenderManager.java:293)
+[01:36:11] [Client thread/INFO]:   at net.minecraft.client.renderer.entity.RenderManager.func_147936_a(RenderManager.java:271)
+[01:36:11] [Client thread/INFO]:   at net.minecraft.client.renderer.entity.RenderManager.func_147937_a(RenderManager.java:244)
+[01:36:11] [Client thread/INFO]:   at net.minecraft.client.renderer.RenderGlobal.func_147589_a(RenderGlobal.java:471)
+[01:36:11] [Client thread/INFO]:   at net.minecraft.client.renderer.EntityRenderer.func_78471_a(EntityRenderer.java:1224)
+[01:36:11] [Client thread/INFO]:   at net.minecraft.client.renderer.EntityRenderer.func_78480_b(EntityRenderer.java:1011)
+[01:36:11] [Client thread/INFO]:   at net.minecraft.client.Minecraft.func_71411_J(Minecraft.java:1001)
+[01:36:11] [Client thread/INFO]:   at net.minecraft.client.Minecraft.func_99999_d(Minecraft.java:898)
+[01:36:11] [Client thread/INFO]:   at net.minecraft.client.main.Main.main(SourceFile:148)
+[01:36:11] [Client thread/INFO]:   at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+[01:36:11] [Client thread/INFO]:   at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+[01:36:11] [Client thread/INFO]:   at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+[01:36:11] [Client thread/INFO]:   at java.lang.reflect.Method.invoke(Method.java:497)
+[01:36:11] [Client thread/INFO]:   at net.minecraft.launchwrapper.Launch.launch(Launch.java:135)
+[01:36:11] [Client thread/INFO]:   at net.minecraft.launchwrapper.Launch.main(Launch.java:28)
+[01:36:11] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[01:36:16] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=395.705,4.000,-147.365, candidates=1, railTiles=6, uniqueCores=1, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=1, errors=0
+[01:36:19] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=395.694,4.063,-147.874, candidates=2, railTiles=15, uniqueCores=2, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=2, errors=0
+[01:36:20] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[01:36:20] [Server thread/INFO]: [SuperRailBuilderX RailPosition] allowing overlapping foreign roadbed: count=1
+[01:36:20] [Server thread/INFO]: [SuperRailBuilderX RailPosition] roadbed conflict: count=2, samples=396,4,-111:tile.rtm:LRCore;394,4,-111:tile.rtm:LRCore
+[01:36:20] [Client thread/INFO]: [CHAT] §c[SuperRailBuilderX] 適用失敗: target_1:roadbed_conflict(2)
+[01:36:27] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=395.476,4.000,-188.333, candidates=1, railTiles=6, uniqueCores=1, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=1, errors=0
+[01:36:31] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=395.332,4.063,-188.253, candidates=2, railTiles=15, uniqueCores=2, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=2, errors=0
+[01:36:32] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[01:36:32] [Server thread/INFO]: [SuperRailBuilderX RailPosition] applying connected endpoint: targets=2
+[01:36:32] [Server thread/INFO]: [SuperRailBuilderX RailPosition] rebuilding sectioned rail: groupCores=4, index=0
+[01:36:32] [Server thread/INFO]: [SuperRailBuilderX RailPosition] sectioned rail rebuild succeeded: oldGroupCores=4, newGroupCores=4
+[01:36:32] [Server thread/INFO]: [SuperRailBuilderX RailPosition] rebuilding sectioned rail: groupCores=3, index=1
+[01:36:32] [Server thread/INFO]: [SuperRailBuilderX RailPosition] sectioned rail rebuild succeeded: oldGroupCores=3, newGroupCores=3
+[01:36:32] [Client thread/INFO]: [CHAT] §a[SuperRailBuilderX] 移動しました
+[01:36:33] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=398.212,4.063,-188.232, candidates=2, railTiles=15, uniqueCores=2, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=2, errors=0
+[01:36:35] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[01:36:35] [Server thread/INFO]: [SuperRailBuilderX RailPosition] applying connected endpoint: targets=2
+[01:36:35] [Server thread/INFO]: [SuperRailBuilderX RailPosition] rebuilding sectioned rail: groupCores=4, index=0
+[01:36:35] [Server thread/INFO]: [SuperRailBuilderX RailPosition] sectioned rail rebuild succeeded: oldGroupCores=4, newGroupCores=4
+[01:36:35] [Server thread/INFO]: [SuperRailBuilderX RailPosition] allowing overlapping foreign roadbed: count=2
+[01:36:35] [Server thread/INFO]: [SuperRailBuilderX RailPosition] rebuilding sectioned rail: groupCores=3, index=1
+[01:36:35] [Server thread/INFO]: [SuperRailBuilderX RailPosition] sectioned rail rebuild succeeded: oldGroupCores=3, newGroupCores=3
+[01:36:35] [Client thread/INFO]: [CHAT] §a[SuperRailBuilderX] 移動しました
+[01:36:41] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=394.565,3.604,-189.000, candidates=0, railTiles=0, uniqueCores=0, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=0, errors=0
+[01:36:41] [Client thread/INFO]: [CHAT] §e[SuperRailBuilderX] 候補がありません。latest.logのcandidate scanを確認してください
+[01:36:41] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=394.322,4.000,-187.440, candidates=0, railTiles=0, uniqueCores=0, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=0, errors=0
+[01:36:41] [Client thread/INFO]: [CHAT] §e[SuperRailBuilderX] 候補がありません。latest.logのcandidate scanを確認してください
+[01:36:43] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=395.936,4.000,-188.116, candidates=0, railTiles=0, uniqueCores=0, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=0, errors=0
+[01:36:43] [Client thread/INFO]: [CHAT] §e[SuperRailBuilderX] 候補がありません。latest.logのcandidate scanを確認してください
+[01:36:44] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[01:36:44] [Client thread/INFO]: phase:getRailPositionUnsupportedReason
+[01:36:44] [Client thread/INFO]: x:395, xClass:java.lang.Double
+[01:36:44] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[01:36:44] [Client thread/INFO]: z:-189, zClass:java.lang.Double
+[01:36:44] [Client thread/INFO]: exception:java.lang.NullPointerException: getLogicalRailPositions(...) must not be null
+[01:36:44] [Client thread/INFO]: exception.message:getLogicalRailPositions(...) must not be null
+[01:36:44] [Client thread/INFO]: javaCause[0]:java.lang.NullPointerException: java.lang.NullPointerException: getLogicalRailPositions(...) must not be null
+[01:36:44] [Client thread/INFO]:   at jp.kaiz.kaizpatch.rtm.rail.TileEntityLargeRailSectionCore.getLogicalRailPositions(TileEntityLargeRailSectionCore.kt:53)
+[01:36:44] [Client thread/INFO]:   at jdk.nashorn.internal.scripts.Script$Recompilation$7606$450691A$\^eval\_.RTMX_loadCompatTarget_kaizpatch_scripts_superrailbuilderx_RailPositionCompat_1suqebq$L:10801$RailPositionCompat$getRailPositionUnsupportedReason(<eval>:10927)
+[01:36:44] [Client thread/INFO]:   at jdk.nashorn.internal.scripts.Script$Recompilation$7594$470610AAA$\^eval\_.findCandidates(<eval>:11381)
+[01:36:44] [Client thread/INFO]:   at jdk.nashorn.internal.scripts.Script$Recompilation$7568$481931AAA$\^eval\_.render(<eval>:11584)
+[01:36:44] [Client thread/INFO]:   at jdk.nashorn.internal.runtime.ScriptFunctionData.invoke(ScriptFunctionData.java:642)
+[01:36:44] [Client thread/INFO]:   at jdk.nashorn.internal.runtime.ScriptFunction.invoke(ScriptFunction.java:229)
+[01:36:44] [Client thread/INFO]:   at jdk.nashorn.internal.runtime.ScriptRuntime.apply(ScriptRuntime.java:387)
+[01:36:44] [Client thread/INFO]:   at jdk.nashorn.api.scripting.ScriptObjectMirror.callMember(ScriptObjectMirror.java:192)
+[01:36:44] [Client thread/INFO]:   at jdk.nashorn.api.scripting.NashornScriptEngine.invokeImpl(NashornScriptEngine.java:381)
+[01:36:44] [Client thread/INFO]:   at jdk.nashorn.api.scripting.NashornScriptEngine.invokeFunction(NashornScriptEngine.java:187)
+[01:36:44] [Client thread/INFO]:   at jp.ngt.ngtlib.io.ScriptUtil.doScriptFunction(ScriptUtil.java:58)
+[01:36:44] [Client thread/INFO]:   at jp.ngt.rtm.render.PartsRenderer.execScriptFunc(PartsRenderer.java:65)
+[01:36:44] [Client thread/INFO]:   at jp.ngt.rtm.render.PartsRenderer.render(PartsRenderer.java:175)
+[01:36:44] [Client thread/INFO]:   at jp.ngt.rtm.render.ModelObject.lambda$renderWithTexture$0(ModelObject.java:217)
+[01:36:44] [Client thread/INFO]:   at jp.ngt.rtm.render.ModelObject$$Lambda$204/1090279747.accept(Unknown Source)
+[01:36:44] [Client thread/INFO]:   at java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+[01:36:44] [Client thread/INFO]:   at java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:175)
+[01:36:44] [Client thread/INFO]:   at java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:948)
+[01:36:44] [Client thread/INFO]:   at java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:512)
+[01:36:44] [Client thread/INFO]:   at java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:502)
+[01:36:44] [Client thread/INFO]:   at java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+[01:36:44] [Client thread/INFO]:   at java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+[01:36:44] [Client thread/INFO]:   at java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+[01:36:44] [Client thread/INFO]:   at java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:418)
+[01:36:44] [Client thread/INFO]:   at jp.ngt.rtm.render.ModelObject.renderWithTexture(ModelObject.java:200)
+[01:36:44] [Client thread/INFO]:   at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.renderBody(RenderVehicleBase.java:162)
+[01:36:44] [Client thread/INFO]:   at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.renderVehicleMain(RenderVehicleBase.java:118)
+[01:36:44] [Client thread/INFO]:   at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.renderVehicleBase(RenderVehicleBase.java:63)
+[01:36:44] [Client thread/INFO]:   at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.func_76986_a(RenderVehicleBase.java:420)
+[01:36:44] [Client thread/INFO]:   at net.minecraft.client.renderer.entity.RenderManager.func_147939_a(RenderManager.java:293)
+[01:36:44] [Client thread/INFO]:   at net.minecraft.client.renderer.entity.RenderManager.func_147936_a(RenderManager.java:271)
+[01:36:44] [Client thread/INFO]:   at net.minecraft.client.renderer.entity.RenderManager.func_147937_a(RenderManager.java:244)
+[01:36:44] [Client thread/INFO]:   at net.minecraft.client.renderer.RenderGlobal.func_147589_a(RenderGlobal.java:471)
+[01:36:44] [Client thread/INFO]:   at net.minecraft.client.renderer.EntityRenderer.func_78471_a(EntityRenderer.java:1224)
+[01:36:44] [Client thread/INFO]:   at net.minecraft.client.renderer.EntityRenderer.func_78480_b(EntityRenderer.java:1011)
+[01:36:44] [Client thread/INFO]:   at net.minecraft.client.Minecraft.func_71411_J(Minecraft.java:1001)
+[01:36:44] [Client thread/INFO]:   at net.minecraft.client.Minecraft.func_99999_d(Minecraft.java:898)
+[01:36:44] [Client thread/INFO]:   at net.minecraft.client.main.Main.main(SourceFile:148)
+[01:36:44] [Client thread/INFO]:   at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+[01:36:44] [Client thread/INFO]:   at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+[01:36:44] [Client thread/INFO]:   at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+[01:36:44] [Client thread/INFO]:   at java.lang.reflect.Method.invoke(Method.java:497)
+[01:36:44] [Client thread/INFO]:   at net.minecraft.launchwrapper.Launch.launch(Launch.java:135)
+[01:36:44] [Client thread/INFO]:   at net.minecraft.launchwrapper.Launch.main(Launch.java:28)
+[01:36:44] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[01:36:45] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=399.553,4.000,-188.245, candidates=0, railTiles=0, uniqueCores=0, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=0, errors=0
+[01:36:45] [Client thread/INFO]: [CHAT] §e[SuperRailBuilderX] 候補がありません。latest.logのcandidate scanを確認してください
+[01:36:45] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[01:36:45] [Client thread/INFO]: phase:getRailPositionUnsupportedReason
+[01:36:45] [Client thread/INFO]: x:399, xClass:java.lang.Double
+[01:36:45] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[01:36:45] [Client thread/INFO]: z:-189, zClass:java.lang.Double
+[01:36:45] [Client thread/INFO]: exception:java.lang.NullPointerException: getLogicalRailPositions(...) must not be null
+[01:36:45] [Client thread/INFO]: exception.message:getLogicalRailPositions(...) must not be null
+[01:36:45] [Client thread/INFO]: javaCause[0]:java.lang.NullPointerException: java.lang.NullPointerException: getLogicalRailPositions(...) must not be null
+[01:36:45] [Client thread/INFO]:   at jp.kaiz.kaizpatch.rtm.rail.TileEntityLargeRailSectionCore.getLogicalRailPositions(TileEntityLargeRailSectionCore.kt:53)
+[01:36:45] [Client thread/INFO]:   at jdk.nashorn.internal.scripts.Script$Recompilation$7606$450691A$\^eval\_.RTMX_loadCompatTarget_kaizpatch_scripts_superrailbuilderx_RailPositionCompat_1suqebq$L:10801$RailPositionCompat$getRailPositionUnsupportedReason(<eval>:10927)
+[01:36:45] [Client thread/INFO]:   at jdk.nashorn.internal.scripts.Script$Recompilation$7594$470610AAA$\^eval\_.findCandidates(<eval>:11381)
+[01:36:45] [Client thread/INFO]:   at jdk.nashorn.internal.scripts.Script$Recompilation$7568$481931AAA$\^eval\_.render(<eval>:11584)
+[01:36:45] [Client thread/INFO]:   at jdk.nashorn.internal.runtime.ScriptFunctionData.invoke(ScriptFunctionData.java:642)
+[01:36:45] [Client thread/INFO]:   at jdk.nashorn.internal.runtime.ScriptFunction.invoke(ScriptFunction.java:229)
+[01:36:45] [Client thread/INFO]:   at jdk.nashorn.internal.runtime.ScriptRuntime.apply(ScriptRuntime.java:387)
+[01:36:45] [Client thread/INFO]:   at jdk.nashorn.api.scripting.ScriptObjectMirror.callMember(ScriptObjectMirror.java:192)
+[01:36:45] [Client thread/INFO]:   at jdk.nashorn.api.scripting.NashornScriptEngine.invokeImpl(NashornScriptEngine.java:381)
+[01:36:45] [Client thread/INFO]:   at jdk.nashorn.api.scripting.NashornScriptEngine.invokeFunction(NashornScriptEngine.java:187)
+[01:36:45] [Client thread/INFO]:   at jp.ngt.ngtlib.io.ScriptUtil.doScriptFunction(ScriptUtil.java:58)
+[01:36:45] [Client thread/INFO]:   at jp.ngt.rtm.render.PartsRenderer.execScriptFunc(PartsRenderer.java:65)
+[01:36:45] [Client thread/INFO]:   at jp.ngt.rtm.render.PartsRenderer.render(PartsRenderer.java:175)
+[01:36:45] [Client thread/INFO]:   at jp.ngt.rtm.render.ModelObject.lambda$renderWithTexture$0(ModelObject.java:217)
+[01:36:45] [Client thread/INFO]:   at jp.ngt.rtm.render.ModelObject$$Lambda$204/1090279747.accept(Unknown Source)
+[01:36:45] [Client thread/INFO]:   at java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+[01:36:45] [Client thread/INFO]:   at java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:175)
+[01:36:45] [Client thread/INFO]:   at java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:948)
+[01:36:45] [Client thread/INFO]:   at java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:512)
+[01:36:45] [Client thread/INFO]:   at java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:502)
+[01:36:45] [Client thread/INFO]:   at java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+[01:36:45] [Client thread/INFO]:   at java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+[01:36:45] [Client thread/INFO]:   at java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+[01:36:45] [Client thread/INFO]:   at java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:418)
+[01:36:45] [Client thread/INFO]:   at jp.ngt.rtm.render.ModelObject.renderWithTexture(ModelObject.java:200)
+[01:36:45] [Client thread/INFO]:   at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.renderBody(RenderVehicleBase.java:162)
+[01:36:45] [Client thread/INFO]:   at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.renderVehicleMain(RenderVehicleBase.java:118)
+[01:36:45] [Client thread/INFO]:   at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.renderVehicleBase(RenderVehicleBase.java:63)
+[01:36:45] [Client thread/INFO]:   at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.func_76986_a(RenderVehicleBase.java:420)
+[01:36:45] [Client thread/INFO]:   at net.minecraft.client.renderer.entity.RenderManager.func_147939_a(RenderManager.java:293)
+[01:36:45] [Client thread/INFO]:   at net.minecraft.client.renderer.entity.RenderManager.func_147936_a(RenderManager.java:271)
+[01:36:45] [Client thread/INFO]:   at net.minecraft.client.renderer.entity.RenderManager.func_147937_a(RenderManager.java:244)
+[01:36:45] [Client thread/INFO]:   at net.minecraft.client.renderer.RenderGlobal.func_147589_a(RenderGlobal.java:471)
+[01:36:45] [Client thread/INFO]:   at net.minecraft.client.renderer.EntityRenderer.func_78471_a(EntityRenderer.java:1224)
+[01:36:45] [Client thread/INFO]:   at net.minecraft.client.renderer.EntityRenderer.func_78480_b(EntityRenderer.java:1011)
+[01:36:45] [Client thread/INFO]:   at net.minecraft.client.Minecraft.func_71411_J(Minecraft.java:1001)
+[01:36:45] [Client thread/INFO]:   at net.minecraft.client.Minecraft.func_99999_d(Minecraft.java:898)
+[01:36:45] [Client thread/INFO]:   at net.minecraft.client.main.Main.main(SourceFile:148)
+[01:36:45] [Client thread/INFO]:   at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+[01:36:45] [Client thread/INFO]:   at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+[01:36:45] [Client thread/INFO]:   at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+[01:36:45] [Client thread/INFO]:   at java.lang.reflect.Method.invoke(Method.java:497)
+[01:36:45] [Client thread/INFO]:   at net.minecraft.launchwrapper.Launch.launch(Launch.java:135)
+[01:36:45] [Client thread/INFO]:   at net.minecraft.launchwrapper.Launch.main(Launch.java:28)
+[01:36:45] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[01:36:50] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=399.424,4.063,-227.707, candidates=1, railTiles=9, uniqueCores=1, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=1, errors=0
+[01:36:52] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[01:36:52] [Server thread/INFO]: [SuperRailBuilderX RailPosition] roadbed conflict: count=1, samples=395,4,-209:tile.rtm:LRCore
+[01:36:52] [Client thread/INFO]: [CHAT] §c[SuperRailBuilderX] 適用失敗: target_0:roadbed_conflict(1)
+[01:36:57] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[01:36:57] [Server thread/INFO]: [SuperRailBuilderX RailPosition] applying connected endpoint: targets=1
+[01:36:57] [Server thread/INFO]: [SuperRailBuilderX RailPosition] rebuilding sectioned rail: groupCores=4, index=1
+[01:36:57] [Server thread/INFO]: [SuperRailBuilderX RailPosition] sectioned rail rebuild failed: restored=true
+[01:36:57] [Server thread/INFO]: [SuperRailBuilderX RailPosition] connected endpoint apply failed: target=0, applied=0, result=section_rebuild_failed
+[01:36:57] [Client thread/INFO]: [CHAT] §c[SuperRailBuilderX] 適用失敗: target_0:section_rebuild_failed
+[01:37:00] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=399.274,4.063,-188.057, candidates=1, railTiles=9, uniqueCores=1, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=1, errors=0
+[01:37:01] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[01:37:02] [Server thread/INFO]: [SuperRailBuilderX RailPosition] allowing overlapping foreign roadbed: count=18
+[01:37:02] [Server thread/INFO]: [SuperRailBuilderX RailPosition] applying connected endpoint: targets=1
+[01:37:02] [Server thread/INFO]: [SuperRailBuilderX RailPosition] allowing overlapping foreign roadbed: count=18
+[01:37:02] [Server thread/INFO]: [SuperRailBuilderX RailPosition] rebuilding sectioned rail: groupCores=4, index=0
+[01:37:02] [Server thread/INFO]: [SuperRailBuilderX RailPosition] sectioned rail rebuild failed: restored=true
+[01:37:02] [Server thread/INFO]: [SuperRailBuilderX RailPosition] connected endpoint apply failed: target=0, applied=0, result=section_rebuild_failed
+[01:37:02] [Client thread/INFO]: [CHAT] §c[SuperRailBuilderX] 適用失敗: target_0:section_rebuild_failed
+[01:37:15] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=401.937,4.000,-195.854, candidates=0, railTiles=1, uniqueCores=0, missingCores=1, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=0, errors=0
+[01:37:15] [Client thread/INFO]: [CHAT] §e[SuperRailBuilderX] 候補がありません。latest.logのcandidate scanを確認してください
+[01:37:15] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[01:37:15] [Client thread/INFO]: phase:getRailPositionUnsupportedReason
+[01:37:15] [Client thread/INFO]: x:401, xClass:java.lang.Double
+[01:37:15] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[01:37:15] [Client thread/INFO]: z:-196, zClass:java.lang.Double
+[01:37:15] [Client thread/INFO]: exception:java.lang.NullPointerException: getLogicalRailPositions(...) must not be null
+[01:37:15] [Client thread/INFO]: exception.message:getLogicalRailPositions(...) must not be null
+[01:37:15] [Client thread/INFO]: javaCause[0]:java.lang.NullPointerException: java.lang.NullPointerException: getLogicalRailPositions(...) must not be null
+[01:37:15] [Client thread/INFO]:   at jp.kaiz.kaizpatch.rtm.rail.TileEntityLargeRailSectionCore.getLogicalRailPositions(TileEntityLargeRailSectionCore.kt:53)
+[01:37:15] [Client thread/INFO]:   at jdk.nashorn.internal.scripts.Script$Recompilation$7606$450691A$\^eval\_.RTMX_loadCompatTarget_kaizpatch_scripts_superrailbuilderx_RailPositionCompat_1suqebq$L:10801$RailPositionCompat$getRailPositionUnsupportedReason(<eval>:10927)
+[01:37:15] [Client thread/INFO]:   at jdk.nashorn.internal.scripts.Script$Recompilation$7594$470610AAA$\^eval\_.findCandidates(<eval>:11381)
+[01:37:15] [Client thread/INFO]:   at jdk.nashorn.internal.scripts.Script$Recompilation$7568$481931AAA$\^eval\_.render(<eval>:11584)
+[01:37:15] [Client thread/INFO]:   at jdk.nashorn.internal.runtime.ScriptFunctionData.invoke(ScriptFunctionData.java:642)
+[01:37:15] [Client thread/INFO]:   at jdk.nashorn.internal.runtime.ScriptFunction.invoke(ScriptFunction.java:229)
+[01:37:15] [Client thread/INFO]:   at jdk.nashorn.internal.runtime.ScriptRuntime.apply(ScriptRuntime.java:387)
+[01:37:15] [Client thread/INFO]:   at jdk.nashorn.api.scripting.ScriptObjectMirror.callMember(ScriptObjectMirror.java:192)
+[01:37:15] [Client thread/INFO]:   at jdk.nashorn.api.scripting.NashornScriptEngine.invokeImpl(NashornScriptEngine.java:381)
+[01:37:15] [Client thread/INFO]:   at jdk.nashorn.api.scripting.NashornScriptEngine.invokeFunction(NashornScriptEngine.java:187)
+[01:37:15] [Client thread/INFO]:   at jp.ngt.ngtlib.io.ScriptUtil.doScriptFunction(ScriptUtil.java:58)
+[01:37:15] [Client thread/INFO]:   at jp.ngt.rtm.render.PartsRenderer.execScriptFunc(PartsRenderer.java:65)
+[01:37:15] [Client thread/INFO]:   at jp.ngt.rtm.render.PartsRenderer.render(PartsRenderer.java:175)
+[01:37:15] [Client thread/INFO]:   at jp.ngt.rtm.render.ModelObject.lambda$renderWithTexture$0(ModelObject.java:217)
+[01:37:15] [Client thread/INFO]:   at jp.ngt.rtm.render.ModelObject$$Lambda$204/1090279747.accept(Unknown Source)
+[01:37:15] [Client thread/INFO]:   at java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+[01:37:15] [Client thread/INFO]:   at java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:175)
+[01:37:15] [Client thread/INFO]:   at java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:948)
+[01:37:15] [Client thread/INFO]:   at java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:512)
+[01:37:15] [Client thread/INFO]:   at java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:502)
+[01:37:15] [Client thread/INFO]:   at java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+[01:37:15] [Client thread/INFO]:   at java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+[01:37:15] [Client thread/INFO]:   at java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+[01:37:15] [Client thread/INFO]:   at java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:418)
+[01:37:15] [Client thread/INFO]:   at jp.ngt.rtm.render.ModelObject.renderWithTexture(ModelObject.java:200)
+[01:37:15] [Client thread/INFO]:   at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.renderBody(RenderVehicleBase.java:162)
+[01:37:15] [Client thread/INFO]:   at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.renderVehicleMain(RenderVehicleBase.java:118)
+[01:37:15] [Client thread/INFO]:   at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.renderVehicleBase(RenderVehicleBase.java:63)
+[01:37:15] [Client thread/INFO]:   at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.func_76986_a(RenderVehicleBase.java:420)
+[01:37:15] [Client thread/INFO]:   at net.minecraft.client.renderer.entity.RenderManager.func_147939_a(RenderManager.java:293)
+[01:37:15] [Client thread/INFO]:   at net.minecraft.client.renderer.entity.RenderManager.func_147936_a(RenderManager.java:271)
+[01:37:15] [Client thread/INFO]:   at net.minecraft.client.renderer.entity.RenderManager.func_147937_a(RenderManager.java:244)
+[01:37:15] [Client thread/INFO]:   at net.minecraft.client.renderer.RenderGlobal.func_147589_a(RenderGlobal.java:471)
+[01:37:15] [Client thread/INFO]:   at net.minecraft.client.renderer.EntityRenderer.func_78471_a(EntityRenderer.java:1224)
+[01:37:15] [Client thread/INFO]:   at net.minecraft.client.renderer.EntityRenderer.func_78480_b(EntityRenderer.java:1011)
+[01:37:15] [Client thread/INFO]:   at net.minecraft.client.Minecraft.func_71411_J(Minecraft.java:1001)
+[01:37:15] [Client thread/INFO]:   at net.minecraft.client.Minecraft.func_99999_d(Minecraft.java:898)
+[01:37:15] [Client thread/INFO]:   at net.minecraft.client.main.Main.main(SourceFile:148)
+[01:37:15] [Client thread/INFO]:   at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+[01:37:15] [Client thread/INFO]:   at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+[01:37:15] [Client thread/INFO]:   at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+[01:37:15] [Client thread/INFO]:   at java.lang.reflect.Method.invoke(Method.java:497)
+[01:37:15] [Client thread/INFO]:   at net.minecraft.launchwrapper.Launch.launch(Launch.java:135)
+[01:37:15] [Client thread/INFO]:   at net.minecraft.launchwrapper.Launch.main(Launch.java:28)
+[01:37:15] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[01:37:17] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=403.829,4.000,-194.152, candidates=0, railTiles=0, uniqueCores=0, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=0, errors=0
+[01:37:17] [Client thread/INFO]: [CHAT] §e[SuperRailBuilderX] 候補がありません。latest.logのcandidate scanを確認してください
+[01:37:17] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[01:37:17] [Client thread/INFO]: phase:getRailPositionUnsupportedReason
+[01:37:17] [Client thread/INFO]: x:403, xClass:java.lang.Double
+[01:37:17] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[01:37:17] [Client thread/INFO]: z:-195, zClass:java.lang.Double
+[01:37:17] [Client thread/INFO]: exception:java.lang.NullPointerException: getLogicalRailPositions(...) must not be null
+[01:37:17] [Client thread/INFO]: exception.message:getLogicalRailPositions(...) must not be null
+[01:37:17] [Client thread/INFO]: javaCause[0]:java.lang.NullPointerException: java.lang.NullPointerException: getLogicalRailPositions(...) must not be null
+[01:37:17] [Client thread/INFO]:   at jp.kaiz.kaizpatch.rtm.rail.TileEntityLargeRailSectionCore.getLogicalRailPositions(TileEntityLargeRailSectionCore.kt:53)
+[01:37:17] [Client thread/INFO]:   at jdk.nashorn.internal.scripts.Script$Recompilation$7606$450691A$\^eval\_.RTMX_loadCompatTarget_kaizpatch_scripts_superrailbuilderx_RailPositionCompat_1suqebq$L:10801$RailPositionCompat$getRailPositionUnsupportedReason(<eval>:10927)
+[01:37:17] [Client thread/INFO]:   at jdk.nashorn.internal.scripts.Script$Recompilation$7594$470610AAA$\^eval\_.findCandidates(<eval>:11381)
+[01:37:17] [Client thread/INFO]:   at jdk.nashorn.internal.scripts.Script$Recompilation$7568$481931AAA$\^eval\_.render(<eval>:11584)
+[01:37:17] [Client thread/INFO]:   at jdk.nashorn.internal.runtime.ScriptFunctionData.invoke(ScriptFunctionData.java:642)
+[01:37:17] [Client thread/INFO]:   at jdk.nashorn.internal.runtime.ScriptFunction.invoke(ScriptFunction.java:229)
+[01:37:17] [Client thread/INFO]:   at jdk.nashorn.internal.runtime.ScriptRuntime.apply(ScriptRuntime.java:387)
+[01:37:17] [Client thread/INFO]:   at jdk.nashorn.api.scripting.ScriptObjectMirror.callMember(ScriptObjectMirror.java:192)
+[01:37:17] [Client thread/INFO]:   at jdk.nashorn.api.scripting.NashornScriptEngine.invokeImpl(NashornScriptEngine.java:381)
+[01:37:17] [Client thread/INFO]:   at jdk.nashorn.api.scripting.NashornScriptEngine.invokeFunction(NashornScriptEngine.java:187)
+[01:37:17] [Client thread/INFO]:   at jp.ngt.ngtlib.io.ScriptUtil.doScriptFunction(ScriptUtil.java:58)
+[01:37:17] [Client thread/INFO]:   at jp.ngt.rtm.render.PartsRenderer.execScriptFunc(PartsRenderer.java:65)
+[01:37:17] [Client thread/INFO]:   at jp.ngt.rtm.render.PartsRenderer.render(PartsRenderer.java:175)
+[01:37:17] [Client thread/INFO]:   at jp.ngt.rtm.render.ModelObject.lambda$renderWithTexture$0(ModelObject.java:217)
+[01:37:17] [Client thread/INFO]:   at jp.ngt.rtm.render.ModelObject$$Lambda$204/1090279747.accept(Unknown Source)
+[01:37:17] [Client thread/INFO]:   at java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+[01:37:17] [Client thread/INFO]:   at java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:175)
+[01:37:17] [Client thread/INFO]:   at java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:948)
+[01:37:17] [Client thread/INFO]:   at java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:512)
+[01:37:17] [Client thread/INFO]:   at java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:502)
+[01:37:17] [Client thread/INFO]:   at java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+[01:37:17] [Client thread/INFO]:   at java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+[01:37:17] [Client thread/INFO]:   at java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+[01:37:17] [Client thread/INFO]:   at java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:418)
+[01:37:17] [Client thread/INFO]:   at jp.ngt.rtm.render.ModelObject.renderWithTexture(ModelObject.java:200)
+[01:37:17] [Client thread/INFO]:   at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.renderBody(RenderVehicleBase.java:162)
+[01:37:17] [Client thread/INFO]:   at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.renderVehicleMain(RenderVehicleBase.java:118)
+[01:37:17] [Client thread/INFO]:   at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.renderVehicleBase(RenderVehicleBase.java:63)
+[01:37:17] [Client thread/INFO]:   at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.func_76986_a(RenderVehicleBase.java:420)
+[01:37:17] [Client thread/INFO]:   at net.minecraft.client.renderer.entity.RenderManager.func_147939_a(RenderManager.java:293)
+[01:37:17] [Client thread/INFO]:   at net.minecraft.client.renderer.entity.RenderManager.func_147936_a(RenderManager.java:271)
+[01:37:17] [Client thread/INFO]:   at net.minecraft.client.renderer.entity.RenderManager.func_147937_a(RenderManager.java:244)
+[01:37:17] [Client thread/INFO]:   at net.minecraft.client.renderer.RenderGlobal.func_147589_a(RenderGlobal.java:471)
+[01:37:17] [Client thread/INFO]:   at net.minecraft.client.renderer.EntityRenderer.func_78471_a(EntityRenderer.java:1224)
+[01:37:17] [Client thread/INFO]:   at net.minecraft.client.renderer.EntityRenderer.func_78480_b(EntityRenderer.java:1011)
+[01:37:17] [Client thread/INFO]:   at net.minecraft.client.Minecraft.func_71411_J(Minecraft.java:1001)
+[01:37:17] [Client thread/INFO]:   at net.minecraft.client.Minecraft.func_99999_d(Minecraft.java:898)
+[01:37:17] [Client thread/INFO]:   at net.minecraft.client.main.Main.main(SourceFile:148)
+[01:37:17] [Client thread/INFO]:   at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+[01:37:17] [Client thread/INFO]:   at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+[01:37:17] [Client thread/INFO]:   at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+[01:37:17] [Client thread/INFO]:   at java.lang.reflect.Method.invoke(Method.java:497)
+[01:37:17] [Client thread/INFO]:   at net.minecraft.launchwrapper.Launch.launch(Launch.java:135)
+[01:37:17] [Client thread/INFO]:   at net.minecraft.launchwrapper.Launch.main(Launch.java:28)
+[01:37:17] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[01:37:18] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=405.157,4.000,-192.775, candidates=0, railTiles=0, uniqueCores=0, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=0, errors=0
+[01:37:18] [Client thread/INFO]: [CHAT] §e[SuperRailBuilderX] 候補がありません。latest.logのcandidate scanを確認してください
+[01:37:18] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[01:37:18] [Client thread/INFO]: phase:getRailPositionUnsupportedReason
+[01:37:18] [Client thread/INFO]: x:405, xClass:java.lang.Double
+[01:37:18] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[01:37:18] [Client thread/INFO]: z:-193, zClass:java.lang.Double
+[01:37:18] [Client thread/INFO]: exception:java.lang.NullPointerException: getLogicalRailPositions(...) must not be null
+[01:37:18] [Client thread/INFO]: exception.message:getLogicalRailPositions(...) must not be null
+[01:37:18] [Client thread/INFO]: javaCause[0]:java.lang.NullPointerException: java.lang.NullPointerException: getLogicalRailPositions(...) must not be null
+[01:37:18] [Client thread/INFO]:   at jp.kaiz.kaizpatch.rtm.rail.TileEntityLargeRailSectionCore.getLogicalRailPositions(TileEntityLargeRailSectionCore.kt:53)
+[01:37:18] [Client thread/INFO]:   at jdk.nashorn.internal.scripts.Script$Recompilation$7606$450691A$\^eval\_.RTMX_loadCompatTarget_kaizpatch_scripts_superrailbuilderx_RailPositionCompat_1suqebq$L:10801$RailPositionCompat$getRailPositionUnsupportedReason(<eval>:10927)
+[01:37:18] [Client thread/INFO]:   at jdk.nashorn.internal.scripts.Script$Recompilation$7594$470610AAA$\^eval\_.findCandidates(<eval>:11381)
+[01:37:18] [Client thread/INFO]:   at jdk.nashorn.internal.scripts.Script$Recompilation$7568$481931AAA$\^eval\_.render(<eval>:11584)
+[01:37:18] [Client thread/INFO]:   at jdk.nashorn.internal.runtime.ScriptFunctionData.invoke(ScriptFunctionData.java:642)
+[01:37:18] [Client thread/INFO]:   at jdk.nashorn.internal.runtime.ScriptFunction.invoke(ScriptFunction.java:229)
+[01:37:18] [Client thread/INFO]:   at jdk.nashorn.internal.runtime.ScriptRuntime.apply(ScriptRuntime.java:387)
+[01:37:18] [Client thread/INFO]:   at jdk.nashorn.api.scripting.ScriptObjectMirror.callMember(ScriptObjectMirror.java:192)
+[01:37:18] [Client thread/INFO]:   at jdk.nashorn.api.scripting.NashornScriptEngine.invokeImpl(NashornScriptEngine.java:381)
+[01:37:18] [Client thread/INFO]:   at jdk.nashorn.api.scripting.NashornScriptEngine.invokeFunction(NashornScriptEngine.java:187)
+[01:37:18] [Client thread/INFO]:   at jp.ngt.ngtlib.io.ScriptUtil.doScriptFunction(ScriptUtil.java:58)
+[01:37:18] [Client thread/INFO]:   at jp.ngt.rtm.render.PartsRenderer.execScriptFunc(PartsRenderer.java:65)
+[01:37:18] [Client thread/INFO]:   at jp.ngt.rtm.render.PartsRenderer.render(PartsRenderer.java:175)
+[01:37:18] [Client thread/INFO]:   at jp.ngt.rtm.render.ModelObject.lambda$renderWithTexture$0(ModelObject.java:217)
+[01:37:18] [Client thread/INFO]:   at jp.ngt.rtm.render.ModelObject$$Lambda$204/1090279747.accept(Unknown Source)
+[01:37:18] [Client thread/INFO]:   at java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+[01:37:18] [Client thread/INFO]:   at java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:175)
+[01:37:18] [Client thread/INFO]:   at java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:948)
+[01:37:18] [Client thread/INFO]:   at java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:512)
+[01:37:18] [Client thread/INFO]:   at java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:502)
+[01:37:18] [Client thread/INFO]:   at java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+[01:37:18] [Client thread/INFO]:   at java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+[01:37:18] [Client thread/INFO]:   at java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+[01:37:18] [Client thread/INFO]:   at java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:418)
+[01:37:18] [Client thread/INFO]:   at jp.ngt.rtm.render.ModelObject.renderWithTexture(ModelObject.java:200)
+[01:37:18] [Client thread/INFO]:   at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.renderBody(RenderVehicleBase.java:162)
+[01:37:18] [Client thread/INFO]:   at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.renderVehicleMain(RenderVehicleBase.java:118)
+[01:37:18] [Client thread/INFO]:   at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.renderVehicleBase(RenderVehicleBase.java:63)
+[01:37:18] [Client thread/INFO]:   at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.func_76986_a(RenderVehicleBase.java:420)
+[01:37:18] [Client thread/INFO]:   at net.minecraft.client.renderer.entity.RenderManager.func_147939_a(RenderManager.java:293)
+[01:37:18] [Client thread/INFO]:   at net.minecraft.client.renderer.entity.RenderManager.func_147936_a(RenderManager.java:271)
+[01:37:18] [Client thread/INFO]:   at net.minecraft.client.renderer.entity.RenderManager.func_147937_a(RenderManager.java:244)
+[01:37:18] [Client thread/INFO]:   at net.minecraft.client.renderer.RenderGlobal.func_147589_a(RenderGlobal.java:471)
+[01:37:18] [Client thread/INFO]:   at net.minecraft.client.renderer.EntityRenderer.func_78471_a(EntityRenderer.java:1224)
+[01:37:18] [Client thread/INFO]:   at net.minecraft.client.renderer.EntityRenderer.func_78480_b(EntityRenderer.java:1011)
+[01:37:18] [Client thread/INFO]:   at net.minecraft.client.Minecraft.func_71411_J(Minecraft.java:1001)
+[01:37:18] [Client thread/INFO]:   at net.minecraft.client.Minecraft.func_99999_d(Minecraft.java:898)
+[01:37:18] [Client thread/INFO]:   at net.minecraft.client.main.Main.main(SourceFile:148)
+[01:37:18] [Client thread/INFO]:   at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+[01:37:18] [Client thread/INFO]:   at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+[01:37:18] [Client thread/INFO]:   at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+[01:37:18] [Client thread/INFO]:   at java.lang.reflect.Method.invoke(Method.java:497)
+[01:37:18] [Client thread/INFO]:   at net.minecraft.launchwrapper.Launch.launch(Launch.java:135)
+[01:37:18] [Client thread/INFO]:   at net.minecraft.launchwrapper.Launch.main(Launch.java:28)
+[01:37:18] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[01:37:20] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=400.461,4.000,-188.600, candidates=0, railTiles=0, uniqueCores=0, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=0, errors=0
+[01:37:20] [Client thread/INFO]: [CHAT] §e[SuperRailBuilderX] 候補がありません。latest.logのcandidate scanを確認してください
+[01:37:20] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR (detailed)  ###
+[01:37:20] [Client thread/INFO]: phase:getRailPositionUnsupportedReason
+[01:37:20] [Client thread/INFO]: x:400, xClass:java.lang.Double
+[01:37:20] [Client thread/INFO]: y:4, yClass:java.lang.Double
+[01:37:20] [Client thread/INFO]: z:-189, zClass:java.lang.Double
+[01:37:20] [Client thread/INFO]: exception:java.lang.NullPointerException: getLogicalRailPositions(...) must not be null
+[01:37:20] [Client thread/INFO]: exception.message:getLogicalRailPositions(...) must not be null
+[01:37:20] [Client thread/INFO]: javaCause[0]:java.lang.NullPointerException: java.lang.NullPointerException: getLogicalRailPositions(...) must not be null
+[01:37:20] [Client thread/INFO]:   at jp.kaiz.kaizpatch.rtm.rail.TileEntityLargeRailSectionCore.getLogicalRailPositions(TileEntityLargeRailSectionCore.kt:53)
+[01:37:20] [Client thread/INFO]:   at jdk.nashorn.internal.scripts.Script$Recompilation$7606$450691A$\^eval\_.RTMX_loadCompatTarget_kaizpatch_scripts_superrailbuilderx_RailPositionCompat_1suqebq$L:10801$RailPositionCompat$getRailPositionUnsupportedReason(<eval>:10927)
+[01:37:20] [Client thread/INFO]:   at jdk.nashorn.internal.scripts.Script$Recompilation$7594$470610AAA$\^eval\_.findCandidates(<eval>:11381)
+[01:37:20] [Client thread/INFO]:   at jdk.nashorn.internal.scripts.Script$Recompilation$7568$481931AAA$\^eval\_.render(<eval>:11584)
+[01:37:20] [Client thread/INFO]:   at jdk.nashorn.internal.runtime.ScriptFunctionData.invoke(ScriptFunctionData.java:642)
+[01:37:20] [Client thread/INFO]:   at jdk.nashorn.internal.runtime.ScriptFunction.invoke(ScriptFunction.java:229)
+[01:37:20] [Client thread/INFO]:   at jdk.nashorn.internal.runtime.ScriptRuntime.apply(ScriptRuntime.java:387)
+[01:37:20] [Client thread/INFO]:   at jdk.nashorn.api.scripting.ScriptObjectMirror.callMember(ScriptObjectMirror.java:192)
+[01:37:20] [Client thread/INFO]:   at jdk.nashorn.api.scripting.NashornScriptEngine.invokeImpl(NashornScriptEngine.java:381)
+[01:37:20] [Client thread/INFO]:   at jdk.nashorn.api.scripting.NashornScriptEngine.invokeFunction(NashornScriptEngine.java:187)
+[01:37:20] [Client thread/INFO]:   at jp.ngt.ngtlib.io.ScriptUtil.doScriptFunction(ScriptUtil.java:58)
+[01:37:20] [Client thread/INFO]:   at jp.ngt.rtm.render.PartsRenderer.execScriptFunc(PartsRenderer.java:65)
+[01:37:20] [Client thread/INFO]:   at jp.ngt.rtm.render.PartsRenderer.render(PartsRenderer.java:175)
+[01:37:20] [Client thread/INFO]:   at jp.ngt.rtm.render.ModelObject.lambda$renderWithTexture$0(ModelObject.java:217)
+[01:37:20] [Client thread/INFO]:   at jp.ngt.rtm.render.ModelObject$$Lambda$204/1090279747.accept(Unknown Source)
+[01:37:20] [Client thread/INFO]:   at java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+[01:37:20] [Client thread/INFO]:   at java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:175)
+[01:37:20] [Client thread/INFO]:   at java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:948)
+[01:37:20] [Client thread/INFO]:   at java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:512)
+[01:37:20] [Client thread/INFO]:   at java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:502)
+[01:37:20] [Client thread/INFO]:   at java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+[01:37:20] [Client thread/INFO]:   at java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+[01:37:20] [Client thread/INFO]:   at java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+[01:37:20] [Client thread/INFO]:   at java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:418)
+[01:37:20] [Client thread/INFO]:   at jp.ngt.rtm.render.ModelObject.renderWithTexture(ModelObject.java:200)
+[01:37:20] [Client thread/INFO]:   at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.renderBody(RenderVehicleBase.java:162)
+[01:37:20] [Client thread/INFO]:   at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.renderVehicleMain(RenderVehicleBase.java:118)
+[01:37:20] [Client thread/INFO]:   at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.renderVehicleBase(RenderVehicleBase.java:63)
+[01:37:20] [Client thread/INFO]:   at jp.ngt.rtm.entity.vehicle.RenderVehicleBase.func_76986_a(RenderVehicleBase.java:420)
+[01:37:20] [Client thread/INFO]:   at net.minecraft.client.renderer.entity.RenderManager.func_147939_a(RenderManager.java:293)
+[01:37:20] [Client thread/INFO]:   at net.minecraft.client.renderer.entity.RenderManager.func_147936_a(RenderManager.java:271)
+[01:37:20] [Client thread/INFO]:   at net.minecraft.client.renderer.entity.RenderManager.func_147937_a(RenderManager.java:244)
+[01:37:20] [Client thread/INFO]:   at net.minecraft.client.renderer.RenderGlobal.func_147589_a(RenderGlobal.java:471)
+[01:37:20] [Client thread/INFO]:   at net.minecraft.client.renderer.EntityRenderer.func_78471_a(EntityRenderer.java:1224)
+[01:37:20] [Client thread/INFO]:   at net.minecraft.client.renderer.EntityRenderer.func_78480_b(EntityRenderer.java:1011)
+[01:37:20] [Client thread/INFO]:   at net.minecraft.client.Minecraft.func_71411_J(Minecraft.java:1001)
+[01:37:20] [Client thread/INFO]:   at net.minecraft.client.Minecraft.func_99999_d(Minecraft.java:898)
+[01:37:20] [Client thread/INFO]:   at net.minecraft.client.main.Main.main(SourceFile:148)
+[01:37:20] [Client thread/INFO]:   at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+[01:37:20] [Client thread/INFO]:   at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+[01:37:20] [Client thread/INFO]:   at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+[01:37:20] [Client thread/INFO]:   at java.lang.reflect.Method.invoke(Method.java:497)
+[01:37:20] [Client thread/INFO]:   at net.minecraft.launchwrapper.Launch.launch(Launch.java:135)
+[01:37:20] [Client thread/INFO]:   at net.minecraft.launchwrapper.Launch.main(Launch.java:28)
+[01:37:20] [Client thread/INFO]: ###  SuperRailBuilderX RailPosition candidate scan ERROR END  ###
+[01:37:23] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=400.811,4.000,-228.403, candidates=1, railTiles=6, uniqueCores=1, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=1, errors=0
+[01:37:24] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[01:37:25] [Server thread/INFO]: [SuperRailBuilderX RailPosition] applying connected endpoint: targets=1
+[01:37:25] [Server thread/INFO]: [SuperRailBuilderX RailPosition] rebuilding sectioned rail: groupCores=4, index=1
+[01:37:25] [Server thread/INFO]: [SuperRailBuilderX RailPosition] sectioned rail rebuild succeeded: oldGroupCores=4, newGroupCores=4
+[01:37:25] [Client thread/INFO]: [CHAT] §a[SuperRailBuilderX] 移動しました
+[01:37:26] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=402.549,4.063,-225.496, candidates=1, railTiles=9, uniqueCores=1, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=1, errors=0
+[01:37:27] [Client thread/INFO]: [CHAT] [SuperRailBuilderX] 移動を適用中...
+[01:37:27] [Server thread/INFO]: [SuperRailBuilderX RailPosition] allowing overlapping foreign roadbed: count=19
+[01:37:27] [Server thread/INFO]: [SuperRailBuilderX RailPosition] applying connected endpoint: targets=1
+[01:37:27] [Server thread/INFO]: [SuperRailBuilderX RailPosition] allowing overlapping foreign roadbed: count=19
+[01:37:27] [Server thread/INFO]: [SuperRailBuilderX RailPosition] rebuilding sectioned rail: groupCores=4, index=1
+[01:37:27] [Server thread/INFO]: [SuperRailBuilderX RailPosition] sectioned rail rebuild failed: restored=true
+[01:37:27] [Server thread/INFO]: [SuperRailBuilderX RailPosition] connected endpoint apply failed: target=0, applied=0, result=section_rebuild_failed
+[01:37:27] [Client thread/INFO]: [CHAT] §c[SuperRailBuilderX] 適用失敗: target_0:section_rebuild_failed
+[01:38:23] [Server thread/INFO]: Saving and pausing game...
+[01:38:23] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/Overworld
+[01:38:23] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/Nether
+[01:38:23] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/The End
+[01:38:28] [Server thread/INFO]: Stopping server
+[01:38:28] [Server thread/INFO]: Saving players
+[01:38:28] [Server thread/INFO]: Saving worlds
+[01:38:28] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/Overworld
+[01:38:28] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/Nether
+[01:38:28] [Server thread/INFO]: Saving chunks for level '新規ワールド のコピー'/The End
+[01:38:28] [Server thread/INFO]: Unloading dimension 0
+[01:38:28] [Server thread/INFO]: Unloading dimension -1
+[01:38:28] [Server thread/INFO]: Unloading dimension 1
+[01:38:28] [Server thread/INFO]: Applying holder lookups
+[01:38:28] [Server thread/INFO]: Holder lookups applied
+[01:38:30] [Client thread/INFO]: Stopping!
+[01:38:30] [Client thread/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: 
+[01:38:30] [Client thread/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: SoundSystem shutting down...
+[01:38:30] [Client thread/INFO]: [paulscode.sound.SoundSystemLogger:importantMessage:90]:     Author: Paul Lamb, www.paulscode.com
+[01:38:30] [Client thread/INFO]: [paulscode.sound.SoundSystemLogger:message:69]: 
