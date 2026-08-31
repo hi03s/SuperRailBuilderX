@@ -6,6 +6,7 @@ import { Connection, TileEntityInsulator } from "jp.ngt.rtm.electric";
 import { EntityVehicle } from "jp.ngt.rtm.entity.vehicle";
 import { ItemWithModel } from "jp.ngt.rtm.item";
 import { RailMap, RailPosition } from "jp.ngt.rtm.rail.util";
+import { TileEntityLargeRailCore } from "jp.ngt.rtm.rail";
 import { Block } from "net.minecraft.block";
 import { ICommandSender } from "net.minecraft.command";
 import { Entity } from "net.minecraft.entity";
@@ -34,6 +35,22 @@ declare const Packages: {
 export type Pos = [x: number, y: number, z: number];
 
 export class RTMApiCompat {
+	static canMoveRailPosition(core: TileEntityLargeRailCore): boolean {
+		return false;
+	}
+
+	static moveRailPosition(
+		core: TileEntityLargeRailCore,
+		index: number,
+		originalX: number,
+		originalY: number,
+		originalZ: number,
+		x: number,
+		y: number,
+		z: number,
+	): string {
+		return "unsupported";
+	}
 	static createResourceLocation(
 		domain: string,
 		path: string,
