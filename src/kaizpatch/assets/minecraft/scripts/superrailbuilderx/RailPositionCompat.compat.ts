@@ -39,14 +39,7 @@ type RailSectionPlan = {
 };
 
 type RailSectionMap = {
-	setRail(
-		world: net.minecraft.world.World,
-		block: net.minecraft.block.Block,
-		x: number,
-		y: number,
-		z: number,
-		property: RailProperty,
-	): void;
+	getRailBlockList(property: RailProperty): java.util.List<JavaIntArray>;
 };
 
 declare const Packages: {
@@ -80,6 +73,10 @@ declare const Packages: {
 export class RailPositionCompat {
 	private static getCoreWorld(core: TileEntityLargeRailCore) {
 		return core.getWorldObj();
+	}
+
+	private static markCoreDirty(core: TileEntityLargeRailCore): void {
+		core.markDirty();
 	}
 
 	private static isSectionCore(
@@ -252,17 +249,20 @@ export class RailPositionCompat {
 				const rp = sectionPlan.sections.get(i).getStartRP();
 				const key = this.positionKey(rp.blockX, rp.blockY, rp.blockZ);
 				if (plannedCoreConflictKeys[key]) continue;
+				if (world.isAirBlock(rp.blockX, rp.blockY, rp.blockZ)) continue;
 				const block = world.getBlock(rp.blockX, rp.blockY, rp.blockZ);
-				if (!(block instanceof BlockLargeRailBase) || !block.isCore())
-					continue;
-				const tile = world.getTileEntity(
-					rp.blockX,
-					rp.blockY,
-					rp.blockZ,
-				);
-				if (tile instanceof TileEntityLargeRailBase) {
-					const owner = tile.getRailCore();
-					if (owner && core.isSameLogicalRail(owner)) continue;
+				if (block instanceof BlockMarker) continue;
+				if (block instanceof BlockLargeRailBase) {
+					if (!block.isCore()) continue;
+					const tile = world.getTileEntity(
+						rp.blockX,
+						rp.blockY,
+						rp.blockZ,
+					);
+					if (tile instanceof TileEntityLargeRailBase) {
+						const owner = tile.getRailCore();
+						if (owner && core.isSameLogicalRail(owner)) continue;
+					}
 				}
 				plannedCoreConflictKeys[key] = true;
 				plannedCoreConflicts++;
@@ -350,6 +350,57 @@ export class RailPositionCompat {
 		return false;
 	}
 
+	private static placeRoadbedInAir(
+		world: net.minecraft.world.World,
+		railMap: {
+			getRailBlockList(
+				property: RailProperty,
+			): java.util.List<JavaIntArray>;
+		},
+		coreX: number,
+		coreY: number,
+		coreZ: number,
+		property: RailProperty,
+		context: string,
+	): boolean {
+		const blocks = railMap.getRailBlockList(property);
+		let added = 0;
+		let retained = 0;
+		let failed = 0;
+		for (let i = 0; i < blocks.size(); i++) {
+			const pos = blocks.get(i);
+			if (!world.isAirBlock(pos[0], pos[1], pos[2])) {
+				retained++;
+				continue;
+			}
+			if (
+				!world.setBlock(
+					pos[0],
+					pos[1],
+					pos[2],
+					RTMRail.largeRailBase0,
+					0,
+					2,
+				)
+			) {
+				failed++;
+				continue;
+			}
+			const tile = world.getTileEntity(pos[0], pos[1], pos[2]);
+			if (!(tile instanceof TileEntityLargeRailBase)) {
+				failed++;
+				continue;
+			}
+			tile.setStartPoint(coreX, coreY, coreZ);
+			tile.markDirty();
+			added++;
+		}
+		NGTLog.debug(
+			`[SuperRailBuilderX RailPosition] air-only roadbed placement: context=${context}, added=${added}, retained=${retained}, failed=${failed}`,
+		);
+		return failed === 0;
+	}
+
 	private static createSectionedRailPreservingForeignCores(
 		core: RailSectionCore,
 		positions: RailPosition[],
@@ -363,19 +414,50 @@ export class RailPositionCompat {
 		const logicalArray = this.toRailPositionArray(logicalPositions);
 		const corePositions = new ArrayList<number[]>();
 		const placedCoreKeys: { [key: string]: boolean } = {};
+		const overwrittenRoadbeds: Array<{
+			x: number;
+			y: number;
+			z: number;
+			ownerX: number;
+			ownerY: number;
+			ownerZ: number;
+		}> = [];
+		let replacedForeignRoadbeds = 0;
 		for (let i = 0; i < plan.sections.size(); i++) {
 			const rp = plan.sections.get(i).getStartRP();
+			const existingBlock = world.getBlock(
+				rp.blockX,
+				rp.blockY,
+				rp.blockZ,
+			);
+			if (
+				existingBlock instanceof BlockLargeRailBase &&
+				!existingBlock.isCore()
+			) {
+				replacedForeignRoadbeds++;
+				const existingTile = world.getTileEntity(
+					rp.blockX,
+					rp.blockY,
+					rp.blockZ,
+				);
+				if (existingTile instanceof TileEntityLargeRailBase) {
+					const owner = existingTile.getRailCore();
+					if (owner)
+						overwrittenRoadbeds.push({
+							x: rp.blockX,
+							y: rp.blockY,
+							z: rp.blockZ,
+							ownerX: owner.xCoord,
+							ownerY: owner.yCoord,
+							ownerZ: owner.zCoord,
+						});
+				}
+			}
 			corePositions.add(
 				this.createIntPosition(rp.blockX, rp.blockY, rp.blockZ),
 			);
 		}
 		try {
-			plan.source.prepareBaseBlocks(
-				world,
-				logicalPositions[0].blockX,
-				logicalPositions[0].blockY,
-				logicalPositions[0].blockZ,
-			);
 			for (let i = 0; i < plan.sections.size(); i++) {
 				const section = plan.sections.get(i);
 				const sectionMap =
@@ -387,14 +469,18 @@ export class RailPositionCompat {
 						section.getEndRatio(),
 					);
 				const rp = section.getStartRP();
-				sectionMap.setRail(
-					world,
-					RTMRail.largeRailBase0,
-					rp.blockX,
-					rp.blockY,
-					rp.blockZ,
-					property,
-				);
+				if (
+					!this.placeRoadbedInAir(
+						world,
+						sectionMap,
+						rp.blockX,
+						rp.blockY,
+						rp.blockZ,
+						property,
+						`section_${i}`,
+					)
+				)
+					throw new Error(`failed to place roadbed for section ${i}`);
 			}
 			for (let i = 0; i < plan.sections.size(); i++) {
 				const section = plan.sections.get(i);
@@ -452,7 +538,7 @@ export class RailPositionCompat {
 				);
 				tile.fixRTMRailMapVersion = plan.source.fixRTMRailMapVersion;
 				tile.createRailMap();
-				tile.markDirty();
+				this.markCoreDirty(tile);
 				world.markBlockForUpdate(
 					sectionStart.blockX,
 					sectionStart.blockY,
@@ -460,7 +546,7 @@ export class RailPositionCompat {
 				);
 			}
 			NGTLog.debug(
-				`[SuperRailBuilderX RailPosition] tolerant section rebuild created: sections=${plan.sections.size()}`,
+				`[SuperRailBuilderX RailPosition] tolerant section rebuild created: sections=${plan.sections.size()}, replacedRoadbedsWithCores=${replacedForeignRoadbeds}`,
 			);
 			return true;
 		} catch (error) {
@@ -487,6 +573,34 @@ export class RailPositionCompat {
 					world.setBlockToAir(rp.blockX, rp.blockY, rp.blockZ);
 					world.removeTileEntity(rp.blockX, rp.blockY, rp.blockZ);
 					world.markBlockForUpdate(rp.blockX, rp.blockY, rp.blockZ);
+				}
+			}
+			for (let i = 0; i < overwrittenRoadbeds.length; i++) {
+				const roadbed = overwrittenRoadbeds[i];
+				if (
+					world.setBlock(
+						roadbed.x,
+						roadbed.y,
+						roadbed.z,
+						RTMRail.largeRailBase0,
+						0,
+						2,
+					)
+				) {
+					const tile = world.getTileEntity(
+						roadbed.x,
+						roadbed.y,
+						roadbed.z,
+					);
+					if (tile instanceof TileEntityLargeRailBase) {
+						tile.setStartPoint(
+							roadbed.ownerX,
+							roadbed.ownerY,
+							roadbed.ownerZ,
+						);
+						tile.markDirty();
+					}
+					world.markBlockForUpdate(roadbed.x, roadbed.y, roadbed.z);
 				}
 			}
 			return false;
@@ -833,22 +947,29 @@ export class RailPositionCompat {
 			positions[1],
 			RailMapBasic.fixRTMRailMapVersionCurrent,
 		);
-		railMap.setRail(
-			world,
-			RTMRail.largeRailBase0,
-			start.blockX,
-			start.blockY,
-			start.blockZ,
-			property,
-		);
-		world.setBlock(
-			start.blockX,
-			start.blockY,
-			start.blockZ,
-			RTMRail.largeRailCore0,
-			0,
-			2,
-		);
+		if (
+			!this.placeRoadbedInAir(
+				world,
+				railMap,
+				start.blockX,
+				start.blockY,
+				start.blockZ,
+				property,
+				"normal_rebuild",
+			)
+		)
+			return null;
+		if (
+			!world.setBlock(
+				start.blockX,
+				start.blockY,
+				start.blockZ,
+				RTMRail.largeRailCore0,
+				0,
+				2,
+			)
+		)
+			return null;
 		const tile = world.getTileEntity(
 			start.blockX,
 			start.blockY,
@@ -861,7 +982,7 @@ export class RailPositionCompat {
 		normalCore.setStartPoint(start.blockX, start.blockY, start.blockZ);
 		normalCore.fixRTMRailMapVersion = railMap.fixRTMRailMapVersion;
 		normalCore.createRailMap();
-		normalCore.markDirty();
+		this.markCoreDirty(normalCore);
 		NGTUtil.sendPacketToClient(normalCore);
 		world.markBlockForUpdate(start.blockX, start.blockY, start.blockZ);
 		return normalCore;
@@ -944,7 +1065,7 @@ export class RailPositionCompat {
 		newCore.setSignal(signal);
 		for (let i = 0; i < subRails.size(); i++)
 			newCore.addSubRail(subRails.get(i));
-		newCore.markDirty();
+		this.markCoreDirty(newCore);
 		NGTUtil.sendPacketToClient(newCore);
 		return "ok_normal";
 	}
@@ -1001,13 +1122,18 @@ export class RailPositionCompat {
 			core,
 			movedPositions,
 		);
+		const plannedSectionCount = this.createSectionPlan(
+			core,
+			movedPositions,
+		).sections.size();
+		const useAirOnlySectionRebuild = plannedSectionCount > 1;
 		NGTLog.debug(
-			`[SuperRailBuilderX RailPosition] rebuilding sectioned rail: groupCores=${groupPositions.size()}, index=${index}, preserveForeignCores=${preserveForeignCores}`,
+			`[SuperRailBuilderX RailPosition] rebuilding sectioned rail: groupCores=${groupPositions.size()}, index=${index}, preserveForeignCores=${preserveForeignCores}, airOnlyRoadbed=${useAirOnlySectionRebuild}`,
 		);
 		let created = false;
 		try {
 			core.breakLogicalRail();
-			created = preserveForeignCores
+			created = useAirOnlySectionRebuild
 				? this.createSectionedRailPreservingForeignCores(
 						core,
 						movedPositions,
@@ -1066,6 +1192,8 @@ export class RailPositionCompat {
 			newCore.setSignal(signal);
 			for (let i = 0; i < subRails.size(); i++)
 				newCore.addSubRail(subRails.get(i));
+			this.markCoreDirty(newCore);
+			NGTUtil.sendPacketToClient(newCore);
 		} catch (error) {
 			NGTLog.debug(
 				`[SuperRailBuilderX RailPosition] sectioned rail state restore exception: ${error}`,
