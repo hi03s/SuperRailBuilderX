@@ -104,7 +104,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - `pnpm gen` と `pnpm build` はkaizpatch・mc1710・mc1122の全ターゲットで成功。生成JavaScriptのメソッド名・空気限定道床ログ・`setRail` 不使用、変更compatのPrettier、`git diff --check` を確認済み。全体の `pnpm format:check` は31個の既存ファイルのみ失敗。
 - ゲーム内動作は未検証。予定コア位置の道床を実際に置換するため、必ずバックアップ済みワールドで上記手順を再デバッグする必要がある。
 - 実装コミット: https://github.com/hi03s/SuperRailBuilderX/commit/8d58d5ca14d3bfb9098bb510ce2a230f0955ec83
-- 同期: `origin/main` へ同期する。
+- 同期: `origin/main` へ同期済み。
 
 ### 2026-09-01 ローカルCodex — Web側追加分の受信・ビルド確認
 
