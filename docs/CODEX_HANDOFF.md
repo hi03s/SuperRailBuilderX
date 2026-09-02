@@ -122,8 +122,8 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - `docs/builder1.md`、`docs/rail-generation-and-free-positioning.md`、`docs/rail-position-free-positioning.md`へ今回の構造・計算上の発見を反映。共有参照専用の`lib_hi03toolkit_1_0`は変更していない。
 - `pnpm gen`と`pnpm build`はkaizpatch・mc1710・mc1122の全ターゲットで成功。変更ファイルのPrettier、純粋計算テスト、生成JavaScriptの1.7.10マッピング、`git diff --check`を確認済み。ゲーム内再検証は未実施。
 - 開発者の指示により、提供された生ログはそのままGitへ追加せず、対象機能の診断・関連例外・必要な文脈だけを抜粋して保存する恒久運用を`AGENTS.md`へ追加。今回の未公開コミットも生ログが履歴へ残らないよう組み直す。
-- 実装コミット: （履歴組み直し後に記載）
-- 同期: （push後に記載）
+- 実装コミット: https://github.com/hi03s/SuperRailBuilderX/commit/f4a9c23
+- 同期: 生ログを含まない実装コミットとこの引継ぎ更新を`origin/main`へ同期予定。
 
 ### 2026-09-02 ローカルCodex — builder1初回実機フィードバック修正
 
