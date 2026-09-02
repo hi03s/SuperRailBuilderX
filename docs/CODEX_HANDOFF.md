@@ -124,8 +124,8 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 自由始点の固定半径でMinecraftプレイヤーYawをRTMアンカーYawへ変換する符号を修正。←/→、Ctrl+←/→、↑/↓、Ctrl+↑/↓へ350 ms後・75 ms間隔の長押しリピートを追加し、Fで空中高さだけを0へ戻すよう実装。
 - Ctrl+Cは選択・スナップ・高さ・半径・勾配だけを初期化し、クライアントの直前選択とサーバーの専用Undo記録を維持するよう変更。
 - `pnpm gen`と`pnpm build`はkaizpatch・mc1710・mc1122の全ターゲットで成功。変更ファイルのPrettier、`git diff --check`、生成JavaScriptの垂直アンカー・長押し・コア保護診断も確認済み。全体の`pnpm format:check`は従来どおり参照専用26ファイルだけが失敗。ゲーム内検証は未実施。
-- 実装コミット: （コミット後に記載）
-- 同期: （push後に記載）
+- 実装コミット: https://github.com/hi03s/SuperRailBuilderX/commit/ef5433b
+- 同期: 実装コミット`ef5433b`を`origin/main`へ同期済み。引継ぎ更新も同期する。
 
 ### 2026-09-02 ローカルCodex — builder1交差置換・半径固定・縦勾配
 
