@@ -17,8 +17,7 @@ import { InputManager } from "../lib_hi03toolkit_1_0/lib_InputManager";
 import { ErrorLogger } from "../lib_hi03toolkit_1_0/lib_ErrorLogger";
 import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
 import { NGTOBuilderUtilClient } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtilClient";
-import { RTMApiCompat } from "@target/assets/minecraft/scripts/lib_hi03toolkit_1_0/lib_RTMApiCompat";
-import { RailPositionCompat } from "@target/assets/minecraft/scripts/superrailbuilderx/RailPositionCompat";
+import { SRBXApiCompat } from "@target/assets/minecraft/scripts/superrailbuilderx/SRBXApiCompat";
 import { RailPositionMoveRequest } from "./server_rail_position_test";
 
 declare const renderer: VehiclePartsRenderer;
@@ -157,7 +156,7 @@ function findCandidates(
 	lastCandidateScanDiagnostics = null;
 	const looking = NGTOBuilderUtilClient.getLookingPos(partialTicks);
 	if (!looking) return [];
-	const world = RTMApiCompat.getWorld(entity);
+	const world = SRBXApiCompat.getWorld(entity);
 	const candidates: Candidate[] = [];
 	const seen: { [key: string]: boolean } = {};
 	const diagnostics: CandidateScanDiagnostics = {
@@ -179,7 +178,7 @@ function findCandidates(
 			for (let z = centerZ - 2; z <= centerZ + 2; z++) {
 				let phase = "getTileEntity";
 				try {
-					const tile = RTMApiCompat.getTileEntity(world, x, y, z);
+					const tile = SRBXApiCompat.getTileEntity(world, x, y, z);
 					if (!(tile instanceof TileEntityLargeRailBase)) continue;
 					diagnostics.railTiles++;
 					phase = "getRailCore";
@@ -189,18 +188,16 @@ function findCandidates(
 						continue;
 					}
 					phase = "getRailCorePos";
-					const corePos = RailPositionCompat.getRailCorePos(core);
+					const corePos = SRBXApiCompat.getRailCorePos(core);
 					phase = "getRailPositionCandidateKey";
 					const coreKey =
-						RailPositionCompat.getRailPositionCandidateKey(core);
+						SRBXApiCompat.getRailPositionCandidateKey(core);
 					if (seen[coreKey]) continue;
 					seen[coreKey] = true;
 					diagnostics.uniqueCores++;
 					phase = "getRailPositionUnsupportedReason";
 					const unsupportedReason =
-						RailPositionCompat.getRailPositionUnsupportedReason(
-							core,
-						);
+						SRBXApiCompat.getRailPositionUnsupportedReason(core);
 					if (unsupportedReason !== "") {
 						diagnostics.unsupportedCores++;
 						if (unsupportedReason.indexOf("sectioned(") === 0)
@@ -213,7 +210,7 @@ function findCandidates(
 					}
 					phase = "getEditableRailPositions";
 					const positions =
-						RailPositionCompat.getEditableRailPositions(core);
+						SRBXApiCompat.getEditableRailPositions(core);
 					if (!positions || positions.length === 0) {
 						diagnostics.invalidPositions++;
 						continue;
@@ -411,7 +408,7 @@ function handleInput(
 				for (let i = 0; i < state.selected.candidates.length; i++) {
 					const candidate = state.selected.candidates[i];
 					try {
-						RailPositionCompat.refreshRailPositionClient(
+						SRBXApiCompat.refreshRailPositionClient(
 							candidate.core,
 							candidate.index,
 							state.destination[0],
@@ -463,14 +460,14 @@ function render(
 	}
 	body.render(renderer);
 	const dataMap = entity.getResourceState().getDataMap();
-	const world = RTMApiCompat.getWorld(entity);
+	const world = SRBXApiCompat.getWorld(entity);
 	const player = MCWrapperClient.getPlayer();
 	const hostId = dataMap.getString("hostPlayerEntityId");
 	const host = hostId
 		? (world.getEntityByID(Number(hostId)) as unknown as EntityPlayer)
 		: null;
 	if (!host || host !== player) return;
-	RTMApiCompat.doFollowing(entity, host);
+	SRBXApiCompat.doFollowing(entity, host);
 	const state = getState(entity);
 	const candidates =
 		state.stage === 0 ? findCandidates(entity, partialTicks) : [];

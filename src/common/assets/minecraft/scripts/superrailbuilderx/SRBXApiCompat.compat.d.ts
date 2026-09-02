@@ -1,9 +1,44 @@
 import { TileEntityLargeRailCore } from "jp.ngt.rtm.rail";
 import { RailPosition } from "jp.ngt.rtm.rail.util";
+import { Entity } from "net.minecraft.entity";
+import { EntityPlayer } from "net.minecraft.entity.player";
+import { TileEntity } from "net.minecraft.tileentity";
+import { World } from "net.minecraft.world";
 
 export type RailCorePos = [x: number, y: number, z: number];
 
-export class RailPositionCompat {
+export type SRBXBuilderPoint = {
+	kind: "free" | "rail";
+	position: RailCorePos;
+	direction: number;
+	anchorYaw: number;
+	anchorPitch: number;
+	core?: RailCorePos;
+	index?: number;
+};
+
+export type SRBXBuilderCreateResult = {
+	status: string;
+	undoCore?: RailCorePos;
+	undoKey?: string;
+};
+
+export class SRBXApiCompat {
+	static getRider(entity: unknown): Entity | null;
+	static getRidingEntity(entity: unknown): Entity | null;
+	static getWorld(entity: unknown): World;
+	static getTileEntity(
+		world: World,
+		x: number,
+		y: number,
+		z: number,
+	): TileEntity | null;
+	static dismountPlayer(entity: unknown): void;
+	static startRiding(entity: unknown, targetEntity: unknown): void;
+	static doFollowing(entity: unknown, hostPlayer: unknown): void;
+	static getHorizontalAnchorYaw(rp: RailPosition): number;
+	static getHorizontalAnchorLength(rp: RailPosition): number;
+	static getRailPositionAnchorPitch(rp: RailPosition): number;
 	static getRailCorePos(core: TileEntityLargeRailCore): RailCorePos;
 	static getRailPositionCandidateKey(core: TileEntityLargeRailCore): string;
 	static getEditableRailPositions(
@@ -59,5 +94,18 @@ export class RailPositionCompat {
 		x: number,
 		y: number,
 		z: number,
+	): string;
+	static createBuilderRail(
+		world: World,
+		player: EntityPlayer,
+		start: SRBXBuilderPoint,
+		end: SRBXBuilderPoint,
+	): SRBXBuilderCreateResult;
+	static undoBuilderRail(
+		world: World,
+		coreX: number,
+		coreY: number,
+		coreZ: number,
+		expectedKey: string,
 	): string;
 }

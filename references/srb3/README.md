@@ -1,0 +1,6 @@
+# SuperRailBuilder3 参照ファイル置き場
+
+SuperRailBuilder3の実装を比較調査するときは、このディレクトリへ参照用ファイルを配置します。
+実行時アセットではなく、SuperRailBuilderXへ取り込む処理は内容を確認してから `src/common/assets/minecraft/scripts/superrailbuilderx` へ再実装します。
+
+配布条件が不明なファイルはGitへコミットせず、ローカル参照だけにしてください。

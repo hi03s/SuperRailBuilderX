@@ -10,8 +10,7 @@ import { WeakHashMap } from "java.util";
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { ErrorLogger } from "../lib_hi03toolkit_1_0/lib_ErrorLogger";
 import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
-import { RTMApiCompat } from "@target/assets/minecraft/scripts/lib_hi03toolkit_1_0/lib_RTMApiCompat";
-import { RailPositionCompat } from "@target/assets/minecraft/scripts/superrailbuilderx/RailPositionCompat";
+import { SRBXApiCompat } from "@target/assets/minecraft/scripts/superrailbuilderx/SRBXApiCompat";
 
 const VERSION = "0.1.0-normal";
 
@@ -32,7 +31,7 @@ function applyRequest(
 	entity: EntityVehicle,
 	request: RailPositionMoveRequest,
 ): string {
-	const world = RTMApiCompat.getWorld(entity);
+	const world = SRBXApiCompat.getWorld(entity);
 	if (!request.targets || request.targets.length === 0) return "no_targets";
 	if (request.targets.length > 16) return "too_many_targets";
 	if (
@@ -62,7 +61,7 @@ function applyRequest(
 			Math.abs(target.original[2] - sharedPosition[2]) > 0.001
 		)
 			return `target_${i}:not_connected`;
-		const tile = RTMApiCompat.getTileEntity(
+		const tile = SRBXApiCompat.getTileEntity(
 			world,
 			target.core[0],
 			target.core[1],
@@ -72,10 +71,10 @@ function applyRequest(
 			return `target_${i}:rail_not_found`;
 		const core = tile.getRailCore();
 		if (!core) return `target_${i}:rail_not_found`;
-		const key = `${RailPositionCompat.getRailPositionCandidateKey(core)}:${target.index}`;
+		const key = `${SRBXApiCompat.getRailPositionCandidateKey(core)}:${target.index}`;
 		if (seen[key]) continue;
 		seen[key] = true;
-		const validation = RailPositionCompat.validateRailPositionMoveAsNormal(
+		const validation = SRBXApiCompat.validateRailPositionMoveAsNormal(
 			core,
 			target.index,
 			target.original[0],
@@ -93,7 +92,7 @@ function applyRequest(
 	);
 	for (let i = 0; i < resolved.length; i++) {
 		const item = resolved[i];
-		const result = RailPositionCompat.moveRailPositionAsNormal(
+		const result = SRBXApiCompat.moveRailPositionAsNormal(
 			item.core,
 			item.target.index,
 			item.target.original[0],
@@ -123,8 +122,8 @@ function onUpdate(entity: EntityVehicle, scriptExecuter: ScriptExecuter): void {
 	entity.rotationYaw = 0;
 	const dataMap = entity.getResourceState().getDataMap();
 	let host = hosts.get(entity);
-	const rider = RTMApiCompat.getRider(entity) as unknown as EntityPlayer;
-	const ridingEntity = RTMApiCompat.getRidingEntity(entity);
+	const rider = SRBXApiCompat.getRider(entity) as unknown as EntityPlayer;
+	const ridingEntity = SRBXApiCompat.getRidingEntity(entity);
 	if (dataMap.getString("railPositionOperationMode") !== "normal")
 		dataMap.setString("railPositionOperationMode", "normal", 1);
 	if (dataMap.getString("VERSIONS") === "")
@@ -138,8 +137,8 @@ function onUpdate(entity: EntityVehicle, scriptExecuter: ScriptExecuter): void {
 				String(host.getEntityId()),
 				1,
 			);
-			RTMApiCompat.dismountPlayer(entity);
-			RTMApiCompat.startRiding(entity, host);
+			SRBXApiCompat.dismountPlayer(entity);
+			SRBXApiCompat.startRiding(entity, host);
 		} else if (ridingEntity instanceof EntityPlayer) {
 			host = ridingEntity;
 			hosts.put(entity, host);
@@ -151,9 +150,9 @@ function onUpdate(entity: EntityVehicle, scriptExecuter: ScriptExecuter): void {
 		}
 		return;
 	}
-	RTMApiCompat.doFollowing(entity, host);
+	SRBXApiCompat.doFollowing(entity, host);
 	if (rider) {
-		RTMApiCompat.dismountPlayer(entity);
+		SRBXApiCompat.dismountPlayer(entity);
 		dataMap.setBoolean("isEndEdit", true, 1);
 	}
 	if (dataMap.getBoolean("isEndEdit")) {

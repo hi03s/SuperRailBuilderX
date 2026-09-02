@@ -1,0 +1,29 @@
+{
+	"name": "SuperRailBuilderX_builder1",
+	"model": {
+		"modelFile": "superrailbuilderx/builder1.mqo",
+		"textures": [
+			["mat1", "textures/superrailbuilderx/builder1.png", "AlphaBlend"],
+			["mat2", "textures/superrailbuilderx/builder1.png", "AlphaBlend"]
+		],
+		"rendererPath": "scripts/superrailbuilderx/render_builder1.js"
+	},
+	"buttonTexture": "textures/superrailbuilderx/button_builder1.png",
+	"serverScriptPath": "scripts/superrailbuilderx/server_builder1.js",
+	"playerPos": [[0, 0, 0]],
+	"vehicleType": "Car",
+	"size": [1, 1],
+	"vibration": [0.0, 0.0],
+	"friction": [0.0, 0.0],
+	"acceleration": [0.0, 0.0],
+	"maxSpeed": [0.0, 0.0],
+	"maxYaw": [0.0, 0.0],
+	"pitchCoefficient": [0.0, 0.0],
+	"yawCoefficient": [0.0, 0.0],
+	"useCustomColor": false,
+	"smoothing": true,
+	"doCulling": false,
+	"changeYawOnStopping": false,
+	"accuracy": "LOW",
+	"tags": "super rail builder x builder rail kaizpatch"
+}

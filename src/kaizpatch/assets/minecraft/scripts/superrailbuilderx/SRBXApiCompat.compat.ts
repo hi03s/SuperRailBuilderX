@@ -1,6 +1,6 @@
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { NGTUtil } from "jp.ngt.ngtlib.util";
-import { RTMRail } from "jp.ngt.rtm";
+import { RTMItem, RTMRail } from "jp.ngt.rtm";
 import {
 	BlockLargeRailBase,
 	BlockMarker,
@@ -8,7 +8,10 @@ import {
 	TileEntityLargeRailCore,
 	TileEntityLargeRailSwitchCore,
 } from "jp.ngt.rtm.rail";
+import { ItemRail } from "jp.ngt.rtm.item";
 import { RailMapBasic, RailPosition, RailProperty } from "jp.ngt.rtm.rail.util";
+import { EntityPlayer } from "net.minecraft.entity.player";
+import { NBTTagCompound } from "net.minecraft.nbt";
 import { ArrayList } from "java.util";
 
 type RailSectionCore = TileEntityLargeRailCore & {
@@ -29,6 +32,16 @@ type RailSectionCore = TileEntityLargeRailCore & {
 
 type NormalRailCore = TileEntityLargeRailCore & {
 	fixRTMRailMapVersion: number;
+};
+
+type BuilderPoint = {
+	kind: "free" | "rail";
+	position: [number, number, number];
+	direction: number;
+	anchorYaw: number;
+	anchorPitch: number;
+	core?: [number, number, number];
+	index?: number;
 };
 
 type RailSectionPlan = {
@@ -70,7 +83,57 @@ declare const Packages: {
 	};
 };
 
-export class RailPositionCompat {
+export class SRBXApiCompat {
+	static getRider(entity: unknown) {
+		return (entity as jp.ngt.rtm.entity.vehicle.EntityVehicle)
+			.riddenByEntity;
+	}
+
+	static getRidingEntity(entity: unknown) {
+		return (entity as jp.ngt.rtm.entity.vehicle.EntityVehicle).ridingEntity;
+	}
+
+	static getWorld(entity: unknown) {
+		return (entity as net.minecraft.entity.Entity).worldObj;
+	}
+
+	static getTileEntity(
+		world: net.minecraft.world.World,
+		x: number,
+		y: number,
+		z: number,
+	) {
+		return world.getTileEntity(Math.floor(x), Math.floor(y), Math.floor(z));
+	}
+
+	static dismountPlayer(entity: unknown): void {
+		const rider = this.getRider(entity);
+		if (rider) rider.mountEntity(null as net.minecraft.entity.Entity);
+	}
+
+	static startRiding(entity: unknown, targetEntity: unknown): void {
+		(entity as net.minecraft.entity.Entity).mountEntity(
+			targetEntity as net.minecraft.entity.Entity,
+		);
+	}
+
+	static doFollowing(entity: unknown, hostPlayer: unknown): void {
+		void entity;
+		void hostPlayer;
+	}
+
+	static getHorizontalAnchorYaw(rp: RailPosition): number {
+		return rp.anchorYaw;
+	}
+
+	static getHorizontalAnchorLength(rp: RailPosition): number {
+		return rp.anchorLengthHorizontal;
+	}
+
+	static getRailPositionAnchorPitch(rp: RailPosition): number {
+		return rp.anchorPitch;
+	}
+
 	private static getCoreWorld(core: TileEntityLargeRailCore) {
 		return core.getWorldObj();
 	}
@@ -1209,5 +1272,434 @@ export class RailPositionCompat {
 			`[SuperRailBuilderX RailPosition] sectioned rail rebuild succeeded: oldGroupCores=${groupPositions.size()}, newGroupCores=${newGroupCoreCount}`,
 		);
 		return "ok_sectioned";
+	}
+
+	private static normalizeDegrees(angle: number): number {
+		let normalized = angle % 360;
+		if (normalized < 0) normalized += 360;
+		return normalized;
+	}
+
+	private static builderDirectionFromYaw(yaw: number): number {
+		return Math.round(this.normalizeDegrees(yaw) / 45) & 7;
+	}
+
+	private static validateBuilderPoint(point: BuilderPoint): string {
+		if (!point || (point.kind !== "free" && point.kind !== "rail"))
+			return "invalid_point";
+		if (
+			!point.position ||
+			!isFinite(point.position[0]) ||
+			!isFinite(point.position[1]) ||
+			!isFinite(point.position[2]) ||
+			!isFinite(point.anchorYaw) ||
+			!isFinite(point.anchorPitch)
+		)
+			return "invalid_point";
+		if (point.kind === "rail") {
+			if (
+				!point.core ||
+				!isFinite(point.core[0]) ||
+				!isFinite(point.core[1]) ||
+				!isFinite(point.core[2]) ||
+				point.index === undefined ||
+				!isFinite(point.index) ||
+				Math.floor(point.index) !== point.index
+			)
+				return "invalid_rail_point";
+		}
+		return "ok";
+	}
+
+	private static resolveBuilderRailPoint(
+		world: net.minecraft.world.World,
+		point: BuilderPoint,
+	): RailPosition | null {
+		if (!point.core || point.index === undefined) return null;
+		const tile = world.getTileEntity(
+			point.core[0],
+			point.core[1],
+			point.core[2],
+		);
+		if (!(tile instanceof TileEntityLargeRailBase)) return null;
+		const core = tile.getRailCore();
+		if (!core || !this.canMoveRailPosition(core)) return null;
+		const positions = this.getEditableRailPositions(core);
+		if (point.index < 0 || point.index >= positions.length) return null;
+		const source = positions[point.index];
+		if (
+			Math.abs(source.posX - point.position[0]) > 0.001 ||
+			Math.abs(source.posY - point.position[1]) > 0.001 ||
+			Math.abs(source.posZ - point.position[2]) > 0.001
+		)
+			return null;
+		const neighbor = source.getNeighborPos();
+		const result = RailPosition.readFromNBT(source.writeToNBT());
+		result.blockX = neighbor[0];
+		result.blockY = neighbor[1];
+		result.blockZ = neighbor[2];
+		result.direction = (source.direction + 4) & 7;
+		result.anchorYaw = this.normalizeDegrees(source.anchorYaw + 180);
+		result.anchorPitch = -source.anchorPitch;
+		result.setPosition(source.posX, source.posY, source.posZ);
+		return result;
+	}
+
+	private static createBuilderFreePoint(point: BuilderPoint): RailPosition {
+		const direction = this.builderDirectionFromYaw(point.anchorYaw);
+		const result = new RailPosition(
+			Math.floor(point.position[0]),
+			Math.floor(point.position[1]),
+			Math.floor(point.position[2]),
+			direction,
+		);
+		result.anchorYaw = this.normalizeDegrees(point.anchorYaw);
+		result.anchorPitch = point.anchorPitch;
+		result.setPosition(
+			point.position[0],
+			point.position[1],
+			point.position[2],
+		);
+		return result;
+	}
+
+	private static createBuilderProperty(
+		player: EntityPlayer,
+	): RailProperty | null {
+		const held = player.inventory.getCurrentItem();
+		if (!held || held.getItem() !== RTMItem.itemLargeRail) return null;
+		const heldProperty = ItemRail.getProperty(held);
+		if (!heldProperty) return null;
+		const nbt = new NBTTagCompound();
+		heldProperty.writeToNBT(nbt);
+		const property = RailProperty.readFromNBT(nbt);
+		property.autoSplit = true;
+		return property;
+	}
+
+	private static placeBuilderRoadbed(
+		world: net.minecraft.world.World,
+		railMap: RailSectionMap,
+		coreX: number,
+		coreY: number,
+		coreZ: number,
+		property: RailProperty,
+	): number {
+		const blocks = railMap.getRailBlockList(property);
+		let replaced = 0;
+		for (let i = 0; i < blocks.size(); i++) {
+			const pos = blocks.get(i);
+			if (!world.isAirBlock(pos[0], pos[1], pos[2])) replaced++;
+			if (
+				!world.setBlock(
+					pos[0],
+					pos[1],
+					pos[2],
+					RTMRail.largeRailBase0,
+					0,
+					2,
+				)
+			)
+				throw new Error(
+					`failed to place builder roadbed at ${pos[0]},${pos[1]},${pos[2]}`,
+				);
+			const tile = world.getTileEntity(pos[0], pos[1], pos[2]);
+			if (!(tile instanceof TileEntityLargeRailBase))
+				throw new Error(
+					`builder roadbed tile missing at ${pos[0]},${pos[1]},${pos[2]}`,
+				);
+			tile.setStartPoint(coreX, coreY, coreZ);
+			tile.markDirty();
+		}
+		return replaced;
+	}
+
+	private static isBuilderRoadbedLoaded(
+		world: net.minecraft.world.World,
+		railMap: RailSectionMap,
+		property: RailProperty,
+	): boolean {
+		const blocks = railMap.getRailBlockList(property);
+		for (let i = 0; i < blocks.size(); i++) {
+			const pos = blocks.get(i);
+			if (!world.blockExists(pos[0], pos[1], pos[2])) return false;
+		}
+		return true;
+	}
+
+	private static createBuilderNormalRail(
+		world: net.minecraft.world.World,
+		source: RailMapBasic,
+		positions: RailPosition[],
+		property: RailProperty,
+	): TileEntityLargeRailCore | null {
+		const start = positions[0];
+		const replaced = this.placeBuilderRoadbed(
+			world,
+			source,
+			start.blockX,
+			start.blockY,
+			start.blockZ,
+			property,
+		);
+		if (
+			!world.setBlock(
+				start.blockX,
+				start.blockY,
+				start.blockZ,
+				RTMRail.largeRailCore0,
+				0,
+				2,
+			)
+		)
+			return null;
+		const tile = world.getTileEntity(
+			start.blockX,
+			start.blockY,
+			start.blockZ,
+		);
+		if (!(tile instanceof TileEntityLargeRailCore)) return null;
+		const core = tile as NormalRailCore;
+		core.setRailPositions(this.toRailPositionArray(positions));
+		core.setProperty(property);
+		core.setStartPoint(start.blockX, start.blockY, start.blockZ);
+		core.fixRTMRailMapVersion = source.fixRTMRailMapVersion;
+		core.createRailMap();
+		this.markCoreDirty(core);
+		NGTUtil.sendPacketToClient(core);
+		world.markBlockForUpdate(start.blockX, start.blockY, start.blockZ);
+		NGTLog.debug(
+			`[SuperRailBuilderX builder1] destructive normal rail created: replacedBlocks=${replaced}`,
+		);
+		return core;
+	}
+
+	private static createBuilderSectionedRail(
+		world: net.minecraft.world.World,
+		source: RailMapBasic,
+		sections: java.util.List<RailSectionPlan>,
+		positions: RailPosition[],
+		property: RailProperty,
+	): TileEntityLargeRailCore | null {
+		if (sections.size() <= 1) return null;
+		const groupId = java.util.UUID.randomUUID();
+		const logicalArray = this.toRailPositionArray(
+			this.copyRailPositions(positions),
+		);
+		const corePositions = new ArrayList<number[]>();
+		for (let i = 0; i < sections.size(); i++) {
+			const rp = sections.get(i).getStartRP();
+			corePositions.add(
+				this.createIntPosition(rp.blockX, rp.blockY, rp.blockZ),
+			);
+		}
+		let replaced = 0;
+		for (let i = 0; i < sections.size(); i++) {
+			const section = sections.get(i);
+			const sectionMap =
+				new Packages.jp.kaiz.kaizpatch.rtm.rail.util.RailMapSection(
+					source,
+					section.getStartRP(),
+					section.getEndRP(),
+					section.getStartRatio(),
+					section.getEndRatio(),
+				);
+			const rp = section.getStartRP();
+			replaced += this.placeBuilderRoadbed(
+				world,
+				sectionMap,
+				rp.blockX,
+				rp.blockY,
+				rp.blockZ,
+				property,
+			);
+		}
+		let firstCore: TileEntityLargeRailCore | null = null;
+		for (let i = 0; i < sections.size(); i++) {
+			const section = sections.get(i);
+			const sectionStart = RailPosition.readFromNBT(
+				section.getStartRP().writeToNBT(),
+			);
+			const sectionEnd = RailPosition.readFromNBT(
+				section.getEndRP().writeToNBT(),
+			);
+			if (
+				!world.setBlock(
+					sectionStart.blockX,
+					sectionStart.blockY,
+					sectionStart.blockZ,
+					RTMRail.largeRailCore0,
+					1,
+					2,
+				)
+			)
+				throw new Error(
+					`failed to place builder section core at ${sectionStart.blockX},${sectionStart.blockY},${sectionStart.blockZ}`,
+				);
+			const tile = world.getTileEntity(
+				sectionStart.blockX,
+				sectionStart.blockY,
+				sectionStart.blockZ,
+			);
+			if (
+				!(tile instanceof TileEntityLargeRailCore) ||
+				!this.isSectionCore(tile)
+			)
+				throw new Error("builder section core tile missing");
+			tile.configureRailSection(
+				groupId,
+				logicalArray,
+				this.toRailPositionArray([sectionStart, sectionEnd]),
+				section.getStartRatio(),
+				section.getEndRatio(),
+				corePositions,
+			);
+			tile.setProperty(property);
+			tile.setStartPoint(
+				sectionStart.blockX,
+				sectionStart.blockY,
+				sectionStart.blockZ,
+			);
+			tile.fixRTMRailMapVersion = source.fixRTMRailMapVersion;
+			tile.createRailMap();
+			this.markCoreDirty(tile);
+			NGTUtil.sendPacketToClient(tile);
+			world.markBlockForUpdate(
+				sectionStart.blockX,
+				sectionStart.blockY,
+				sectionStart.blockZ,
+			);
+			if (!firstCore) firstCore = tile;
+		}
+		NGTLog.debug(
+			`[SuperRailBuilderX builder1] destructive sectioned rail created: sections=${sections.size()}, replacedBlocks=${replaced}`,
+		);
+		return firstCore;
+	}
+
+	static createBuilderRail(
+		world: net.minecraft.world.World,
+		player: EntityPlayer,
+		start: BuilderPoint,
+		end: BuilderPoint,
+	) {
+		const startValidation = this.validateBuilderPoint(start);
+		if (startValidation !== "ok") return { status: startValidation };
+		const endValidation = this.validateBuilderPoint(end);
+		if (endValidation !== "ok") return { status: endValidation };
+		if (start.kind !== end.kind)
+			return { status: "rail_to_free_not_implemented" };
+		const dx = end.position[0] - start.position[0];
+		const dy = end.position[1] - start.position[1];
+		const dz = end.position[2] - start.position[2];
+		const length = Math.sqrt(dx * dx + dy * dy + dz * dz);
+		if (length < 0.01) return { status: "rail_too_short" };
+		if (
+			!world.blockExists(
+				Math.floor(start.position[0]),
+				Math.floor(start.position[1]),
+				Math.floor(start.position[2]),
+			) ||
+			!world.blockExists(
+				Math.floor(end.position[0]),
+				Math.floor(end.position[1]),
+				Math.floor(end.position[2]),
+			)
+		)
+			return { status: "endpoint_unloaded" };
+		const property = this.createBuilderProperty(player);
+		if (!property) return { status: "hold_rail_item" };
+		let startRP: RailPosition | null = null;
+		let endRP: RailPosition | null = null;
+		if (start.kind === "rail") {
+			startRP = this.resolveBuilderRailPoint(world, start);
+			endRP = this.resolveBuilderRailPoint(world, end);
+			if (!startRP || !endRP) return { status: "rail_endpoint_changed" };
+			const anchorLength = (length * 2) / 3;
+			startRP.anchorLengthHorizontal = anchorLength;
+			endRP.anchorLengthHorizontal = anchorLength;
+		} else {
+			startRP = this.createBuilderFreePoint(start);
+			endRP = this.createBuilderFreePoint(end);
+		}
+		const positions = [startRP, endRP] as RailPosition[];
+		const source = new RailMapBasic(
+			startRP,
+			endRP,
+			RailMapBasic.fixRTMRailMapVersionCurrent,
+		);
+		const sections =
+			Packages.jp.kaiz.kaizpatch.rtm.rail.util.RailChunkSectioner.split(
+				source,
+			);
+		if (sections.size() > 1) {
+			for (let i = 0; i < sections.size(); i++) {
+				const section = sections.get(i);
+				const sectionMap =
+					new Packages.jp.kaiz.kaizpatch.rtm.rail.util.RailMapSection(
+						source,
+						section.getStartRP(),
+						section.getEndRP(),
+						section.getStartRatio(),
+						section.getEndRatio(),
+					);
+				if (!this.isBuilderRoadbedLoaded(world, sectionMap, property))
+					return { status: "path_unloaded" };
+			}
+		} else if (!this.isBuilderRoadbedLoaded(world, source, property)) {
+			return { status: "path_unloaded" };
+		}
+		let core: TileEntityLargeRailCore | null = null;
+		try {
+			core =
+				sections.size() > 1
+					? this.createBuilderSectionedRail(
+							world,
+							source,
+							sections,
+							positions,
+							property,
+						)
+					: this.createBuilderNormalRail(
+							world,
+							source,
+							positions,
+							property,
+						);
+		} catch (error) {
+			NGTLog.debug(
+				`[SuperRailBuilderX builder1] destructive rail creation exception: ${error}`,
+			);
+			return { status: "create_failed" };
+		}
+		if (!core) return { status: "create_failed" };
+		const corePos = this.getRailCorePos(core);
+		return {
+			status: "ok",
+			undoCore: corePos,
+			undoKey: this.getRailPositionCandidateKey(core),
+		};
+	}
+
+	static undoBuilderRail(
+		world: net.minecraft.world.World,
+		coreX: number,
+		coreY: number,
+		coreZ: number,
+		expectedKey: string,
+	): string {
+		const tile = world.getTileEntity(coreX, coreY, coreZ);
+		if (!(tile instanceof TileEntityLargeRailBase))
+			return "undo_rail_not_found";
+		const core = tile.getRailCore();
+		if (!core) return "undo_rail_not_found";
+		if (this.getRailPositionCandidateKey(core) !== expectedKey)
+			return "undo_rail_changed";
+		if (core.isLogicalRailOccupied()) return "rail_occupied";
+		core.breakLogicalRail();
+		NGTLog.debug(
+			`[SuperRailBuilderX builder1] generated logical rail removed by undo: core=${coreX},${coreY},${coreZ}`,
+		);
+		return "ok";
 	}
 }

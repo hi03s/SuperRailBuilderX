@@ -20,15 +20,15 @@
 
 `RailPosition` は曲線端点の位置と向きを保持します。重要な座標は2系統あります。
 
-| データ | 意味 |
-| --- | --- |
-| `blockX / blockY / blockZ` | RailPositionを所有する基準ブロック座標 |
-| `posX / posY / posZ` | 曲線計算に使われる精密なワールド座標 |
-| `offsetX / offsetY / offsetZ` | 標準位置から精密座標までの差分 |
-| `direction` | 基準となる8方向 |
-| `anchorYaw / anchorPitch` | 曲線端の接線方向 |
-| `anchorLengthHorizontal / Vertical` | 曲線制御点の長さ |
-| `cantCenter / cantEdge / cantRandom` | カントに関する値 |
+| データ                               | 意味                                   |
+| ------------------------------------ | -------------------------------------- |
+| `blockX / blockY / blockZ`           | RailPositionを所有する基準ブロック座標 |
+| `posX / posY / posZ`                 | 曲線計算に使われる精密なワールド座標   |
+| `offsetX / offsetY / offsetZ`        | 標準位置から精密座標までの差分         |
+| `direction`                          | 基準となる8方向                        |
+| `anchorYaw / anchorPitch`            | 曲線端の接線方向                       |
+| `anchorLengthHorizontal / Vertical`  | 曲線制御点の長さ                       |
+| `cantCenter / cantEdge / cantRandom` | カントに関する値                       |
 
 `setPosition(x, y, z)` は `blockX/Y/Z` を変更しません。ブロック座標と方向から求まる標準位置との差をオフセットへ保存し、`init()`で`posX/Y/Z`を再計算します。
 
@@ -120,9 +120,9 @@ core.markDirty();
 
 つまり、次の2つは同じ結果になりません。
 
-| 生成方法 | `autoSplit=true` の結果 |
-| --- | --- |
-| `BlockMarker.createRail()` | 必要に応じて自動分割される |
+| 生成方法                               | `autoSplit=true` の結果          |
+| -------------------------------------- | -------------------------------- |
+| `BlockMarker.createRail()`             | 必要に応じて自動分割される       |
 | `RailMapBasic#setRail()`とコア直接設置 | 分割処理を通らず通常レールになる |
 
 SuperRailBuilderXの通常レール再生成テストでは、後者を使用してSuperRailBuilder3に近い単一コアレールを生成しています。
@@ -238,12 +238,12 @@ NGTUtil.sendPacketToClient(core);
 world.markBlockForUpdate(coreX, coreY, coreZ);
 ```
 
-| 処理 | 目的 |
-| --- | --- |
-| `createRailMap()` | サーバー側の曲線キャッシュを再生成 |
-| `markDirty()` | TileEntityを保存対象にする |
-| `sendPacketToClient()` | 更新NBTをクライアントへ送信 |
-| `markBlockForUpdate()` | ブロック更新・再描画を促す |
+| 処理                   | 目的                               |
+| ---------------------- | ---------------------------------- |
+| `createRailMap()`      | サーバー側の曲線キャッシュを再生成 |
+| `markDirty()`          | TileEntityを保存対象にする         |
+| `sendPacketToClient()` | 更新NBTをクライアントへ送信        |
+| `markBlockForUpdate()` | ブロック更新・再描画を促す         |
 
 ### 7.2 クライアント側のRailMap再生成
 
@@ -298,13 +298,13 @@ RTM標準の `canPlaceRail()` は非コア道床との重なりを許可しま�
 
 推奨する責務分担は次のとおりです。
 
-| クライアント | サーバー |
-| --- | --- |
-| 視線判定 | 対象コアの再取得 |
-| 候補端点の探索・表示 | 元座標と対象状態の再検証 |
+| クライアント             | サーバー                          |
+| ------------------------ | --------------------------------- |
+| 視線判定                 | 対象コアの再取得                  |
+| 候補端点の探索・表示     | 元座標と対象状態の再検証          |
 | 右・左クリックの段階管理 | RailPosition・RailMap・道床の変更 |
-| 0.01 m丸めとプレビュー | 保存、パケット送信、結果返却 |
-| Enterで要求送信 | 失敗時の復元と診断ログ |
+| 0.01 m丸めとプレビュー   | 保存、パケット送信、結果返却      |
+| Enterで要求送信          | 失敗時の復元と診断ログ            |
 
 クライアントから送られたコア座標、端点番号、元座標、移動先をそのまま信用してはいけません。適用時点でワールドからコアを再取得し、対象が選択時から変化していないことを確認します。
 
@@ -335,14 +335,15 @@ RTM標準の `canPlaceRail()` は非コア道床との重なりを許可しま�
 
 ## 13. SuperRailBuilderX内の参照先
 
-| 内容 | ファイル |
-| --- | --- |
-| クライアント操作・候補探索・描画 | `render_rail_position_test.ts` |
-| 自動分割再生成版サーバー | `server_rail_position_test.ts` |
-| 通常レール再生成版サーバー | `server_rail_position_normal_test.ts` |
-| KaizPatchX固有処理 | `src/kaizpatch/.../RailPositionCompat.compat.ts` |
-| 他ターゲットの安全な無効化 | `src/mc1710/...`、`src/mc1122/...` |
-| 調査・試験結果 | `docs/rail-position-free-positioning.md` |
+| 内容                               | ファイル                                                       |
+| ---------------------------------- | -------------------------------------------------------------- |
+| クライアント操作・候補探索・描画   | `render_rail_position_test.ts`                                 |
+| 自動分割再生成版サーバー           | `server_rail_position_test.ts`                                 |
+| 通常レール再生成版サーバー         | `server_rail_position_normal_test.ts`                          |
+| バージョン差分・KaizPatchX固有処理 | `src/kaizpatch/.../SRBXApiCompat.compat.ts`                    |
+| 他ターゲットの安全な無効化         | `src/mc1710/...`、`src/mc1122/...`                             |
+| 調査・試験結果                     | `docs/rail-position-free-positioning.md`                       |
+| レール生成ツール                   | `render_builder1.ts`、`server_builder1.ts`、`docs/builder1.md` |
 
 ## 14. 一次ソース
 

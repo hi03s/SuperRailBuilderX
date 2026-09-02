@@ -1,17 +1,66 @@
 import { TileEntityLargeRailCore } from "jp.ngt.rtm.rail";
 import { RailPosition } from "jp.ngt.rtm.rail.util";
 
-export class RailPositionCompat {
+export class SRBXApiCompat {
+	static getRider(entity: unknown) {
+		return (entity as jp.ngt.rtm.entity.vehicle.EntityVehicle)
+			.riddenByEntity;
+	}
+
+	static getRidingEntity(entity: unknown) {
+		return (entity as jp.ngt.rtm.entity.vehicle.EntityVehicle).ridingEntity;
+	}
+
+	static getWorld(entity: unknown) {
+		return (entity as net.minecraft.entity.Entity).worldObj;
+	}
+
+	static getTileEntity(
+		world: net.minecraft.world.World,
+		x: number,
+		y: number,
+		z: number,
+	) {
+		return world.getTileEntity(Math.floor(x), Math.floor(y), Math.floor(z));
+	}
+
+	static dismountPlayer(entity: unknown): void {
+		const rider = this.getRider(entity);
+		if (rider) rider.mountEntity(null as net.minecraft.entity.Entity);
+	}
+
+	static startRiding(entity: unknown, targetEntity: unknown): void {
+		(entity as net.minecraft.entity.Entity).mountEntity(
+			targetEntity as net.minecraft.entity.Entity,
+		);
+	}
+
+	static doFollowing(entity: unknown, hostPlayer: unknown): void {
+		void entity;
+		void hostPlayer;
+	}
+
+	static getHorizontalAnchorYaw(rp: RailPosition): number {
+		return rp.anchorDirection;
+	}
+
+	static getHorizontalAnchorLength(rp: RailPosition): number {
+		return rp.anchorLength;
+	}
+
+	static getRailPositionAnchorPitch(rp: RailPosition): number {
+		void rp;
+		return 0;
+	}
+
 	static getRailCorePos(
 		core: TileEntityLargeRailCore,
 	): [number, number, number] {
-		const pos = core.getPos();
-		return [pos.getX(), pos.getY(), pos.getZ()];
+		return [core.xCoord, core.yCoord, core.zCoord];
 	}
 
 	static getRailPositionCandidateKey(core: TileEntityLargeRailCore): string {
-		const pos = core.getPos();
-		return `core:${pos.getX()},${pos.getY()},${pos.getZ()}`;
+		return `core:${core.xCoord},${core.yCoord},${core.zCoord}`;
 	}
 
 	static getEditableRailPositions(
@@ -111,6 +160,34 @@ export class RailPositionCompat {
 		y: number,
 		z: number,
 	): string {
+		return "unsupported";
+	}
+
+	static createBuilderRail(
+		world: net.minecraft.world.World,
+		player: net.minecraft.entity.player.EntityPlayer,
+		start: unknown,
+		end: unknown,
+	) {
+		void world;
+		void player;
+		void start;
+		void end;
+		return { status: "unsupported" };
+	}
+
+	static undoBuilderRail(
+		world: net.minecraft.world.World,
+		coreX: number,
+		coreY: number,
+		coreZ: number,
+		expectedKey: string,
+	): string {
+		void world;
+		void coreX;
+		void coreY;
+		void coreZ;
+		void expectedKey;
 		return "unsupported";
 	}
 }
