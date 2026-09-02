@@ -49,6 +49,14 @@ export class SRBXMath {
 		return Math.round(this.normalizeDegrees(yaw) / 45) & 7;
 	}
 
+	static pitchFromPermil(permil: number): number {
+		return (Math.atan(permil / 1000) * 180) / Math.PI;
+	}
+
+	static permilFromPitch(pitch: number): number {
+		return Math.tan((pitch * Math.PI) / 180) * 1000;
+	}
+
 	static distance(from: SRBXVec3, to: SRBXVec3): number {
 		const dx = to[0] - from[0];
 		const dy = to[1] - from[1];
@@ -141,6 +149,54 @@ export class SRBXMath {
 		return length;
 	}
 
+	static cubicBezierTangentYaw(
+		start: SRBXVec3,
+		startControl: SRBXVec3,
+		endControl: SRBXVec3,
+		end: SRBXVec3,
+		t: number,
+	): number {
+		const u = 1 - t;
+		const derivative: SRBXVec3 = [
+			3 * u * u * (startControl[0] - start[0]) +
+				6 * u * t * (endControl[0] - startControl[0]) +
+				3 * t * t * (end[0] - endControl[0]),
+			3 * u * u * (startControl[1] - start[1]) +
+				6 * u * t * (endControl[1] - startControl[1]) +
+				3 * t * t * (end[1] - endControl[1]),
+			3 * u * u * (startControl[2] - start[2]) +
+				6 * u * t * (endControl[2] - startControl[2]) +
+				3 * t * t * (end[2] - endControl[2]),
+		];
+		return this.horizontalYaw([0, 0, 0], derivative);
+	}
+
+	static approximateBezierRadius(
+		start: SRBXVec3,
+		startControl: SRBXVec3,
+		endControl: SRBXVec3,
+		end: SRBXVec3,
+	): number {
+		const startYaw = this.cubicBezierTangentYaw(
+			start,
+			startControl,
+			endControl,
+			end,
+			0,
+		);
+		const endYaw = this.cubicBezierTangentYaw(
+			start,
+			startControl,
+			endControl,
+			end,
+			1,
+		);
+		const angle = this.relativeDegrees(startYaw, endYaw);
+		const sine = Math.sin((angle * Math.PI) / 360);
+		if (Math.abs(sine) < 0.00001) return Infinity;
+		return this.horizontalDistance(start, end) / 2 / sine;
+	}
+
 	static fixedPairAnchorLength(
 		start: SRBXVec3,
 		startYaw: number,
@@ -163,6 +219,49 @@ export class SRBXMath {
 			provisionalLength,
 		);
 		return this.cubicBezierLength(start, startControl, endControl, end) / 3;
+	}
+
+	static circularAnchorLength(radius: number, angleDegrees: number): number {
+		if (!isFinite(radius) || Math.abs(radius) >= 10000) return 0;
+		return Math.abs(
+			radius *
+				(4 / 3) *
+				Math.tan((Math.abs(angleDegrees) * Math.PI) / 720),
+		);
+	}
+
+	static continueCircularCurve(
+		origin: SRBXVec3,
+		yaw: number,
+		radius: number,
+		arcLength: number,
+	): { position: SRBXVec3; endYaw: number; angle: number } {
+		if (!isFinite(radius) || Math.abs(radius) >= 10000) {
+			return {
+				position: this.pointAtYawPitchDistance(
+					origin,
+					yaw,
+					0,
+					arcLength,
+				),
+				endYaw: this.normalizeDegrees(yaw),
+				angle: 0,
+			};
+		}
+		const angle = (arcLength / radius) * (180 / Math.PI);
+		const yawRadians = (yaw * Math.PI) / 180;
+		const rotatedRadians = ((yaw - angle) * Math.PI) / 180;
+		return {
+			position: [
+				origin[0] +
+					radius * (Math.cos(rotatedRadians) - Math.cos(yawRadians)),
+				origin[1],
+				origin[2] +
+					radius * (-Math.sin(rotatedRadians) + Math.sin(yawRadians)),
+			],
+			endYaw: this.normalizeDegrees(yaw - angle),
+			angle,
+		};
 	}
 
 	static circularConnection(

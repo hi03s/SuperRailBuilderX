@@ -1466,6 +1466,96 @@ export class SRBXApiCompat {
 		return replaced;
 	}
 
+	private static getBuilderProtectedRailKeys(
+		world: net.minecraft.world.World,
+		start: BuilderPoint,
+		end: BuilderPoint,
+	): { [key: string]: boolean } {
+		const result: { [key: string]: boolean } = {};
+		const points = [start, end];
+		for (let i = 0; i < points.length; i++) {
+			const point = points[i];
+			if (point.kind !== "rail" || !point.core) continue;
+			const tile = world.getTileEntity(
+				point.core[0],
+				point.core[1],
+				point.core[2],
+			);
+			if (!(tile instanceof TileEntityLargeRailBase)) continue;
+			const core = tile.getRailCore();
+			if (core) result[this.getRailPositionCandidateKey(core)] = true;
+		}
+		return result;
+	}
+
+	private static prepareBuilderDestructivePlacement(
+		world: net.minecraft.world.World,
+		maps: RailSectionMap[],
+		property: RailProperty,
+		protectedRailKeys: { [key: string]: boolean },
+	): string {
+		const coreBlocks: {
+			[key: string]: {
+				position: [number, number, number];
+				core: TileEntityLargeRailCore;
+				railKey: string;
+			};
+		} = {};
+		for (let mapIndex = 0; mapIndex < maps.length; mapIndex++) {
+			const blocks = maps[mapIndex].getRailBlockList(property);
+			for (let i = 0; i < blocks.size(); i++) {
+				const pos = blocks.get(i);
+				const tile = world.getTileEntity(pos[0], pos[1], pos[2]);
+				if (!(tile instanceof TileEntityLargeRailCore)) continue;
+				const core = tile.getRailCore();
+				if (!core) continue;
+				const key = this.getRailPositionCandidateKey(core);
+				if (protectedRailKeys[key]) {
+					NGTLog.debug(
+						`[SuperRailBuilderX builder1] protected connection rail core intersects path: pos=${pos[0]},${pos[1]},${pos[2]}, key=${key}`,
+					);
+					return "connection_core_conflict";
+				}
+				coreBlocks[`${pos[0]},${pos[1]},${pos[2]}`] = {
+					position: [pos[0], pos[1], pos[2]],
+					core,
+					railKey: key,
+				};
+			}
+		}
+		const keys = Object.keys(coreBlocks);
+		for (let i = 0; i < keys.length; i++)
+			if (coreBlocks[keys[i]].core.isLogicalRailOccupied())
+				return "rail_occupied";
+		for (let i = 0; i < keys.length; i++) {
+			const target = coreBlocks[keys[i]];
+			const current = world.getTileEntity(
+				target.position[0],
+				target.position[1],
+				target.position[2],
+			);
+			if (!(current instanceof TileEntityLargeRailCore)) continue;
+			const changed = world.setBlockToAir(
+				target.position[0],
+				target.position[1],
+				target.position[2],
+			);
+			if (
+				!changed &&
+				!world.isAirBlock(
+					target.position[0],
+					target.position[1],
+					target.position[2],
+				)
+			)
+				return "core_clear_failed";
+			NGTLog.debug(
+				`[SuperRailBuilderX builder1] intersecting core cleared before placement: pos=${target.position[0]},${target.position[1]},${target.position[2]}, railKey=${target.railKey}, changed=${changed}`,
+			);
+		}
+		return "ok";
+	}
+
 	private static isBuilderRoadbedLoaded(
 		world: net.minecraft.world.World,
 		railMap: RailSectionMap,
@@ -1572,7 +1662,17 @@ export class SRBXApiCompat {
 			const sectionEnd = RailPosition.readFromNBT(
 				section.getEndRP().writeToNBT(),
 			);
-			world.setBlock(
+			const beforeBlock = world.getBlock(
+				sectionStart.blockX,
+				sectionStart.blockY,
+				sectionStart.blockZ,
+			);
+			const beforeMetadata = world.getBlockMetadata(
+				sectionStart.blockX,
+				sectionStart.blockY,
+				sectionStart.blockZ,
+			);
+			const changed = world.setBlock(
 				sectionStart.blockX,
 				sectionStart.blockY,
 				sectionStart.blockZ,
@@ -1589,7 +1689,9 @@ export class SRBXApiCompat {
 				!(tile instanceof TileEntityLargeRailCore) ||
 				!this.isSectionCore(tile)
 			)
-				throw new Error("builder section core tile missing");
+				throw new Error(
+					`builder section core tile missing at ${sectionStart.blockX},${sectionStart.blockY},${sectionStart.blockZ}: changed=${changed}, before=${beforeBlock}/${beforeMetadata}, after=${world.getBlock(sectionStart.blockX, sectionStart.blockY, sectionStart.blockZ)}/${world.getBlockMetadata(sectionStart.blockX, sectionStart.blockY, sectionStart.blockZ)}, tile=${tile}`,
+				);
 			tile.configureRailSection(
 				groupId,
 				logicalArray,
@@ -1680,16 +1782,22 @@ export class SRBXApiCompat {
 		NGTLog.debug(
 			`[SuperRailBuilderX builder1] creation plan: kinds=${start.kind}->${end.kind}, startBlock=${startRP.blockX},${startRP.blockY},${startRP.blockZ}, startPos=${startRP.posX},${startRP.posY},${startRP.posZ}, startDir=${startRP.direction}, startYaw=${startRP.anchorYaw}, startPitch=${startRP.anchorPitch}, startLength=${startRP.anchorLengthHorizontal}, endBlock=${endRP.blockX},${endRP.blockY},${endRP.blockZ}, endPos=${endRP.posX},${endRP.posY},${endRP.posZ}, endDir=${endRP.direction}, endYaw=${endRP.anchorYaw}, endPitch=${endRP.anchorPitch}, endLength=${endRP.anchorLengthHorizontal}`,
 		);
-		const positions = [startRP, endRP] as RailPosition[];
+		const positions = (
+			startRP.posY <= endRP.posY ? [startRP, endRP] : [endRP, startRP]
+		) as RailPosition[];
+		NGTLog.debug(
+			`[SuperRailBuilderX builder1] generation order: ${positions[0] === startRP ? "selected" : "reversed_to_lower_y"}`,
+		);
 		const source = new RailMapBasic(
-			startRP,
-			endRP,
+			positions[0],
+			positions[1],
 			RailMapBasic.fixRTMRailMapVersionCurrent,
 		);
 		const sections =
 			Packages.jp.kaiz.kaizpatch.rtm.rail.util.RailChunkSectioner.split(
 				source,
 			);
+		const placementMaps: RailSectionMap[] = [];
 		if (sections.size() > 1) {
 			for (let i = 0; i < sections.size(); i++) {
 				const section = sections.get(i);
@@ -1703,10 +1811,18 @@ export class SRBXApiCompat {
 					);
 				if (!this.isBuilderRoadbedLoaded(world, sectionMap, property))
 					return { status: "path_unloaded" };
+				placementMaps.push(sectionMap);
 			}
 		} else if (!this.isBuilderRoadbedLoaded(world, source, property)) {
 			return { status: "path_unloaded" };
-		}
+		} else placementMaps.push(source);
+		const preparation = this.prepareBuilderDestructivePlacement(
+			world,
+			placementMaps,
+			property,
+			this.getBuilderProtectedRailKeys(world, start, end),
+		);
+		if (preparation !== "ok") return { status: preparation };
 		let core: TileEntityLargeRailCore | null = null;
 		try {
 			core =

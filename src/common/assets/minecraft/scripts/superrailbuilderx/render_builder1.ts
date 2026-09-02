@@ -29,14 +29,21 @@ declare const renderer: VehiclePartsRenderer;
 const ENDPOINT_SEARCH_RADIUS = 0.8;
 const SELECTED_LINE_MODEL_LENGTH = 0.6225;
 const DEFAULT_RAIL_HEIGHT = 1 / 16;
+const MAX_CURVE_RADIUS = 10000;
 
 type BuilderState = {
 	selected: SRBXBuilderPoint[];
 	lastBuiltSelection: SRBXBuilderPoint[] | null;
 	snapEnabled: boolean;
 	snapAngleIndex: number;
+	heightOffsetSixteenths: number;
+	curveRadiusLocked: boolean;
+	curveRadius: number;
+	curveStartYaw: number | null;
+	curveKeepSelectedEndpoints: boolean;
+	slopePermil: number | null;
 	awaitingResult: boolean;
-	pendingAction: "create" | "undo" | null;
+	pendingAction: "create" | "undo" | "reset" | null;
 };
 
 type RailCandidate = {
@@ -55,7 +62,11 @@ let curvePanelRadius: Parts;
 let curvePanelLeft: Parts;
 let curvePanelRight: Parts;
 let curvePanelMeter: Parts;
+let curvePanelInfinity: Parts;
 let curvePanelDigits: Parts[];
+let slopePanelSlope: Parts;
+let slopePanelPermil: Parts;
+let slopePanelDigits: Parts[];
 const snapAngles = [1, 5, 15];
 const states: WeakHashMap<EntityVehicle, BuilderState> = new WeakHashMap();
 const loggedScanErrors: { [key: string]: boolean } = {};
@@ -69,8 +80,33 @@ function init(par1: ModelSetVehicle, par2: ModelObject): void {
 	keys.register("exit", Keyboard.KEY_Q, false, "ツールを終了");
 	keys.register("build", Keyboard.KEY_RETURN, false, "レールを生成");
 	keys.register("clear", Keyboard.KEY_C, false, "選択を全解除");
+	keys.register("reset", Keyboard.KEY_C, true, "全状態をリセット");
 	keys.register("snap", Keyboard.KEY_P, false, "スナップON/OFF");
 	keys.register("snapAngle", Keyboard.KEY_P, true, "スナップ角度を変更");
+	keys.register("radiusLock", Keyboard.KEY_O, false, "曲線半径固定ON/OFF");
+	keys.register("radiusIncrease", Keyboard.KEY_RIGHT, false, "曲線半径+1m");
+	keys.register("radiusDecrease", Keyboard.KEY_LEFT, false, "曲線半径-1m");
+	keys.register(
+		"radiusIncreaseFast",
+		Keyboard.KEY_RIGHT,
+		true,
+		"曲線半径+100m",
+	);
+	keys.register(
+		"radiusDecreaseFast",
+		Keyboard.KEY_LEFT,
+		true,
+		"曲線半径-100m",
+	);
+	keys.register("heightUp", Keyboard.KEY_UP, false, "高さ/勾配を増加");
+	keys.register("heightDown", Keyboard.KEY_DOWN, false, "高さ/勾配を減少");
+	keys.register("heightUpFine", Keyboard.KEY_UP, true, "高さを1/16上げる");
+	keys.register(
+		"heightDownFine",
+		Keyboard.KEY_DOWN,
+		true,
+		"高さを1/16下げる",
+	);
 	keys.register("undo", Keyboard.KEY_Z, true, "直前の生成を取り消す");
 	body = renderer.registerParts(new Parts("body"));
 	selectCursor = renderer.registerParts(new Parts("selectCursor"));
@@ -86,27 +122,63 @@ function init(par1: ModelSetVehicle, par2: ModelObject): void {
 	curvePanelLeft = renderer.registerParts(new Parts("curvePanel_L"));
 	curvePanelRight = renderer.registerParts(new Parts("curvePanel_R"));
 	curvePanelMeter = renderer.registerParts(new Parts("curvePanel_m"));
+	curvePanelInfinity = renderer.registerParts(
+		new Parts("curvePanel_infinity"),
+	);
 	curvePanelDigits = [];
-	for (let i = 0; i <= 9; i++)
+	slopePanelDigits = [];
+	for (let i = 0; i <= 9; i++) {
 		curvePanelDigits.push(
 			renderer.registerParts(new Parts(`curvePanel_${i}`)),
 		);
+		slopePanelDigits.push(
+			renderer.registerParts(new Parts(`slopePanel_${i}`)),
+		);
+	}
+	slopePanelSlope = renderer.registerParts(new Parts("slopePanel_slope"));
+	slopePanelPermil = renderer.registerParts(new Parts("slopePanel_permil"));
+}
+
+function createDefaultState(): BuilderState {
+	return {
+		selected: [],
+		lastBuiltSelection: null,
+		snapEnabled: false,
+		snapAngleIndex: 1,
+		heightOffsetSixteenths: 0,
+		curveRadiusLocked: false,
+		curveRadius: MAX_CURVE_RADIUS,
+		curveStartYaw: null,
+		curveKeepSelectedEndpoints: false,
+		slopePermil: null,
+		awaitingResult: false,
+		pendingAction: null,
+	};
 }
 
 function getState(entity: EntityVehicle): BuilderState {
 	let state = states.get(entity);
 	if (!state) {
-		state = {
-			selected: [],
-			lastBuiltSelection: null,
-			snapEnabled: false,
-			snapAngleIndex: 1,
-			awaitingResult: false,
-			pendingAction: null,
-		};
+		state = createDefaultState();
 		states.put(entity, state);
 	}
 	return state;
+}
+
+function resetState(state: BuilderState): void {
+	const reset = createDefaultState();
+	state.selected = reset.selected;
+	state.lastBuiltSelection = reset.lastBuiltSelection;
+	state.snapEnabled = reset.snapEnabled;
+	state.snapAngleIndex = reset.snapAngleIndex;
+	state.heightOffsetSixteenths = reset.heightOffsetSixteenths;
+	state.curveRadiusLocked = reset.curveRadiusLocked;
+	state.curveRadius = reset.curveRadius;
+	state.curveStartYaw = reset.curveStartYaw;
+	state.curveKeepSelectedEndpoints = reset.curveKeepSelectedEndpoints;
+	state.slopePermil = reset.slopePermil;
+	state.awaitingResult = reset.awaitingResult;
+	state.pendingAction = reset.pendingAction;
 }
 
 function copyPoint(point: SRBXBuilderPoint): SRBXBuilderPoint {
@@ -141,31 +213,55 @@ function getFreeCursorPosition(
 		looking.posY + DEFAULT_RAIL_HEIGHT,
 		looking.posZ,
 	] as SRBXVec3;
-	if (!state.snapEnabled) return SRBXMath.roundPosition(raw, 0.001);
-	const start = state.selected.length > 0 ? state.selected[0] : null;
-	if (!start || start.kind !== "free") {
-		const snapped = SRBXMath.roundPosition(
-			[looking.posX, looking.posY, looking.posZ],
-			0.5,
-		);
-		snapped[1] += DEFAULT_RAIL_HEIGHT;
-		return snapped;
+	let result: SRBXVec3;
+	if (!state.snapEnabled) result = SRBXMath.roundPosition(raw, 0.001);
+	else {
+		const start = state.selected.length > 0 ? state.selected[0] : null;
+		if (!start || start.kind !== "free") {
+			result = SRBXMath.roundPosition(
+				[looking.posX, looking.posY, looking.posZ],
+				0.5,
+			);
+			result[1] += DEFAULT_RAIL_HEIGHT;
+		} else {
+			const distance = SRBXMath.distance(start.position, raw);
+			if (distance < 0.001) result = copyPoint(start).position;
+			else {
+				const horizontal = SRBXMath.horizontalDistance(
+					start.position,
+					raw,
+				);
+				const pitch =
+					(Math.atan2(raw[1] - start.position[1], horizontal) * 180) /
+					Math.PI;
+				const yaw = SRBXMath.snapDegrees(
+					SRBXMath.horizontalYaw(start.position, raw),
+					snapAngles[state.snapAngleIndex],
+				);
+				result = SRBXMath.pointAtYawPitchDistance(
+					start.position,
+					yaw,
+					pitch,
+					SRBXMath.roundToStep(distance, 0.5),
+				);
+			}
+		}
 	}
-	const distance = SRBXMath.distance(start.position, raw);
-	if (distance < 0.001) return start.position;
-	const horizontal = SRBXMath.horizontalDistance(start.position, raw);
-	const pitch =
-		(Math.atan2(raw[1] - start.position[1], horizontal) * 180) / Math.PI;
-	const yaw = SRBXMath.snapDegrees(
-		SRBXMath.horizontalYaw(start.position, raw),
-		snapAngles[state.snapAngleIndex],
-	);
-	return SRBXMath.pointAtYawPitchDistance(
-		start.position,
-		yaw,
-		pitch,
-		SRBXMath.roundToStep(distance, 0.5),
-	);
+	const start = state.selected.length === 1 ? state.selected[0] : null;
+	if (start && start.kind === "rail") {
+		const horizontal = SRBXMath.horizontalDistance(start.position, result);
+		const permil =
+			state.slopePermil === null
+				? SRBXMath.permilFromPitch(start.anchorPitch)
+				: state.slopePermil;
+		result[1] =
+			start.position[1] +
+			(horizontal * permil) / 1000 +
+			state.heightOffsetSixteenths / 16;
+	} else {
+		result[1] += state.heightOffsetSixteenths / 16;
+	}
+	return SRBXMath.roundPosition(result, 0.0005);
 }
 
 function freeMarkerPosition(position: SRBXVec3): SRBXVec3 {
@@ -296,6 +392,30 @@ function getHoverPoint(
 	if (rail) return rail;
 	const position = getFreeCursorPosition(partialTicks, state);
 	if (!position) return null;
+	if (
+		state.curveRadiusLocked &&
+		!state.curveKeepSelectedEndpoints &&
+		state.selected.length === 1
+	) {
+		const start = state.selected[0];
+		const directYaw = SRBXMath.horizontalYaw(start.position, position);
+		const startYaw =
+			start.kind === "rail"
+				? start.anchorYaw
+				: state.curveStartYaw === null
+					? directYaw
+					: state.curveStartYaw;
+		const side =
+			SRBXMath.relativeDegrees(directYaw, startYaw) <= 0 ? 1 : -1;
+		const curve = SRBXMath.continueCircularCurve(
+			start.position,
+			startYaw,
+			state.curveRadius * side,
+			SRBXMath.horizontalDistance(start.position, position),
+		);
+		position[0] = curve.position[0];
+		position[2] = curve.position[2];
+	}
 	return {
 		kind: "free",
 		position,
@@ -310,6 +430,7 @@ function getHoverPoint(
 function orientPair(
 	startSource: SRBXBuilderPoint,
 	endSource: SRBXBuilderPoint,
+	state?: BuilderState,
 ): [SRBXBuilderPoint, SRBXBuilderPoint] {
 	const start = copyPoint(startSource);
 	const end = copyPoint(endSource);
@@ -342,6 +463,49 @@ function orientPair(
 			end.position,
 			end.direction,
 		);
+		if (
+			state &&
+			state.curveRadiusLocked &&
+			!state.curveKeepSelectedEndpoints &&
+			state.curveRadius < MAX_CURVE_RADIUS &&
+			state.curveStartYaw !== null
+		) {
+			const directYaw = SRBXMath.horizontalYaw(
+				start.position,
+				end.position,
+			);
+			const radiusSign =
+				SRBXMath.relativeDegrees(directYaw, state.curveStartYaw) <= 0
+					? 1
+					: -1;
+			const radius = state.curveRadius * radiusSign;
+			const chord = SRBXMath.horizontalDistance(
+				start.position,
+				end.position,
+			);
+			const angle =
+				(2 *
+					Math.asin(Math.min(1, chord / (2 * state.curveRadius))) *
+					180) /
+				Math.PI;
+			start.anchorYaw = state.curveStartYaw;
+			end.anchorYaw = SRBXMath.normalizeDegrees(
+				state.curveStartYaw - angle * radiusSign + 180,
+			);
+			start.direction = SRBXMath.directionFromYaw(start.anchorYaw);
+			end.direction = SRBXMath.directionFromYaw(end.anchorYaw);
+			start.anchorLength = SRBXMath.circularAnchorLength(radius, angle);
+			end.anchorLength = start.anchorLength;
+			start.curveRadius = radius;
+			start.markerPosition = markerPositionForDirection(
+				start.position,
+				start.direction,
+			);
+			end.markerPosition = markerPositionForDirection(
+				end.position,
+				end.direction,
+			);
+		}
 	} else if (start.kind === "rail" && end.kind === "rail") {
 		start.anchorLength = SRBXMath.fixedPairAnchorLength(
 			start.position,
@@ -352,6 +516,25 @@ function orientPair(
 			end.anchorPitch,
 		);
 		end.anchorLength = start.anchorLength;
+		const startControl = SRBXMath.pointAtYawPitchDistance(
+			start.position,
+			start.anchorYaw,
+			start.anchorPitch,
+			start.anchorLength,
+		);
+		const endControl = SRBXMath.pointAtYawPitchDistance(
+			end.position,
+			end.anchorYaw,
+			end.anchorPitch,
+			end.anchorLength,
+		);
+		const radius = SRBXMath.approximateBezierRadius(
+			start.position,
+			startControl,
+			endControl,
+			end.position,
+		);
+		if (isFinite(radius)) start.curveRadius = radius;
 	} else {
 		const fixed = start.kind === "rail" ? start : end;
 		const free = start.kind === "free" ? start : end;
@@ -373,6 +556,13 @@ function orientPair(
 		if (isFinite(circular.radius))
 			start.curveRadius =
 				fixed === start ? circular.radius : -circular.radius;
+	}
+	if (state && state.slopePermil !== null) {
+		const pitch = SRBXMath.pitchFromPermil(state.slopePermil);
+		if (start.kind === "rail" && end.kind === "free")
+			end.anchorPitch = -pitch;
+		if (start.kind === "free" && end.kind === "rail")
+			start.anchorPitch = pitch;
 	}
 	return [start, end];
 }
@@ -482,6 +672,66 @@ function renderBezier(
 	}
 }
 
+function orientPanelToPlayer(
+	entity: EntityVehicle,
+	partialTicks: number,
+	position: SRBXVec3,
+): void {
+	const entityPosition = NGTOBuilderUtilClient.getInterpolatedPos(
+		entity,
+		partialTicks,
+	);
+	const horizontal = SRBXMath.horizontalDistance(position, entityPosition);
+	const pitch =
+		(Math.atan2(entityPosition[1] - position[1], horizontal) * 180) /
+		Math.PI;
+	GL11.glTranslatef(
+		position[0] - entityPosition[0],
+		position[1] - entityPosition[1],
+		position[2] - entityPosition[2],
+	);
+	GL11.glRotatef(
+		SRBXMath.horizontalYaw(position, entityPosition) + 180,
+		0,
+		1,
+		0,
+	);
+	GL11.glRotatef(pitch, 1, 0, 0);
+}
+
+function renderRadiusPanelAt(
+	entity: EntityVehicle,
+	partialTicks: number,
+	position: SRBXVec3,
+	radius: number,
+): void {
+	GL11.glPushMatrix();
+	orientPanelToPlayer(entity, partialTicks, position);
+	if (!isFinite(radius) || Math.abs(radius) >= MAX_CURVE_RADIUS) {
+		curvePanelRadius.render(renderer);
+		curvePanelInfinity.render(renderer);
+		curvePanelMeter.render(renderer);
+		GL11.glPopMatrix();
+		return;
+	}
+	const digits = String(Math.floor(Math.abs(radius)));
+	GL11.glTranslatef((digits.length - 1) / 2, 0, 0);
+	for (let i = 0; i < digits.length; i++) {
+		const digit = Number(digits.substring(i, i + 1));
+		GL11.glPushMatrix();
+		GL11.glTranslatef(-i, 0, 0);
+		curvePanelDigits[digit].render(renderer);
+		if (i === 0) {
+			curvePanelRadius.render(renderer);
+			if (radius > 0) curvePanelRight.render(renderer);
+			if (radius < 0) curvePanelLeft.render(renderer);
+		}
+		if (i === digits.length - 1) curvePanelMeter.render(renderer);
+		GL11.glPopMatrix();
+	}
+	GL11.glPopMatrix();
+}
+
 function renderCurveRadius(
 	entity: EntityVehicle,
 	partialTicks: number,
@@ -489,8 +739,7 @@ function renderCurveRadius(
 	end: SRBXBuilderPoint,
 ): void {
 	const radius = start.curveRadius;
-	if (radius === undefined || !isFinite(radius) || Math.abs(radius) >= 9999)
-		return;
+	if (radius === undefined || !isFinite(radius)) return;
 	const startControl = SRBXMath.pointAtYawPitchDistance(
 		start.position,
 		start.anchorYaw,
@@ -510,43 +759,27 @@ function renderCurveRadius(
 		end.position,
 		0.5,
 	);
-	const entityPosition = NGTOBuilderUtilClient.getInterpolatedPos(
-		entity,
-		partialTicks,
+	renderRadiusPanelAt(entity, partialTicks, panelPosition, radius);
+}
+
+function renderSlopePanelAt(
+	entity: EntityVehicle,
+	partialTicks: number,
+	point: SRBXBuilderPoint,
+): void {
+	const digits = String(
+		Math.round(Math.abs(SRBXMath.permilFromPitch(point.anchorPitch))),
 	);
-	const horizontal = SRBXMath.horizontalDistance(
-		panelPosition,
-		entityPosition,
-	);
-	const pitch =
-		(Math.atan2(entityPosition[1] - panelPosition[1], horizontal) * 180) /
-		Math.PI;
-	const digits = String(Math.floor(Math.abs(radius)));
 	GL11.glPushMatrix();
-	GL11.glTranslatef(
-		panelPosition[0] - entityPosition[0],
-		panelPosition[1] - entityPosition[1],
-		panelPosition[2] - entityPosition[2],
-	);
-	GL11.glRotatef(
-		SRBXMath.horizontalYaw(panelPosition, entityPosition) + 180,
-		0,
-		1,
-		0,
-	);
-	GL11.glRotatef(pitch, 1, 0, 0);
-	GL11.glTranslatef((digits.length - 1) / 2, 0, 0);
+	orientPanelToPlayer(entity, partialTicks, point.position);
+	GL11.glTranslatef((digits.length - 1) / 2, 1, 0);
 	for (let i = 0; i < digits.length; i++) {
 		const digit = Number(digits.substring(i, i + 1));
 		GL11.glPushMatrix();
 		GL11.glTranslatef(-i, 0, 0);
-		curvePanelDigits[digit].render(renderer);
-		if (i === 0) {
-			curvePanelRadius.render(renderer);
-			if (radius > 0) curvePanelRight.render(renderer);
-			if (radius < 0) curvePanelLeft.render(renderer);
-		}
-		if (i === digits.length - 1) curvePanelMeter.render(renderer);
+		slopePanelDigits[digit].render(renderer);
+		if (i === 0) slopePanelSlope.render(renderer);
+		if (i === digits.length - 1) slopePanelPermil.render(renderer);
 		GL11.glPopMatrix();
 	}
 	GL11.glPopMatrix();
@@ -570,8 +803,14 @@ function showHelp(sender: ICommandSender): void {
 	NGTLog.sendChatMessage(sender, "[左クリック] 最後の選択を解除");
 	NGTLog.sendChatMessage(sender, keys.getDescription("build"));
 	NGTLog.sendChatMessage(sender, keys.getDescription("clear"));
+	NGTLog.sendChatMessage(sender, keys.getDescription("reset"));
 	NGTLog.sendChatMessage(sender, keys.getDescription("snap"));
 	NGTLog.sendChatMessage(sender, keys.getDescription("snapAngle"));
+	NGTLog.sendChatMessage(sender, keys.getDescription("radiusLock"));
+	NGTLog.sendChatMessage(sender, "[←/→] 固定半径を1m変更");
+	NGTLog.sendChatMessage(sender, "[Ctrl+←/→] 固定半径を100m変更");
+	NGTLog.sendChatMessage(sender, "[↑/↓] 高さを1mまたは勾配を1‰変更");
+	NGTLog.sendChatMessage(sender, "[Ctrl+↑/↓] 高さを1/16m変更");
 	NGTLog.sendChatMessage(sender, keys.getDescription("undo"));
 	NGTLog.sendChatMessage(sender, keys.getDescription("exit"));
 }
@@ -580,8 +819,11 @@ function resultMessage(result: string): string {
 	if (result === "hold_rail_item") return "レールを手に持ってください";
 	if (result === "rail_endpoint_changed")
 		return "選択した既設レール端部が変更されています";
-	if (result === "rail_occupied")
-		return "列車が在線しているため取り消せません";
+	if (result === "rail_occupied") return "対象レールに列車が在線しています";
+	if (result === "connection_core_conflict")
+		return "生成経路が接続対象自身のレールコアと重なっています";
+	if (result === "core_clear_failed")
+		return "交差する既設レールコアを置換できませんでした";
 	if (result === "nothing_to_undo") return "取り消せる生成がありません";
 	return result;
 }
@@ -599,6 +841,9 @@ function handleResult(
 	if (result === "ok" && state.pendingAction === "create") {
 		state.lastBuiltSelection = state.selected.map(copyPoint);
 		state.selected = [];
+		state.curveKeepSelectedEndpoints = false;
+		state.curveStartYaw = null;
+		state.slopePermil = null;
 		NGTLog.sendChatMessage(
 			sender,
 			"§a[SuperRailBuilderX] レールを生成しました",
@@ -608,9 +853,15 @@ function handleResult(
 			? state.lastBuiltSelection.map(copyPoint)
 			: [];
 		state.lastBuiltSelection = null;
+		state.curveKeepSelectedEndpoints = state.curveRadiusLocked;
 		NGTLog.sendChatMessage(
 			sender,
 			"§a[SuperRailBuilderX] 直前の生成を取り消しました",
+		);
+	} else if (result === "reset_ok" && state.pendingAction === "reset") {
+		NGTLog.sendChatMessage(
+			sender,
+			"§a[SuperRailBuilderX] 全状態をリセットしました",
 		);
 	} else {
 		NGTLog.sendChatMessage(
@@ -620,6 +871,86 @@ function handleResult(
 	}
 	state.pendingAction = null;
 	dataMap.setString("builder1Result", "", 1);
+}
+
+function getRadiusPreviewPair(
+	entity: EntityVehicle,
+	partialTicks: number,
+	state: BuilderState,
+): [SRBXBuilderPoint, SRBXBuilderPoint] | null {
+	if (state.selected.length === 2)
+		return orientPair(state.selected[0], state.selected[1]);
+	if (state.selected.length !== 1) return null;
+	const hover = getHoverPoint(entity, partialTicks, state);
+	return hover ? orientPair(state.selected[0], hover) : null;
+}
+
+function initializeCurveStartYaw(
+	entity: EntityVehicle,
+	partialTicks: number,
+	state: BuilderState,
+): void {
+	if (state.curveStartYaw !== null || state.selected.length !== 1) return;
+	const start = state.selected[0];
+	if (start.kind === "rail") {
+		state.curveStartYaw = start.anchorYaw;
+		return;
+	}
+	const hover = getHoverPoint(entity, partialTicks, state);
+	if (hover)
+		state.curveStartYaw = SRBXMath.horizontalYaw(
+			start.position,
+			hover.position,
+		);
+}
+
+function changeCurveRadius(
+	sender: ICommandSender,
+	entity: EntityVehicle,
+	partialTicks: number,
+	state: BuilderState,
+	delta: number,
+): void {
+	if (!state.curveRadiusLocked) return;
+	initializeCurveStartYaw(entity, partialTicks, state);
+	state.curveRadius = Math.max(
+		1,
+		Math.min(MAX_CURVE_RADIUS, state.curveRadius + delta),
+	);
+	NGTLog.sendChatMessage(
+		sender,
+		`[SuperRailBuilderX] 固定半径: ${state.curveRadius >= MAX_CURVE_RADIUS ? "∞" : `${state.curveRadius}m`}`,
+	);
+}
+
+function hasSlopeAdjustment(state: BuilderState): boolean {
+	if (state.selected.length === 1) return state.selected[0].kind === "rail";
+	return (
+		state.selected.length === 2 &&
+		state.selected[0].kind !== state.selected[1].kind
+	);
+}
+
+function changeHeightOrSlope(
+	sender: ICommandSender,
+	state: BuilderState,
+	direction: number,
+	fine: boolean,
+): void {
+	if (!fine && hasSlopeAdjustment(state)) {
+		if (state.slopePermil === null) state.slopePermil = 0;
+		state.slopePermil += direction;
+		NGTLog.sendChatMessage(
+			sender,
+			`[SuperRailBuilderX] 終端勾配: ${state.slopePermil}‰`,
+		);
+		return;
+	}
+	state.heightOffsetSixteenths += direction * (fine ? 1 : 16);
+	NGTLog.sendChatMessage(
+		sender,
+		`[SuperRailBuilderX] 高さオフセット: ${state.heightOffsetSixteenths}/16m (${state.heightOffsetSixteenths / 16}m)`,
+	);
 }
 
 function handleInput(
@@ -634,6 +965,16 @@ function handleInput(
 	const state = getState(entity);
 	if (keys.pressed("help")) showHelp(sender);
 	if (keys.down("exit")) dataMap.setBoolean("isEndEdit", true, 1);
+	if (keys.pressed("reset") && !state.awaitingResult) {
+		resetState(state);
+		sendRequest(entity, state, { action: "reset" });
+		NGTLog.sendChatMessage(
+			sender,
+			"[SuperRailBuilderX] 全状態をリセット中...",
+		);
+		handleResult(sender, entity, state);
+		return;
+	}
 	if (keys.pressed("snap")) {
 		state.snapEnabled = !state.snapEnabled;
 		NGTLog.sendChatMessage(
@@ -648,19 +989,93 @@ function handleInput(
 			`[SuperRailBuilderX] 角度スナップ: ${snapAngles[state.snapAngleIndex]}度`,
 		);
 	}
-	if (keys.pressed("clear") && !state.awaitingResult) state.selected = [];
-	if (leftClick && !state.awaitingResult && state.selected.length > 0)
+	if (keys.pressed("radiusLock") && !state.awaitingResult) {
+		if (state.curveRadiusLocked) {
+			state.curveRadiusLocked = false;
+			state.curveKeepSelectedEndpoints = false;
+			state.curveStartYaw = null;
+		} else {
+			const pair = getRadiusPreviewPair(entity, partialTicks, state);
+			const displayedRadius = pair ? pair[0].curveRadius : undefined;
+			state.curveRadius =
+				displayedRadius !== undefined && isFinite(displayedRadius)
+					? Math.max(
+							1,
+							Math.min(
+								MAX_CURVE_RADIUS,
+								Math.round(Math.abs(displayedRadius)),
+							),
+						)
+					: MAX_CURVE_RADIUS;
+			state.curveRadiusLocked = true;
+			state.curveKeepSelectedEndpoints = state.selected.length === 2;
+			if (pair) state.curveStartYaw = pair[0].anchorYaw;
+		}
+		NGTLog.sendChatMessage(
+			sender,
+			`[SuperRailBuilderX] 曲線半径固定: ${state.curveRadiusLocked ? `ON (${state.curveRadius >= MAX_CURVE_RADIUS ? "∞" : `${state.curveRadius}m`})` : "OFF"}`,
+		);
+	}
+	if (keys.pressed("radiusIncrease"))
+		changeCurveRadius(sender, entity, partialTicks, state, 1);
+	if (keys.pressed("radiusDecrease"))
+		changeCurveRadius(sender, entity, partialTicks, state, -1);
+	if (keys.pressed("radiusIncreaseFast"))
+		changeCurveRadius(sender, entity, partialTicks, state, 100);
+	if (keys.pressed("radiusDecreaseFast"))
+		changeCurveRadius(sender, entity, partialTicks, state, -100);
+	if (keys.pressed("heightUp")) changeHeightOrSlope(sender, state, 1, false);
+	if (keys.pressed("heightDown"))
+		changeHeightOrSlope(sender, state, -1, false);
+	if (keys.pressed("heightUpFine"))
+		changeHeightOrSlope(sender, state, 1, true);
+	if (keys.pressed("heightDownFine"))
+		changeHeightOrSlope(sender, state, -1, true);
+	if (keys.pressed("clear") && !state.awaitingResult) {
+		state.selected = [];
+		state.curveKeepSelectedEndpoints = false;
+		state.curveStartYaw = null;
+	}
+	if (leftClick && !state.awaitingResult && state.selected.length > 0) {
 		state.selected.pop();
+		state.curveKeepSelectedEndpoints = false;
+		if (state.selected.length === 0) state.curveStartYaw = null;
+	}
 	if (rightClick && !state.awaitingResult && state.selected.length < 2) {
 		const point = getHoverPoint(entity, partialTicks, state);
-		if (point) state.selected.push(copyPoint(point));
+		if (point) {
+			state.selected.push(copyPoint(point));
+			if (state.selected.length === 1) {
+				state.curveKeepSelectedEndpoints = false;
+				state.curveStartYaw =
+					point.kind === "rail"
+						? point.anchorYaw
+						: state.curveRadiusLocked &&
+							  state.curveRadius < MAX_CURVE_RADIUS
+							? SRBXMath.normalizeDegrees(host.rotationYaw)
+							: null;
+				state.slopePermil =
+					point.kind === "rail"
+						? Math.round(
+								SRBXMath.permilFromPitch(point.anchorPitch),
+							)
+						: null;
+			} else if (
+				state.selected[0].kind === "free" &&
+				point.kind === "rail"
+			) {
+				state.slopePermil = Math.round(
+					SRBXMath.permilFromPitch(-point.anchorPitch),
+				);
+			}
+		}
 	}
 	if (
 		keys.pressed("build") &&
 		!state.awaitingResult &&
 		state.selected.length === 2
 	) {
-		const pair = orientPair(state.selected[0], state.selected[1]);
+		const pair = orientPair(state.selected[0], state.selected[1], state);
 		state.selected = [copyPoint(pair[0]), copyPoint(pair[1])];
 		sendRequest(entity, state, {
 			action: "create",
@@ -706,21 +1121,22 @@ function render(
 			: null;
 	let displayPoints = state.selected.map(copyPoint);
 	if (displayPoints.length === 1 && hover)
-		displayPoints = orientPair(displayPoints[0], hover);
+		displayPoints = orientPair(displayPoints[0], hover, state);
 	else if (displayPoints.length === 2)
-		displayPoints = orientPair(displayPoints[0], displayPoints[1]);
+		displayPoints = orientPair(displayPoints[0], displayPoints[1], state);
 	if (hover) {
 		const displayHover =
 			state.selected.length === 1 && displayPoints.length === 2
 				? displayPoints[1]
 				: hover;
 		renderAt(entity, partialTicks, hover.position, selectCursor);
-		renderAt(
-			entity,
-			partialTicks,
-			displayHover.markerPosition,
-			selectCursorMarker,
-		);
+		if (hover.kind === "rail")
+			renderAt(
+				entity,
+				partialTicks,
+				displayHover.markerPosition,
+				selectCursorMarker,
+			);
 	}
 	for (let i = 0; i < state.selected.length; i++)
 		renderSelectedPoint(entity, partialTicks, displayPoints[i]);
@@ -733,6 +1149,20 @@ function render(
 			displayPoints[0],
 			displayPoints[1],
 		);
+	if (displayPoints.length >= 2) {
+		renderSlopePanelAt(entity, partialTicks, displayPoints[0]);
+		renderSlopePanelAt(entity, partialTicks, displayPoints[1]);
+	}
+	if (state.curveRadiusLocked) {
+		const radiusPanelPosition = getFreeCursorPosition(partialTicks, state);
+		if (radiusPanelPosition)
+			renderRadiusPanelAt(
+				entity,
+				partialTicks,
+				radiusPanelPosition,
+				state.curveRadius,
+			);
+	}
 	const isOpenGUI = NGTUtilClient.getMinecraft().currentScreen !== null;
 	const left = Mouse.isButtonDown(0);
 	const right = Mouse.isButtonDown(1);
