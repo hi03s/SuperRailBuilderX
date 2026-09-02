@@ -119,8 +119,8 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - `selectedLine`を直線1本から、生成予定のYaw・Pitch・アンカー長で制御点を作る分割3次ベジェ描画へ変更。既設端部同士の曲線プレビューを実生成値へ合わせた。
 - SRB3参照ファイルはローカル参照だけに使用し、配布条件と再現に必須でないためGit管理へ追加していない。知見は`docs/builder1.md`、`docs/rail-generation-and-free-positioning.md`、`docs/rail-position-free-positioning.md`へ記録。
 - `pnpm gen`と`pnpm build`はkaizpatch・mc1710・mc1122の全ターゲットで成功。変更ファイルのPrettier、`git diff --check`、KaizPatchX生成JavaScriptの1.7.10マッピングを確認済み。ゲーム内再検証は未実施。
-- 実装コミット: コミット後に追記。
-- 同期: コミット後に追記。
+- 実装コミット: https://github.com/hi03s/SuperRailBuilderX/commit/d5afc99
+- 同期: 未同期。診断ログを含むコミットのGitHub公開について明示承認が必要なため、`origin/main`へのpushは保留。
 
 ### 2026-09-02 ローカルCodex — builder1基本機能・SRBX共通基盤
 
