@@ -53,6 +53,17 @@ export class SRBXApiCompat {
 		return 0;
 	}
 
+	static getRailPositionConnectionMarkerPosition(
+		rp: RailPosition,
+	): [number, number, number] {
+		const revision = RailPosition.REVISION[rp.direction];
+		return [
+			Math.floor(rp.blockX + 0.5 + revision[0] * 2) + 0.5,
+			rp.blockY + rp.height / 16,
+			Math.floor(rp.blockZ + 0.5 + revision[1] * 2) + 0.5,
+		];
+	}
+
 	static getRailCorePos(
 		core: TileEntityLargeRailCore,
 	): [number, number, number] {

@@ -28,6 +28,7 @@ declare const renderer: VehiclePartsRenderer;
 
 const ENDPOINT_SEARCH_RADIUS = 0.8;
 const SELECTED_LINE_MODEL_LENGTH = 0.6225;
+const DEFAULT_RAIL_HEIGHT = 1 / 16;
 
 type BuilderState = {
 	selected: SRBXBuilderPoint[];
@@ -101,6 +102,12 @@ function copyPoint(point: SRBXBuilderPoint): SRBXBuilderPoint {
 		direction: point.direction,
 		anchorYaw: point.anchorYaw,
 		anchorPitch: point.anchorPitch,
+		anchorLength: point.anchorLength,
+		markerPosition: [
+			point.markerPosition[0],
+			point.markerPosition[1],
+			point.markerPosition[2],
+		],
 		core: point.core
 			? [point.core[0], point.core[1], point.core[2]]
 			: undefined,
@@ -108,16 +115,50 @@ function copyPoint(point: SRBXBuilderPoint): SRBXBuilderPoint {
 	};
 }
 
-function getCursorPosition(
+function getFreeCursorPosition(
 	partialTicks: number,
-	snapEnabled: boolean,
+	state: BuilderState,
 ): SRBXVec3 | null {
 	const looking = NGTOBuilderUtilClient.getLookingPos(partialTicks);
 	if (!looking) return null;
-	return SRBXMath.roundPosition(
-		[looking.posX, looking.posY, looking.posZ],
-		snapEnabled ? 0.5 : 0.001,
+	const raw = [
+		looking.posX,
+		looking.posY + DEFAULT_RAIL_HEIGHT,
+		looking.posZ,
+	] as SRBXVec3;
+	if (!state.snapEnabled) return SRBXMath.roundPosition(raw, 0.001);
+	const start = state.selected.length > 0 ? state.selected[0] : null;
+	if (!start || start.kind !== "free") {
+		const snapped = SRBXMath.roundPosition(
+			[looking.posX, looking.posY, looking.posZ],
+			0.5,
+		);
+		snapped[1] += DEFAULT_RAIL_HEIGHT;
+		return snapped;
+	}
+	const distance = SRBXMath.distance(start.position, raw);
+	if (distance < 0.001) return start.position;
+	const horizontal = SRBXMath.horizontalDistance(start.position, raw);
+	const pitch =
+		(Math.atan2(raw[1] - start.position[1], horizontal) * 180) / Math.PI;
+	const yaw = SRBXMath.snapDegrees(
+		SRBXMath.horizontalYaw(start.position, raw),
+		snapAngles[state.snapAngleIndex],
 	);
+	return SRBXMath.pointAtYawPitchDistance(
+		start.position,
+		yaw,
+		pitch,
+		SRBXMath.roundToStep(distance, 0.5),
+	);
+}
+
+function freeMarkerPosition(position: SRBXVec3): SRBXVec3 {
+	return [
+		Math.floor(position[0]) + 0.5,
+		Math.floor(position[1]) + DEFAULT_RAIL_HEIGHT,
+		Math.floor(position[2]) + 0.5,
+	];
 }
 
 function logScanErrorOnce(
@@ -200,6 +241,11 @@ function findRailCandidate(
 										-SRBXApiCompat.getRailPositionAnchorPitch(
 											rp,
 										),
+									anchorLength: 0,
+									markerPosition:
+										SRBXApiCompat.getRailPositionConnectionMarkerPosition(
+											rp,
+										),
 									core: corePos,
 									index,
 								},
@@ -222,7 +268,7 @@ function getHoverPoint(
 ): SRBXBuilderPoint | null {
 	const rail = findRailCandidate(entity, partialTicks);
 	if (rail) return rail;
-	const position = getCursorPosition(partialTicks, state.snapEnabled);
+	const position = getFreeCursorPosition(partialTicks, state);
 	if (!position) return null;
 	return {
 		kind: "free",
@@ -230,20 +276,19 @@ function getHoverPoint(
 		direction: 0,
 		anchorYaw: 0,
 		anchorPitch: 0,
+		anchorLength: 0,
+		markerPosition: freeMarkerPosition(position),
 	};
 }
 
 function orientPair(
 	startSource: SRBXBuilderPoint,
 	endSource: SRBXBuilderPoint,
-	state: BuilderState,
 ): [SRBXBuilderPoint, SRBXBuilderPoint] {
 	const start = copyPoint(startSource);
 	const end = copyPoint(endSource);
 	if (start.kind === "free" && end.kind === "free") {
-		let yaw = SRBXMath.horizontalYaw(start.position, end.position);
-		if (state.snapEnabled)
-			yaw = SRBXMath.snapDegrees(yaw, snapAngles[state.snapAngleIndex]);
+		const yaw = SRBXMath.horizontalYaw(start.position, end.position);
 		const horizontal = SRBXMath.horizontalDistance(
 			start.position,
 			end.position,
@@ -258,6 +303,13 @@ function orientPair(
 		end.anchorYaw = SRBXMath.normalizeDegrees(yaw + 180);
 		end.anchorPitch = -pitch;
 		end.direction = SRBXMath.directionFromYaw(end.anchorYaw);
+		start.anchorLength =
+			SRBXMath.distance(start.position, end.position) / 3;
+		end.anchorLength = start.anchorLength;
+	} else if (start.kind === "rail" && end.kind === "rail") {
+		start.anchorLength =
+			(SRBXMath.distance(start.position, end.position) * 2) / 3;
+		end.anchorLength = start.anchorLength;
 	}
 	return [start, end];
 }
@@ -289,7 +341,12 @@ function renderSelectedPoint(
 ): void {
 	renderAt(entity, partialTicks, point.position, selectedCursor);
 	const direction = point.direction & 7;
-	renderAt(entity, partialTicks, point.position, directionMarkers[direction]);
+	renderAt(
+		entity,
+		partialTicks,
+		point.markerPosition,
+		directionMarkers[direction],
+	);
 }
 
 function renderLine(
@@ -321,6 +378,45 @@ function renderLine(
 	GL11.glScalef(1, 1, length / SELECTED_LINE_MODEL_LENGTH);
 	selectedLine.render(renderer);
 	GL11.glPopMatrix();
+}
+
+function renderBezier(
+	entity: EntityVehicle,
+	partialTicks: number,
+	start: SRBXBuilderPoint,
+	end: SRBXBuilderPoint,
+): void {
+	const startControl = SRBXMath.pointAtYawPitchDistance(
+		start.position,
+		start.anchorYaw,
+		start.anchorPitch,
+		start.anchorLength,
+	);
+	const endControl = SRBXMath.pointAtYawPitchDistance(
+		end.position,
+		end.anchorYaw,
+		end.anchorPitch,
+		end.anchorLength,
+	);
+	const split = Math.max(
+		8,
+		Math.min(
+			96,
+			Math.ceil(SRBXMath.distance(start.position, end.position) * 2),
+		),
+	);
+	let previous = start.position;
+	for (let i = 1; i <= split; i++) {
+		const current = SRBXMath.cubicBezierPoint(
+			start.position,
+			startControl,
+			endControl,
+			end.position,
+			i / split,
+		);
+		renderLine(entity, partialTicks, previous, current);
+		previous = current;
+	}
 }
 
 function sendRequest(
@@ -433,7 +529,7 @@ function handleInput(
 		!state.awaitingResult &&
 		state.selected.length === 2
 	) {
-		const pair = orientPair(state.selected[0], state.selected[1], state);
+		const pair = orientPair(state.selected[0], state.selected[1]);
 		state.selected = [copyPoint(pair[0]), copyPoint(pair[1])];
 		if (pair[0].kind !== pair[1].kind) {
 			NGTLog.sendChatMessage(
@@ -489,22 +585,22 @@ function render(
 			: null;
 	let displayPoints = state.selected.map(copyPoint);
 	if (displayPoints.length === 1 && hover)
-		displayPoints = orientPair(displayPoints[0], hover, state);
+		displayPoints = orientPair(displayPoints[0], hover);
 	else if (displayPoints.length === 2)
-		displayPoints = orientPair(displayPoints[0], displayPoints[1], state);
+		displayPoints = orientPair(displayPoints[0], displayPoints[1]);
 	if (hover) {
 		renderAt(entity, partialTicks, hover.position, selectCursor);
-		renderAt(entity, partialTicks, hover.position, selectCursorMarker);
+		renderAt(
+			entity,
+			partialTicks,
+			hover.markerPosition,
+			selectCursorMarker,
+		);
 	}
 	for (let i = 0; i < state.selected.length; i++)
 		renderSelectedPoint(entity, partialTicks, displayPoints[i]);
 	if (state.selected.length >= 1 && displayPoints.length >= 2)
-		renderLine(
-			entity,
-			partialTicks,
-			displayPoints[0].position,
-			displayPoints[1].position,
-		);
+		renderBezier(entity, partialTicks, displayPoints[0], displayPoints[1]);
 	const isOpenGUI = NGTUtilClient.getMinecraft().currentScreen !== null;
 	const left = Mouse.isButtonDown(0);
 	const right = Mouse.isButtonDown(1);

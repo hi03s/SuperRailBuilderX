@@ -13,6 +13,8 @@ export type SRBXBuilderPoint = {
 	direction: number;
 	anchorYaw: number;
 	anchorPitch: number;
+	anchorLength: number;
+	markerPosition: RailCorePos;
 	core?: RailCorePos;
 	index?: number;
 };
@@ -39,6 +41,9 @@ export class SRBXApiCompat {
 	static getHorizontalAnchorYaw(rp: RailPosition): number;
 	static getHorizontalAnchorLength(rp: RailPosition): number;
 	static getRailPositionAnchorPitch(rp: RailPosition): number;
+	static getRailPositionConnectionMarkerPosition(
+		rp: RailPosition,
+	): RailCorePos;
 	static getRailCorePos(core: TileEntityLargeRailCore): RailCorePos;
 	static getRailPositionCandidateKey(core: TileEntityLargeRailCore): string;
 	static getEditableRailPositions(

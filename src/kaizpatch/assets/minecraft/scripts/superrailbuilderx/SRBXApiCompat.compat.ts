@@ -40,6 +40,8 @@ type BuilderPoint = {
 	direction: number;
 	anchorYaw: number;
 	anchorPitch: number;
+	anchorLength: number;
+	markerPosition: [number, number, number];
 	core?: [number, number, number];
 	index?: number;
 };
@@ -132,6 +134,17 @@ export class SRBXApiCompat {
 
 	static getRailPositionAnchorPitch(rp: RailPosition): number {
 		return rp.anchorPitch;
+	}
+
+	static getRailPositionConnectionMarkerPosition(
+		rp: RailPosition,
+	): [number, number, number] {
+		const neighbor = rp.getNeighborPos();
+		return [
+			neighbor[0] + 0.5,
+			neighbor[1] + rp.height / 16,
+			neighbor[2] + 0.5,
+		];
 	}
 
 	private static getCoreWorld(core: TileEntityLargeRailCore) {
@@ -1293,7 +1306,13 @@ export class SRBXApiCompat {
 			!isFinite(point.position[1]) ||
 			!isFinite(point.position[2]) ||
 			!isFinite(point.anchorYaw) ||
-			!isFinite(point.anchorPitch)
+			!isFinite(point.anchorPitch) ||
+			!isFinite(point.anchorLength) ||
+			point.anchorLength < 0 ||
+			!point.markerPosition ||
+			!isFinite(point.markerPosition[0]) ||
+			!isFinite(point.markerPosition[1]) ||
+			!isFinite(point.markerPosition[2])
 		)
 			return "invalid_point";
 		if (point.kind === "rail") {
@@ -1355,6 +1374,7 @@ export class SRBXApiCompat {
 		);
 		result.anchorYaw = this.normalizeDegrees(point.anchorYaw);
 		result.anchorPitch = point.anchorPitch;
+		result.anchorLengthHorizontal = point.anchorLength;
 		result.setPosition(
 			point.position[0],
 			point.position[1],
@@ -1390,19 +1410,14 @@ export class SRBXApiCompat {
 		for (let i = 0; i < blocks.size(); i++) {
 			const pos = blocks.get(i);
 			if (!world.isAirBlock(pos[0], pos[1], pos[2])) replaced++;
-			if (
-				!world.setBlock(
-					pos[0],
-					pos[1],
-					pos[2],
-					RTMRail.largeRailBase0,
-					0,
-					2,
-				)
-			)
-				throw new Error(
-					`failed to place builder roadbed at ${pos[0]},${pos[1]},${pos[2]}`,
-				);
+			world.setBlock(
+				pos[0],
+				pos[1],
+				pos[2],
+				RTMRail.largeRailBase0,
+				0,
+				2,
+			);
 			const tile = world.getTileEntity(pos[0], pos[1], pos[2]);
 			if (!(tile instanceof TileEntityLargeRailBase))
 				throw new Error(
@@ -1442,17 +1457,14 @@ export class SRBXApiCompat {
 			start.blockZ,
 			property,
 		);
-		if (
-			!world.setBlock(
-				start.blockX,
-				start.blockY,
-				start.blockZ,
-				RTMRail.largeRailCore0,
-				0,
-				2,
-			)
-		)
-			return null;
+		world.setBlock(
+			start.blockX,
+			start.blockY,
+			start.blockZ,
+			RTMRail.largeRailCore0,
+			0,
+			2,
+		);
 		const tile = world.getTileEntity(
 			start.blockX,
 			start.blockY,
@@ -1523,19 +1535,14 @@ export class SRBXApiCompat {
 			const sectionEnd = RailPosition.readFromNBT(
 				section.getEndRP().writeToNBT(),
 			);
-			if (
-				!world.setBlock(
-					sectionStart.blockX,
-					sectionStart.blockY,
-					sectionStart.blockZ,
-					RTMRail.largeRailCore0,
-					1,
-					2,
-				)
-			)
-				throw new Error(
-					`failed to place builder section core at ${sectionStart.blockX},${sectionStart.blockY},${sectionStart.blockZ}`,
-				);
+			world.setBlock(
+				sectionStart.blockX,
+				sectionStart.blockY,
+				sectionStart.blockZ,
+				RTMRail.largeRailCore0,
+				1,
+				2,
+			);
 			const tile = world.getTileEntity(
 				sectionStart.blockX,
 				sectionStart.blockY,
