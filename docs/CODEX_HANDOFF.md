@@ -3,7 +3,7 @@
 このファイルは、ローカルで作業する開発者とChatGPT/Codexの双方向の情報共有に使います。
 どちらが更新しても構いません。作業前に読み、作業後に更新してください。
 
-最終更新: 2026-09-01
+最終更新: 2026-09-02
 
 ## 現在の状態
 
@@ -14,7 +14,7 @@
 - RailPosition自由化の調査結果を `docs/rail-position-free-positioning.md` に記録済み。
 - `pnpm gen` と全3ターゲットの `pnpm build` が成功する状態を確認済み。
 - RailPosition試験ツールへ、候補探索の例外ガード・診断ログと適用後のクライアントRailMap再生成を追加済み。適用直後の描画更新は実機確認済み。
-- NGTOBuilder2と同じ共有compatパスによるキャッシュ衝突を避けるため、RailPosition専用APIをSuperRailBuilderX固有compatへ分離済み。NGTOBuilder2併用環境で未定義エラー解消を確認済み。
+- NGTOBuilder2と同じ共有compatパスによるキャッシュ衝突を避けるため、バージョン差分APIをSuperRailBuilderX固有の `SRBXApiCompat` へ分離・統合済み。NGTOBuilder2併用環境で未定義エラー解消を確認済み。
 - `lib_hi03toolkit_1_0` は今後編集しない参照専用領域とし、共通スクリプトは `src/common/assets/minecraft/scripts/superrailbuilderx` に置く方針を恒久化済み。
 - 自動分割レールについて、論理端点選択、KaizPatchX標準APIによる可変セクション再生成、同じ接続点にある2本の同時移動まで実機確認済み。
 - 通常レール移動後の即時描画、保存、同じ接続点にある2本の同時移動まで実機確認済み。
@@ -25,6 +25,8 @@
 - 最新ログで自動分割・通常レール再生成の共通失敗原因が、手動型付けしたコアの `markDirty` がMinecraft 1.7.10名へ変換されなかったことだと判明し、compatヘルパー経由で `func_70296_d` へ生成されるよう修正済み。
 - 複数セクション再生成と通常レール再生成を、ルート上の道床は空気部分だけ追加し、予定セクションコア位置の非コア道床だけをコアへ置換する試験方式へ変更済み（実機検証待ち）。
 - レール敷設、自動分割、自由点移動、道床更新、クライアント同期の知見を `docs/rail-generation-and-free-positioning.md` に集約済み。
+- 計算系の共通ライブラリ `SRBXMath` を新設。丸め、角度正規化・スナップ、方向変換、距離計算を収容済み。
+- レール生成ツール `SuperRailBuilderX_builder1` の基本機能を実装済み。自由点同士と既設端部同士の生成、位置・角度スナップ、破壊的な自動分割敷設、専用1回Undoをローカルビルド確認済み（実機検証待ち）。
 
 ## 作業中
 
@@ -49,18 +51,26 @@
 - 分岐器は専用構造を通常レール処理で変更すると描画が壊れるため対象外にした。全RailPositionと分岐状態を保つ専用移動処理は未実装。
 - RailPosition移動後のUndoは未実装。
 - 仮のボタンテクスチャは未配置のパスを指定している。
-- Prettier 3.9.6ではTypeScript 31ファイルが `pnpm format:check` に失敗する。今回変更したcompatは整形済みだが、既存ファイルの全体整形を別作業として行うか判断が必要。
+- Prettier 3.9.6ではTypeScript 26ファイルが `pnpm format:check` に失敗する。参照専用ツールキットとNGTOBuilder2サンプルが対象で、今回変更したSuperRailBuilderXファイルは整形済み。全体整形を別作業として行うか判断が必要。
 - 通常レール再生成テストモデルは、ログ上の `markDirty` 例外を修正し、`RailMapBasic#setRail` を使わない空気限定道床配置へ変更した。単一コア化、RailProperty・信号・サブレールの保持、失敗時復元、長距離レールの走行を実機確認する必要がある。
 - 最新ログ末尾では候補探索に `missingCores=5` が記録された。繰り返した失敗・復元試験の残骸かは未確定のため、バックアップからの新しい試験ワールドまたは再入場後のログでも継続するか確認が必要。
+- builder1は生成経路上の全ブロックを道床・コアへ強制置換する。別レールを含む既存構造を走行不能にする可能性があり、生成失敗時も破壊済みブロックを復元しない試験実装のため、バックアップ環境での実機確認が必須。
+- builder1のCtrl+Zは直前に生成した論理レールだけを撤去する専用1回Undo。生成時に破壊したブロックや他レールは復元しない。
+- builder1の位置0.5ブロックスナップと角度スナップを同時に使う場合、位置格子を優先してアンカー角へ角度スナップを適用するため、自由点同士でも厳密な直線からわずかに曲がる場合がある。SRB3参照後に仕様を再検討する。
+- builder1の既設レール端部と空間点を結ぶ生成は仕様策定待ちとして拒否する。選択とプレビューまでは可能。
+- builder1のボタンテクスチャは、指示どおり未配置の `textures/superrailbuilderx/button_builder1.png` を仮指定している。
 
 ## 次に行うこと
 
-1. 必ずバックアップ済みテストワールドで、`SuperRailBuilderX_RailPositionNormalTest` による通常レールの交差しない移動を再試験する。`air-only roadbed placement: context=normal_rebuild` が出て、`markDirty` 例外や `normal_rebuild_failed` が出ないことを確認する。
-2. 同モデルで自動分割レールを動かし、単一コア通常レールへの変換、両方向の走行、再入場後の精密端点・外観・信号・サブレールを確認する。
-3. 現行の自動分割版で、別レールの道床へ重なる移動と交差を試す。`airOnlyRoadbed=true`、セクションごとの `air-only roadbed placement`、`tolerant section rebuild created: ... replacedRoadbedsWithCores=N` を確認する。
-4. `replacedRoadbedsWithCores` が1以上の交差では、移動したレールと道床を置換されたレールの両方を双方向に走行し、`Rail not found`、意図しない転線、描画崩れがないか確認する。
-5. セクションコア候補自体を別レールコアまたは通常ブロックへ重ねた場合、`planned section core conflict` / `section_core_conflict` で既存物を壊さず停止することを確認する。
-6. 再入場後に候補探索の `missingCores` が残るか確認し、結果と `latest.log` を共有する。
+1. 必ずバックアップ済みテストワールドで `SuperRailBuilderX_builder1` を使用し、自由点同士で短いレールと複数チャンクを跨ぐレールを生成する。
+2. 手に持ったレールモデルが適用され、短い場合は通常コア、分割が必要な場合は複数セクションコアになり、両方向走行と再入場後の保存が正常か確認する。
+3. PのON/OFF、Ctrl+Pの1度・5度・15度、左クリック、C、カーソル・marker0〜7・selectedLineを確認する。
+4. 既設レール端部同士を接続し、精密位置、反転direction、アンカー角・勾配、長さ2/3で滑らかにつながり、接続する3本を走行できるか確認する。
+5. 既設端部と空間点のEnter生成が安全に拒否されることを確認する。
+6. 通常ブロック、別レール道床、別レールコアを横切る生成を試し、強制置換後の新設レール走行と既設側への影響を確認する。
+7. Ctrl+Zで直前の生成レールだけが撤去され、生成時の選択が戻り、破壊済みブロックは戻らないことを確認する。
+8. 結果と `latest.log` を共有する。`[SuperRailBuilderX builder1]`、例外、`Rail not found` を重点確認する。
+9. builder1確認後、従来のRailPositionテストについて `docs/CODEX_HANDOFF.md` 2026-09-01記録の空気限定道床・通常レール再生成項目を継続確認する。
 
 ## 開発者からCodexへの連絡欄
 
@@ -84,6 +94,11 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
   結果の記入先:
 ```
 
+- 2026-09-02 ローカルCodex:
+  確認してほしいこと: builder1の自由点生成、既設端部同士の接続、スナップ、破壊的交差、専用Undo。
+  確認方法: 必ずバックアップ済みテストワールドを使用し、上記「次に行うこと」1〜8と `docs/builder1.md` の実機検証を確認する。
+  結果の記入先: 結果をチャットで共有し、`logs/latest.log` を配置する。クラッシュ時はクラッシュログも配置する。
+
 - 2026-09-01 ローカルCodex:
   確認してほしいこと: 通常レール再生成の例外解消と、空気限定道床・予定コア位置だけを置換する自動分割再生成で両線が走行できること。
   確認方法: 道床を破壊的に置換する試験実装のため、必ずバックアップ済みテストワールドを使用する。上記「次に行うこと」1〜6を確認し、`replacedRoadbedsWithCores`、`Rail not found`、`missingCores` の有無を共有する。
@@ -92,6 +107,22 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 ## 作業記録
 
 新しい記録を上に追加します。詳細な議論がGitHub Issueにある場合は、要点とリンクだけを記載します。
+
+### 2026-09-02 ローカルCodex — builder1基本機能・SRBX共通基盤
+
+- バージョン差分APIの公開名を `RailPositionCompat` から `SRBXApiCompat` へ変更し、SuperRailBuilderXスクリプトが使うワールド・乗車・アンカー・RailPosition・builder1生成APIを同クラスへ統合。共有参照専用の `lib_hi03toolkit_1_0` は変更していない。
+- `SRBXMath` を追加し、0.001/0.5単位丸め、角度正規化・スナップ、8方向変換、3次元・水平距離を共通化。
+- 開発者配置の `builder1.mqo` と `builder1.png` を採用し、必要な `body`、カーソル、marker0〜7、selectedLineだけを登録する別モデル `SuperRailBuilderX_builder1` を追加。ボタンは未配置パスを仮指定。
+- 右クリック2点選択、左クリック1段階解除、C全解除、Pスナップ、Ctrl+P角度切替、Enter生成、Ctrl+Z専用1回Undo、Hヘルプ、Q終了を実装。
+- 自由点同士はアンカーを一直線上の反対向きに設定し、directionを8方向へ設定。既設端部同士は `getNeighborPos()` 側へ端点を反転して既存コアとの直接衝突を避け、精密位置を一致、アンカー角・勾配を反転、水平アンカー長を端部間距離の2/3に設定。
+- 手持ちレールのRailPropertyをサーバー側で再取得・複製し、`autoSplit=true` を設定。経路全ブロックを強制的に道床へ置換し、複数セクションは `RailChunkSectioner.split` から直接構築する。経路チャンクは変更前に全件ロード確認する。
+- Ctrl+Zは生成コアの論理識別子を再検証して在線中でない直前レールだけを撤去し、クライアント選択を復元する。破壊した元ブロックは復元しない。
+- `references/srb3` を追加し、READMEとignore設定以外はGit管理しない参照置き場を用意。基本仕様・危険性・実機検証を `docs/builder1.md` に記録。
+- `pnpm gen` は全3ターゲットで成功。`pnpm build` も全3ターゲットで成功し、10アセットを出力。生成JavaScriptの1.7.10マッピング、SRBXApiCompatターゲット選択、builder1出力、JSON解析、変更ファイルのPrettier、`git diff --check` を確認済み。
+- 全体の `pnpm format:check` は参照専用ツールキットとNGTOBuilder2サンプルを含む既存26ファイルのみ失敗。今回変更したSuperRailBuilderXファイルは整形済み。
+- ゲーム内動作は未検証。破壊的敷設のため、上記手順を必ずバックアップ済みワールドで再デバッグする必要がある。
+- 実装コミット: https://github.com/hi03s/SuperRailBuilderX/commit/2d971ab518ebc207fd4f9455658b07f33e8bb1a4
+- 同期: `origin/main` へ同期する。
 
 ### 2026-09-01 ローカルCodex — 空気限定道床と通常レール再生成修正
 
