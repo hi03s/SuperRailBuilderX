@@ -42,6 +42,7 @@ type BuilderPoint = {
 	anchorPitch: number;
 	anchorLength: number;
 	markerPosition: [number, number, number];
+	curveRadius?: number;
 	core?: [number, number, number];
 	index?: number;
 };
@@ -139,11 +140,22 @@ export class SRBXApiCompat {
 	static getRailPositionConnectionMarkerPosition(
 		rp: RailPosition,
 	): [number, number, number] {
-		const neighbor = rp.getNeighborPos();
+		const neighbor = this.getBuilderConnectionBlock(rp);
 		return [
 			neighbor[0] + 0.5,
 			neighbor[1] + rp.height / 16,
 			neighbor[2] + 0.5,
+		];
+	}
+
+	private static getBuilderConnectionBlock(
+		rp: RailPosition,
+	): [number, number, number] {
+		const revision = RailPosition.REVISION[rp.direction];
+		return [
+			Math.floor(rp.blockX + 0.5 + revision[0] * 2),
+			rp.blockY,
+			Math.floor(rp.blockZ + 0.5 + revision[1] * 2),
 		];
 	}
 
@@ -1297,6 +1309,12 @@ export class SRBXApiCompat {
 		return Math.round(this.normalizeDegrees(yaw) / 45) & 7;
 	}
 
+	private static builderAngleDifference(a: number, b: number): number {
+		let difference = this.normalizeDegrees(a - b);
+		if (difference > 180) difference -= 360;
+		return difference;
+	}
+
 	private static validateBuilderPoint(point: BuilderPoint): string {
 		if (!point || (point.kind !== "free" && point.kind !== "rail"))
 			return "invalid_point";
@@ -1349,10 +1367,17 @@ export class SRBXApiCompat {
 		if (
 			Math.abs(source.posX - point.position[0]) > 0.001 ||
 			Math.abs(source.posY - point.position[1]) > 0.001 ||
-			Math.abs(source.posZ - point.position[2]) > 0.001
+			Math.abs(source.posZ - point.position[2]) > 0.001 ||
+			Math.abs(
+				this.builderAngleDifference(
+					this.normalizeDegrees(source.anchorYaw + 180),
+					point.anchorYaw,
+				),
+			) > 0.001 ||
+			Math.abs(-source.anchorPitch - point.anchorPitch) > 0.001
 		)
 			return null;
-		const neighbor = source.getNeighborPos();
+		const neighbor = this.getBuilderConnectionBlock(source);
 		const result = RailPosition.readFromNBT(source.writeToNBT());
 		result.blockX = neighbor[0];
 		result.blockY = neighbor[1];
@@ -1366,10 +1391,16 @@ export class SRBXApiCompat {
 
 	private static createBuilderFreePoint(point: BuilderPoint): RailPosition {
 		const direction = this.builderDirectionFromYaw(point.anchorYaw);
+		const yawRadians = (direction * 45 * Math.PI) / 180;
+		const insideDistance = 0.000001;
 		const result = new RailPosition(
-			Math.floor(point.position[0]),
-			Math.floor(point.position[1]),
-			Math.floor(point.position[2]),
+			Math.floor(
+				point.position[0] + Math.sin(yawRadians) * insideDistance,
+			),
+			Math.floor(point.position[1] - 1 / 16 + 0.000001),
+			Math.floor(
+				point.position[2] + Math.cos(yawRadians) * insideDistance,
+			),
 			direction,
 		);
 		result.anchorYaw = this.normalizeDegrees(point.anchorYaw);
@@ -1409,8 +1440,14 @@ export class SRBXApiCompat {
 		let replaced = 0;
 		for (let i = 0; i < blocks.size(); i++) {
 			const pos = blocks.get(i);
+			const beforeBlock = world.getBlock(pos[0], pos[1], pos[2]);
+			const beforeMetadata = world.getBlockMetadata(
+				pos[0],
+				pos[1],
+				pos[2],
+			);
 			if (!world.isAirBlock(pos[0], pos[1], pos[2])) replaced++;
-			world.setBlock(
+			const changed = world.setBlock(
 				pos[0],
 				pos[1],
 				pos[2],
@@ -1421,7 +1458,7 @@ export class SRBXApiCompat {
 			const tile = world.getTileEntity(pos[0], pos[1], pos[2]);
 			if (!(tile instanceof TileEntityLargeRailBase))
 				throw new Error(
-					`builder roadbed tile missing at ${pos[0]},${pos[1]},${pos[2]}`,
+					`builder roadbed tile missing at ${pos[0]},${pos[1]},${pos[2]}: changed=${changed}, before=${beforeBlock}/${beforeMetadata}, after=${world.getBlock(pos[0], pos[1], pos[2])}/${world.getBlockMetadata(pos[0], pos[1], pos[2])}, tile=${tile}`,
 				);
 			tile.setStartPoint(coreX, coreY, coreZ);
 			tile.markDirty();
@@ -1594,13 +1631,17 @@ export class SRBXApiCompat {
 		if (startValidation !== "ok") return { status: startValidation };
 		const endValidation = this.validateBuilderPoint(end);
 		if (endValidation !== "ok") return { status: endValidation };
-		if (start.kind !== end.kind)
-			return { status: "rail_to_free_not_implemented" };
 		const dx = end.position[0] - start.position[0];
 		const dy = end.position[1] - start.position[1];
 		const dz = end.position[2] - start.position[2];
 		const length = Math.sqrt(dx * dx + dy * dy + dz * dz);
 		if (length < 0.01) return { status: "rail_too_short" };
+		if (
+			Math.abs(start.anchorLength - end.anchorLength) > 0.001 ||
+			start.anchorLength > Math.max(1, length * 4) ||
+			end.anchorLength > Math.max(1, length * 4)
+		)
+			return { status: "invalid_anchor_length" };
 		if (
 			!world.blockExists(
 				Math.floor(start.position[0]),
@@ -1618,17 +1659,27 @@ export class SRBXApiCompat {
 		if (!property) return { status: "hold_rail_item" };
 		let startRP: RailPosition | null = null;
 		let endRP: RailPosition | null = null;
-		if (start.kind === "rail") {
+		if (start.kind === "rail")
 			startRP = this.resolveBuilderRailPoint(world, start);
+		else startRP = this.createBuilderFreePoint(start);
+		if (end.kind === "rail")
 			endRP = this.resolveBuilderRailPoint(world, end);
-			if (!startRP || !endRP) return { status: "rail_endpoint_changed" };
-			const anchorLength = (length * 2) / 3;
-			startRP.anchorLengthHorizontal = anchorLength;
-			endRP.anchorLengthHorizontal = anchorLength;
-		} else {
-			startRP = this.createBuilderFreePoint(start);
-			endRP = this.createBuilderFreePoint(end);
-		}
+		else endRP = this.createBuilderFreePoint(end);
+		if (!startRP || !endRP) return { status: "rail_endpoint_changed" };
+		startRP.anchorLengthHorizontal = start.anchorLength;
+		endRP.anchorLengthHorizontal = end.anchorLength;
+		if (
+			!world.blockExists(
+				startRP.blockX,
+				startRP.blockY,
+				startRP.blockZ,
+			) ||
+			!world.blockExists(endRP.blockX, endRP.blockY, endRP.blockZ)
+		)
+			return { status: "endpoint_unloaded" };
+		NGTLog.debug(
+			`[SuperRailBuilderX builder1] creation plan: kinds=${start.kind}->${end.kind}, startBlock=${startRP.blockX},${startRP.blockY},${startRP.blockZ}, startPos=${startRP.posX},${startRP.posY},${startRP.posZ}, startDir=${startRP.direction}, startYaw=${startRP.anchorYaw}, startPitch=${startRP.anchorPitch}, startLength=${startRP.anchorLengthHorizontal}, endBlock=${endRP.blockX},${endRP.blockY},${endRP.blockZ}, endPos=${endRP.posX},${endRP.posY},${endRP.posZ}, endDir=${endRP.direction}, endYaw=${endRP.anchorYaw}, endPitch=${endRP.anchorPitch}, endLength=${endRP.anchorLengthHorizontal}`,
+		);
 		const positions = [startRP, endRP] as RailPosition[];
 		const source = new RailMapBasic(
 			startRP,

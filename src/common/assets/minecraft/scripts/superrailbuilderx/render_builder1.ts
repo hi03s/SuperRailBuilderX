@@ -51,6 +51,11 @@ let selectCursorMarker: Parts;
 let selectedCursor: Parts;
 let selectedLine: Parts;
 let directionMarkers: Parts[];
+let curvePanelRadius: Parts;
+let curvePanelLeft: Parts;
+let curvePanelRight: Parts;
+let curvePanelMeter: Parts;
+let curvePanelDigits: Parts[];
 const snapAngles = [1, 5, 15];
 const states: WeakHashMap<EntityVehicle, BuilderState> = new WeakHashMap();
 const loggedScanErrors: { [key: string]: boolean } = {};
@@ -77,6 +82,15 @@ function init(par1: ModelSetVehicle, par2: ModelObject): void {
 	directionMarkers = [];
 	for (let i = 0; i < 8; i++)
 		directionMarkers.push(renderer.registerParts(new Parts(`marker${i}`)));
+	curvePanelRadius = renderer.registerParts(new Parts("curvePanel_Radius"));
+	curvePanelLeft = renderer.registerParts(new Parts("curvePanel_L"));
+	curvePanelRight = renderer.registerParts(new Parts("curvePanel_R"));
+	curvePanelMeter = renderer.registerParts(new Parts("curvePanel_m"));
+	curvePanelDigits = [];
+	for (let i = 0; i <= 9; i++)
+		curvePanelDigits.push(
+			renderer.registerParts(new Parts(`curvePanel_${i}`)),
+		);
 }
 
 function getState(entity: EntityVehicle): BuilderState {
@@ -108,6 +122,7 @@ function copyPoint(point: SRBXBuilderPoint): SRBXBuilderPoint {
 			point.markerPosition[1],
 			point.markerPosition[2],
 		],
+		curveRadius: point.curveRadius,
 		core: point.core
 			? [point.core[0], point.core[1], point.core[2]]
 			: undefined,
@@ -159,6 +174,17 @@ function freeMarkerPosition(position: SRBXVec3): SRBXVec3 {
 		Math.floor(position[1]) + DEFAULT_RAIL_HEIGHT,
 		Math.floor(position[2]) + 0.5,
 	];
+}
+
+function markerPositionForDirection(
+	position: SRBXVec3,
+	direction: number,
+): SRBXVec3 {
+	return SRBXMath.markerBlockDisplayPosition(
+		position,
+		direction,
+		DEFAULT_RAIL_HEIGHT,
+	);
 }
 
 function logScanErrorOnce(
@@ -287,6 +313,8 @@ function orientPair(
 ): [SRBXBuilderPoint, SRBXBuilderPoint] {
 	const start = copyPoint(startSource);
 	const end = copyPoint(endSource);
+	start.curveRadius = undefined;
+	end.curveRadius = undefined;
 	if (start.kind === "free" && end.kind === "free") {
 		const yaw = SRBXMath.horizontalYaw(start.position, end.position);
 		const horizontal = SRBXMath.horizontalDistance(
@@ -306,10 +334,45 @@ function orientPair(
 		start.anchorLength =
 			SRBXMath.distance(start.position, end.position) / 3;
 		end.anchorLength = start.anchorLength;
+		start.markerPosition = markerPositionForDirection(
+			start.position,
+			start.direction,
+		);
+		end.markerPosition = markerPositionForDirection(
+			end.position,
+			end.direction,
+		);
 	} else if (start.kind === "rail" && end.kind === "rail") {
-		start.anchorLength =
-			(SRBXMath.distance(start.position, end.position) * 2) / 3;
+		start.anchorLength = SRBXMath.fixedPairAnchorLength(
+			start.position,
+			start.anchorYaw,
+			start.anchorPitch,
+			end.position,
+			end.anchorYaw,
+			end.anchorPitch,
+		);
 		end.anchorLength = start.anchorLength;
+	} else {
+		const fixed = start.kind === "rail" ? start : end;
+		const free = start.kind === "free" ? start : end;
+		const circular = SRBXMath.circularConnection(
+			fixed.position,
+			fixed.anchorYaw,
+			fixed.anchorPitch,
+			free.position,
+		);
+		fixed.anchorLength = circular.anchorLength;
+		free.anchorYaw = circular.freeYaw;
+		free.anchorPitch = circular.freePitch;
+		free.anchorLength = circular.anchorLength;
+		free.direction = SRBXMath.directionFromYaw(free.anchorYaw);
+		free.markerPosition = markerPositionForDirection(
+			free.position,
+			free.direction,
+		);
+		if (isFinite(circular.radius))
+			start.curveRadius =
+				fixed === start ? circular.radius : -circular.radius;
 	}
 	return [start, end];
 }
@@ -419,6 +482,76 @@ function renderBezier(
 	}
 }
 
+function renderCurveRadius(
+	entity: EntityVehicle,
+	partialTicks: number,
+	start: SRBXBuilderPoint,
+	end: SRBXBuilderPoint,
+): void {
+	const radius = start.curveRadius;
+	if (radius === undefined || !isFinite(radius) || Math.abs(radius) >= 9999)
+		return;
+	const startControl = SRBXMath.pointAtYawPitchDistance(
+		start.position,
+		start.anchorYaw,
+		start.anchorPitch,
+		start.anchorLength,
+	);
+	const endControl = SRBXMath.pointAtYawPitchDistance(
+		end.position,
+		end.anchorYaw,
+		end.anchorPitch,
+		end.anchorLength,
+	);
+	const panelPosition = SRBXMath.cubicBezierPoint(
+		start.position,
+		startControl,
+		endControl,
+		end.position,
+		0.5,
+	);
+	const entityPosition = NGTOBuilderUtilClient.getInterpolatedPos(
+		entity,
+		partialTicks,
+	);
+	const horizontal = SRBXMath.horizontalDistance(
+		panelPosition,
+		entityPosition,
+	);
+	const pitch =
+		(Math.atan2(entityPosition[1] - panelPosition[1], horizontal) * 180) /
+		Math.PI;
+	const digits = String(Math.floor(Math.abs(radius)));
+	GL11.glPushMatrix();
+	GL11.glTranslatef(
+		panelPosition[0] - entityPosition[0],
+		panelPosition[1] - entityPosition[1],
+		panelPosition[2] - entityPosition[2],
+	);
+	GL11.glRotatef(
+		SRBXMath.horizontalYaw(panelPosition, entityPosition) + 180,
+		0,
+		1,
+		0,
+	);
+	GL11.glRotatef(pitch, 1, 0, 0);
+	GL11.glTranslatef((digits.length - 1) / 2, 0, 0);
+	for (let i = 0; i < digits.length; i++) {
+		const digit = Number(digits.substring(i, i + 1));
+		GL11.glPushMatrix();
+		GL11.glTranslatef(-i, 0, 0);
+		curvePanelDigits[digit].render(renderer);
+		if (i === 0) {
+			curvePanelRadius.render(renderer);
+			if (radius > 0) curvePanelRight.render(renderer);
+			if (radius < 0) curvePanelLeft.render(renderer);
+		}
+		if (i === digits.length - 1) curvePanelMeter.render(renderer);
+		GL11.glPopMatrix();
+	}
+	GL11.glPopMatrix();
+}
+
 function sendRequest(
 	entity: EntityVehicle,
 	state: BuilderState,
@@ -445,8 +578,6 @@ function showHelp(sender: ICommandSender): void {
 
 function resultMessage(result: string): string {
 	if (result === "hold_rail_item") return "レールを手に持ってください";
-	if (result === "rail_to_free_not_implemented")
-		return "既設レール端部と空間点を結ぶ生成は未実装です";
 	if (result === "rail_endpoint_changed")
 		return "選択した既設レール端部が変更されています";
 	if (result === "rail_occupied")
@@ -531,22 +662,12 @@ function handleInput(
 	) {
 		const pair = orientPair(state.selected[0], state.selected[1]);
 		state.selected = [copyPoint(pair[0]), copyPoint(pair[1])];
-		if (pair[0].kind !== pair[1].kind) {
-			NGTLog.sendChatMessage(
-				sender,
-				"§e[SuperRailBuilderX] 既設端部と空間点を結ぶ生成は今後実装します",
-			);
-		} else {
-			sendRequest(entity, state, {
-				action: "create",
-				start: pair[0],
-				end: pair[1],
-			});
-			NGTLog.sendChatMessage(
-				sender,
-				"[SuperRailBuilderX] レール生成中...",
-			);
-		}
+		sendRequest(entity, state, {
+			action: "create",
+			start: pair[0],
+			end: pair[1],
+		});
+		NGTLog.sendChatMessage(sender, "[SuperRailBuilderX] レール生成中...");
 	}
 	if (
 		keys.pressed("undo") &&
@@ -589,11 +710,15 @@ function render(
 	else if (displayPoints.length === 2)
 		displayPoints = orientPair(displayPoints[0], displayPoints[1]);
 	if (hover) {
+		const displayHover =
+			state.selected.length === 1 && displayPoints.length === 2
+				? displayPoints[1]
+				: hover;
 		renderAt(entity, partialTicks, hover.position, selectCursor);
 		renderAt(
 			entity,
 			partialTicks,
-			hover.markerPosition,
+			displayHover.markerPosition,
 			selectCursorMarker,
 		);
 	}
@@ -601,6 +726,13 @@ function render(
 		renderSelectedPoint(entity, partialTicks, displayPoints[i]);
 	if (state.selected.length >= 1 && displayPoints.length >= 2)
 		renderBezier(entity, partialTicks, displayPoints[0], displayPoints[1]);
+	if (state.selected.length >= 1 && displayPoints.length >= 2)
+		renderCurveRadius(
+			entity,
+			partialTicks,
+			displayPoints[0],
+			displayPoints[1],
+		);
 	const isOpenGUI = NGTUtilClient.getMinecraft().currentScreen !== null;
 	const left = Mouse.isButtonDown(0);
 	const right = Mouse.isButtonDown(1);

@@ -1,0 +1,28 @@
+# Source: developer-provided logs/latest.log
+# Scope: SuperRailBuilderX builder1 diagnostic lines relevant to the reported generation issue
+# Omitted: launcher/system details, local paths, unrelated Mod output, chat/player details
+
+[14:04:23] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive sectioned rail created: sections=2, replacedBlocks=0
+[14:04:23] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
+[14:04:37] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive normal rail created: replacedBlocks=0
+[14:04:37] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
+[14:04:47] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive normal rail created: replacedBlocks=0
+[14:04:47] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
+[14:04:52] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive rail creation exception: Error: builder roadbed tile missing at 465,4,-131
+[14:04:52] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=create_failed
+[14:05:05] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive sectioned rail created: sections=2, replacedBlocks=3
+[14:05:05] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
+[14:07:31] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=hold_rail_item
+[14:07:33] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive sectioned rail created: sections=2, replacedBlocks=2
+[14:07:33] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
+[14:07:47] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive normal rail created: replacedBlocks=0
+[14:07:47] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
+[14:08:00] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive sectioned rail created: sections=3, replacedBlocks=3
+[14:08:00] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
+[14:09:30] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive normal rail created: replacedBlocks=0
+[14:09:30] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
+[14:10:10] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=hold_rail_item
+[14:10:11] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive normal rail created: replacedBlocks=0
+[14:10:11] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
+[14:10:17] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive rail creation exception: Error: builder roadbed tile missing at 9,4,14
+[14:10:17] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=create_failed

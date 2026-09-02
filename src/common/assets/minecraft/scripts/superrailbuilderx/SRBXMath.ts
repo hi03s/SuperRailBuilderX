@@ -1,5 +1,14 @@
 export type SRBXVec3 = [x: number, y: number, z: number];
 
+export type SRBXCircularConnection = {
+	intersection: SRBXVec3;
+	radius: number;
+	angle: number;
+	anchorLength: number;
+	freeYaw: number;
+	freePitch: number;
+};
+
 export class SRBXMath {
 	static roundToStep(value: number, step: number): number {
 		if (!isFinite(value) || !isFinite(step) || step <= 0) return value;
@@ -22,6 +31,12 @@ export class SRBXMath {
 
 	static snapDegrees(angle: number, step: number): number {
 		return this.normalizeDegrees(this.roundToStep(angle, step));
+	}
+
+	static relativeDegrees(angle: number, baseAngle: number): number {
+		let relative = this.normalizeDegrees(angle - baseAngle);
+		if (relative > 180) relative -= 360;
+		return relative;
 	}
 
 	static horizontalYaw(from: SRBXVec3, to: SRBXVec3): number {
@@ -63,6 +78,22 @@ export class SRBXMath {
 		];
 	}
 
+	static markerBlockDisplayPosition(
+		position: SRBXVec3,
+		direction: number,
+		railHeight: number,
+	): SRBXVec3 {
+		const yawRadians = ((direction & 7) * 45 * Math.PI) / 180;
+		const insideDistance = 0.000001;
+		return [
+			Math.floor(position[0] + Math.sin(yawRadians) * insideDistance) +
+				0.5,
+			Math.floor(position[1] - railHeight + 0.000001) + railHeight,
+			Math.floor(position[2] + Math.cos(yawRadians) * insideDistance) +
+				0.5,
+		];
+	}
+
 	static cubicBezierPoint(
 		start: SRBXVec3,
 		startControl: SRBXVec3,
@@ -85,5 +116,105 @@ export class SRBXMath {
 				3 * u * t * t * endControl[2] +
 				t * t * t * end[2],
 		];
+	}
+
+	static cubicBezierLength(
+		start: SRBXVec3,
+		startControl: SRBXVec3,
+		endControl: SRBXVec3,
+		end: SRBXVec3,
+	): number {
+		const split = Math.max(1, Math.ceil(this.distance(start, end) * 2));
+		let length = 0;
+		let previous = start;
+		for (let i = 1; i <= split; i++) {
+			const current = this.cubicBezierPoint(
+				start,
+				startControl,
+				endControl,
+				end,
+				i / split,
+			);
+			length += this.distance(previous, current);
+			previous = current;
+		}
+		return length;
+	}
+
+	static fixedPairAnchorLength(
+		start: SRBXVec3,
+		startYaw: number,
+		startPitch: number,
+		end: SRBXVec3,
+		endYaw: number,
+		endPitch: number,
+	): number {
+		const provisionalLength = (this.distance(start, end) * 2) / 3;
+		const startControl = this.pointAtYawPitchDistance(
+			start,
+			startYaw,
+			startPitch,
+			provisionalLength,
+		);
+		const endControl = this.pointAtYawPitchDistance(
+			end,
+			endYaw,
+			endPitch,
+			provisionalLength,
+		);
+		return this.cubicBezierLength(start, startControl, endControl, end) / 3;
+	}
+
+	static circularConnection(
+		fixed: SRBXVec3,
+		fixedYaw: number,
+		fixedPitch: number,
+		free: SRBXVec3,
+	): SRBXCircularConnection {
+		const center: SRBXVec3 = [
+			(fixed[0] + free[0]) / 2,
+			(fixed[1] + free[1]) / 2,
+			(fixed[2] + free[2]) / 2,
+		];
+		const toCenterYaw = this.horizontalYaw(fixed, center);
+		const yawDifference = this.relativeDegrees(fixedYaw, toCenterYaw);
+		const cosine = Math.cos((yawDifference * Math.PI) / 180);
+		const distanceToIntersection =
+			Math.abs(cosine) < 0.00001
+				? this.distance(fixed, center)
+				: this.distance(fixed, center) / cosine;
+		const intersection = this.pointAtYawPitchDistance(
+			fixed,
+			fixedYaw,
+			fixedPitch,
+			distanceToIntersection,
+		);
+		const intersectionYaw = this.horizontalYaw(fixed, intersection);
+		const endYaw = this.horizontalYaw(fixed, free);
+		const angle = this.relativeDegrees(intersectionYaw, endYaw) * 2;
+		const sine = Math.sin((angle * Math.PI) / 360);
+		const radius =
+			Math.abs(sine) < 0.00001
+				? Infinity
+				: this.distance(fixed, free) / 2 / sine;
+		let anchorLength = this.distance(fixed, free) / 3;
+		if (Math.abs(radius) <= 9999 && Math.abs(angle) >= 1) {
+			anchorLength = Math.abs(
+				radius * (4 / 3) * Math.tan((angle * Math.PI) / 720),
+			);
+		}
+		const freeYaw = this.horizontalYaw(free, intersection);
+		const freeHorizontal = this.horizontalDistance(free, intersection);
+		const freePitch =
+			(Math.atan2(intersection[1] - free[1], freeHorizontal) * 180) /
+			Math.PI;
+		return {
+			intersection,
+			radius,
+			angle,
+			anchorLength,
+			freeYaw,
+			freePitch,
+		};
 	}
 }

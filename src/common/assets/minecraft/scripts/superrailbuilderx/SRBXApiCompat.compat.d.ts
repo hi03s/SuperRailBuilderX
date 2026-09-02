@@ -15,6 +15,7 @@ export type SRBXBuilderPoint = {
 	anchorPitch: number;
 	anchorLength: number;
 	markerPosition: RailCorePos;
+	curveRadius?: number;
 	core?: RailCorePos;
 	index?: number;
 };
