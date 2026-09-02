@@ -10,6 +10,7 @@ import {
 import { RailPosition } from "jp.ngt.rtm.rail.util";
 import { ICommandSender } from "net.minecraft.command";
 import { EntityPlayer } from "net.minecraft.entity.player";
+import { System } from "java.lang";
 import { WeakHashMap } from "java.util";
 import { Keyboard, Mouse } from "org.lwjgl.input";
 import { GL11 } from "org.lwjgl.opengl";
@@ -30,6 +31,8 @@ const ENDPOINT_SEARCH_RADIUS = 0.8;
 const SELECTED_LINE_MODEL_LENGTH = 0.6225;
 const DEFAULT_RAIL_HEIGHT = 1 / 16;
 const MAX_CURVE_RADIUS = 10000;
+const KEY_REPEAT_DELAY_MS = 350;
+const KEY_REPEAT_INTERVAL_MS = 75;
 
 type BuilderState = {
 	selected: SRBXBuilderPoint[];
@@ -42,8 +45,9 @@ type BuilderState = {
 	curveStartYaw: number | null;
 	curveKeepSelectedEndpoints: boolean;
 	slopePermil: number | null;
+	keyRepeatAt: { [name: string]: number };
 	awaitingResult: boolean;
-	pendingAction: "create" | "undo" | "reset" | null;
+	pendingAction: "create" | "undo" | null;
 };
 
 type RailCandidate = {
@@ -107,6 +111,7 @@ function init(par1: ModelSetVehicle, par2: ModelObject): void {
 		true,
 		"高さを1/16下げる",
 	);
+	keys.register("heightReset", Keyboard.KEY_F, false, "空中高さをリセット");
 	keys.register("undo", Keyboard.KEY_Z, true, "直前の生成を取り消す");
 	body = renderer.registerParts(new Parts("body"));
 	selectCursor = renderer.registerParts(new Parts("selectCursor"));
@@ -151,6 +156,7 @@ function createDefaultState(): BuilderState {
 		curveStartYaw: null,
 		curveKeepSelectedEndpoints: false,
 		slopePermil: null,
+		keyRepeatAt: {},
 		awaitingResult: false,
 		pendingAction: null,
 	};
@@ -167,8 +173,9 @@ function getState(entity: EntityVehicle): BuilderState {
 
 function resetState(state: BuilderState): void {
 	const reset = createDefaultState();
+	const lastBuiltSelection = state.lastBuiltSelection;
 	state.selected = reset.selected;
-	state.lastBuiltSelection = reset.lastBuiltSelection;
+	state.lastBuiltSelection = lastBuiltSelection;
 	state.snapEnabled = reset.snapEnabled;
 	state.snapAngleIndex = reset.snapAngleIndex;
 	state.heightOffsetSixteenths = reset.heightOffsetSixteenths;
@@ -177,6 +184,7 @@ function resetState(state: BuilderState): void {
 	state.curveStartYaw = reset.curveStartYaw;
 	state.curveKeepSelectedEndpoints = reset.curveKeepSelectedEndpoints;
 	state.slopePermil = reset.slopePermil;
+	state.keyRepeatAt = reset.keyRepeatAt;
 	state.awaitingResult = reset.awaitingResult;
 	state.pendingAction = reset.pendingAction;
 }
@@ -811,6 +819,7 @@ function showHelp(sender: ICommandSender): void {
 	NGTLog.sendChatMessage(sender, "[Ctrl+←/→] 固定半径を100m変更");
 	NGTLog.sendChatMessage(sender, "[↑/↓] 高さを1mまたは勾配を1‰変更");
 	NGTLog.sendChatMessage(sender, "[Ctrl+↑/↓] 高さを1/16m変更");
+	NGTLog.sendChatMessage(sender, keys.getDescription("heightReset"));
 	NGTLog.sendChatMessage(sender, keys.getDescription("undo"));
 	NGTLog.sendChatMessage(sender, keys.getDescription("exit"));
 }
@@ -820,10 +829,10 @@ function resultMessage(result: string): string {
 	if (result === "rail_endpoint_changed")
 		return "選択した既設レール端部が変更されています";
 	if (result === "rail_occupied") return "対象レールに列車が在線しています";
-	if (result === "connection_core_conflict")
-		return "生成経路が接続対象自身のレールコアと重なっています";
-	if (result === "core_clear_failed")
-		return "交差する既設レールコアを置換できませんでした";
+	if (result === "rail_core_conflict")
+		return "生成経路が既設レールコアと重なっています";
+	if (result === "section_core_conflict")
+		return "セクションコアを安全に配置できる空き位置がありません";
 	if (result === "nothing_to_undo") return "取り消せる生成がありません";
 	return result;
 }
@@ -858,11 +867,6 @@ function handleResult(
 			sender,
 			"§a[SuperRailBuilderX] 直前の生成を取り消しました",
 		);
-	} else if (result === "reset_ok" && state.pendingAction === "reset") {
-		NGTLog.sendChatMessage(
-			sender,
-			"§a[SuperRailBuilderX] 全状態をリセットしました",
-		);
 	} else {
 		NGTLog.sendChatMessage(
 			sender,
@@ -871,6 +875,22 @@ function handleResult(
 	}
 	state.pendingAction = null;
 	dataMap.setString("builder1Result", "", 1);
+}
+
+function repeatedKey(state: BuilderState, name: string): boolean {
+	if (!keys.down(name)) {
+		delete state.keyRepeatAt[name];
+		return false;
+	}
+	const now = System.currentTimeMillis();
+	if (keys.pressed(name)) {
+		state.keyRepeatAt[name] = now + KEY_REPEAT_DELAY_MS;
+		return true;
+	}
+	const next = state.keyRepeatAt[name];
+	if (next === undefined || now < next) return false;
+	state.keyRepeatAt[name] = now + KEY_REPEAT_INTERVAL_MS;
+	return true;
 }
 
 function getRadiusPreviewPair(
@@ -967,13 +987,10 @@ function handleInput(
 	if (keys.down("exit")) dataMap.setBoolean("isEndEdit", true, 1);
 	if (keys.pressed("reset") && !state.awaitingResult) {
 		resetState(state);
-		sendRequest(entity, state, { action: "reset" });
 		NGTLog.sendChatMessage(
 			sender,
-			"[SuperRailBuilderX] 全状態をリセット中...",
+			"§a[SuperRailBuilderX] 選択設定を完全リセットしました（Undoは維持）",
 		);
-		handleResult(sender, entity, state);
-		return;
 	}
 	if (keys.pressed("snap")) {
 		state.snapEnabled = !state.snapEnabled;
@@ -1016,21 +1033,29 @@ function handleInput(
 			`[SuperRailBuilderX] 曲線半径固定: ${state.curveRadiusLocked ? `ON (${state.curveRadius >= MAX_CURVE_RADIUS ? "∞" : `${state.curveRadius}m`})` : "OFF"}`,
 		);
 	}
-	if (keys.pressed("radiusIncrease"))
+	if (repeatedKey(state, "radiusIncrease"))
 		changeCurveRadius(sender, entity, partialTicks, state, 1);
-	if (keys.pressed("radiusDecrease"))
+	if (repeatedKey(state, "radiusDecrease"))
 		changeCurveRadius(sender, entity, partialTicks, state, -1);
-	if (keys.pressed("radiusIncreaseFast"))
+	if (repeatedKey(state, "radiusIncreaseFast"))
 		changeCurveRadius(sender, entity, partialTicks, state, 100);
-	if (keys.pressed("radiusDecreaseFast"))
+	if (repeatedKey(state, "radiusDecreaseFast"))
 		changeCurveRadius(sender, entity, partialTicks, state, -100);
-	if (keys.pressed("heightUp")) changeHeightOrSlope(sender, state, 1, false);
-	if (keys.pressed("heightDown"))
+	if (repeatedKey(state, "heightUp"))
+		changeHeightOrSlope(sender, state, 1, false);
+	if (repeatedKey(state, "heightDown"))
 		changeHeightOrSlope(sender, state, -1, false);
-	if (keys.pressed("heightUpFine"))
+	if (repeatedKey(state, "heightUpFine"))
 		changeHeightOrSlope(sender, state, 1, true);
-	if (keys.pressed("heightDownFine"))
+	if (repeatedKey(state, "heightDownFine"))
 		changeHeightOrSlope(sender, state, -1, true);
+	if (keys.pressed("heightReset")) {
+		state.heightOffsetSixteenths = 0;
+		NGTLog.sendChatMessage(
+			sender,
+			"[SuperRailBuilderX] 高さオフセット: 0/16m (0m)",
+		);
+	}
 	if (keys.pressed("clear") && !state.awaitingResult) {
 		state.selected = [];
 		state.curveKeepSelectedEndpoints = false;
@@ -1052,7 +1077,7 @@ function handleInput(
 						? point.anchorYaw
 						: state.curveRadiusLocked &&
 							  state.curveRadius < MAX_CURVE_RADIUS
-							? SRBXMath.normalizeDegrees(host.rotationYaw)
+							? SRBXMath.normalizeDegrees(-host.rotationYaw)
 							: null;
 				state.slopePermil =
 					point.kind === "rail"

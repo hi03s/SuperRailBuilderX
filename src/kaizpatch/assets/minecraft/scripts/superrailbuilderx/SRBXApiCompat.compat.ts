@@ -1435,11 +1435,25 @@ export class SRBXApiCompat {
 		coreY: number,
 		coreZ: number,
 		property: RailProperty,
+		protectedRailKeys: { [key: string]: boolean },
 	): number {
 		const blocks = railMap.getRailBlockList(property);
 		let replaced = 0;
 		for (let i = 0; i < blocks.size(); i++) {
 			const pos = blocks.get(i);
+			const existingTile = world.getTileEntity(pos[0], pos[1], pos[2]);
+			if (existingTile instanceof TileEntityLargeRailBase) {
+				const owner = existingTile.getRailCore();
+				if (
+					owner &&
+					protectedRailKeys[this.getRailPositionCandidateKey(owner)]
+				) {
+					NGTLog.debug(
+						`[SuperRailBuilderX builder1] protected connection roadbed preserved: pos=${pos[0]},${pos[1]},${pos[2]}`,
+					);
+					continue;
+				}
+			}
 			const beforeBlock = world.getBlock(pos[0], pos[1], pos[2]);
 			const beforeMetadata = world.getBlockMetadata(
 				pos[0],
@@ -1488,7 +1502,7 @@ export class SRBXApiCompat {
 		return result;
 	}
 
-	private static prepareBuilderDestructivePlacement(
+	private static validateBuilderPlacement(
 		world: net.minecraft.world.World,
 		maps: RailSectionMap[],
 		property: RailProperty,
@@ -1510,12 +1524,6 @@ export class SRBXApiCompat {
 				const core = tile.getRailCore();
 				if (!core) continue;
 				const key = this.getRailPositionCandidateKey(core);
-				if (protectedRailKeys[key]) {
-					NGTLog.debug(
-						`[SuperRailBuilderX builder1] protected connection rail core intersects path: pos=${pos[0]},${pos[1]},${pos[2]}, key=${key}`,
-					);
-					return "connection_core_conflict";
-				}
 				coreBlocks[`${pos[0]},${pos[1]},${pos[2]}`] = {
 					position: [pos[0], pos[1], pos[2]],
 					core,
@@ -1524,34 +1532,18 @@ export class SRBXApiCompat {
 			}
 		}
 		const keys = Object.keys(coreBlocks);
-		for (let i = 0; i < keys.length; i++)
-			if (coreBlocks[keys[i]].core.isLogicalRailOccupied())
-				return "rail_occupied";
 		for (let i = 0; i < keys.length; i++) {
 			const target = coreBlocks[keys[i]];
-			const current = world.getTileEntity(
-				target.position[0],
-				target.position[1],
-				target.position[2],
-			);
-			if (!(current instanceof TileEntityLargeRailCore)) continue;
-			const changed = world.setBlockToAir(
-				target.position[0],
-				target.position[1],
-				target.position[2],
-			);
-			if (
-				!changed &&
-				!world.isAirBlock(
-					target.position[0],
-					target.position[1],
-					target.position[2],
-				)
-			)
-				return "core_clear_failed";
+			if (protectedRailKeys[target.railKey]) {
+				NGTLog.debug(
+					`[SuperRailBuilderX builder1] protected connection core preserved: pos=${target.position[0]},${target.position[1]},${target.position[2]}, railKey=${target.railKey}`,
+				);
+				continue;
+			}
 			NGTLog.debug(
-				`[SuperRailBuilderX builder1] intersecting core cleared before placement: pos=${target.position[0]},${target.position[1]},${target.position[2]}, railKey=${target.railKey}, changed=${changed}`,
+				`[SuperRailBuilderX builder1] existing rail core blocks placement: pos=${target.position[0]},${target.position[1]},${target.position[2]}, railKey=${target.railKey}`,
 			);
+			return "rail_core_conflict";
 		}
 		return "ok";
 	}
@@ -1569,11 +1561,97 @@ export class SRBXApiCompat {
 		return true;
 	}
 
+	private static prepareBuilderSectionCorePositions(
+		world: net.minecraft.world.World,
+		source: RailMapBasic,
+		sections: java.util.List<RailSectionPlan>,
+		property: RailProperty,
+	): string {
+		const used: { [key: string]: boolean } = {};
+		for (let i = 0; i < sections.size(); i++) {
+			const rp = sections.get(i).getStartRP();
+			used[`${rp.blockX},${rp.blockY},${rp.blockZ}`] = true;
+		}
+		for (let i = 0; i < sections.size(); i++) {
+			const section = sections.get(i);
+			const start = section.getStartRP();
+			const existing = world.getBlock(
+				start.blockX,
+				start.blockY,
+				start.blockZ,
+			);
+			if (!(existing instanceof BlockLargeRailBase)) continue;
+			if (i === 0) {
+				NGTLog.debug(
+					`[SuperRailBuilderX builder1] logical start core position is occupied by rail: pos=${start.blockX},${start.blockY},${start.blockZ}`,
+				);
+				return "section_core_conflict";
+			}
+			const sectionMap =
+				new Packages.jp.kaiz.kaizpatch.rtm.rail.util.RailMapSection(
+					source,
+					start,
+					section.getEndRP(),
+					section.getStartRatio(),
+					section.getEndRatio(),
+				);
+			const blocks = sectionMap.getRailBlockList(property);
+			let replacement: JavaIntArray | null = null;
+			for (let blockIndex = 0; blockIndex < blocks.size(); blockIndex++) {
+				const candidate = blocks.get(blockIndex);
+				const key = `${candidate[0]},${candidate[1]},${candidate[2]}`;
+				if (
+					used[key] ||
+					candidate[0] >> 4 !== start.blockX >> 4 ||
+					candidate[2] >> 4 !== start.blockZ >> 4
+				)
+					continue;
+				const block = world.getBlock(
+					candidate[0],
+					candidate[1],
+					candidate[2],
+				);
+				if (
+					world.isAirBlock(
+						candidate[0],
+						candidate[1],
+						candidate[2],
+					) ||
+					block instanceof BlockMarker
+				) {
+					replacement = candidate;
+					break;
+				}
+			}
+			if (!replacement) {
+				NGTLog.debug(
+					`[SuperRailBuilderX builder1] no safe section core position in chunk: original=${start.blockX},${start.blockY},${start.blockZ}`,
+				);
+				return "section_core_conflict";
+			}
+			const old = `${start.blockX},${start.blockY},${start.blockZ}`;
+			start.blockX = replacement[0];
+			start.blockY = replacement[1];
+			start.blockZ = replacement[2];
+			const previousEnd = sections.get(i - 1).getEndRP();
+			previousEnd.blockX = replacement[0];
+			previousEnd.blockY = replacement[1];
+			previousEnd.blockZ = replacement[2];
+			used[`${replacement[0]},${replacement[1]},${replacement[2]}`] =
+				true;
+			NGTLog.debug(
+				`[SuperRailBuilderX builder1] section core relocated from occupied roadbed: from=${old}, to=${replacement[0]},${replacement[1]},${replacement[2]}`,
+			);
+		}
+		return "ok";
+	}
+
 	private static createBuilderNormalRail(
 		world: net.minecraft.world.World,
 		source: RailMapBasic,
 		positions: RailPosition[],
 		property: RailProperty,
+		protectedRailKeys: { [key: string]: boolean },
 	): TileEntityLargeRailCore | null {
 		const start = positions[0];
 		const replaced = this.placeBuilderRoadbed(
@@ -1583,7 +1661,17 @@ export class SRBXApiCompat {
 			start.blockY,
 			start.blockZ,
 			property,
+			protectedRailKeys,
 		);
+		const startBase = world.getTileEntity(
+			start.blockX,
+			start.blockY,
+			start.blockZ,
+		);
+		if (startBase instanceof TileEntityLargeRailBase) {
+			startBase.setStartPoint(start.blockX, start.blockY, start.blockZ);
+			startBase.markDirty();
+		}
 		world.setBlock(
 			start.blockX,
 			start.blockY,
@@ -1619,6 +1707,7 @@ export class SRBXApiCompat {
 		sections: java.util.List<RailSectionPlan>,
 		positions: RailPosition[],
 		property: RailProperty,
+		protectedRailKeys: { [key: string]: boolean },
 	): TileEntityLargeRailCore | null {
 		if (sections.size() <= 1) return null;
 		const groupId = java.util.UUID.randomUUID();
@@ -1651,6 +1740,7 @@ export class SRBXApiCompat {
 				rp.blockY,
 				rp.blockZ,
 				property,
+				protectedRailKeys,
 			);
 		}
 		let firstCore: TileEntityLargeRailCore | null = null;
@@ -1672,6 +1762,19 @@ export class SRBXApiCompat {
 				sectionStart.blockY,
 				sectionStart.blockZ,
 			);
+			const coreBase = world.getTileEntity(
+				sectionStart.blockX,
+				sectionStart.blockY,
+				sectionStart.blockZ,
+			);
+			if (coreBase instanceof TileEntityLargeRailBase) {
+				coreBase.setStartPoint(
+					sectionStart.blockX,
+					sectionStart.blockY,
+					sectionStart.blockZ,
+				);
+				coreBase.markDirty();
+			}
 			const changed = world.setBlock(
 				sectionStart.blockX,
 				sectionStart.blockY,
@@ -1770,6 +1873,8 @@ export class SRBXApiCompat {
 		if (!startRP || !endRP) return { status: "rail_endpoint_changed" };
 		startRP.anchorLengthHorizontal = start.anchorLength;
 		endRP.anchorLengthHorizontal = end.anchorLength;
+		startRP.anchorLengthVertical = start.anchorLength;
+		endRP.anchorLengthVertical = end.anchorLength;
 		if (
 			!world.blockExists(
 				startRP.blockX,
@@ -1780,7 +1885,7 @@ export class SRBXApiCompat {
 		)
 			return { status: "endpoint_unloaded" };
 		NGTLog.debug(
-			`[SuperRailBuilderX builder1] creation plan: kinds=${start.kind}->${end.kind}, startBlock=${startRP.blockX},${startRP.blockY},${startRP.blockZ}, startPos=${startRP.posX},${startRP.posY},${startRP.posZ}, startDir=${startRP.direction}, startYaw=${startRP.anchorYaw}, startPitch=${startRP.anchorPitch}, startLength=${startRP.anchorLengthHorizontal}, endBlock=${endRP.blockX},${endRP.blockY},${endRP.blockZ}, endPos=${endRP.posX},${endRP.posY},${endRP.posZ}, endDir=${endRP.direction}, endYaw=${endRP.anchorYaw}, endPitch=${endRP.anchorPitch}, endLength=${endRP.anchorLengthHorizontal}`,
+			`[SuperRailBuilderX builder1] creation plan: kinds=${start.kind}->${end.kind}, startBlock=${startRP.blockX},${startRP.blockY},${startRP.blockZ}, startPos=${startRP.posX},${startRP.posY},${startRP.posZ}, startDir=${startRP.direction}, startYaw=${startRP.anchorYaw}, startPitch=${startRP.anchorPitch}, startLengthH=${startRP.anchorLengthHorizontal}, startLengthV=${startRP.anchorLengthVertical}, endBlock=${endRP.blockX},${endRP.blockY},${endRP.blockZ}, endPos=${endRP.posX},${endRP.posY},${endRP.posZ}, endDir=${endRP.direction}, endYaw=${endRP.anchorYaw}, endPitch=${endRP.anchorPitch}, endLengthH=${endRP.anchorLengthHorizontal}, endLengthV=${endRP.anchorLengthVertical}`,
 		);
 		const positions = (
 			startRP.posY <= endRP.posY ? [startRP, endRP] : [endRP, startRP]
@@ -1797,6 +1902,26 @@ export class SRBXApiCompat {
 			Packages.jp.kaiz.kaizpatch.rtm.rail.util.RailChunkSectioner.split(
 				source,
 			);
+		if (sections.size() > 1) {
+			const corePreparation = this.prepareBuilderSectionCorePositions(
+				world,
+				source,
+				sections,
+				property,
+			);
+			if (corePreparation !== "ok") return { status: corePreparation };
+		} else if (
+			world.getBlock(
+				positions[0].blockX,
+				positions[0].blockY,
+				positions[0].blockZ,
+			) instanceof BlockLargeRailBase
+		) {
+			NGTLog.debug(
+				`[SuperRailBuilderX builder1] normal core position is occupied by rail: pos=${positions[0].blockX},${positions[0].blockY},${positions[0].blockZ}`,
+			);
+			return { status: "section_core_conflict" };
+		}
 		const placementMaps: RailSectionMap[] = [];
 		if (sections.size() > 1) {
 			for (let i = 0; i < sections.size(); i++) {
@@ -1816,11 +1941,16 @@ export class SRBXApiCompat {
 		} else if (!this.isBuilderRoadbedLoaded(world, source, property)) {
 			return { status: "path_unloaded" };
 		} else placementMaps.push(source);
-		const preparation = this.prepareBuilderDestructivePlacement(
+		const protectedRailKeys = this.getBuilderProtectedRailKeys(
+			world,
+			start,
+			end,
+		);
+		const preparation = this.validateBuilderPlacement(
 			world,
 			placementMaps,
 			property,
-			this.getBuilderProtectedRailKeys(world, start, end),
+			protectedRailKeys,
 		);
 		if (preparation !== "ok") return { status: preparation };
 		let core: TileEntityLargeRailCore | null = null;
@@ -1833,12 +1963,14 @@ export class SRBXApiCompat {
 							sections,
 							positions,
 							property,
+							protectedRailKeys,
 						)
 					: this.createBuilderNormalRail(
 							world,
 							source,
 							positions,
 							property,
+							protectedRailKeys,
 						);
 		} catch (error) {
 			NGTLog.debug(

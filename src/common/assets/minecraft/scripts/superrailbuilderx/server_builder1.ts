@@ -19,8 +19,7 @@ export type Builder1Request =
 			start: SRBXBuilderPoint;
 			end: SRBXBuilderPoint;
 	  }
-	| { action: "undo" }
-	| { action: "reset" };
+	| { action: "undo" };
 
 type UndoRecord = {
 	core: [number, number, number];
@@ -36,17 +35,8 @@ function processRequest(
 	request: Builder1Request,
 ): string {
 	const world = SRBXApiCompat.getWorld(entity);
-	if (
-		!request ||
-		(request.action !== "create" &&
-			request.action !== "undo" &&
-			request.action !== "reset")
-	)
+	if (!request || (request.action !== "create" && request.action !== "undo"))
 		return "invalid_request";
-	if (request.action === "reset") {
-		undoRecords.remove(entity);
-		return "reset_ok";
-	}
 	if (request.action === "undo") {
 		const undo = undoRecords.get(entity);
 		if (!undo) return "nothing_to_undo";

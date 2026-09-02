@@ -1,0 +1,41 @@
+# Source: developer-provided logs/latest.log
+# Scope: builder1 endpoint, crossing, section-core, and gradient diagnostics
+# Omitted: launcher/system details, local paths, unrelated Mod output, chat/player details
+
+[21:11:30] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=rail->free, startBlock=-133,4,91, startPos=-131.9995,4.188,91.5, startDir=6, startYaw=270, startPitch=0.0014324303483590484, startLength=9.683918952941895, endBlock=-161,5,91, endPos=-161,5.913,91.5, endDir=2, endYaw=90, endPitch=-1.432096242904663, endLength=9.683918952941895
+[21:11:30] [Server thread/INFO]: [SuperRailBuilderX builder1] generation order: selected
+[21:11:30] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive sectioned rail created: sections=3, replacedBlocks=2
+[21:11:30] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
+
+[21:13:15] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=free->free, startBlock=-134,4,83, startPos=-133.624,4.063,83.736, startDir=1, startYaw=37.877681732177734, startPitch=0, startLength=9.927068710327148, endBlock=-116,4,107, endPos=-115.339,4.063,107.24300000000001, endDir=5, endYaw=217.877685546875, endPitch=0, endLength=9.927068710327148
+[21:13:15] [Server thread/INFO]: [SuperRailBuilderX builder1] generation order: selected
+[21:13:15] [Server thread/INFO]: [SuperRailBuilderX builder1] intersecting core cleared before placement: pos=-129,4,91, railKey=section:286f20e8-8b3d-4e4c-ae0d-7bd03438fbb3, changed=true
+[21:13:15] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive sectioned rail created: sections=3, replacedBlocks=15
+[21:13:15] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
+
+[21:13:22] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=free->free, startBlock=-130,4,80, startPos=-129.268,4.063,80.89, startDir=0, startYaw=18.558706283569336, startPitch=0, startLength=10.053114891052246, endBlock=-120,4,109, endPos=-119.669,4.063,109.48100000000001, endDir=4, endYaw=198.55870056152344, endPitch=0, endLength=10.053114891052246
+[21:13:22] [Server thread/INFO]: [SuperRailBuilderX builder1] generation order: selected
+[21:13:22] [Server thread/INFO]: [SuperRailBuilderX builder1] intersecting core cleared before placement: pos=-128,4,90, railKey=section:a96ed6b2-0217-456d-a953-194c6d0b80c7, changed=true
+[21:13:22] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive rail creation exception: Error: builder section core tile missing at -128,4,84: changed=false, before=jp.ngt.rtm.rail.BlockLargeRailBase@432b7b7d/0, after=net.minecraft.block.BlockAir@6134ac4a/0, tile=null
+[21:13:22] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=create_failed
+
+[21:13:48] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=free->free, startBlock=-82,4,115, startPos=-81.807,4.063,115.904, startDir=6, startYaw=253.08840942382812, startPitch=0, startLength=5.237844944000244, endBlock=-97,4,111, endPos=-96.84100000000001,4.063,111.333, endDir=2, endYaw=73.08840942382812, endPitch=0, endLength=5.237844944000244
+[21:13:48] [Server thread/INFO]: [SuperRailBuilderX builder1] generation order: selected
+[21:13:48] [Server thread/INFO]: [SuperRailBuilderX builder1] intersecting core cleared before placement: pos=-90,4,112, railKey=section:9ef580aa-abc7-41f0-8070-01d550809282, changed=true
+[21:13:48] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive rail creation exception: Error: builder section core tile missing at -95,4,111: changed=false, before=jp.ngt.rtm.rail.BlockLargeRailBase@432b7b7d/0, after=net.minecraft.block.BlockAir@6134ac4a/0, tile=null
+[21:13:48] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=create_failed
+
+[21:16:18] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=rail->free, startBlock=-113,4,112, startPos=-111.004,4.063,112.748, startDir=6, startYaw=248.87762451171875, startPitch=0, startLength=20.350847244262695, endBlock=-171,4,104, endPos=-170.67919087246645,4.063,104.64816796996273, endDir=2, endYaw=95.66310119628906, endPitch=0, endLength=20.350847244262695
+[21:16:18] [Server thread/INFO]: [SuperRailBuilderX builder1] generation order: selected
+[21:16:18] [Server thread/INFO]: [SuperRailBuilderX builder1] protected connection rail core intersects path: pos=-112,4,112, key=section:696712a3-b07b-4f54-8ac3-4c2be6cbb995
+[21:16:18] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=connection_core_conflict
+
+[21:18:33] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=rail->free, startBlock=-89,4,127, startPos=-89.9263842554315,4.0625,127.36656294964301, startDir=2, startYaw=77.31961059570312, startPitch=0, startLength=10.638315200805664, endBlock=-59,4,134, endPos=-58.817644270734405,4.0945,134.49460754987717, endDir=6, endYaw=256.8692321777344, endPitch=-0.05729576200246811, endLength=10.638315200805664
+[21:18:33] [Server thread/INFO]: [SuperRailBuilderX builder1] generation order: selected
+[21:18:33] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive rail creation exception: Error: builder section core tile missing at -88,4,128: changed=false, before=jp.ngt.rtm.rail.BlockLargeRailBase@432b7b7d/0, after=net.minecraft.block.BlockAir@6134ac4a/0, tile=null
+[21:18:33] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=create_failed
+
+[21:25:09] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=free->rail, startBlock=-162,8,134, startPos=-161.5,8.0625,134, startDir=2, startYaw=84.98741912841797, startPitch=-4.061185359954834, startLength=11.593299865722656, endBlock=-128,4,135, endPos=-127,4.0625,135.5, endDir=6, endYaw=270, endPitch=0, endLength=11.593299865722656
+[21:25:09] [Server thread/INFO]: [SuperRailBuilderX builder1] generation order: reversed_to_lower_y
+[21:25:09] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive sectioned rail created: sections=4, replacedBlocks=4
+[21:25:09] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
