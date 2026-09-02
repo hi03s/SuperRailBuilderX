@@ -9,6 +9,20 @@ export type SRBXCircularConnection = {
 	freePitch: number;
 };
 
+export type SRBXVerticalBuilderPoint = {
+	kind: string;
+	position: SRBXVec3;
+	direction: number;
+	anchorYaw: number;
+	anchorPitch: number;
+	anchorLength: number;
+	anchorLengthVertical?: number;
+	markerPosition: SRBXVec3;
+	ownerBlock?: SRBXVec3;
+	slopeTarget?: boolean;
+	verticalProfile?: "circular_straight" | "circular_limited" | "straight";
+};
+
 export class SRBXMath {
 	static roundToStep(value: number, step: number): number {
 		if (!isFinite(value) || !isFinite(step) || step <= 0) return value;
@@ -228,6 +242,203 @@ export class SRBXMath {
 				(4 / 3) *
 				Math.tan((Math.abs(angleDegrees) * Math.PI) / 720),
 		);
+	}
+
+	private static copyVerticalPoint<T extends SRBXVerticalBuilderPoint>(
+		point: T,
+	): T {
+		const copy = {} as T;
+		const keys = Object.keys(point) as Array<keyof T>;
+		for (let i = 0; i < keys.length; i++) copy[keys[i]] = point[keys[i]];
+		copy.position = [
+			point.position[0],
+			point.position[1],
+			point.position[2],
+		];
+		copy.markerPosition = [
+			point.markerPosition[0],
+			point.markerPosition[1],
+			point.markerPosition[2],
+		];
+		return copy;
+	}
+
+	private static lerpPoint(
+		from: SRBXVec3,
+		to: SRBXVec3,
+		ratio: number,
+	): SRBXVec3 {
+		return [
+			from[0] + (to[0] - from[0]) * ratio,
+			from[1] + (to[1] - from[1]) * ratio,
+			from[2] + (to[2] - from[2]) * ratio,
+		];
+	}
+
+	private static planForwardVerticalProfile<
+		T extends SRBXVerticalBuilderPoint,
+	>(startSource: T, endSource: T): Array<[T, T]> {
+		const start = this.copyVerticalPoint(startSource);
+		const end = this.copyVerticalPoint(endSource);
+		const horizontal = this.horizontalDistance(
+			start.position,
+			end.position,
+		);
+		if (horizontal < 0.001) return [[start, end]];
+		const height = end.position[1] - start.position[1];
+		const startPitch = (start.anchorPitch * Math.PI) / 180;
+		const targetPitch = (-end.anchorPitch * Math.PI) / 180;
+		const sinStart = Math.sin(startPitch);
+		const cosStart = Math.cos(startPitch);
+		const sinTarget = Math.sin(targetPitch);
+		const cosTarget = Math.cos(targetPitch);
+		const arcXFactor = sinTarget - sinStart;
+		const arcYFactor = cosStart - cosTarget;
+		const determinant = arcXFactor * sinTarget - arcYFactor * cosTarget;
+		let radius = NaN;
+		let straightLength = NaN;
+		if (Math.abs(determinant) > 0.000000001) {
+			radius =
+				(horizontal * sinTarget - height * cosTarget) / determinant;
+			straightLength =
+				(arcXFactor * height - arcYFactor * horizontal) / determinant;
+		}
+		const angle = targetPitch - startPitch;
+		const arcX = radius * arcXFactor;
+		const arcY = radius * arcYFactor;
+		const canReachTarget =
+			isFinite(radius) &&
+			isFinite(straightLength) &&
+			radius * angle >= -0.0001 &&
+			straightLength >= -0.0001 &&
+			arcX >= -0.0001 &&
+			arcX <= horizontal + 0.0001;
+		if (canReachTarget && Math.abs(angle) < 0.0000001) {
+			start.anchorLengthVertical = 0;
+			end.anchorLengthVertical = 0;
+			start.verticalProfile = "straight";
+			return [[start, end]];
+		}
+		if (canReachTarget && straightLength > 0.01 && arcX > 0.001) {
+			const ratio = Math.max(0, Math.min(1, arcX / horizontal));
+			const p0 = start.position;
+			const p1 = this.pointAtYawPitchDistance(
+				p0,
+				start.anchorYaw,
+				0,
+				start.anchorLength,
+			);
+			const p3 = end.position;
+			const p2 = this.pointAtYawPitchDistance(
+				p3,
+				end.anchorYaw,
+				0,
+				end.anchorLength,
+			);
+			const a = this.lerpPoint(p0, p1, ratio);
+			const b = this.lerpPoint(p1, p2, ratio);
+			const c = this.lerpPoint(p2, p3, ratio);
+			const d = this.lerpPoint(a, b, ratio);
+			const e = this.lerpPoint(b, c, ratio);
+			const midXZ = this.lerpPoint(d, e, ratio);
+			const mid = this.copyVerticalPoint(start);
+			mid.kind = "free";
+			mid.position = [midXZ[0], start.position[1] + arcY, midXZ[2]];
+			mid.anchorYaw = this.horizontalYaw(mid.position, e);
+			mid.anchorPitch = (targetPitch * 180) / Math.PI;
+			mid.direction = this.directionFromYaw(mid.anchorYaw);
+			mid.markerPosition = [
+				mid.position[0],
+				mid.position[1],
+				mid.position[2],
+			];
+			mid.slopeTarget = false;
+			const leftEnd = this.copyVerticalPoint(mid);
+			leftEnd.anchorYaw = this.horizontalYaw(mid.position, d);
+			leftEnd.anchorPitch = (-targetPitch * 180) / Math.PI;
+			leftEnd.direction = this.directionFromYaw(leftEnd.anchorYaw);
+			const ownerYaw = (leftEnd.direction * 45 * Math.PI) / 180;
+			const ownerY = Math.floor(mid.position[1] - 1 / 16 + 0.000001);
+			leftEnd.ownerBlock = [
+				Math.floor(mid.position[0] + Math.sin(ownerYaw) * 0.000001),
+				ownerY,
+				Math.floor(mid.position[2] + Math.cos(ownerYaw) * 0.000001),
+			];
+			const connectionOffsets: Array<[number, number]> = [
+				[0, -1],
+				[-1, -1],
+				[-1, 0],
+				[-1, 1],
+				[0, 1],
+				[1, 1],
+				[1, 0],
+				[1, -1],
+			];
+			const connectionOffset = connectionOffsets[leftEnd.direction & 7];
+			mid.ownerBlock = [
+				leftEnd.ownerBlock[0] + connectionOffset[0],
+				ownerY,
+				leftEnd.ownerBlock[2] + connectionOffset[1],
+			];
+			start.anchorLength = this.horizontalDistance(p0, a);
+			leftEnd.anchorLength = this.horizontalDistance(mid.position, d);
+			mid.anchorLength = this.horizontalDistance(mid.position, e);
+			end.anchorLength = this.horizontalDistance(p3, c);
+			const verticalAnchor = Math.abs(
+				radius * (4 / 3) * Math.tan(Math.abs(angle) / 4),
+			);
+			start.anchorLengthVertical = verticalAnchor;
+			leftEnd.anchorLengthVertical = verticalAnchor;
+			mid.anchorLengthVertical = 0;
+			end.anchorLengthVertical = 0;
+			start.verticalProfile = "circular_straight";
+			return [
+				[start, leftEnd],
+				[mid, end],
+			];
+		}
+		const chordPitch = Math.atan2(height, horizontal);
+		const reachablePitch = chordPitch * 2 - startPitch;
+		const reachableAngle = reachablePitch - startPitch;
+		const chordLength = Math.sqrt(
+			horizontal * horizontal + height * height,
+		);
+		const sine = Math.sin(reachableAngle / 2);
+		const reachableRadius =
+			Math.abs(sine) < 0.000000001 ? Infinity : chordLength / (2 * sine);
+		const verticalAnchor = isFinite(reachableRadius)
+			? Math.abs(
+					reachableRadius *
+						(4 / 3) *
+						Math.tan(Math.abs(reachableAngle) / 4),
+				)
+			: 0;
+		start.anchorLengthVertical = verticalAnchor;
+		end.anchorPitch = (-reachablePitch * 180) / Math.PI;
+		end.anchorLengthVertical = verticalAnchor;
+		start.verticalProfile = isFinite(reachableRadius)
+			? "circular_limited"
+			: "straight";
+		return [[start, end]];
+	}
+
+	static planVerticalRailSegments<T extends SRBXVerticalBuilderPoint>(
+		start: T,
+		end: T,
+	): Array<[T, T]> {
+		if (!start.slopeTarget && !end.slopeTarget) {
+			const copyStart = this.copyVerticalPoint(start);
+			const copyEnd = this.copyVerticalPoint(end);
+			copyStart.anchorLengthVertical = copyStart.anchorLength;
+			copyEnd.anchorLengthVertical = copyEnd.anchorLength;
+			return [[copyStart, copyEnd]];
+		}
+		if (end.slopeTarget) return this.planForwardVerticalProfile(start, end);
+		const reversed = this.planForwardVerticalProfile(end, start);
+		const result: Array<[T, T]> = [];
+		for (let i = reversed.length - 1; i >= 0; i--)
+			result.push([reversed[i][1], reversed[i][0]]);
+		return result;
 	}
 
 	static continueCircularCurve(

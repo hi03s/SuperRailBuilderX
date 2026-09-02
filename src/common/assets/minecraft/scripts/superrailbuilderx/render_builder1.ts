@@ -567,10 +567,14 @@ function orientPair(
 	}
 	if (state && state.slopePermil !== null) {
 		const pitch = SRBXMath.pitchFromPermil(state.slopePermil);
-		if (start.kind === "rail" && end.kind === "free")
+		if (start.kind === "rail" && end.kind === "free") {
 			end.anchorPitch = -pitch;
-		if (start.kind === "free" && end.kind === "rail")
+			end.slopeTarget = true;
+		}
+		if (start.kind === "free" && end.kind === "rail") {
 			start.anchorPitch = pitch;
+			start.slopeTarget = true;
+		}
 	}
 	return [start, end];
 }
@@ -641,24 +645,44 @@ function renderLine(
 	GL11.glPopMatrix();
 }
 
-function renderBezier(
+function renderBezierSegment(
 	entity: EntityVehicle,
 	partialTicks: number,
 	start: SRBXBuilderPoint,
 	end: SRBXBuilderPoint,
 ): void {
-	const startControl = SRBXMath.pointAtYawPitchDistance(
+	const startHorizontalControl = SRBXMath.pointAtYawPitchDistance(
 		start.position,
 		start.anchorYaw,
-		start.anchorPitch,
+		0,
 		start.anchorLength,
 	);
-	const endControl = SRBXMath.pointAtYawPitchDistance(
+	const endHorizontalControl = SRBXMath.pointAtYawPitchDistance(
 		end.position,
 		end.anchorYaw,
-		end.anchorPitch,
+		0,
 		end.anchorLength,
 	);
+	const startVerticalLength =
+		start.anchorLengthVertical === undefined
+			? start.anchorLength
+			: start.anchorLengthVertical;
+	const endVerticalLength =
+		end.anchorLengthVertical === undefined
+			? end.anchorLength
+			: end.anchorLengthVertical;
+	const startControl: SRBXVec3 = [
+		startHorizontalControl[0],
+		start.position[1] +
+			Math.sin((start.anchorPitch * Math.PI) / 180) * startVerticalLength,
+		startHorizontalControl[2],
+	];
+	const endControl: SRBXVec3 = [
+		endHorizontalControl[0],
+		end.position[1] +
+			Math.sin((end.anchorPitch * Math.PI) / 180) * endVerticalLength,
+		endHorizontalControl[2],
+	];
 	const split = Math.max(
 		8,
 		Math.min(
@@ -678,6 +702,22 @@ function renderBezier(
 		renderLine(entity, partialTicks, previous, current);
 		previous = current;
 	}
+}
+
+function renderBezier(
+	entity: EntityVehicle,
+	partialTicks: number,
+	start: SRBXBuilderPoint,
+	end: SRBXBuilderPoint,
+): void {
+	const segments = SRBXMath.planVerticalRailSegments(start, end);
+	for (let i = 0; i < segments.length; i++)
+		renderBezierSegment(
+			entity,
+			partialTicks,
+			segments[i][0],
+			segments[i][1],
+		);
 }
 
 function orientPanelToPlayer(
@@ -925,7 +965,6 @@ function initializeCurveStartYaw(
 }
 
 function changeCurveRadius(
-	sender: ICommandSender,
 	entity: EntityVehicle,
 	partialTicks: number,
 	state: BuilderState,
@@ -936,10 +975,6 @@ function changeCurveRadius(
 	state.curveRadius = Math.max(
 		1,
 		Math.min(MAX_CURVE_RADIUS, state.curveRadius + delta),
-	);
-	NGTLog.sendChatMessage(
-		sender,
-		`[SuperRailBuilderX] 固定半径: ${state.curveRadius >= MAX_CURVE_RADIUS ? "∞" : `${state.curveRadius}m`}`,
 	);
 }
 
@@ -960,10 +995,6 @@ function changeHeightOrSlope(
 	if (!fine && hasSlopeAdjustment(state)) {
 		if (state.slopePermil === null) state.slopePermil = 0;
 		state.slopePermil += direction;
-		NGTLog.sendChatMessage(
-			sender,
-			`[SuperRailBuilderX] 終端勾配: ${state.slopePermil}‰`,
-		);
 		return;
 	}
 	state.heightOffsetSixteenths += direction * (fine ? 1 : 16);
@@ -1028,19 +1059,15 @@ function handleInput(
 			state.curveKeepSelectedEndpoints = state.selected.length === 2;
 			if (pair) state.curveStartYaw = pair[0].anchorYaw;
 		}
-		NGTLog.sendChatMessage(
-			sender,
-			`[SuperRailBuilderX] 曲線半径固定: ${state.curveRadiusLocked ? `ON (${state.curveRadius >= MAX_CURVE_RADIUS ? "∞" : `${state.curveRadius}m`})` : "OFF"}`,
-		);
 	}
 	if (repeatedKey(state, "radiusIncrease"))
-		changeCurveRadius(sender, entity, partialTicks, state, 1);
+		changeCurveRadius(entity, partialTicks, state, 1);
 	if (repeatedKey(state, "radiusDecrease"))
-		changeCurveRadius(sender, entity, partialTicks, state, -1);
+		changeCurveRadius(entity, partialTicks, state, -1);
 	if (repeatedKey(state, "radiusIncreaseFast"))
-		changeCurveRadius(sender, entity, partialTicks, state, 100);
+		changeCurveRadius(entity, partialTicks, state, 100);
 	if (repeatedKey(state, "radiusDecreaseFast"))
-		changeCurveRadius(sender, entity, partialTicks, state, -100);
+		changeCurveRadius(entity, partialTicks, state, -100);
 	if (repeatedKey(state, "heightUp"))
 		changeHeightOrSlope(sender, state, 1, false);
 	if (repeatedKey(state, "heightDown"))

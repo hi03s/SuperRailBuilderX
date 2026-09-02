@@ -10,6 +10,7 @@ import {
 	SRBXApiCompat,
 	SRBXBuilderPoint,
 } from "@target/assets/minecraft/scripts/superrailbuilderx/SRBXApiCompat";
+import { SRBXMath } from "./SRBXMath";
 
 const VERSION = "0.1.0";
 
@@ -22,8 +23,10 @@ export type Builder1Request =
 	| { action: "undo" };
 
 type UndoRecord = {
-	core: [number, number, number];
-	key: string;
+	rails: Array<{
+		core: [number, number, number];
+		key: string;
+	}>;
 };
 
 const hosts: WeakHashMap<Entity, EntityPlayer> = new WeakHashMap();
@@ -40,29 +43,68 @@ function processRequest(
 	if (request.action === "undo") {
 		const undo = undoRecords.get(entity);
 		if (!undo) return "nothing_to_undo";
-		const result = SRBXApiCompat.undoBuilderRail(
-			world,
-			undo.core[0],
-			undo.core[1],
-			undo.core[2],
-			undo.key,
-		);
-		if (result === "ok") undoRecords.remove(entity);
-		return result === "ok" ? "undo_ok" : result;
+		for (let i = undo.rails.length - 1; i >= 0; i--) {
+			const rail = undo.rails[i];
+			const result = SRBXApiCompat.undoBuilderRail(
+				world,
+				rail.core[0],
+				rail.core[1],
+				rail.core[2],
+				rail.key,
+			);
+			if (result !== "ok") return result;
+		}
+		undoRecords.remove(entity);
+		return "undo_ok";
 	}
-	const result = SRBXApiCompat.createBuilderRail(
-		world,
-		host,
+	const segments = SRBXMath.planVerticalRailSegments(
 		request.start,
 		request.end,
 	);
-	if (result.status === "ok" && result.undoCore && result.undoKey) {
-		undoRecords.put(entity, {
-			core: result.undoCore,
-			key: result.undoKey,
-		});
+	segments.sort((a, b) => {
+		const aMinimumY = Math.min(a[0].position[1], a[1].position[1]);
+		const bMinimumY = Math.min(b[0].position[1], b[1].position[1]);
+		return aMinimumY - bMinimumY;
+	});
+	let verticalProfile = "default";
+	for (let i = 0; i < segments.length; i++) {
+		verticalProfile =
+			segments[i][0].verticalProfile ||
+			segments[i][1].verticalProfile ||
+			verticalProfile;
 	}
-	return result.status;
+	NGTLog.debug(
+		`[SuperRailBuilderX builder1] vertical profile plan: type=${verticalProfile}, logicalRails=${segments.length}`,
+	);
+	const created: Array<{
+		core: [number, number, number];
+		key: string;
+	}> = [];
+	for (let i = 0; i < segments.length; i++) {
+		const result = SRBXApiCompat.createBuilderRail(
+			world,
+			host,
+			segments[i][0],
+			segments[i][1],
+			created.map((rail) => rail.key),
+		);
+		if (result.status !== "ok" || !result.undoCore || !result.undoKey) {
+			for (let rollback = created.length - 1; rollback >= 0; rollback--) {
+				const rail = created[rollback];
+				SRBXApiCompat.undoBuilderRail(
+					world,
+					rail.core[0],
+					rail.core[1],
+					rail.core[2],
+					rail.key,
+				);
+			}
+			return result.status;
+		}
+		created.push({ core: result.undoCore, key: result.undoKey });
+	}
+	undoRecords.put(entity, { rails: created });
+	return "ok";
 }
 
 function onUpdate(entity: EntityVehicle, scriptExecuter: ScriptExecuter): void {

@@ -41,8 +41,12 @@ type BuilderPoint = {
 	anchorYaw: number;
 	anchorPitch: number;
 	anchorLength: number;
+	anchorLengthVertical?: number;
 	markerPosition: [number, number, number];
+	ownerBlock?: [number, number, number];
 	curveRadius?: number;
+	slopeTarget?: boolean;
+	verticalProfile?: "circular_straight" | "circular_limited" | "straight";
 	core?: [number, number, number];
 	index?: number;
 };
@@ -56,6 +60,12 @@ type RailSectionPlan = {
 
 type RailSectionMap = {
 	getRailBlockList(property: RailProperty): java.util.List<JavaIntArray>;
+	getStartRP(): RailPosition;
+	getEndRP(): RailPosition;
+	getLength(): number;
+	getRailPos(split: number, index: number): JavaDoubleArray;
+	getRailHeight(split: number, index: number): number;
+	getRailYaw(split: number, index: number): number;
 };
 
 declare const Packages: {
@@ -1345,6 +1355,13 @@ export class SRBXApiCompat {
 			)
 				return "invalid_rail_point";
 		}
+		if (
+			point.ownerBlock &&
+			(!isFinite(point.ownerBlock[0]) ||
+				!isFinite(point.ownerBlock[1]) ||
+				!isFinite(point.ownerBlock[2]))
+		)
+			return "invalid_point";
 		return "ok";
 	}
 
@@ -1394,13 +1411,21 @@ export class SRBXApiCompat {
 		const yawRadians = (direction * 45 * Math.PI) / 180;
 		const insideDistance = 0.000001;
 		const result = new RailPosition(
-			Math.floor(
-				point.position[0] + Math.sin(yawRadians) * insideDistance,
-			),
-			Math.floor(point.position[1] - 1 / 16 + 0.000001),
-			Math.floor(
-				point.position[2] + Math.cos(yawRadians) * insideDistance,
-			),
+			point.ownerBlock
+				? Math.floor(point.ownerBlock[0])
+				: Math.floor(
+						point.position[0] +
+							Math.sin(yawRadians) * insideDistance,
+					),
+			point.ownerBlock
+				? Math.floor(point.ownerBlock[1])
+				: Math.floor(point.position[1] - 1 / 16 + 0.000001),
+			point.ownerBlock
+				? Math.floor(point.ownerBlock[2])
+				: Math.floor(
+						point.position[2] +
+							Math.cos(yawRadians) * insideDistance,
+					),
 			direction,
 		);
 		result.anchorYaw = this.normalizeDegrees(point.anchorYaw);
@@ -1428,6 +1453,77 @@ export class SRBXApiCompat {
 		return property;
 	}
 
+	private static normalizeBuilderTrig(value: number): number {
+		if (Math.abs(value) < 0.000000001) return 0;
+		if (Math.abs(value - 1) < 0.000000001) return 1;
+		if (Math.abs(value + 1) < 0.000000001) return -1;
+		return value;
+	}
+
+	private static getBuilderRoadbedBlocks(
+		railMap: RailSectionMap,
+		property: RailProperty,
+	): Array<[number, number, number]> {
+		const propertyWithModel = property as unknown as {
+			getModelSet(): { getConfig(): { ballastWidth: number } };
+		};
+		const width =
+			propertyWithModel.getModelSet().getConfig().ballastWidth >> 1;
+		const split = Math.floor(railMap.getLength() * 4);
+		const startNeighbor = railMap.getStartRP().getNeighborPos();
+		const endNeighbor = railMap.getEndRP().getNeighborPos();
+		const blocks: { [horizontalKey: string]: [number, number, number] } =
+			{};
+		const add = (x: number, y: number, z: number): void => {
+			if (
+				(x === startNeighbor[0] &&
+					y === startNeighbor[1] &&
+					z === startNeighbor[2]) ||
+				(x === endNeighbor[0] &&
+					y === endNeighbor[1] &&
+					z === endNeighbor[2])
+			)
+				return;
+			const key = `${x},${z}`;
+			const previous = blocks[key];
+			if (!previous || y < previous[1]) blocks[key] = [x, y, z];
+		};
+		for (let j = 0; j < split; j++) {
+			const point = railMap.getRailPos(split, j);
+			const x = point[1];
+			const z = point[0];
+			const yaw = (railMap.getRailYaw(split, j) * Math.PI) / 180;
+			const yValue = railMap.getRailHeight(split, j);
+			const y = yValue < 0 ? Math.ceil(yValue) : Math.floor(yValue);
+			const plusX = this.normalizeBuilderTrig(
+				Math.sin(yaw + Math.PI / 2),
+			);
+			const plusZ = this.normalizeBuilderTrig(
+				Math.cos(yaw + Math.PI / 2),
+			);
+			const minusX = this.normalizeBuilderTrig(
+				Math.sin(yaw - Math.PI / 2),
+			);
+			const minusZ = this.normalizeBuilderTrig(
+				Math.cos(yaw - Math.PI / 2),
+			);
+			for (let offset = 1; offset <= width; offset++) {
+				add(
+					Math.floor(x + plusX * offset),
+					y,
+					Math.floor(z + plusZ * offset),
+				);
+				add(
+					Math.floor(x + minusX * offset),
+					y,
+					Math.floor(z + minusZ * offset),
+				);
+			}
+			add(Math.floor(x), y, Math.floor(z));
+		}
+		return Object.keys(blocks).map((key) => blocks[key]);
+	}
+
 	private static placeBuilderRoadbed(
 		world: net.minecraft.world.World,
 		railMap: RailSectionMap,
@@ -1437,10 +1533,10 @@ export class SRBXApiCompat {
 		property: RailProperty,
 		protectedRailKeys: { [key: string]: boolean },
 	): number {
-		const blocks = railMap.getRailBlockList(property);
+		const blocks = this.getBuilderRoadbedBlocks(railMap, property);
 		let replaced = 0;
-		for (let i = 0; i < blocks.size(); i++) {
-			const pos = blocks.get(i);
+		for (let i = 0; i < blocks.length; i++) {
+			const pos = blocks[i];
 			const existingTile = world.getTileEntity(pos[0], pos[1], pos[2]);
 			if (existingTile instanceof TileEntityLargeRailBase) {
 				const owner = existingTile.getRailCore();
@@ -1516,9 +1612,12 @@ export class SRBXApiCompat {
 			};
 		} = {};
 		for (let mapIndex = 0; mapIndex < maps.length; mapIndex++) {
-			const blocks = maps[mapIndex].getRailBlockList(property);
-			for (let i = 0; i < blocks.size(); i++) {
-				const pos = blocks.get(i);
+			const blocks = this.getBuilderRoadbedBlocks(
+				maps[mapIndex],
+				property,
+			);
+			for (let i = 0; i < blocks.length; i++) {
+				const pos = blocks[i];
 				const tile = world.getTileEntity(pos[0], pos[1], pos[2]);
 				if (!(tile instanceof TileEntityLargeRailCore)) continue;
 				const core = tile.getRailCore();
@@ -1553,9 +1652,9 @@ export class SRBXApiCompat {
 		railMap: RailSectionMap,
 		property: RailProperty,
 	): boolean {
-		const blocks = railMap.getRailBlockList(property);
-		for (let i = 0; i < blocks.size(); i++) {
-			const pos = blocks.get(i);
+		const blocks = this.getBuilderRoadbedBlocks(railMap, property);
+		for (let i = 0; i < blocks.length; i++) {
+			const pos = blocks[i];
 			if (!world.blockExists(pos[0], pos[1], pos[2])) return false;
 		}
 		return true;
@@ -1566,6 +1665,7 @@ export class SRBXApiCompat {
 		source: RailMapBasic,
 		sections: java.util.List<RailSectionPlan>,
 		property: RailProperty,
+		protectedRailKeys: { [key: string]: boolean },
 	): string {
 		const used: { [key: string]: boolean } = {};
 		for (let i = 0; i < sections.size(); i++) {
@@ -1582,6 +1682,24 @@ export class SRBXApiCompat {
 			);
 			if (!(existing instanceof BlockLargeRailBase)) continue;
 			if (i === 0) {
+				const existingTile = world.getTileEntity(
+					start.blockX,
+					start.blockY,
+					start.blockZ,
+				);
+				if (
+					!existing.isCore() &&
+					existingTile instanceof TileEntityLargeRailBase
+				) {
+					const owner = existingTile.getRailCore();
+					if (
+						owner &&
+						protectedRailKeys[
+							this.getRailPositionCandidateKey(owner)
+						]
+					)
+						continue;
+				}
 				NGTLog.debug(
 					`[SuperRailBuilderX builder1] logical start core position is occupied by rail: pos=${start.blockX},${start.blockY},${start.blockZ}`,
 				);
@@ -1595,10 +1713,10 @@ export class SRBXApiCompat {
 					section.getStartRatio(),
 					section.getEndRatio(),
 				);
-			const blocks = sectionMap.getRailBlockList(property);
-			let replacement: JavaIntArray | null = null;
-			for (let blockIndex = 0; blockIndex < blocks.size(); blockIndex++) {
-				const candidate = blocks.get(blockIndex);
+			const blocks = this.getBuilderRoadbedBlocks(sectionMap, property);
+			let replacement: [number, number, number] | null = null;
+			for (let blockIndex = 0; blockIndex < blocks.length; blockIndex++) {
+				const candidate = blocks[blockIndex];
 				const key = `${candidate[0]},${candidate[1]},${candidate[2]}`;
 				if (
 					used[key] ||
@@ -1831,6 +1949,7 @@ export class SRBXApiCompat {
 		player: EntityPlayer,
 		start: BuilderPoint,
 		end: BuilderPoint,
+		additionalProtectedRailKeys?: string[],
 	) {
 		const startValidation = this.validateBuilderPoint(start);
 		if (startValidation !== "ok") return { status: startValidation };
@@ -1842,7 +1961,6 @@ export class SRBXApiCompat {
 		const length = Math.sqrt(dx * dx + dy * dy + dz * dz);
 		if (length < 0.01) return { status: "rail_too_short" };
 		if (
-			Math.abs(start.anchorLength - end.anchorLength) > 0.001 ||
 			start.anchorLength > Math.max(1, length * 4) ||
 			end.anchorLength > Math.max(1, length * 4)
 		)
@@ -1873,8 +1991,14 @@ export class SRBXApiCompat {
 		if (!startRP || !endRP) return { status: "rail_endpoint_changed" };
 		startRP.anchorLengthHorizontal = start.anchorLength;
 		endRP.anchorLengthHorizontal = end.anchorLength;
-		startRP.anchorLengthVertical = start.anchorLength;
-		endRP.anchorLengthVertical = end.anchorLength;
+		startRP.anchorLengthVertical =
+			start.anchorLengthVertical === undefined
+				? start.anchorLength
+				: start.anchorLengthVertical;
+		endRP.anchorLengthVertical =
+			end.anchorLengthVertical === undefined
+				? end.anchorLength
+				: end.anchorLengthVertical;
 		if (
 			!world.blockExists(
 				startRP.blockX,
@@ -1902,12 +2026,21 @@ export class SRBXApiCompat {
 			Packages.jp.kaiz.kaizpatch.rtm.rail.util.RailChunkSectioner.split(
 				source,
 			);
+		const protectedRailKeys = this.getBuilderProtectedRailKeys(
+			world,
+			start,
+			end,
+		);
+		if (additionalProtectedRailKeys)
+			for (let i = 0; i < additionalProtectedRailKeys.length; i++)
+				protectedRailKeys[additionalProtectedRailKeys[i]] = true;
 		if (sections.size() > 1) {
 			const corePreparation = this.prepareBuilderSectionCorePositions(
 				world,
 				source,
 				sections,
 				property,
+				protectedRailKeys,
 			);
 			if (corePreparation !== "ok") return { status: corePreparation };
 		} else if (
@@ -1917,10 +2050,30 @@ export class SRBXApiCompat {
 				positions[0].blockZ,
 			) instanceof BlockLargeRailBase
 		) {
-			NGTLog.debug(
-				`[SuperRailBuilderX builder1] normal core position is occupied by rail: pos=${positions[0].blockX},${positions[0].blockY},${positions[0].blockZ}`,
+			const startBlock = world.getBlock(
+				positions[0].blockX,
+				positions[0].blockY,
+				positions[0].blockZ,
+			) as unknown as BlockLargeRailBase;
+			const startBase = world.getTileEntity(
+				positions[0].blockX,
+				positions[0].blockY,
+				positions[0].blockZ,
 			);
-			return { status: "section_core_conflict" };
+			const owner =
+				startBase instanceof TileEntityLargeRailBase
+					? startBase.getRailCore()
+					: null;
+			const protectedRoadbed =
+				!startBlock.isCore() &&
+				owner &&
+				protectedRailKeys[this.getRailPositionCandidateKey(owner)];
+			if (!protectedRoadbed) {
+				NGTLog.debug(
+					`[SuperRailBuilderX builder1] normal core position is occupied by rail: pos=${positions[0].blockX},${positions[0].blockY},${positions[0].blockZ}`,
+				);
+				return { status: "section_core_conflict" };
+			}
 		}
 		const placementMaps: RailSectionMap[] = [];
 		if (sections.size() > 1) {
@@ -1941,11 +2094,6 @@ export class SRBXApiCompat {
 		} else if (!this.isBuilderRoadbedLoaded(world, source, property)) {
 			return { status: "path_unloaded" };
 		} else placementMaps.push(source);
-		const protectedRailKeys = this.getBuilderProtectedRailKeys(
-			world,
-			start,
-			end,
-		);
 		const preparation = this.validateBuilderPlacement(
 			world,
 			placementMaps,
@@ -2002,9 +2150,63 @@ export class SRBXApiCompat {
 		if (this.getRailPositionCandidateKey(core) !== expectedKey)
 			return "undo_rail_changed";
 		if (core.isLogicalRailOccupied()) return "rail_occupied";
+		const correctedRoadbeds: Array<{
+			position: [number, number, number];
+			tile: TileEntityLargeRailBase;
+		}> = [];
+		let cleanupMap = core.getRailMap(null) as unknown as RailSectionMap;
+		if (this.isSectionCore(core)) {
+			const logical = core.getLogicalRailPositions();
+			if (logical && logical.length >= 2)
+				cleanupMap = new RailMapBasic(
+					logical[0],
+					logical[1],
+					core.fixRTMRailMapVersion,
+				) as unknown as RailSectionMap;
+		}
+		if (cleanupMap) {
+			const blocks = this.getBuilderRoadbedBlocks(
+				cleanupMap,
+				core.getProperty(),
+			);
+			for (let i = 0; i < blocks.length; i++) {
+				const pos = blocks[i];
+				const roadbed = world.getTileEntity(pos[0], pos[1], pos[2]);
+				if (!(roadbed instanceof TileEntityLargeRailBase)) continue;
+				const owner = roadbed.getRailCore();
+				if (owner && core.isSameLogicalRail(owner))
+					correctedRoadbeds.push({ position: pos, tile: roadbed });
+			}
+		}
 		core.breakLogicalRail();
+		let correctedRemoved = 0;
+		for (let i = 0; i < correctedRoadbeds.length; i++) {
+			const target = correctedRoadbeds[i];
+			const current = world.getTileEntity(
+				target.position[0],
+				target.position[1],
+				target.position[2],
+			);
+			if (current !== target.tile) continue;
+			world.setBlockToAir(
+				target.position[0],
+				target.position[1],
+				target.position[2],
+			);
+			world.removeTileEntity(
+				target.position[0],
+				target.position[1],
+				target.position[2],
+			);
+			world.markBlockForUpdate(
+				target.position[0],
+				target.position[1],
+				target.position[2],
+			);
+			correctedRemoved++;
+		}
 		NGTLog.debug(
-			`[SuperRailBuilderX builder1] generated logical rail removed by undo: core=${coreX},${coreY},${coreZ}`,
+			`[SuperRailBuilderX builder1] generated logical rail removed by undo: core=${coreX},${coreY},${coreZ}, correctedRoadbeds=${correctedRemoved}`,
 		);
 		return "ok";
 	}

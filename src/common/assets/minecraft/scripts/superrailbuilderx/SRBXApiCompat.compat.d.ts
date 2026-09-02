@@ -14,8 +14,12 @@ export type SRBXBuilderPoint = {
 	anchorYaw: number;
 	anchorPitch: number;
 	anchorLength: number;
+	anchorLengthVertical?: number;
 	markerPosition: RailCorePos;
+	ownerBlock?: RailCorePos;
 	curveRadius?: number;
+	slopeTarget?: boolean;
+	verticalProfile?: "circular_straight" | "circular_limited" | "straight";
 	core?: RailCorePos;
 	index?: number;
 };
@@ -106,6 +110,7 @@ export class SRBXApiCompat {
 		player: EntityPlayer,
 		start: SRBXBuilderPoint,
 		end: SRBXBuilderPoint,
+		additionalProtectedRailKeys?: string[],
 	): SRBXBuilderCreateResult;
 	static undoBuilderRail(
 		world: World,

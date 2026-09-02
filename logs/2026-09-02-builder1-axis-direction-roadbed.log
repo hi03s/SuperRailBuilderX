@@ -1,0 +1,25 @@
+[22:21:07] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=free->free, startBlock=-169,4,80, startPos=-168,4.0625,80.5, startDir=6, startYaw=270, startPitch=0, startLengthH=4.666666507720947, startLengthV=4.666666507720947, endBlock=-182,4,80, endPos=-182,4.0625,80.5, endDir=2, endYaw=90, endPitch=0, endLengthH=4.666666507720947, endLengthV=4.666666507720947
+[22:21:07] [Server thread/INFO]: [SuperRailBuilderX builder1] generation order: selected
+[22:21:07] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive sectioned rail created: sections=2, replacedBlocks=0
+[22:21:07] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
+[22:21:25] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=free->free, startBlock=-182,4,74, startPos=-181.5,4.0625,74.5, startDir=0, startYaw=0, startPitch=0, startLengthH=3.8333332538604736, startLengthV=3.8333332538604736, endBlock=-182,4,85, endPos=-181.5,4.0625,86, endDir=4, endYaw=180, endPitch=0, endLengthH=3.8333332538604736, endLengthV=3.8333332538604736
+[22:21:25] [Server thread/INFO]: [SuperRailBuilderX builder1] generation order: selected
+[22:21:25] [Server thread/INFO]: [SuperRailBuilderX builder1] section core relocated from occupied roadbed: from=-182,4,80, to=-183,4,80
+[22:21:25] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive sectioned rail created: sections=2, replacedBlocks=6
+[22:21:25] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
+[22:21:40] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=free->free, startBlock=-172,4,74, startPos=-172,4.0625,74.5, startDir=2, startYaw=90, startPitch=0, startLengthH=2.6666667461395264, startLengthV=2.6666667461395264, endBlock=-165,4,74, endPos=-164,4.0625,74.5, endDir=6, endYaw=270, endPitch=0, endLengthH=2.6666667461395264, endLengthV=2.6666667461395264
+[22:21:40] [Server thread/INFO]: [SuperRailBuilderX builder1] generation order: selected
+[22:21:40] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive normal rail created: replacedBlocks=0
+[22:21:40] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
+[22:21:47] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=free->free, startBlock=-165,4,70, startPos=-164,4.0625,70.5, startDir=6, startYaw=270, startPitch=0, startLengthH=2.6666667461395264, startLengthV=2.6666667461395264, endBlock=-172,4,70, endPos=-172,4.0625,70.5, endDir=2, endYaw=90, endPitch=0, endLengthH=2.6666667461395264, endLengthV=2.6666667461395264
+[22:21:47] [Server thread/INFO]: [SuperRailBuilderX builder1] generation order: selected
+[22:21:47] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive normal rail created: replacedBlocks=0
+[22:21:47] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
+[22:22:18] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=free->free, startBlock=-162,4,72, startPos=-161.5,4.0625,73, startDir=4, startYaw=180, startPitch=0, startLengthH=2.3333332538604736, startLengthV=2.3333332538604736, endBlock=-162,4,66, endPos=-161.5,4.0625,66, endDir=0, endYaw=0, endPitch=0, endLengthH=2.3333332538604736, endLengthV=2.3333332538604736
+[22:22:18] [Server thread/INFO]: [SuperRailBuilderX builder1] generation order: selected
+[22:22:18] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive normal rail created: replacedBlocks=0
+[22:22:18] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
+[22:22:28] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=free->free, startBlock=-158,4,66, startPos=-157.5,4.0625,66, startDir=0, startYaw=0, startPitch=0, startLengthH=2.3333332538604736, startLengthV=2.3333332538604736, endBlock=-158,4,72, endPos=-157.5,4.0625,73, endDir=4, endYaw=180, endPitch=0, endLengthH=2.3333332538604736, endLengthV=2.3333332538604736
+[22:22:28] [Server thread/INFO]: [SuperRailBuilderX builder1] generation order: selected
+[22:22:28] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive normal rail created: replacedBlocks=0
+[22:22:28] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
