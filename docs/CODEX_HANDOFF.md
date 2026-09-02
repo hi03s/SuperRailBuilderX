@@ -122,7 +122,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 全体の `pnpm format:check` は参照専用ツールキットとNGTOBuilder2サンプルを含む既存26ファイルのみ失敗。今回変更したSuperRailBuilderXファイルは整形済み。
 - ゲーム内動作は未検証。破壊的敷設のため、上記手順を必ずバックアップ済みワールドで再デバッグする必要がある。
 - 実装コミット: https://github.com/hi03s/SuperRailBuilderX/commit/2d971ab518ebc207fd4f9455658b07f33e8bb1a4
-- 同期: `origin/main` へ同期する。
+- 同期: `origin/main` へ同期済み。
 
 ### 2026-09-01 ローカルCodex — 空気限定道床と通常レール再生成修正
 
