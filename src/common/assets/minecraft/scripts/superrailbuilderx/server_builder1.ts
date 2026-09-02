@@ -74,7 +74,7 @@ function processRequest(
 			verticalProfile;
 	}
 	NGTLog.debug(
-		`[SuperRailBuilderX builder1] vertical profile plan: type=${verticalProfile}, logicalRails=${segments.length}`,
+		`[SuperRailBuilderX builder1] vertical profile plan: type=${verticalProfile}, logicalRails=${segments.length}, radius=${request.start.verticalCurveRadius || request.end.verticalCurveRadius || "default"}`,
 	);
 	const created: Array<{
 		core: [number, number, number];

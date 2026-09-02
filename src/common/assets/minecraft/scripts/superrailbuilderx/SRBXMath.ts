@@ -1,5 +1,7 @@
 export type SRBXVec3 = [x: number, y: number, z: number];
 
+const DEFAULT_VERTICAL_CURVE_RADIUS = 1000;
+
 export type SRBXCircularConnection = {
 	intersection: SRBXVec3;
 	radius: number;
@@ -20,6 +22,7 @@ export type SRBXVerticalBuilderPoint = {
 	markerPosition: SRBXVec3;
 	ownerBlock?: SRBXVec3;
 	slopeTarget?: boolean;
+	verticalCurveRadius?: number;
 	verticalProfile?: "circular_straight" | "circular_limited" | "straight";
 };
 
@@ -285,42 +288,44 @@ export class SRBXMath {
 			end.position,
 		);
 		if (horizontal < 0.001) return [[start, end]];
-		const height = end.position[1] - start.position[1];
 		const startPitch = (start.anchorPitch * Math.PI) / 180;
 		const targetPitch = (-end.anchorPitch * Math.PI) / 180;
-		const sinStart = Math.sin(startPitch);
-		const cosStart = Math.cos(startPitch);
-		const sinTarget = Math.sin(targetPitch);
-		const cosTarget = Math.cos(targetPitch);
-		const arcXFactor = sinTarget - sinStart;
-		const arcYFactor = cosStart - cosTarget;
-		const determinant = arcXFactor * sinTarget - arcYFactor * cosTarget;
-		let radius = NaN;
-		let straightLength = NaN;
-		if (Math.abs(determinant) > 0.000000001) {
-			radius =
-				(horizontal * sinTarget - height * cosTarget) / determinant;
-			straightLength =
-				(arcXFactor * height - arcYFactor * horizontal) / determinant;
-		}
 		const angle = targetPitch - startPitch;
-		const arcX = radius * arcXFactor;
-		const arcY = radius * arcYFactor;
-		const canReachTarget =
-			isFinite(radius) &&
-			isFinite(straightLength) &&
-			radius * angle >= -0.0001 &&
-			straightLength >= -0.0001 &&
-			arcX >= -0.0001 &&
-			arcX <= horizontal + 0.0001;
-		if (canReachTarget && Math.abs(angle) < 0.0000001) {
+		if (Math.abs(angle) < 0.0000001) {
+			end.position[1] =
+				start.position[1] + horizontal * Math.tan(targetPitch);
 			start.anchorLengthVertical = 0;
 			end.anchorLengthVertical = 0;
 			start.verticalProfile = "straight";
 			return [[start, end]];
 		}
-		if (canReachTarget && straightLength > 0.01 && arcX > 0.001) {
-			const ratio = Math.max(0, Math.min(1, arcX / horizontal));
+		const configuredRadius =
+			end.verticalCurveRadius !== undefined &&
+			isFinite(end.verticalCurveRadius)
+				? Math.max(
+						DEFAULT_VERTICAL_CURVE_RADIUS,
+						Math.abs(end.verticalCurveRadius),
+					)
+				: DEFAULT_VERTICAL_CURVE_RADIUS;
+		const radius = angle > 0 ? configuredRadius : -configuredRadius;
+		const arcX = radius * (Math.sin(targetPitch) - Math.sin(startPitch));
+		const arcY = radius * (Math.cos(startPitch) - Math.cos(targetPitch));
+		const reachesTarget = arcX > 0.001 && arcX <= horizontal + 0.0001;
+		if (reachesTarget) {
+			const remainingHorizontal = Math.max(0, horizontal - arcX);
+			const verticalAnchor = Math.abs(
+				radius * (4 / 3) * Math.tan(Math.abs(angle) / 4),
+			);
+			if (remainingHorizontal <= 0.01) {
+				end.position[1] =
+					start.position[1] +
+					arcY +
+					remainingHorizontal * Math.tan(targetPitch);
+				start.anchorLengthVertical = verticalAnchor;
+				end.anchorLengthVertical = verticalAnchor;
+				start.verticalProfile = "circular_straight";
+				return [[start, end]];
+			}
 			const p0 = start.position;
 			const p1 = this.pointAtYawPitchDistance(
 				p0,
@@ -335,12 +340,36 @@ export class SRBXMath {
 				0,
 				end.anchorLength,
 			);
+			let ratioMinimum = 0;
+			let ratioMaximum = 1;
+			for (let i = 0; i < 24; i++) {
+				const candidateRatio = (ratioMinimum + ratioMaximum) / 2;
+				const candidate = this.cubicBezierPoint(
+					p0,
+					p1,
+					p2,
+					p3,
+					candidateRatio,
+				);
+				if (this.horizontalDistance(p0, candidate) < arcX)
+					ratioMinimum = candidateRatio;
+				else ratioMaximum = candidateRatio;
+			}
+			const ratio = (ratioMinimum + ratioMaximum) / 2;
 			const a = this.lerpPoint(p0, p1, ratio);
 			const b = this.lerpPoint(p1, p2, ratio);
 			const c = this.lerpPoint(p2, p3, ratio);
 			const d = this.lerpPoint(a, b, ratio);
 			const e = this.lerpPoint(b, c, ratio);
 			const midXZ = this.lerpPoint(d, e, ratio);
+			const straightHorizontal = this.horizontalDistance(
+				midXZ,
+				end.position,
+			);
+			end.position[1] =
+				start.position[1] +
+				arcY +
+				straightHorizontal * Math.tan(targetPitch);
 			const mid = this.copyVerticalPoint(start);
 			mid.kind = "free";
 			mid.position = [midXZ[0], start.position[1] + arcY, midXZ[2]];
@@ -384,9 +413,6 @@ export class SRBXMath {
 			leftEnd.anchorLength = this.horizontalDistance(mid.position, d);
 			mid.anchorLength = this.horizontalDistance(mid.position, e);
 			end.anchorLength = this.horizontalDistance(p3, c);
-			const verticalAnchor = Math.abs(
-				radius * (4 / 3) * Math.tan(Math.abs(angle) / 4),
-			);
 			start.anchorLengthVertical = verticalAnchor;
 			leftEnd.anchorLengthVertical = verticalAnchor;
 			mid.anchorLengthVertical = 0;
@@ -397,28 +423,22 @@ export class SRBXMath {
 				[mid, end],
 			];
 		}
-		const chordPitch = Math.atan2(height, horizontal);
-		const reachablePitch = chordPitch * 2 - startPitch;
-		const reachableAngle = reachablePitch - startPitch;
-		const chordLength = Math.sqrt(
-			horizontal * horizontal + height * height,
+		const reachableSine = Math.max(
+			-1,
+			Math.min(1, Math.sin(startPitch) + horizontal / radius),
 		);
-		const sine = Math.sin(reachableAngle / 2);
-		const reachableRadius =
-			Math.abs(sine) < 0.000000001 ? Infinity : chordLength / (2 * sine);
-		const verticalAnchor = isFinite(reachableRadius)
-			? Math.abs(
-					reachableRadius *
-						(4 / 3) *
-						Math.tan(Math.abs(reachableAngle) / 4),
-				)
-			: 0;
+		const reachablePitch = Math.asin(reachableSine);
+		const reachableAngle = reachablePitch - startPitch;
+		end.position[1] =
+			start.position[1] +
+			radius * (Math.cos(startPitch) - Math.cos(reachablePitch));
+		const verticalAnchor = Math.abs(
+			radius * (4 / 3) * Math.tan(Math.abs(reachableAngle) / 4),
+		);
 		start.anchorLengthVertical = verticalAnchor;
 		end.anchorPitch = (-reachablePitch * 180) / Math.PI;
 		end.anchorLengthVertical = verticalAnchor;
-		start.verticalProfile = isFinite(reachableRadius)
-			? "circular_limited"
-			: "straight";
+		start.verticalProfile = "circular_limited";
 		return [[start, end]];
 	}
 

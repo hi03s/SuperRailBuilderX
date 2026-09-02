@@ -46,6 +46,7 @@ type BuilderPoint = {
 	ownerBlock?: [number, number, number];
 	curveRadius?: number;
 	slopeTarget?: boolean;
+	verticalCurveRadius?: number;
 	verticalProfile?: "circular_straight" | "circular_limited" | "straight";
 	core?: [number, number, number];
 	index?: number;
@@ -1495,6 +1496,17 @@ export class SRBXApiCompat {
 			const yaw = (railMap.getRailYaw(split, j) * Math.PI) / 180;
 			const yValue = railMap.getRailHeight(split, j);
 			const y = yValue < 0 ? Math.ceil(yValue) : Math.floor(yValue);
+			const centerX = Math.floor(x);
+			const centerZ = Math.floor(z);
+			if (
+				(centerX === startNeighbor[0] &&
+					y === startNeighbor[1] &&
+					centerZ === startNeighbor[2]) ||
+				(centerX === endNeighbor[0] &&
+					y === endNeighbor[1] &&
+					centerZ === endNeighbor[2])
+			)
+				continue;
 			const plusX = this.normalizeBuilderTrig(
 				Math.sin(yaw + Math.PI / 2),
 			);
@@ -1519,7 +1531,7 @@ export class SRBXApiCompat {
 					Math.floor(z + minusZ * offset),
 				);
 			}
-			add(Math.floor(x), y, Math.floor(z));
+			add(centerX, y, centerZ);
 		}
 		return Object.keys(blocks).map((key) => blocks[key]);
 	}

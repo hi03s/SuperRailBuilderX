@@ -19,6 +19,7 @@ export type SRBXBuilderPoint = {
 	ownerBlock?: RailCorePos;
 	curveRadius?: number;
 	slopeTarget?: boolean;
+	verticalCurveRadius?: number;
 	verticalProfile?: "circular_straight" | "circular_limited" | "straight";
 	core?: RailCorePos;
 	index?: number;

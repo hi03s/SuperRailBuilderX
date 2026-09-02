@@ -1,0 +1,43 @@
+[00:11:46] [Server thread/INFO]: [SuperRailBuilderX builder1] vertical profile plan: type=circular_straight, logicalRails=2
+[00:11:46] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=rail_too_short
+[00:11:55] [Server thread/INFO]: [SuperRailBuilderX builder1] vertical profile plan: type=circular_limited, logicalRails=1
+[00:11:55] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=rail->free, startBlock=-316,4,488, startPos=-316.176,4.063,489.92, startDir=3, startYaw=142.42440795898438, startPitch=0, startLengthH=30.70206642150879, startLengthV=30.705137252807617, endBlock=-261,5,416, endPos=-260.02017418336385,5.905,416.9358788992316, endDir=7, endYaw=322.4244079589844, endPitch=-2.291829824447632, endLengthH=30.70206642150879, endLengthV=30.705137252807617
+[00:11:55] [Server thread/INFO]: [SuperRailBuilderX builder1] generation order: selected
+[00:11:55] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
+[00:12:24] [Server thread/INFO]: [SuperRailBuilderX builder1] vertical profile plan: type=circular_straight, logicalRails=2
+[00:12:24] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=rail_too_short
+[00:12:37] [Server thread/INFO]: [SuperRailBuilderX builder1] vertical profile plan: type=circular_limited, logicalRails=1
+[00:12:37] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=rail->free, startBlock=-316,4,488, startPos=-316.176,4.063,489.92, startDir=3, startYaw=142.42440795898438, startPitch=0, startLengthH=19.642284393310547, startLengthV=19.644248962402344, endBlock=-281,5,443, endPos=-280.24914548965097,5.2415,443.2268944811741, endDir=7, endYaw=322.4244079589844, endPitch=-2.291912078857422, endLengthH=19.642284393310547, endLengthV=19.644248962402344
+[00:12:37] [Server thread/INFO]: [SuperRailBuilderX builder1] generation order: selected
+[00:12:37] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
+[00:20:20] [Server thread/INFO]: [SuperRailBuilderX builder1] vertical profile plan: type=default, logicalRails=1
+[00:20:21] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=free->free, startBlock=-300,4,556, startPos=-299,4.0625,556.5, startDir=6, startYaw=270, startPitch=0, startLengthH=2.3333332538604736, startLengthV=2.3333332538604736, endBlock=-306,4,556, endPos=-306,4.0625,556.5, endDir=2, endYaw=90, endPitch=0, endLengthH=2.3333332538604736, endLengthV=2.3333332538604736
+[00:20:21] [Server thread/INFO]: [SuperRailBuilderX builder1] generation order: selected
+[00:20:21] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive sectioned rail created: sections=2, replacedBlocks=0
+[00:20:21] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
+[00:20:34] [Server thread/INFO]: [SuperRailBuilderX builder1] vertical profile plan: type=default, logicalRails=1
+[00:20:34] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=free->free, startBlock=-300,4,555, startPos=-299.5,4.0625,556, startDir=4, startYaw=180, startPitch=0, startLengthH=2.3333332538604736, startLengthV=2.3333332538604736, endBlock=-300,4,549, endPos=-299.5,4.0625,549, endDir=0, endYaw=0, endPitch=0, endLengthH=2.3333332538604736, endLengthV=2.3333332538604736
+[00:20:34] [Server thread/INFO]: [SuperRailBuilderX builder1] generation order: selected
+[00:20:34] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive normal rail created: replacedBlocks=0
+[00:20:34] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
+[00:20:42] [Server thread/INFO]: [SuperRailBuilderX builder1] vertical profile plan: type=default, logicalRails=1
+[00:20:42] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=free->free, startBlock=-300,4,556, startPos=-300,4.0625,556.5, startDir=2, startYaw=90, startPitch=0, startLengthH=2.6666667461395264, startLengthV=2.6666667461395264, endBlock=-293,4,556, endPos=-292,4.0625,556.5, endDir=6, endYaw=270, endPitch=0, endLengthH=2.6666667461395264, endLengthV=2.6666667461395264
+[00:20:42] [Server thread/INFO]: [SuperRailBuilderX builder1] generation order: selected
+[00:20:42] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive normal rail created: replacedBlocks=0
+[00:20:42] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
+[00:20:58] [Server thread/INFO]: [SuperRailBuilderX builder1] vertical profile plan: type=default, logicalRails=1
+[00:20:58] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=free->free, startBlock=-300,4,556, startPos=-299.5,4.0625,556, startDir=0, startYaw=0, startPitch=0, startLengthH=3.3333332538604736, startLengthV=3.3333332538604736, endBlock=-300,4,565, endPos=-299.5,4.0625,566, endDir=4, endYaw=180, endPitch=0, endLengthH=3.3333332538604736, endLengthV=3.3333332538604736
+[00:20:58] [Server thread/INFO]: [SuperRailBuilderX builder1] generation order: selected
+[00:20:58] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive sectioned rail created: sections=2, replacedBlocks=0
+[00:20:58] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
+[00:25:01] [Server thread/INFO]: [SuperRailBuilderX builder1] vertical profile plan: type=circular_limited, logicalRails=1
+[00:25:01] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=rail->free, startBlock=-291,5,534, startPos=-290.5,5.0625,534, startDir=0, startYaw=0, startPitch=1.1457628011703491, startLengthH=6.508541584014893, startLengthV=6.509191989898682, endBlock=-291,5,553, endPos=-290.5,5.0625,553.5256241897666, endDir=4, endYaw=180, endPitch=1.1457628011703491, endLengthH=6.508541584014893, endLengthV=6.509191989898682
+[00:25:01] [Server thread/INFO]: [SuperRailBuilderX builder1] generation order: selected
+[00:25:01] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
+[00:27:21] [Server thread/INFO]: [SuperRailBuilderX builder1] vertical profile plan: type=circular_straight, logicalRails=2
+[00:27:21] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=rail->free, startBlock=-291,5,534, startPos=-290.5,5.0625,534, startDir=0, startYaw=0, startPitch=1.1457628011703491, startLengthH=0.007094937842339277, startLengthV=0.00709263700991869, endBlock=-291,5,534, endPos=-290.5,5.063137970664029,534.0212847673283, endDir=4, endYaw=180, endPitch=-2.2906100749969482, endLengthH=0.007094907108694315, endLengthV=0.00709263700991869
+[00:27:21] [Server thread/INFO]: [SuperRailBuilderX builder1] generation order: selected
+[00:27:21] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive normal rail created: replacedBlocks=0
+[00:27:21] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=free->free, startBlock=-291,5,535, startPos=-290.5,5.063137970664029,534.0212847673283, startDir=0, startYaw=0, startPitch=2.2906100749969482, startLengthH=7.834239959716797, startLengthV=0, endBlock=-291,5,557, endPos=-290.5,6.0025,557.5053185470863, endDir=4, endYaw=180, endPitch=-2.2906100749969482, endLengthH=7.834273815155029, endLengthV=0
+[00:27:21] [Server thread/INFO]: [SuperRailBuilderX builder1] generation order: selected
+[00:27:21] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
