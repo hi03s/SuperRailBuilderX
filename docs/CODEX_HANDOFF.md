@@ -124,8 +124,8 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - サーバー生成は精密Y座標の低いRailPositionを選択順にかかわらず起点へ並べ替え、`generation order`を診断出力する。道床・セクションコア失敗ログも設置前後状態を含むよう強化。
 - `SRBXMath`へパーミル・ピッチ変換、固定半径の終点・アンカー計算、ベジェ接線と近似半径計算を追加。半径100 m・弧長10 mの左右終点、直線、25‰往復、ベジェ近似半径100 mを純粋計算で確認。
 - `pnpm gen`と`pnpm build`はkaizpatch・mc1710・mc1122の全ターゲットで成功。モデル部品の存在・重複、128×128 PNG、KaizPatchX生成JavaScriptの1.7.10マッピング、変更ファイルのPrettier、`git diff --check`を確認済み。全体の`pnpm format:check`は参照専用ツールキットとNGTOBuilder2サンプルの既存26ファイルだけが失敗し、今回の変更対象は合格。ゲーム内検証は未実施。
-- 実装コミット: （コミット後に記載）
-- 同期: （push後に記載）
+- 実装コミット: https://github.com/hi03s/SuperRailBuilderX/commit/eb9bbb2
+- 同期: 実装コミット`eb9bbb2`を`origin/main`へ同期済み。引継ぎ更新も同期する。
 
 ### 2026-09-02 ローカルCodex — builder1接続ブロック・円弧接続修正
 
