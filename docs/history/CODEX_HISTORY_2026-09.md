@@ -138,6 +138,8 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - `pnpm build`を実行し、commonと全3ターゲットのビルドに成功した。型・ビルドエラーはなく、コード修正は不要だった。
 - 未検証: `docs/rail-splitter.md`に記載したゲーム内確認。破壊的なロールバック・Undo試験を含むため、必ずバックアップ済みワールドで実施する。
 - 既存の未追跡資料 `.tmp-kaizpatchx-source/` と `logs/latest.log` は変更せず、コミット対象外とした。
+- コミット: https://github.com/hi03s/SuperRailBuilderX/commit/3de4133
+- 同期: `origin/main`へ同期済み。
 
 ### 2026-09-03 Web側Codex — 引継ぎ帳とトークン使用量ルールの整理
 
