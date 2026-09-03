@@ -201,4 +201,34 @@ export class SRBXApiCompat {
 		void expectedKey;
 		return "unsupported";
 	}
+
+	static getLogicalRailMap(core: TileEntityLargeRailCore) {
+		return core.getAllRailMaps().length === 1
+			? core.getRailMap(null)
+			: null;
+	}
+
+	static splitBuilderRail(
+		world: net.minecraft.world.World,
+		player: net.minecraft.entity.player.EntityPlayer,
+		core: [number, number, number],
+		expectedKey: string,
+		ratio: number,
+	) {
+		void world;
+		void player;
+		void core;
+		void expectedKey;
+		void ratio;
+		return { status: "unsupported_target" };
+	}
+
+	static undoSplitBuilderRail(
+		world: net.minecraft.world.World,
+		undoToken: string,
+	): string {
+		void world;
+		void undoToken;
+		return "unsupported_target";
+	}
 }

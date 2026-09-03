@@ -50,6 +50,22 @@ type BuilderPoint = {
 	verticalProfile?: "circular_straight" | "circular_limited" | "straight";
 	core?: [number, number, number];
 	index?: number;
+	cantEdge?: number;
+	cantCenter?: number;
+	cantRandom?: number;
+};
+
+type SplitCreatedRail = {
+	core: [number, number, number];
+	key: string;
+};
+
+type SplitUndoRecord = {
+	positions: RailPosition[];
+	property: RailProperty;
+	signal: any;
+	subRails: java.util.List<RailProperty>;
+	created: SplitCreatedRail[];
 };
 
 type RailSectionPlan = {
@@ -98,6 +114,7 @@ declare const Packages: {
 };
 
 export class SRBXApiCompat {
+	private static splitUndoRecords: { [token: string]: SplitUndoRecord } = {};
 	static getRider(entity: unknown) {
 		return (entity as jp.ngt.rtm.entity.vehicle.EntityVehicle)
 			.riddenByEntity;
@@ -1432,6 +1449,15 @@ export class SRBXApiCompat {
 		result.anchorYaw = this.normalizeDegrees(point.anchorYaw);
 		result.anchorPitch = point.anchorPitch;
 		result.anchorLengthHorizontal = point.anchorLength;
+		result.anchorLengthVertical =
+			point.anchorLengthVertical === undefined
+				? point.anchorLength
+				: point.anchorLengthVertical;
+		if (point.cantEdge !== undefined) result.cantEdge = point.cantEdge;
+		if (point.cantCenter !== undefined)
+			result.cantCenter = point.cantCenter;
+		if (point.cantRandom !== undefined)
+			result.cantRandom = point.cantRandom;
 		result.setPosition(
 			point.position[0],
 			point.position[1],
@@ -2221,5 +2247,405 @@ export class SRBXApiCompat {
 			`[SuperRailBuilderX builder1] generated logical rail removed by undo: core=${coreX},${coreY},${coreZ}, correctedRoadbeds=${correctedRemoved}`,
 		);
 		return "ok";
+	}
+
+	static getLogicalRailMap(core: TileEntityLargeRailCore) {
+		if (!core || core instanceof TileEntityLargeRailSwitchCore) return null;
+		if (this.isSectionCore(core)) {
+			const positions = core.getLogicalRailPositions();
+			if (!positions || positions.length !== 2) return null;
+			return new RailMapBasic(
+				positions[0],
+				positions[1],
+				core.fixRTMRailMapVersion,
+			);
+		}
+		return core.getRailMap(null);
+	}
+
+	private static cloneRailProperty(property: RailProperty): RailProperty {
+		const nbt = new NBTTagCompound();
+		property.writeToNBT(nbt);
+		return RailProperty.readFromNBT(nbt);
+	}
+
+	private static lerpSplitPoint(
+		a: [number, number],
+		b: [number, number],
+		t: number,
+	): [number, number] {
+		return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+	}
+
+	private static cubicSplitPoint(
+		points: Array<[number, number]>,
+		t: number,
+	): [number, number] {
+		const q0 = this.lerpSplitPoint(points[0], points[1], t);
+		const q1 = this.lerpSplitPoint(points[1], points[2], t);
+		const q2 = this.lerpSplitPoint(points[2], points[3], t);
+		const r0 = this.lerpSplitPoint(q0, q1, t);
+		const r1 = this.lerpSplitPoint(q1, q2, t);
+		return this.lerpSplitPoint(r0, r1, t);
+	}
+
+	private static splitHorizontalBezier(
+		start: RailPosition,
+		end: RailPosition,
+		targetX: number,
+		targetZ: number,
+	) {
+		const startYaw = (start.anchorYaw * Math.PI) / 180;
+		const endYaw = (end.anchorYaw * Math.PI) / 180;
+		const chord = Math.sqrt(
+			Math.pow(end.posX - start.posX, 2) +
+				Math.pow(end.posZ - start.posZ, 2),
+		);
+		const startLength =
+			start.anchorLengthHorizontal > 0
+				? start.anchorLengthHorizontal
+				: chord / 3;
+		const endLength =
+			end.anchorLengthHorizontal > 0
+				? end.anchorLengthHorizontal
+				: chord / 3;
+		const points: Array<[number, number]> = [
+			[start.posX, start.posZ],
+			[
+				start.posX + Math.sin(startYaw) * startLength,
+				start.posZ + Math.cos(startYaw) * startLength,
+			],
+			[
+				end.posX + Math.sin(endYaw) * endLength,
+				end.posZ + Math.cos(endYaw) * endLength,
+			],
+			[end.posX, end.posZ],
+		];
+		let low = 0;
+		let high = 1;
+		for (let i = 0; i < 56; i++) {
+			const t0 = low + (high - low) / 3;
+			const t1 = high - (high - low) / 3;
+			const p0 = this.cubicSplitPoint(points, t0);
+			const p1 = this.cubicSplitPoint(points, t1);
+			const d0 =
+				Math.pow(p0[0] - targetX, 2) + Math.pow(p0[1] - targetZ, 2);
+			const d1 =
+				Math.pow(p1[0] - targetX, 2) + Math.pow(p1[1] - targetZ, 2);
+			if (d0 < d1) high = t1;
+			else low = t0;
+		}
+		const t = (low + high) / 2;
+		const q0 = this.lerpSplitPoint(points[0], points[1], t);
+		const q1 = this.lerpSplitPoint(points[1], points[2], t);
+		const q2 = this.lerpSplitPoint(points[2], points[3], t);
+		const r0 = this.lerpSplitPoint(q0, q1, t);
+		const r1 = this.lerpSplitPoint(q1, q2, t);
+		const split = this.lerpSplitPoint(r0, r1, t);
+		const distance = (a: [number, number], b: [number, number]) =>
+			Math.sqrt(Math.pow(a[0] - b[0], 2) + Math.pow(a[1] - b[1], 2));
+		const yaw = (a: [number, number], b: [number, number]) =>
+			this.normalizeDegrees(
+				(Math.atan2(b[0] - a[0], b[1] - a[1]) * 180) / Math.PI,
+			);
+		return {
+			t,
+			firstStartLength: distance(points[0], q0),
+			firstEndLength: distance(split, r0),
+			firstEndYaw: yaw(split, r0),
+			secondStartLength: distance(split, r1),
+			secondStartYaw: yaw(split, r1),
+			secondEndLength: distance(points[3], q2),
+		};
+	}
+
+	private static verticalLengthForPitch(
+		horizontalLength: number,
+		pitch: number,
+	): number {
+		const cosine = Math.abs(Math.cos((pitch * Math.PI) / 180));
+		return Math.max(0.01, horizontalLength / Math.max(0.001, cosine));
+	}
+
+	private static splitPointFromRailPosition(
+		rp: RailPosition,
+		anchorLength: number,
+		anchorLengthVertical: number,
+	): BuilderPoint {
+		return {
+			kind: "free",
+			position: [rp.posX, rp.posY, rp.posZ],
+			direction: rp.direction,
+			anchorYaw: rp.anchorYaw,
+			anchorPitch: rp.anchorPitch,
+			anchorLength,
+			anchorLengthVertical,
+			markerPosition: [rp.posX, rp.posY, rp.posZ],
+			ownerBlock: [rp.blockX, rp.blockY, rp.blockZ],
+			cantEdge: rp.cantEdge,
+			cantCenter: rp.cantCenter,
+			cantRandom: rp.cantRandom,
+		};
+	}
+
+	private static restoreSplitSource(
+		world: net.minecraft.world.World,
+		record: SplitUndoRecord,
+	): boolean {
+		let restored = false;
+		try {
+			restored = BlockMarker.createRail(
+				world,
+				record.positions[0].blockX,
+				record.positions[0].blockY,
+				record.positions[0].blockZ,
+				this.toJavaList(this.copyRailPositions(record.positions)),
+				this.cloneRailProperty(record.property),
+				true,
+				true,
+			);
+			if (!restored) return false;
+			const tile = world.getTileEntity(
+				record.positions[0].blockX,
+				record.positions[0].blockY,
+				record.positions[0].blockZ,
+			);
+			if (!(tile instanceof TileEntityLargeRailBase)) return false;
+			const core = tile.getRailCore();
+			if (!core) return false;
+			core.setSignal(record.signal);
+			for (let i = 0; i < record.subRails.size(); i++)
+				core.addSubRail(record.subRails.get(i));
+			this.markCoreDirty(core);
+			NGTUtil.sendPacketToClient(core);
+			return true;
+		} catch (error) {
+			NGTLog.debug(
+				`[SuperRailBuilderX splitter] source restore exception: ${error}`,
+			);
+			return false;
+		}
+	}
+
+	static splitBuilderRail(
+		world: net.minecraft.world.World,
+		player: EntityPlayer,
+		corePosition: [number, number, number],
+		expectedKey: string,
+		ratio: number,
+	) {
+		if (!isFinite(ratio) || ratio <= 0 || ratio >= 1)
+			return { status: "invalid_split_position" };
+		const tile = world.getTileEntity(
+			corePosition[0],
+			corePosition[1],
+			corePosition[2],
+		);
+		if (!(tile instanceof TileEntityLargeRailBase))
+			return { status: "rail_not_found" };
+		const core = tile.getRailCore();
+		if (!core) return { status: "rail_not_found" };
+		if (core instanceof TileEntityLargeRailSwitchCore)
+			return { status: "switch_unsupported" };
+		if (this.getRailPositionCandidateKey(core) !== expectedKey)
+			return { status: "rail_changed" };
+		if (core.isLogicalRailOccupied()) return { status: "rail_occupied" };
+		if (!this.createBuilderProperty(player))
+			return { status: "hold_rail_item" };
+		const railMap = this.getLogicalRailMap(core);
+		if (!railMap) return { status: "invalid_rail" };
+		const renderSplit = Math.max(1, Math.floor(railMap.getLength() * 2));
+		const candidateSplit = Math.max(2, renderSplit * 2);
+		const candidateIndex = Math.round(ratio * candidateSplit);
+		if (
+			candidateIndex <= 0 ||
+			candidateIndex >= candidateSplit ||
+			Math.abs(ratio - candidateIndex / candidateSplit) > 0.0000001
+		)
+			return { status: "invalid_split_position" };
+		ratio = candidateIndex / candidateSplit;
+		const positions = this.isSectionCore(core)
+			? core.getLogicalRailPositions()
+			: core.getRailPositions();
+		if (!positions || positions.length !== 2)
+			return { status: "invalid_rail" };
+		const original = this.copyRailPositions(positions);
+		const property = this.cloneRailProperty(core.getProperty());
+		const subRails = new ArrayList<RailProperty>();
+		for (let i = 0; i < core.subRails.size(); i++)
+			subRails.add(this.cloneRailProperty(core.subRails.get(i)));
+		const record: SplitUndoRecord = {
+			positions: original,
+			property,
+			signal: core.getSignal(),
+			subRails,
+			created: [],
+		};
+		const length = railMap.getLength();
+		const leftLength = length * ratio;
+		const rightLength = length - leftLength;
+		if (leftLength < 0.01 || rightLength < 0.01)
+			return { status: "rail_too_short" };
+		const point = railMap.getRailPos(1000000, Math.round(ratio * 1000000));
+		const x = point[1];
+		const y = railMap.getRailHeight(1000000, Math.round(ratio * 1000000));
+		const z = point[0];
+		const sampledYaw = railMap.getRailYaw(
+			1000000,
+			Math.round(ratio * 1000000),
+		);
+		const pitch = railMap.getRailPitch(
+			1000000,
+			Math.round(ratio * 1000000),
+		);
+		const horizontal = this.splitHorizontalBezier(
+			original[0],
+			original[1],
+			x,
+			z,
+		);
+		const direction = this.builderDirectionFromYaw(
+			horizontal.secondStartYaw,
+		);
+		const yawRadians = (direction * 45 * Math.PI) / 180;
+		const splitStart = new RailPosition(
+			Math.floor(x + Math.sin(yawRadians) * 0.000001),
+			Math.floor(y - 1 / 16 + 0.000001),
+			Math.floor(z + Math.cos(yawRadians) * 0.000001),
+			direction,
+		);
+		splitStart.anchorYaw = horizontal.secondStartYaw;
+		splitStart.anchorPitch = pitch;
+		splitStart.anchorLengthHorizontal = Math.max(
+			0.01,
+			horizontal.secondStartLength,
+		);
+		splitStart.anchorLengthVertical = this.verticalLengthForPitch(
+			splitStart.anchorLengthHorizontal,
+			pitch,
+		);
+		splitStart.cantEdge = railMap.getCant(
+			1000000,
+			Math.round(ratio * 1000000),
+		);
+		splitStart.cantCenter = railMap.getCant(
+			1000000,
+			Math.round(((ratio + 1) / 2) * 1000000),
+		);
+		splitStart.setPosition(x, y, z);
+		const splitEnd = RailPosition.readFromNBT(splitStart.writeToNBT());
+		const splitEndBlock = this.getBuilderConnectionBlock(splitStart);
+		splitEnd.blockX = splitEndBlock[0];
+		splitEnd.blockY = splitEndBlock[1];
+		splitEnd.blockZ = splitEndBlock[2];
+		splitEnd.direction = (splitStart.direction + 4) & 7;
+		splitEnd.anchorYaw = horizontal.firstEndYaw;
+		splitEnd.anchorPitch = -splitStart.anchorPitch;
+		splitEnd.anchorLengthHorizontal = Math.max(
+			0.01,
+			horizontal.firstEndLength,
+		);
+		splitEnd.anchorLengthVertical = this.verticalLengthForPitch(
+			splitEnd.anchorLengthHorizontal,
+			splitEnd.anchorPitch,
+		);
+		splitEnd.cantEdge = -splitStart.cantEdge;
+		splitEnd.cantCenter = railMap.getCant(
+			1000000,
+			Math.round((ratio / 2) * 1000000),
+		);
+		splitEnd.setPosition(x, y, z);
+		const firstStart = this.splitPointFromRailPosition(
+			original[0],
+			Math.max(0.01, horizontal.firstStartLength),
+			this.verticalLengthForPitch(
+				horizontal.firstStartLength,
+				original[0].anchorPitch,
+			),
+		);
+		const firstEnd = this.splitPointFromRailPosition(
+			splitEnd,
+			splitEnd.anchorLengthHorizontal,
+			splitEnd.anchorLengthVertical,
+		);
+		const secondStart = this.splitPointFromRailPosition(
+			splitStart,
+			splitStart.anchorLengthHorizontal,
+			splitStart.anchorLengthVertical,
+		);
+		const secondEnd = this.splitPointFromRailPosition(
+			original[1],
+			Math.max(0.01, horizontal.secondEndLength),
+			this.verticalLengthForPitch(
+				horizontal.secondEndLength,
+				original[1].anchorPitch,
+			),
+		);
+		core.breakLogicalRail();
+		const first = this.createBuilderRail(
+			world,
+			player,
+			firstStart,
+			firstEnd,
+		);
+		if (first.status !== "ok" || !first.undoCore || !first.undoKey) {
+			return {
+				status: this.restoreSplitSource(world, record)
+					? first.status
+					: "split_rollback_failed",
+			};
+		}
+		record.created.push({ core: first.undoCore, key: first.undoKey });
+		const second = this.createBuilderRail(
+			world,
+			player,
+			secondStart,
+			secondEnd,
+			[first.undoKey],
+		);
+		if (second.status !== "ok" || !second.undoCore || !second.undoKey) {
+			this.undoBuilderRail(
+				world,
+				first.undoCore[0],
+				first.undoCore[1],
+				first.undoCore[2],
+				first.undoKey,
+			);
+			return {
+				status: this.restoreSplitSource(world, record)
+					? second.status
+					: "split_rollback_failed",
+			};
+		}
+		record.created.push({ core: second.undoCore, key: second.undoKey });
+		const token = java.util.UUID.randomUUID().toString();
+		this.splitUndoRecords[token] = record;
+		NGTLog.debug(
+			`[SuperRailBuilderX splitter] split succeeded: ratio=${ratio}, bezierT=${horizontal.t}, sampledYaw=${sampledYaw}, lengths=${leftLength}/${rightLength}, token=${token}`,
+		);
+		return { status: "ok", undoToken: token };
+	}
+
+	static undoSplitBuilderRail(
+		world: net.minecraft.world.World,
+		undoToken: string,
+	): string {
+		const record = this.splitUndoRecords[undoToken];
+		if (!record) return "nothing_to_undo";
+		for (let i = record.created.length - 1; i >= 0; i--) {
+			const rail = record.created[i];
+			const result = this.undoBuilderRail(
+				world,
+				rail.core[0],
+				rail.core[1],
+				rail.core[2],
+				rail.key,
+			);
+			if (result !== "ok") return result;
+		}
+		if (!this.restoreSplitSource(world, record))
+			return "undo_restore_failed";
+		delete this.splitUndoRecords[undoToken];
+		return "undo_ok";
 	}
 }

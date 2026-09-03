@@ -1,5 +1,5 @@
 import { TileEntityLargeRailCore } from "jp.ngt.rtm.rail";
-import { RailPosition } from "jp.ngt.rtm.rail.util";
+import { RailMap, RailPosition } from "jp.ngt.rtm.rail.util";
 import { Entity } from "net.minecraft.entity";
 import { EntityPlayer } from "net.minecraft.entity.player";
 import { TileEntity } from "net.minecraft.tileentity";
@@ -29,6 +29,11 @@ export type SRBXBuilderCreateResult = {
 	status: string;
 	undoCore?: RailCorePos;
 	undoKey?: string;
+};
+
+export type SRBXRailSplitResult = {
+	status: string;
+	undoToken?: string;
 };
 
 export class SRBXApiCompat {
@@ -120,4 +125,13 @@ export class SRBXApiCompat {
 		coreZ: number,
 		expectedKey: string,
 	): string;
+	static getLogicalRailMap(core: TileEntityLargeRailCore): RailMap | null;
+	static splitBuilderRail(
+		world: World,
+		player: EntityPlayer,
+		core: RailCorePos,
+		expectedKey: string,
+		ratio: number,
+	): SRBXRailSplitResult;
+	static undoSplitBuilderRail(world: World, undoToken: string): string;
 }
