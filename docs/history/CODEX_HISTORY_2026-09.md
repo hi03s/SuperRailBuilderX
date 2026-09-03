@@ -31,7 +31,7 @@
 - レール生成ツール `SuperRailBuilderX_builder1` に、RTM標準準拠のコア保護・道床交差、内部セクションコア移設と自己破壊防止、固定半径のプレイヤーYaw変換修正、垂直アンカー、矢印長押し、F高さリセット、Undoを維持するCtrl+Cまで実装済み（実機再検証待ち）。
 - builder1の-X/-Z直線だけ起点側道床が凹型になる問題に対し、道床幅計算の三角関数誤差の正規化に加え、端部隣接座標に属する幅サンプル全体を除外するよう修正し、実機で解消を確認済み。
 - builder1の勾配指定は、初期値1000 mの設定可能な縦曲線半径で正円近似縦曲線＋目標勾配直線へ分割し、距離不足時は到達可能な正円近似だけを生成する方式へ再修正済み。Ctrl+↑/↓で1000 m刻みに変更し、値をチャット表示する。勾配が想定どおり動作することを実機確認済み。
-- builder1を基礎にした線路分割ツール`SuperRailBuilderX_RailSplitter`を追加。論理RailMap強調、約0.25 m間隔の候補、2本の予定長表示、手持ちモデルによる2本生成、分割前状態へ戻す専用Undoを実装済み（Web側Codexではビルド・実機検証未完了）。
+- builder1を基礎にした線路分割ツール`SuperRailBuilderX_RailSplitter`を追加。論理RailMap強調、約0.25 m間隔の候補、2本の予定長表示、手持ちモデルによる2本生成、分割前状態へ戻す専用Undoを実装済み。ローカルで全ターゲットの生成・ビルド確認済み（実機検証待ち）。
 
 ## 作業中
 
@@ -69,23 +69,21 @@
 - 線路分割ツールは水平線形をDe Casteljau分割する一方、縦断アンカーとカントは分割点・区間中央のサンプリングから再構築する。急勾配、縦曲線、ランダムカントで分割前後が十分一致するか実機確認が必要。
 - 線路分割ツールのUndoは元のRailPosition、RailProperty、信号、サブレールを復元するが、生成中に置換した通常ブロックや他レール道床までは復元しない。後半生成失敗時ロールバックとUndo失敗時の安全性をバックアップ環境で確認する必要がある。
 - 線路分割ツールはKaizPatchXのみ実処理に対応し、mc1710・mc1122では`unsupported_target`とする。分岐器も対象外。
-- Web側Codexでは`.npmrc`のWindows向けJavaパスをLinux用JDK 17で一時上書きしたが、Gradle 9.4.1の取得がネットワーク制限で失敗したため、`pnpm gen`以降の型検査・ビルドはローカルCodexへ引き継ぐ。
 
 ## 次に行うこと
 
-1. ローカルCodexで`pnpm gen`と`pnpm build`を実行し、線路分割ツールの型・全ターゲット生成を確認する。失敗時はまず`render_rail_splitter.ts`、`server_rail_splitter.ts`、KaizPatchX版`SRBXApiCompat.compat.ts`を確認する。
-2. 必ずバックアップ済みテストワールドで`docs/rail-splitter.md`の実機確認項目を順に実施する。特に接続点の両方向走行、縦曲線・カント連続性、後半失敗ロールバック、Ctrl+Z復元を優先する。
-3. 問題が出た場合は`[SuperRailBuilderX splitter]`を含む`latest.log`の該当部分と、分割前後のレール条件・分割位置・手持ちモデルを共有する。
-4. 必ずバックアップ済みテストワールドで `SuperRailBuilderX_builder1` を使用し、前回失敗した端部始点・自由点生成と交差を再現する。
-5. 接続元レールの道床・コアが経路幅に含まれても`protected connection ... preserved`となり、元レールを壊さず生成できることを確認する。
-6. 自由点候補では`selectCursor`だけ、既設端部候補では`selectCursor`と`selectCursorMarker`が正しい接続ブロックへ表示されることを確認する。選択後のmarker0〜7は自由点にも表示される。
-7. Cが選択だけを解除して設定を維持し、Ctrl+Cが選択関連設定を初期化する一方、その直前に生成したレールをCtrl+ZでUndoできることを確認する。
-8. 未選択でOを押すと∞、1点以上でOを押すと表示中の半径が固定されることを確認する。←/→は1 m、Ctrl+←/→は100 m、範囲は1〜10000 mで、長押しが連続入力になることを確認する。
-9. 半径固定中に視線先へ常に固定値が表示され、10000 mでは`curvePanel_infinity`となること、視線距離で終点が曲線上を伸縮することを確認する。
-10. 2点選択後に半径固定・増減しても現在の終点と曲線は変わらず、レール生成後もONと設定半径が維持されることを確認する。
-11. 既設端を含まない状態では↑/↓で自由候補が1 m、Ctrl+↑/↓で1/16 m上下し、長押しできること、Fで高さだけ0へ戻すことを確認する。
-12. 通常道床交差が成功し、既設コア交差は`rail_core_conflict`で相手を壊さず停止することを確認する。内部コア予定位置が既設道床なら`section core relocated`後に生成され、両レールを走行できるか確認する。
-13. 次の実機確認で問題が発生した場合は、結果と`logs/latest.log`を共有する。`vertical profile plan`、`creation plan`、`generation order`、`protected connection`、`section core relocated`、`rail_core_conflict`、`roadbed/core tile missing`、`Rail not found`を重点確認する。
+1. 必ずバックアップ済みテストワールドで`docs/rail-splitter.md`の実機確認項目を順に実施する。特に接続点の両方向走行、縦曲線・カント連続性、後半失敗ロールバック、Ctrl+Z復元を優先する。
+2. 問題が出た場合は`[SuperRailBuilderX splitter]`を含む`latest.log`の該当部分と、分割前後のレール条件・分割位置・手持ちモデルを共有する。
+3. 必ずバックアップ済みテストワールドで `SuperRailBuilderX_builder1` を使用し、前回失敗した端部始点・自由点生成と交差を再現する。
+4. 接続元レールの道床・コアが経路幅に含まれても`protected connection ... preserved`となり、元レールを壊さず生成できることを確認する。
+5. 自由点候補では`selectCursor`だけ、既設端部候補では`selectCursor`と`selectCursorMarker`が正しい接続ブロックへ表示されることを確認する。選択後のmarker0〜7は自由点にも表示される。
+6. Cが選択だけを解除して設定を維持し、Ctrl+Cが選択関連設定を初期化する一方、その直前に生成したレールをCtrl+ZでUndoできることを確認する。
+7. 未選択でOを押すと∞、1点以上でOを押すと表示中の半径が固定されることを確認する。←/→は1 m、Ctrl+←/→は100 m、範囲は1〜10000 mで、長押しが連続入力になることを確認する。
+8. 半径固定中に視線先へ常に固定値が表示され、10000 mでは`curvePanel_infinity`となること、視線距離で終点が曲線上を伸縮することを確認する。
+9. 2点選択後に半径固定・増減しても現在の終点と曲線は変わらず、レール生成後もONと設定半径が維持されることを確認する。
+10. 既設端を含まない状態では↑/↓で自由候補が1 m、Ctrl+↑/↓で1/16 m上下し、長押しできること、Fで高さだけ0へ戻すことを確認する。
+11. 通常道床交差が成功し、既設コア交差は`rail_core_conflict`で相手を壊さず停止することを確認する。内部コア予定位置が既設道床なら`section core relocated`後に生成され、両レールを走行できるか確認する。
+12. 次の実機確認で問題が発生した場合は、結果と`logs/latest.log`を共有する。`vertical profile plan`、`creation plan`、`generation order`、`protected connection`、`section core relocated`、`rail_core_conflict`、`roadbed/core tile missing`、`Rail not found`を重点確認する。
 
 ## 開発者からCodexへの連絡欄
 
@@ -132,6 +130,14 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 ## 作業記録
 
 新しい記録を上に追加します。詳細な議論がGitHub Issueにある場合は、要点とリンクだけを記載します。
+
+### 2026-09-03 ローカルCodex — 線路分割ツールの生成・ビルド検証
+
+- `git fetch origin --prune`後、`main`と`origin/main`がahead 0・behind 0で一致することを確認した。
+- `pnpm gen`を実行し、kaizpatch・mc1710・mc1122の型定義とマッピング生成に成功した。
+- `pnpm build`を実行し、commonと全3ターゲットのビルドに成功した。型・ビルドエラーはなく、コード修正は不要だった。
+- 未検証: `docs/rail-splitter.md`に記載したゲーム内確認。破壊的なロールバック・Undo試験を含むため、必ずバックアップ済みワールドで実施する。
+- 既存の未追跡資料 `.tmp-kaizpatchx-source/` と `logs/latest.log` は変更せず、コミット対象外とした。
 
 ### 2026-09-03 Web側Codex — 引継ぎ帳とトークン使用量ルールの整理
 
