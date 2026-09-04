@@ -478,6 +478,18 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - `pnpm format:check` とJSON検証は成功。
 - `pnpm gen` は作業環境からGradle配布物へ接続できず未完了。
 
+### 2026-09-04 Web側Codex — 複線コピーツール初期実装
+
+- 論理RailMap単位の複数選択、右クリックの選択切替、左クリックの選択操作Undo、C初期化、0.1 m刻み長押し間隔変更を持つ`SuperRailBuilderX_DoubleTrackCopy`を追加した。分岐器は`getLogicalRailMap`で除外する。
+- 最初の選択レールの中点接線と視線先から複製側・列数を決め、指定間隔の倍数位置へ選択レール群を反復生成する。両端を各接線の水平法線へ動かし、新旧水平弦長比を水平・垂直アンカーへ掛ける。2 m以下はプレビューとサーバー要求から除外する。
+- 半径0.5 m以内の既設通常レール端点へ座標・方向・角度を合わせ、複製群内部の一致端点には`RailPosition.REVISION`準拠の所有ブロック対を割り当てる。サーバーで複製元キーと両端座標を再検証する。
+- 手持ち大型レールがあればそのRailProperty、なければ各複製元RailPropertyを使用する。生成途中失敗時は要求内の生成分を逆順ロールバックし、Ctrl+Zで直前の一括生成を撤去する。
+- 既存`builder1.mqo`とテクスチャを共有し、ボタンは未配置の`textures/superrailbuilderx/button_double_track_copy.png`を仮指定した。共有参照専用ツールキットは変更していない。
+- 検証済み: 変更ファイルのPrettier、TypeScript ES5構文変換、モデルJSON解析、`git diff --check`。純粋計算で直線倍率1.000、90度曲線の内側0.800・外側1.200を確認した。
+- 未検証: `pnpm gen`、`pnpm build`、ゲーム内プレビュー・生成・接続・走行・ロールバック・Undo。`docs/double-track-copy.md`の確認項目をバックアップ済みワールドで実施する。
+- 実装コミット: https://github.com/hi03s/SuperRailBuilderX/commit/0e2b30e87f4b6f0d88c0bcd1433f8f3c712af1f4
+- 同期: `origin/main`へ同期済み。
+
 ### 記録テンプレート
 
 ```text
