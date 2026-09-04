@@ -131,6 +131,16 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 
 新しい記録を上に追加します。詳細な議論がGitHub Issueにある場合は、要点とリンクだけを記載します。
 
+### 2026-09-04 ローカルCodex — 複線コピーツールのmulti-targetビルド修正
+
+- `git fetch origin --prune`後、複線コピーツール追加コミットを含む最新`origin/main`へfast-forwardした。
+- `pnpm gen`はkaizpatch・mc1710・mc1122の全ターゲットで成功した。
+- 初回`pnpm build`で、共通コードがmc1710に存在しない`RailMap#getRailYaw`を直接使用している型エラーを確認した。
+- `render_double_track_copy.ts`の呼び出しを、各ターゲットで`getRailYaw`または`getRailRotation`を選ぶ既存の`RTMApiCompat.getRailYaw`経由へ変更した。参照専用ツールキット自体は変更していない。
+- 修正後、対象ファイルのPrettierと`git diff --check`が成功し、`pnpm build`もcommon・全3ターゲットで成功した。
+- 未検証: `docs/double-track-copy.md`に記載したゲーム内プレビュー・生成・接続・走行・ロールバック・Undo。必ずバックアップ済みワールドで実施する。
+- 既存の未追跡資料 `.tmp-kaizpatchx-source/` と `logs/latest.log` は変更せず、コミット対象外とした。
+
 ### 2026-09-03 ローカルCodex — 線路分割ツールの生成・ビルド検証
 
 - `git fetch origin --prune`後、`main`と`origin/main`がahead 0・behind 0で一致することを確認した。

@@ -14,6 +14,7 @@ import { GL11 } from "org.lwjgl.opengl";
 import { InputManager } from "../lib_hi03toolkit_1_0/lib_InputManager";
 import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
 import { NGTOBuilderUtilClient } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtilClient";
+import { RTMApiCompat } from "@target/assets/minecraft/scripts/lib_hi03toolkit_1_0/lib_RTMApiCompat";
 import {
 	RailCorePos,
 	SRBXApiCompat,
@@ -384,7 +385,7 @@ function updateSide(
 	if (!first || !looking) return;
 	const split = 1000;
 	const center = railPoint(first.map, split, split / 2);
-	const yaw = first.map.getRailYaw(split, split / 2);
+	const yaw = RTMApiCompat.getRailYaw(first.map, split, split / 2);
 	const normal = horizontalNormal(yaw);
 	const projection =
 		(looking.posX - center[0]) * normal[0] +

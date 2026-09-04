@@ -12,7 +12,7 @@
 - `SuperRailBuilderX_builder1`を実装済み。自由点・既設端接続、曲線半径固定、勾配・縦曲線、複数レール一括Undo、道床・コア保護を備える。-X/-Z道床と勾配・縦曲線は実機確認済み。
 - `SuperRailBuilderX_RailSplitter`を実装済み。論理RailMap強調、約0.25 m間隔の候補、予定長表示、手持ちモデルによる2本生成、分割前状態へ戻すUndoを備える。
 - `SuperRailBuilderX_DoubleTrackCopy`を実装済み。通常レールの複数選択、カーソル距離に応じた指定間隔の反復複製、水平平行線形、0.5 m端点接続、手持ち/複製元モデル、一括Undoを備える。
-- 最新`main`で`pnpm gen`と`pnpm build`が成功し、線路分割ツールを含む全3ターゲットの生成・ビルドを確認済み。
+- 最新`main`で`pnpm gen`と`pnpm build`が成功し、複線コピー・線路分割ツールを含む全3ターゲットの生成・ビルドを確認済み。
 - レール生成・自由点移動の構造は `docs/rail-generation-and-free-positioning.md`、各ツールの仕様と検証方法は下記「関連資料」を参照する。
 
 ## 作業中
@@ -32,7 +32,7 @@
 
 ### 複線コピーツール
 
-- Web側では変更ファイルのPrettier、TypeScript構文変換、JSON解析、`git diff --check`、直線・曲線内外の純粋計算まで確認済み。`pnpm gen`、`pnpm build`、ゲーム内動作は未確認。
+- `pnpm gen`は成功。共通コードの`RailMap#getRailYaw`直接呼び出しを既存のtarget別compat経由へ修正し、`pnpm build`も全3ターゲットで成功済み。ゲーム内動作は未確認。
 - 複数列プレビュー、順不同の連続レール選択、共有端点と0.5 m既設端点への接続、内外曲線長、2 m以下除外、手持ち/複製元モデル、途中失敗ロールバック、一括Undoをバックアップ済みワールドで確認する。
 - 実生成はKaizPatchX向け。分岐器は対象外で、mc1710・mc1122の生成処理は既存builder1互換層に従って安全に停止する。
 
@@ -55,9 +55,8 @@
 
 ## 次に行うこと
 
-1. 最新`main`で`pnpm gen`と`pnpm build`を実行し、全3ターゲットの型生成・ビルドを確認する。
-2. `docs/double-track-copy.md`の実機確認項目をバックアップ済みワールドで実施する。
-3. 問題時は、選択順・間隔・複製方向・手持ちアイテム・接続先状態と、`[SuperRailBuilderX double-track-copy]`周辺の必要最小限のログを共有する。
+1. `docs/double-track-copy.md`の実機確認項目をバックアップ済みワールドで実施する。
+2. 問題時は、選択順・間隔・複製方向・手持ちアイテム・接続先状態と、`[SuperRailBuilderX double-track-copy]`周辺の必要最小限のログを共有する。
 
 ## 双方向連絡
 
@@ -74,6 +73,9 @@
 - 2026-09-04 Web側Codex:
     - 複線コピーツールを実装コミット `0e2b30e` でGitHubへ同期済み。
     - Web側の静的検証は成功。型生成・ビルド・実機確認は上記「次に行うこと」に従って引き継ぐ。
+- 2026-09-04 ローカルCodex:
+    - `pnpm gen`は成功。mc1710にない`RailMap#getRailYaw`の直接呼び出しを既存compat経由へ修正し、`pnpm build`も全3ターゲットで成功した。
+    - 次はバックアップ済みワールドで`docs/double-track-copy.md`の実機確認を行う。
 
 - 2026-09-03 Web側Codex:
     - 線路分割ツールをコミット `70fe67e` でGitHubへ同期済み。
@@ -86,6 +88,7 @@
 
 ## 直近の完了
 
+- 2026-09-04 ローカルCodex: 複線コピーツールのmulti-targetビルドエラーを修正し、全3ターゲットの生成・ビルドに成功。詳細は `docs/history/CODEX_HISTORY_2026-09.md` を参照。
 - 2026-09-04 Web側Codex: 論理RailMapの複数選択と反復平行生成を行う複線コピーツールを初期実装。詳細は `docs/double-track-copy.md` とコミット `0e2b30e` を参照。
 - 2026-09-03 ローカルCodex: 線路分割ツールを含む全3ターゲットのコード生成・ビルドに成功。詳細は `docs/history/CODEX_HISTORY_2026-09.md` とコミット `3de4133` を参照（`origin/main`へ同期済み）。
 - 2026-09-03 Web側Codex: 引継ぎ帳を短期情報と月別履歴へ分離し、`AGENTS.md`へコンテキスト・トークン使用量の管理規則を追加。実装コミット `439c456` はGitHubへ同期済み。
