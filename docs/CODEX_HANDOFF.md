@@ -75,6 +75,7 @@
     - Web側の静的検証は成功。型生成・ビルド・実機確認は上記「次に行うこと」に従って引き継ぐ。
 - 2026-09-04 ローカルCodex:
     - `pnpm gen`は成功。mc1710にない`RailMap#getRailYaw`の直接呼び出しを既存compat経由へ修正し、`pnpm build`も全3ターゲットで成功した。
+    - 修正コミット `d8fe798` は`origin/main`へ同期済み。
     - 次はバックアップ済みワールドで`docs/double-track-copy.md`の実機確認を行う。
 
 - 2026-09-03 Web側Codex:
@@ -88,7 +89,7 @@
 
 ## 直近の完了
 
-- 2026-09-04 ローカルCodex: 複線コピーツールのmulti-targetビルドエラーを修正し、全3ターゲットの生成・ビルドに成功。詳細は `docs/history/CODEX_HISTORY_2026-09.md` を参照。
+- 2026-09-04 ローカルCodex: 複線コピーツールのmulti-targetビルドエラーを修正し、全3ターゲットの生成・ビルドに成功。詳細は `docs/history/CODEX_HISTORY_2026-09.md` とコミット `d8fe798` を参照（`origin/main`へ同期済み）。
 - 2026-09-04 Web側Codex: 論理RailMapの複数選択と反復平行生成を行う複線コピーツールを初期実装。詳細は `docs/double-track-copy.md` とコミット `0e2b30e` を参照。
 - 2026-09-03 ローカルCodex: 線路分割ツールを含む全3ターゲットのコード生成・ビルドに成功。詳細は `docs/history/CODEX_HISTORY_2026-09.md` とコミット `3de4133` を参照（`origin/main`へ同期済み）。
 - 2026-09-03 Web側Codex: 引継ぎ帳を短期情報と月別履歴へ分離し、`AGENTS.md`へコンテキスト・トークン使用量の管理規則を追加。実装コミット `439c456` はGitHubへ同期済み。

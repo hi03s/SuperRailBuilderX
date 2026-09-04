@@ -140,6 +140,8 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 修正後、対象ファイルのPrettierと`git diff --check`が成功し、`pnpm build`もcommon・全3ターゲットで成功した。
 - 未検証: `docs/double-track-copy.md`に記載したゲーム内プレビュー・生成・接続・走行・ロールバック・Undo。必ずバックアップ済みワールドで実施する。
 - 既存の未追跡資料 `.tmp-kaizpatchx-source/` と `logs/latest.log` は変更せず、コミット対象外とした。
+- コミット: https://github.com/hi03s/SuperRailBuilderX/commit/d8fe798
+- 同期: `origin/main`へ同期済み。
 
 ### 2026-09-03 ローカルCodex — 線路分割ツールの生成・ビルド検証
 
