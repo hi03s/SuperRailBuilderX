@@ -55,6 +55,13 @@ type BuilderPoint = {
 	cantRandom?: number;
 };
 
+type SourceRail = {
+	core: [number, number, number];
+	railKey: string;
+	startPosition: [number, number, number];
+	endPosition: [number, number, number];
+};
+
 type SplitCreatedRail = {
 	core: [number, number, number];
 	key: string;
@@ -161,8 +168,24 @@ export class SRBXApiCompat {
 		return rp.anchorLengthHorizontal;
 	}
 
+	static getVerticalAnchorLength(rp: RailPosition): number {
+		return rp.anchorLengthVertical;
+	}
+
 	static getRailPositionAnchorPitch(rp: RailPosition): number {
 		return rp.anchorPitch;
+	}
+
+	static getRailPositionCantEdge(rp: RailPosition): number {
+		return rp.cantEdge;
+	}
+
+	static getRailPositionCantCenter(rp: RailPosition): number {
+		return rp.cantCenter;
+	}
+
+	static getRailPositionCantRandom(rp: RailPosition): number {
+		return rp.cantRandom;
 	}
 
 	static getRailPositionConnectionMarkerPosition(
@@ -1480,6 +1503,39 @@ export class SRBXApiCompat {
 		return property;
 	}
 
+	private static createBuilderSourceProperty(
+		world: net.minecraft.world.World,
+		sourceRail?: SourceRail,
+	): RailProperty | null {
+		if (!sourceRail) return null;
+		const tile = world.getTileEntity(
+			sourceRail.core[0],
+			sourceRail.core[1],
+			sourceRail.core[2],
+		);
+		if (!(tile instanceof TileEntityLargeRailBase)) return null;
+		const core = tile.getRailCore();
+		if (
+			!core ||
+			core instanceof TileEntityLargeRailSwitchCore ||
+			this.getRailPositionCandidateKey(core) !== sourceRail.railKey
+		)
+			return null;
+		const positions = this.getEditableRailPositions(core);
+		if (!positions || positions.length !== 2) return null;
+		const expected = [sourceRail.startPosition, sourceRail.endPosition];
+		for (let i = 0; i < 2; i++)
+			if (
+				Math.abs(positions[i].posX - expected[i][0]) > 0.001 ||
+				Math.abs(positions[i].posY - expected[i][1]) > 0.001 ||
+				Math.abs(positions[i].posZ - expected[i][2]) > 0.001
+			)
+				return null;
+		const property = this.cloneRailProperty(core.getProperty());
+		property.autoSplit = true;
+		return property;
+	}
+
 	private static normalizeBuilderTrig(value: number): number {
 		if (Math.abs(value) < 0.000000001) return 0;
 		if (Math.abs(value - 1) < 0.000000001) return 1;
@@ -1988,6 +2044,7 @@ export class SRBXApiCompat {
 		start: BuilderPoint,
 		end: BuilderPoint,
 		additionalProtectedRailKeys?: string[],
+		sourceRail?: SourceRail,
 	) {
 		const startValidation = this.validateBuilderPoint(start);
 		if (startValidation !== "ok") return { status: startValidation };
@@ -2016,8 +2073,17 @@ export class SRBXApiCompat {
 			)
 		)
 			return { status: "endpoint_unloaded" };
-		const property = this.createBuilderProperty(player);
-		if (!property) return { status: "hold_rail_item" };
+		const sourceProperty = this.createBuilderSourceProperty(
+			world,
+			sourceRail,
+		);
+		if (sourceRail && !sourceProperty)
+			return { status: "source_rail_changed" };
+		const property = this.createBuilderProperty(player) || sourceProperty;
+		if (!property)
+			return {
+				status: sourceRail ? "source_rail_changed" : "hold_rail_item",
+			};
 		let startRP: RailPosition | null = null;
 		let endRP: RailPosition | null = null;
 		if (start.kind === "rail")

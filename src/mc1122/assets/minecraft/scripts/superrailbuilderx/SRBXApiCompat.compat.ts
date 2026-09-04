@@ -63,8 +63,24 @@ export class SRBXApiCompat {
 		return rp.anchorLengthHorizontal;
 	}
 
+	static getVerticalAnchorLength(rp: RailPosition): number {
+		return rp.anchorLengthVertical;
+	}
+
 	static getRailPositionAnchorPitch(rp: RailPosition): number {
 		return rp.anchorPitch;
+	}
+
+	static getRailPositionCantEdge(rp: RailPosition): number {
+		return rp.cantEdge;
+	}
+
+	static getRailPositionCantCenter(rp: RailPosition): number {
+		return rp.cantCenter;
+	}
+
+	static getRailPositionCantRandom(rp: RailPosition): number {
+		return rp.cantRandom;
 	}
 
 	static getRailPositionConnectionMarkerPosition(
@@ -195,11 +211,15 @@ export class SRBXApiCompat {
 		player: net.minecraft.entity.player.EntityPlayer,
 		start: unknown,
 		end: unknown,
+		additionalProtectedRailKeys?: string[],
+		sourceRail?: unknown,
 	) {
 		void world;
 		void player;
 		void start;
 		void end;
+		void additionalProtectedRailKeys;
+		void sourceRail;
 		return { status: "unsupported" };
 	}
 

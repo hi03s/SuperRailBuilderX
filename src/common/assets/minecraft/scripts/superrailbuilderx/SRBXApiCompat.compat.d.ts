@@ -21,8 +21,18 @@ export type SRBXBuilderPoint = {
 	slopeTarget?: boolean;
 	verticalCurveRadius?: number;
 	verticalProfile?: "circular_straight" | "circular_limited" | "straight";
+	cantEdge?: number;
+	cantCenter?: number;
+	cantRandom?: number;
 	core?: RailCorePos;
 	index?: number;
+};
+
+export type SRBXSourceRail = {
+	core: RailCorePos;
+	railKey: string;
+	startPosition: RailCorePos;
+	endPosition: RailCorePos;
 };
 
 export type SRBXBuilderCreateResult = {
@@ -51,7 +61,11 @@ export class SRBXApiCompat {
 	static doFollowing(entity: unknown, hostPlayer: unknown): void;
 	static getHorizontalAnchorYaw(rp: RailPosition): number;
 	static getHorizontalAnchorLength(rp: RailPosition): number;
+	static getVerticalAnchorLength(rp: RailPosition): number;
 	static getRailPositionAnchorPitch(rp: RailPosition): number;
+	static getRailPositionCantEdge(rp: RailPosition): number;
+	static getRailPositionCantCenter(rp: RailPosition): number;
+	static getRailPositionCantRandom(rp: RailPosition): number;
 	static getRailPositionConnectionMarkerPosition(
 		rp: RailPosition,
 	): RailCorePos;
@@ -117,6 +131,7 @@ export class SRBXApiCompat {
 		start: SRBXBuilderPoint,
 		end: SRBXBuilderPoint,
 		additionalProtectedRailKeys?: string[],
+		sourceRail?: SRBXSourceRail,
 	): SRBXBuilderCreateResult;
 	static undoBuilderRail(
 		world: World,
