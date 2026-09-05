@@ -1,0 +1,34 @@
+[03:41:07] [Server thread/INFO]: [SuperRailBuilderX builder1] section-core crossing will be created as one normal rail
+[03:41:07] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive normal rail created: replacedBlocks=18
+[03:41:07] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
+
+[03:47:37] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive sectioned rail created: sections=2, replacedBlocks=0
+[03:47:37] [Server thread/INFO]: [SuperRailBuilderX builder1] normal core position is occupied by rail: pos=-213,5,351
+[03:47:37] [Server thread/INFO]: [SuperRailBuilderX builder1] generated logical rail removed by undo: core=-214,5,354, correctedRoadbeds=0, syncedBlocks=15
+[03:47:37] [Server thread/INFO]: [SuperRailBuilderX splitter] request completed: action=split, result=section_core_conflict
+
+[03:50:55] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive sectioned rail created: sections=2, replacedBlocks=1
+[03:50:55] [Server thread/INFO]: [SuperRailBuilderX builder1] existing rail core blocks placement: pos=-218,5,371
+[03:50:55] [Server thread/INFO]: [SuperRailBuilderX builder1] generated logical rail removed by undo: core=-223,4,391, correctedRoadbeds=0, syncedBlocks=35
+[03:50:55] [Server thread/INFO]: [SuperRailBuilderX splitter] request completed: action=split, result=rail_core_conflict
+
+[03:52:44] [Server thread/INFO]: [SuperRailBuilderX splitter] request completed: action=split, result=rail_occupied
+
+[03:53:05] [Server thread/INFO]: [SuperRailBuilderX splitter] split succeeded: ratio=0.35119047619047616, bezierT=0.3511197482418956, sampledYaw=74.46463775634766, lengths=14.849346005488432/27.433537535563378
+
+[03:57:51] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive sectioned rail created: sections=3, replacedBlocks=2
+[03:57:51] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive normal rail created: replacedBlocks=0
+[03:57:51] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive normal rail created: replacedBlocks=0
+[03:57:51] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive normal rail created: replacedBlocks=0
+[03:57:51] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] request completed: action=create, result=ok
+[03:57:52] [Server thread/INFO]: [SuperRailBuilderX builder1] generated logical rail removed by undo: core=-205,4,357, correctedRoadbeds=0, syncedBlocks=26
+[03:57:52] [Server thread/INFO]: [SuperRailBuilderX builder1] generated logical rail removed by undo: core=-197,4,357, correctedRoadbeds=0, syncedBlocks=21
+[03:57:52] [Server thread/INFO]: [SuperRailBuilderX builder1] generated logical rail removed by undo: core=-193,4,357, correctedRoadbeds=0, syncedBlocks=42
+[03:57:52] [Server thread/INFO]: [SuperRailBuilderX builder1] generated logical rail removed by undo: core=-189,4,356, correctedRoadbeds=0, syncedBlocks=63
+[03:57:52] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] request completed: action=undo, result=undo_ok
+[03:58:10] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] creation failed: sourceKey=core:-197,4,357, sourceCore=-197,4,357, result=source_rail_changed
+[03:58:10] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] request completed: action=create, result=source_rail_changed
+
+[03:59:05] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] creation failed: plan=2/3, created=1, result=rail_endpoint_changed
+[03:59:05] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] rollback: index=0, result=ok
+[03:59:05] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] request completed: action=create, result=rail_endpoint_changed

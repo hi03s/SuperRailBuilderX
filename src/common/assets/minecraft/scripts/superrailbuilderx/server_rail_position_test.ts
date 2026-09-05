@@ -29,6 +29,7 @@ const hosts: WeakHashMap<Entity, EntityPlayer> = new WeakHashMap();
 
 function applyRequest(
 	entity: EntityVehicle,
+	player: EntityPlayer,
 	request: RailPositionMoveRequest,
 ): string {
 	const world = SRBXApiCompat.getWorld(entity);
@@ -101,6 +102,7 @@ function applyRequest(
 			request.destination[0],
 			request.destination[1],
 			request.destination[2],
+			player,
 		);
 		if (result !== "ok" && result !== "ok_sectioned") {
 			NGTLog.debug(
@@ -159,7 +161,11 @@ function onUpdate(entity: EntityVehicle, scriptExecuter: ScriptExecuter): void {
 	);
 	if (request) {
 		try {
-			dataMap.setString("applyResult", applyRequest(entity, request), 1);
+			dataMap.setString(
+				"applyResult",
+				applyRequest(entity, host, request),
+				1,
+			);
 		} catch (error) {
 			ErrorLogger.log(
 				"SuperRailBuilderX RailPosition apply",

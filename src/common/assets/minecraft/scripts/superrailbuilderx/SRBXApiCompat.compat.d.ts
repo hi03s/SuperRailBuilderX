@@ -1,5 +1,5 @@
 import { TileEntityLargeRailCore } from "jp.ngt.rtm.rail";
-import { RailMap, RailPosition } from "jp.ngt.rtm.rail.util";
+import { RailMap, RailPosition, RailProperty } from "jp.ngt.rtm.rail.util";
 import { Entity } from "net.minecraft.entity";
 import { EntityPlayer } from "net.minecraft.entity.player";
 import { TileEntity } from "net.minecraft.tileentity";
@@ -39,6 +39,7 @@ export type SRBXBuilderCreateResult = {
 	status: string;
 	undoCore?: RailCorePos;
 	undoKey?: string;
+	createdAsNormalCrossing?: boolean;
 };
 
 export type SRBXRailSplitResult = {
@@ -104,6 +105,7 @@ export class SRBXApiCompat {
 		x: number,
 		y: number,
 		z: number,
+		player?: EntityPlayer,
 	): string;
 	static validateRailPositionMoveAsNormal(
 		core: TileEntityLargeRailCore,
@@ -132,6 +134,9 @@ export class SRBXApiCompat {
 		end: SRBXBuilderPoint,
 		additionalProtectedRailKeys?: string[],
 		sourceRail?: SRBXSourceRail,
+		fallbackProperty?: RailProperty,
+		forceNormal?: boolean,
+		preferFallbackProperty?: boolean,
 	): SRBXBuilderCreateResult;
 	static undoBuilderRail(
 		world: World,

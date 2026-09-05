@@ -57,6 +57,8 @@ function processRequest(
 		undoRecords.remove(entity);
 		return "undo_ok";
 	}
+	const dataMap = entity.getResourceState().getDataMap();
+	dataMap.setBoolean("builder1CreatedAsNormalCrossing", false, 1);
 	const segments = SRBXMath.planVerticalRailSegments(
 		request.start,
 		request.end,
@@ -80,6 +82,7 @@ function processRequest(
 		core: [number, number, number];
 		key: string;
 	}> = [];
+	let createdAsNormalCrossing = false;
 	for (let i = 0; i < segments.length; i++) {
 		const result = SRBXApiCompat.createBuilderRail(
 			world,
@@ -102,8 +105,14 @@ function processRequest(
 			return result.status;
 		}
 		created.push({ core: result.undoCore, key: result.undoKey });
+		if (result.createdAsNormalCrossing) createdAsNormalCrossing = true;
 	}
 	undoRecords.put(entity, { rails: created });
+	dataMap.setBoolean(
+		"builder1CreatedAsNormalCrossing",
+		createdAsNormalCrossing,
+		1,
+	);
 	return "ok";
 }
 

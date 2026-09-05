@@ -1,5 +1,6 @@
 import { TileEntityLargeRailCore } from "jp.ngt.rtm.rail";
 import { RailPosition } from "jp.ngt.rtm.rail.util";
+import { EntityPlayer } from "net.minecraft.entity.player";
 
 export class SRBXApiCompat {
 	static getRider(entity: unknown) {
@@ -155,6 +156,7 @@ export class SRBXApiCompat {
 		x: number,
 		y: number,
 		z: number,
+		player?: EntityPlayer,
 	): string {
 		void core;
 		void index;
@@ -164,6 +166,7 @@ export class SRBXApiCompat {
 		void x;
 		void y;
 		void z;
+		void player;
 		return "unsupported";
 	}
 
@@ -200,6 +203,9 @@ export class SRBXApiCompat {
 		end: unknown,
 		additionalProtectedRailKeys?: string[],
 		sourceRail?: unknown,
+		fallbackProperty?: unknown,
+		forceNormal?: boolean,
+		preferFallbackProperty?: boolean,
 	) {
 		void world;
 		void player;
@@ -207,6 +213,9 @@ export class SRBXApiCompat {
 		void end;
 		void additionalProtectedRailKeys;
 		void sourceRail;
+		void fallbackProperty;
+		void forceNormal;
+		void preferFallbackProperty;
 		return { status: "unsupported" };
 	}
 

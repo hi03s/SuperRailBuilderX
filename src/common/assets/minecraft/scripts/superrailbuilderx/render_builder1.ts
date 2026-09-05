@@ -911,6 +911,8 @@ function resultMessage(result: string): string {
 	if (result === "rail_occupied") return "対象レールに列車が在線しています";
 	if (result === "rail_core_conflict")
 		return "生成経路が既設レールコアと重なっています";
+	if (result === "normal_rail_too_long")
+		return "通常レールとして生成する交差線路は64 m以下にしてください";
 	if (result === "section_core_conflict")
 		return "セクションコアを安全に配置できる空き位置がありません";
 	if (result === "nothing_to_undo") return "取り消せる生成がありません";
@@ -937,6 +939,11 @@ function handleResult(
 			sender,
 			"§a[SuperRailBuilderX] レールを生成しました",
 		);
+		if (dataMap.getBoolean("builder1CreatedAsNormalCrossing"))
+			NGTLog.sendChatMessage(
+				sender,
+				"§e[SuperRailBuilderX] セクションコア交差のため通常レールとして生成しました",
+			);
 	} else if (result === "undo_ok" && state.pendingAction === "undo") {
 		state.selected = state.lastBuiltSelection
 			? state.lastBuiltSelection.map(copyPoint)
@@ -1240,7 +1247,7 @@ function render(
 				? displayPoints[1]
 				: hover;
 		renderAt(entity, partialTicks, displayHover.position, selectCursor);
-		if (hover.kind === "rail")
+		if (hover.kind === "rail" || state.snapEnabled)
 			renderAt(
 				entity,
 				partialTicks,

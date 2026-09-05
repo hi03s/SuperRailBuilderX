@@ -125,7 +125,7 @@ core.markDirty();
 | `BlockMarker.createRail()`             | 必要に応じて自動分割される       |
 | `RailMapBasic#setRail()`とコア直接設置 | 分割処理を通らず通常レールになる |
 
-SuperRailBuilderXの通常レール再生成テストでは、後者を使用してSuperRailBuilder3に近い単一コアレールを生成しています。
+SuperRailBuilderXではRailPosition移動をbuilder1の生成経路へ統合しており、元RailPropertyの`autoSplit`設定を維持して再生成します。既設セクションコアだけを横切る64 m以下の線形は、交差相手を保護するため単一コアの通常レールへ切り替えます。
 
 ## 4. 自動分割レールの生成
 
@@ -165,36 +165,16 @@ SuperRailBuilderXの通常レール再生成テストでは、後者を使用し
 
 ## 5. 通常レールの自由点移動
 
-通常レールはコアが論理レール全体を直接保持しているため、比較的単純に更新できます。
+通常レールもRailPositionとRailMapだけを直接更新せず、元状態を退避して論理レールを撤去し、移動後の2端点からbuilder1と同じ経路で再生成します。
 
-1. `getRailPositions()` から対象端点を取得する。
-2. 選択時の元座標と現在座標が一致するか確認する。
-3. `setPosition()` で精密座標を変更する。
-4. `setRailPositions()` と `createRailMap()` を呼ぶ。
-5. 新しいRailMapに必要な道床を補う。
-6. 保存・サーバーからクライアントへの同期を行う。
+1. `getRailPositions()`から対象端点を取得し、選択時の元座標と現在座標を照合する。
+2. 移動後のRailMapについてチャンクロード、既設コア、生成始点、道床経路を事前検証する。
+3. RailPosition、RailProperty、信号、サブレールと旧経路の同期対象を退避する。
+4. 元の論理レールを撤去し、元RailPropertyを優先してbuilder1生成処理を呼ぶ。
+5. 信号・サブレールを新しいコアへ戻し、新旧経路をクライアントへ同期する。
+6. 生成失敗時は新規生成分を撤去し、退避した元線形を同じ規則で復元する。
 
-```ts
-const positions = core.getRailPositions();
-positions[index].setPosition(x, y, z);
-core.setRailPositions(positions);
-core.createRailMap();
-addMissingRoadbed(core);
-core.markDirty();
-NGTUtil.sendPacketToClient(core);
-world.markBlockForUpdate(coreX, coreY, coreZ);
-```
-
-### 5.1 不足道床の追加
-
-新しいRailMapから `getRailBlockList(property)` を取得し、各座標を調べます。
-
-- 空気またはレールマーカーなら新しい道床を配置する。
-- 既存の別レール道床は上書きしない。
-- レールコアや通常ブロックがある場合は、そのブロックを保持して道床追加を省略する。
-- 移動前の旧道床は、安全のため自動削除しない。
-
-旧道床を削除するには「その道床が移動対象だけに所有されている」ことを判定する必要があります。RTMの道床は所有コア座標を1個しか保持できず、複数レールが重なる状況では単純な差分削除が他レールを壊す可能性があります。
+通常ブロックはbuilder1と同じく道床へ置換します。既設レールコアは保護し、未保護のKaizPatchXセクションコアだけを横切る場合は、長さ64 m以下に限って新設側を単一通常レールにします。
 
 ## 6. 自動分割レールの自由点移動
 
@@ -213,13 +193,13 @@ world.markBlockForUpdate(coreX, coreY, coreZ);
 9. 信号とサブレールを新しいコアへ戻す。
 10. 失敗時は退避したRailPositionから元のレールを復元する。
 
-標準の再生成に `BlockMarker.createRail()` を使うと、`autoSplit`と新しい曲線に基づいてセクション数が再計算されます。SuperRailBuilderXの交差試験経路では、標準の一律障害判定と道床所有情報の上書きを避けるため、`RailChunkSectioner.split()` の結果から各セクションを直接構成します。曲線途中の道床は空気位置だけへ配置し、新しいセクションコア予定位置にある通常道床だけをコアへ置換します。
+SuperRailBuilderXはbuilder1と共通の再生成経路を使い、元RailPropertyの`autoSplit`と新しい曲線からセクション数を再計算します。`RailChunkSectioner.split()`の結果から各セクションを直接構成し、既設コアを保護しながら必要な道床を生成します。経路上の未保護コアがKaizPatchXセクションコアだけの場合は、長さ64 m以下に限って新設側を単一通常レールへ切り替えます。
 
-### 6.1 単一コア通常レールとして再生成する場合
+### 6.1 交差時に単一コア通常レールとして再生成する場合
 
-自動分割レールを通常レールへ変換する場合は、撤去後に `BlockMarker.createRail()` を呼びません。道床候補のうち空気位置だけを加算配置し、始点へ通常コアを直接設置します。
+移動後の経路が既設セクションコアだけを横切る場合は、交差相手を破壊しないよう`autoSplit=false`の単一通常レールとして生成します。64 mを超える線形はこの方式では生成せず、`normal_rail_too_long`で停止します。
 
-これによりRailPropertyの `autoSplit` が有効でも単一コアになります。ただし、自動分割が避けていた次の問題が戻る可能性があります。
+単一コア化には次の制約があります。
 
 - コアのあるチャンクが未ロードだと、遠方セクションで所有コアを取得できない。
 - 長距離レールの描画・走行・チャンク管理が単一コアへ集中する。
@@ -291,7 +271,7 @@ world.markBlockForUpdate(coreX, coreY, coreZ);
 
 RTM標準の `canPlaceRail()` は非コア道床との重なりを許可します。ただし、同じブロックにTileEntityを2個保存することはできないため、後から配置した道床が所有コア情報を上書きする場合があります。
 
-試験実装では曲線途中の既存道床を保持し、新しい道床は空気位置だけへ置きます。これにより重なった道床の所有コア情報を変更しません。一方、新しいセクションコアの予定位置に既存道床がある場合は、その道床をコアへ置換しなければ自動分割構造を成立させられません。この置換は交差相手の道床を1ブロック失わせる破壊的変更なので、バックアップ済みワールドで両方の線路を走行確認する必要があります。
+builder1とRailPosition移動の現行実装は、通常ブロックを道床へ置換し、非コア道床との重なりを許可します。新しいセクションコア予定位置が既存道床と重なる場合は、同一チャンク・区間内の空き経路ブロックへ移設します。同じ道床の所有情報は後から生成した側へ更新され得るため、バックアップ済みワールドで両方の線路を走行確認する必要があります。
 
 ### 9.2 コア同士の衝突
 
@@ -372,7 +352,6 @@ Minecraft 1.7.10の`World#setBlock`のboolean戻り値だけでは、目的ブ�
 | ---------------------------------- | -------------------------------------------------------------- |
 | クライアント操作・候補探索・描画   | `render_rail_position_test.ts`                                 |
 | 自動分割再生成版サーバー           | `server_rail_position_test.ts`                                 |
-| 通常レール再生成版サーバー         | `server_rail_position_normal_test.ts`                          |
 | バージョン差分・KaizPatchX固有処理 | `src/kaizpatch/.../SRBXApiCompat.compat.ts`                    |
 | 他ターゲットの安全な無効化         | `src/mc1710/...`、`src/mc1122/...`                             |
 | 調査・試験結果                     | `docs/rail-position-free-positioning.md`                       |

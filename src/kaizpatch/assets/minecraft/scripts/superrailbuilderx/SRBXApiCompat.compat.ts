@@ -879,6 +879,7 @@ export class SRBXApiCompat {
 		z: number,
 	): string {
 		if (!this.canMoveRailPosition(core)) return "unsupported";
+		if (core.isLogicalRailOccupied()) return "occupied";
 		const positions = this.getEditableRailPositions(core);
 		if (!positions || index < 0 || index >= positions.length)
 			return "not_found";
@@ -897,10 +898,9 @@ export class SRBXApiCompat {
 			y,
 			z,
 		);
-		const roadbedValidation = this.validateRoadbedPath(
+		const roadbedValidation = this.validateBuilderMovePath(
 			core,
 			movedPositions,
-			this.isSectionCore(core),
 		);
 		if (roadbedValidation !== "ok") return roadbedValidation;
 		if (!this.isSectionCore(core)) return "ok";
@@ -921,6 +921,92 @@ export class SRBXApiCompat {
 		return "ok";
 	}
 
+	private static getBuilderMoveProtectedRailKeys(
+		core: TileEntityLargeRailCore,
+		positions: RailPosition[],
+	): string[] {
+		const world = this.getCoreWorld(core);
+		const keys: { [key: string]: boolean } = {};
+		keys[this.getRailPositionCandidateKey(core)] = true;
+		for (let i = 0; i < positions.length; i++) {
+			const rp = positions[i];
+			const candidates = [
+				[rp.blockX, rp.blockY, rp.blockZ],
+				this.getBuilderConnectionBlock(rp),
+			];
+			for (let j = 0; j < candidates.length; j++) {
+				const pos = candidates[j];
+				const tile = world.getTileEntity(pos[0], pos[1], pos[2]);
+				if (!(tile instanceof TileEntityLargeRailBase)) continue;
+				const owner = tile.getRailCore();
+				if (owner) keys[this.getRailPositionCandidateKey(owner)] = true;
+			}
+		}
+		return Object.keys(keys);
+	}
+
+	private static validateBuilderMovePath(
+		core: TileEntityLargeRailCore,
+		positions: RailPosition[],
+	): string {
+		const world = this.getCoreWorld(core);
+		const property = core.getProperty();
+		const currentMap = core.getRailMap(null);
+		const mapVersion =
+			currentMap instanceof RailMapBasic
+				? currentMap.fixRTMRailMapVersion
+				: RailMapBasic.fixRTMRailMapVersionCurrent;
+		const source = new RailMapBasic(positions[0], positions[1], mapVersion);
+		if (!this.isBuilderRoadbedLoaded(world, source, property))
+			return "path_unloaded";
+		const protectedKeys: { [key: string]: boolean } = {};
+		const protectedList = this.getBuilderMoveProtectedRailKeys(
+			core,
+			positions,
+		);
+		for (let i = 0; i < protectedList.length; i++)
+			protectedKeys[protectedList[i]] = true;
+		const preserveSectionCores = this.hasOnlyBuilderSectionCoreCrossings(
+			world,
+			source,
+			property,
+			protectedKeys,
+			positions[0],
+		);
+		if (preserveSectionCores && source.getLength() > 64)
+			return "normal_rail_too_long";
+		return this.validateBuilderPlacement(
+			world,
+			[source],
+			property,
+			protectedKeys,
+			preserveSectionCores,
+		);
+	}
+
+	private static applyBuilderRailState(
+		world: net.minecraft.world.World,
+		result: { undoCore?: [number, number, number] },
+		signal: any,
+		subRails: java.util.List<RailProperty>,
+	): boolean {
+		if (!result.undoCore) return false;
+		const tile = world.getTileEntity(
+			result.undoCore[0],
+			result.undoCore[1],
+			result.undoCore[2],
+		);
+		if (!(tile instanceof TileEntityLargeRailBase)) return false;
+		const core = tile.getRailCore();
+		if (!core) return false;
+		core.setSignal(signal);
+		for (let i = 0; i < subRails.size(); i++)
+			core.addSubRail(this.cloneRailProperty(subRails.get(i)));
+		this.markCoreDirty(core);
+		NGTUtil.sendPacketToClient(core);
+		return true;
+	}
+
 	static moveRailPosition(
 		core: TileEntityLargeRailCore,
 		index: number,
@@ -930,6 +1016,7 @@ export class SRBXApiCompat {
 		x: number,
 		y: number,
 		z: number,
+		player?: EntityPlayer,
 	): string {
 		const validation = this.validateRailPositionMove(
 			core,
@@ -942,39 +1029,101 @@ export class SRBXApiCompat {
 			z,
 		);
 		if (validation !== "ok") return validation;
-		if (this.isSectionCore(core))
-			return this.moveSectionedRailPosition(
-				core,
-				index,
-				originalX,
-				originalY,
-				originalZ,
-				x,
-				y,
-				z,
-			);
-		const positions = core.getRailPositions();
-		if (index < 0 || index >= positions.length) return "not_found";
-		const position = positions[index];
-		const tolerance = 0.001;
-		if (
-			Math.abs(position.posX - originalX) > tolerance ||
-			Math.abs(position.posY - originalY) > tolerance ||
-			Math.abs(position.posZ - originalZ) > tolerance
-		)
-			return "changed";
-		position.setPosition(x, y, z);
-		core.setRailPositions(positions);
-		core.createRailMap();
-		this.addMissingRoadbed(core);
-		core.markDirty();
-		NGTUtil.sendPacketToClient(core);
-		this.getCoreWorld(core).markBlockForUpdate(
-			core.xCoord,
-			core.yCoord,
-			core.zCoord,
+		if (!player) return "missing_player";
+		const wasSectioned = this.isSectionCore(core);
+		const sourcePositions = this.getEditableRailPositions(core);
+		if (!sourcePositions || sourcePositions.length !== 2)
+			return "not_found";
+		const originalPositions = this.copyRailPositions(sourcePositions);
+		const movedPositions = this.createMovedPositions(
+			sourcePositions,
+			index,
+			x,
+			y,
+			z,
 		);
-		return "ok";
+		const world = this.getCoreWorld(core);
+		const property = this.cloneRailProperty(core.getProperty());
+		const originalMap = this.getLogicalRailMap(core) as RailSectionMap;
+		const oldSyncBlocks = originalMap
+			? this.getBuilderRoadbedBlocks(originalMap, property)
+			: [];
+		oldSyncBlocks.push([core.xCoord, core.yCoord, core.zCoord]);
+		const signal = core.getSignal();
+		const subRails = new ArrayList<RailProperty>();
+		for (let i = 0; i < core.subRails.size(); i++)
+			subRails.add(this.cloneRailProperty(core.subRails.get(i)));
+		const protectedKeys = this.getBuilderMoveProtectedRailKeys(
+			core,
+			movedPositions,
+		);
+		core.breakLogicalRail();
+		for (let i = 0; i < oldSyncBlocks.length; i++) {
+			const pos = oldSyncBlocks[i];
+			world.markBlockForUpdate(pos[0], pos[1], pos[2]);
+		}
+		const result = this.createBuilderRail(
+			world,
+			player,
+			this.splitPointFromRailPosition(
+				movedPositions[0],
+				movedPositions[0].anchorLengthHorizontal,
+				movedPositions[0].anchorLengthVertical,
+			),
+			this.splitPointFromRailPosition(
+				movedPositions[1],
+				movedPositions[1].anchorLengthHorizontal,
+				movedPositions[1].anchorLengthVertical,
+			),
+			protectedKeys,
+			undefined,
+			property,
+			false,
+			true,
+		);
+		if (
+			result.status === "ok" &&
+			this.applyBuilderRailState(world, result, signal, subRails)
+		) {
+			NGTLog.debug(
+				`[SuperRailBuilderX RailPosition] builder-rule rebuild succeeded: sectioned=${wasSectioned}, normalCrossing=${result.createdAsNormalCrossing === true}`,
+			);
+			return wasSectioned ? "ok_sectioned" : "ok";
+		}
+		if (result.status === "ok" && result.undoCore && result.undoKey)
+			this.undoBuilderRail(
+				world,
+				result.undoCore[0],
+				result.undoCore[1],
+				result.undoCore[2],
+				result.undoKey,
+			);
+		const restored = this.createBuilderRail(
+			world,
+			player,
+			this.splitPointFromRailPosition(
+				originalPositions[0],
+				originalPositions[0].anchorLengthHorizontal,
+				originalPositions[0].anchorLengthVertical,
+			),
+			this.splitPointFromRailPosition(
+				originalPositions[1],
+				originalPositions[1].anchorLengthHorizontal,
+				originalPositions[1].anchorLengthVertical,
+			),
+			protectedKeys,
+			undefined,
+			property,
+			false,
+			true,
+		);
+		const rollbackOk =
+			restored.status === "ok" &&
+			this.applyBuilderRailState(world, restored, signal, subRails);
+		NGTLog.debug(
+			`[SuperRailBuilderX RailPosition] builder-rule rebuild failed: result=${result.status}, restored=${rollbackOk}`,
+		);
+		return rollbackOk ? result.status : "move_rollback_failed";
 	}
 
 	static validateRailPositionMoveAsNormal(
@@ -2096,6 +2245,8 @@ export class SRBXApiCompat {
 		additionalProtectedRailKeys?: string[],
 		sourceRail?: SourceRail,
 		fallbackProperty?: RailProperty,
+		forceNormal = false,
+		preferFallbackProperty = false,
 	) {
 		const startValidation = this.validateBuilderPoint(start);
 		if (startValidation !== "ok") return { status: startValidation };
@@ -2131,6 +2282,9 @@ export class SRBXApiCompat {
 		if (sourceRail && !sourceProperty)
 			return { status: "source_rail_changed" };
 		const property =
+			(preferFallbackProperty && fallbackProperty
+				? this.cloneRailProperty(fallbackProperty)
+				: null) ||
 			this.createBuilderProperty(player) ||
 			sourceProperty ||
 			(fallbackProperty
@@ -2203,7 +2357,11 @@ export class SRBXApiCompat {
 				protectedRailKeys,
 				positions[0],
 			);
-		const createAsNormal = sections.size() <= 1 || preserveSectionCores;
+		if ((forceNormal || preserveSectionCores) && source.getLength() > 64)
+			return { status: "normal_rail_too_long" };
+		const createAsNormal =
+			forceNormal || sections.size() <= 1 || preserveSectionCores;
+		if (forceNormal) property.autoSplit = false;
 		if (preserveSectionCores) {
 			property.autoSplit = false;
 			NGTLog.debug(
@@ -2317,6 +2475,7 @@ export class SRBXApiCompat {
 			status: "ok",
 			undoCore: corePos,
 			undoKey: createdKey,
+			createdAsNormalCrossing: preserveSectionCores,
 		};
 	}
 
@@ -2684,12 +2843,12 @@ export class SRBXApiCompat {
 			return { status: "rail_too_short" };
 		const point = railMap.getRailPos(1000000, Math.round(ratio * 1000000));
 		const x = point[1];
-		const y = railMap.getRailHeight(1000000, Math.round(ratio * 1000000));
+		const sampleIndex = Math.round(ratio * 1000000);
+		const cant = railMap.getCant(1000000, sampleIndex);
+		const cantLift = Math.abs(Math.sin((cant * Math.PI) / 180) * 1.5);
+		const y = railMap.getRailHeight(1000000, sampleIndex) - cantLift;
 		const z = point[0];
-		const sampledYaw = railMap.getRailYaw(
-			1000000,
-			Math.round(ratio * 1000000),
-		);
+		const sampledYaw = railMap.getRailYaw(1000000, sampleIndex);
 		const pitch = railMap.getRailPitch(
 			1000000,
 			Math.round(ratio * 1000000),
@@ -2720,10 +2879,7 @@ export class SRBXApiCompat {
 			splitStart.anchorLengthHorizontal,
 			pitch,
 		);
-		splitStart.cantEdge = railMap.getCant(
-			1000000,
-			Math.round(ratio * 1000000),
-		);
+		splitStart.cantEdge = cant;
 		splitStart.cantCenter = railMap.getCant(
 			1000000,
 			Math.round(((ratio + 1) / 2) * 1000000),
@@ -2777,15 +2933,20 @@ export class SRBXApiCompat {
 				original[1].anchorPitch,
 			),
 		);
+		const connectedRailKeys = this.getBuilderMoveProtectedRailKeys(
+			core,
+			original,
+		);
 		core.breakLogicalRail();
 		const first = this.createBuilderRail(
 			world,
 			player,
 			firstStart,
 			firstEnd,
-			undefined,
+			connectedRailKeys,
 			undefined,
 			property,
+			leftLength <= 64 && rightLength <= 64,
 		);
 		if (first.status !== "ok" || !first.undoCore || !first.undoKey) {
 			return {
@@ -2800,9 +2961,10 @@ export class SRBXApiCompat {
 			player,
 			secondStart,
 			secondEnd,
-			[first.undoKey],
+			connectedRailKeys.concat([first.undoKey]),
 			undefined,
 			property,
+			leftLength <= 64 && rightLength <= 64,
 		);
 		if (second.status !== "ok" || !second.undoCore || !second.undoKey) {
 			this.undoBuilderRail(

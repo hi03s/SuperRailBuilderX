@@ -325,15 +325,8 @@ function handleInput(
 	const sender = host as unknown as ICommandSender;
 	const dataMap = entity.getResourceState().getDataMap();
 	const state = getState(entity);
-	const normalRailMode =
-		dataMap.getString("railPositionOperationMode") === "normal";
 	if (keys.pressed("help")) {
-		NGTLog.sendChatMessage(
-			sender,
-			normalRailMode
-				? "--- RailPosition通常レール再生成テスト ---"
-				: "--- RailPosition自由化テスト ---",
-		);
+		NGTLog.sendChatMessage(sender, "--- RailPosition移動ツール ---");
 		NGTLog.sendChatMessage(sender, "[右クリック] 接続点/移動先を確定");
 		NGTLog.sendChatMessage(sender, "[左クリック] 1段階戻る");
 		NGTLog.sendChatMessage(sender, keys.getDescription("apply"));
@@ -393,48 +386,15 @@ function handleInput(
 		NGTOBuilderUtil.sendJsonData(dataMap, "railPositionMove", request);
 		dataMap.setString("applyResult", "waiting", 1);
 		state.awaitingResult = true;
-		NGTLog.sendChatMessage(
-			sender,
-			normalRailMode
-				? "[SuperRailBuilderX] 通常レールとして再生成中..."
-				: "[SuperRailBuilderX] 移動を適用中...",
-		);
+		NGTLog.sendChatMessage(sender, "[SuperRailBuilderX] 移動・再生成中...");
 	}
 	const result = dataMap.getString("applyResult");
 	if (state.awaitingResult && result !== "" && result !== "waiting") {
 		state.awaitingResult = false;
 		if (result === "ok") {
-			if (state.selected && state.destination) {
-				for (let i = 0; i < state.selected.candidates.length; i++) {
-					const candidate = state.selected.candidates[i];
-					try {
-						SRBXApiCompat.refreshRailPositionClient(
-							candidate.core,
-							candidate.index,
-							state.destination[0],
-							state.destination[1],
-							state.destination[2],
-						);
-					} catch (error) {
-						ErrorLogger.log(
-							"SuperRailBuilderX RailPosition apply",
-							"refreshRailPositionClient",
-							error,
-							{
-								coreX: candidate.coreX,
-								coreY: candidate.coreY,
-								coreZ: candidate.coreZ,
-								index: candidate.index,
-							},
-						);
-					}
-				}
-			}
 			NGTLog.sendChatMessage(
 				sender,
-				normalRailMode
-					? "§a[SuperRailBuilderX] 通常レールとして再生成しました"
-					: "§a[SuperRailBuilderX] 移動しました",
+				"§a[SuperRailBuilderX] 移動・再生成しました",
 			);
 			state.stage = 0;
 			state.selected = null;

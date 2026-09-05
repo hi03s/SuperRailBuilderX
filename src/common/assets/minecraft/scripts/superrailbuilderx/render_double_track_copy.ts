@@ -381,6 +381,21 @@ function planLength(plan: DoubleTrackCopyPlan): number {
 	);
 }
 
+function staysOutsideCurveCenter(
+	start: SRBXBuilderPoint,
+	end: SRBXBuilderPoint,
+	distance: number,
+): boolean {
+	const radius = SRBXMath.approximateBezierRadius(
+		start.position,
+		controlPoint(start),
+		controlPoint(end),
+		end.position,
+	);
+	if (!isFinite(radius) || radius * distance <= 0) return true;
+	return Math.abs(distance) < Math.abs(radius) - 0.05;
+}
+
 function updateSide(
 	entity: EntityVehicle,
 	partialTicks: number,
@@ -413,12 +428,28 @@ function buildPlans(
 	for (let i = 0; i < state.selected.length; i++)
 		excluded[state.selected[i].railKey] = true;
 	for (let repeat = 1; repeat <= state.repeatCount; repeat++) {
+		const distance = state.spacing * state.side * repeat;
+		let repeatValid = true;
+		for (let i = 0; i < state.selected.length; i++) {
+			const resolved = resolveRail(entity, state.selected[i]);
+			if (!resolved) continue;
+			if (
+				!staysOutsideCurveCenter(
+					sourcePoint(resolved.positions[0]),
+					sourcePoint(resolved.positions[1]),
+					distance,
+				)
+			) {
+				repeatValid = false;
+				break;
+			}
+		}
+		if (!repeatValid) break;
 		for (let i = 0; i < state.selected.length; i++) {
 			const resolved = resolveRail(entity, state.selected[i]);
 			if (!resolved) continue;
 			const sourceStart = sourcePoint(resolved.positions[0]);
 			const sourceEnd = sourcePoint(resolved.positions[1]);
-			const distance = state.spacing * state.side * repeat;
 			let start = offsetPoint(
 				sourceStart,
 				sourceStart.anchorYaw,
@@ -672,7 +703,11 @@ function handleResult(
 		state.selected = state.lastCreatedSelection
 			? state.lastCreatedSelection.map(copyTarget)
 			: [];
-		state.actions = [];
+		state.actions = state.selected.map((target, index) => ({
+			type: "select" as "select",
+			target: copyTarget(target),
+			index,
+		}));
 		state.lastCreatedSelection = null;
 		state.lockedPlans = [];
 		state.placementLocked = false;
