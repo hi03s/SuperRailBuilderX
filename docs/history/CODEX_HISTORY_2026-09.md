@@ -143,6 +143,8 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 生の`logs/latest.log`はコミットせず、必要行だけ`logs/rail-tools-retest-20260906-client.log`へ抜粋した。
 - 検証済み: 変更対象TypeScript・MarkdownのPrettier、`git diff --check`、`pnpm gen`、kaizpatch・mc1710・mc1122の`pnpm build`。
 - 未検証: 修正後のゲーム内強調、選択復元、分割モデル・距離表示・2 m制限、低速遷移診断。
+- コミット: https://github.com/hi03s/SuperRailBuilderX/commit/74c287f
+- 同期: `origin/main`へ同期済み。
 
 ### 2026-09-04 ローカルCodex — 複線コピーツールのmulti-targetビルド修正
 
