@@ -229,6 +229,9 @@ function renderLengthPanel(
 	const text = Math.max(0, length).toFixed(2);
 	const glyphCount = text.length;
 	GL11.glPushMatrix();
+	GL11.glEnable(GL11.GL_BLEND);
+	GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+	GL11.glColor4f(1, 1, 1, 1);
 	orientPanel(entity, partialTicks, position);
 	GL11.glTranslatef((glyphCount - 1) / 2, 0, 0);
 	for (let i = 0; i < text.length; i++) {
@@ -243,6 +246,7 @@ function renderLengthPanel(
 		if (i === text.length - 1) meter.render(renderer);
 		GL11.glPopMatrix();
 	}
+	GL11.glDisable(GL11.GL_BLEND);
 	GL11.glPopMatrix();
 }
 
@@ -274,14 +278,17 @@ function handleResult(
 ): void {
 	const dataMap = entity.getResourceState().getDataMap();
 	const result = dataMap.getString("railSplitterResult");
+	if (!state.awaitingResult || !state.pendingAction) return;
 	if (!result || result === "waiting") return;
-	if (result === "ok") {
+	const pendingAction = state.pendingAction;
+	state.awaitingResult = false;
+	if (result === "ok" && pendingAction === "split") {
 		NGTLog.sendChatMessage(
 			sender,
 			"§a[SuperRailBuilderX] 線路を2本に分割しました",
 		);
 		state.selected = null;
-	} else if (result === "undo_ok") {
+	} else if (result === "undo_ok" && pendingAction === "undo") {
 		NGTLog.sendChatMessage(
 			sender,
 			"§a[SuperRailBuilderX] 分割前の線路を復元しました",
@@ -292,7 +299,6 @@ function handleResult(
 			`§c[SuperRailBuilderX] 処理失敗: ${result}`,
 		);
 	}
-	state.awaitingResult = false;
 	state.pendingAction = null;
 	dataMap.setString("railSplitterResult", "", 1);
 }

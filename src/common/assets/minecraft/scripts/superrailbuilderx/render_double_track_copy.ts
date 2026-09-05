@@ -53,6 +53,8 @@ type CopyState = {
 	actions: SelectionAction[];
 	pendingCreateSelection: SelectedRail[] | null;
 	lastCreatedSelection: SelectedRail[] | null;
+	lockedPlans: DoubleTrackCopyPlan[];
+	placementLocked: boolean;
 	spacing: number;
 	side: number;
 	repeatCount: number;
@@ -94,6 +96,8 @@ function getState(entity: EntityVehicle): CopyState {
 			actions: [],
 			pendingCreateSelection: null,
 			lastCreatedSelection: null,
+			lockedPlans: [],
+			placementLocked: false,
 			spacing: DEFAULT_SPACING,
 			side: 1,
 			repeatCount: 0,
@@ -403,7 +407,7 @@ function buildPlans(
 	partialTicks: number,
 	state: CopyState,
 ): DoubleTrackCopyPlan[] {
-	updateSide(entity, partialTicks, state);
+	if (!state.placementLocked) updateSide(entity, partialTicks, state);
 	const plans: DoubleTrackCopyPlan[] = [];
 	const excluded: { [key: string]: boolean } = {};
 	for (let i = 0; i < state.selected.length; i++)
@@ -617,7 +621,11 @@ function showSpacing(sender: ICommandSender, state: CopyState): void {
 function showHelp(sender: ICommandSender): void {
 	NGTLog.sendChatMessage(sender, "--- SuperRailBuilderX 複線コピー ---");
 	NGTLog.sendChatMessage(sender, "[右クリック] レールを選択/選択解除");
-	NGTLog.sendChatMessage(sender, "[左クリック] 最後の選択操作を取り消す");
+	NGTLog.sendChatMessage(sender, "[空間を右クリック] 複製位置を確定");
+	NGTLog.sendChatMessage(
+		sender,
+		"[左クリック] 位置確定/最後の選択を取り消す",
+	);
 	NGTLog.sendChatMessage(sender, keys.getDescription("spacingUp"));
 	NGTLog.sendChatMessage(sender, keys.getDescription("spacingDown"));
 	NGTLog.sendChatMessage(sender, keys.getDescription("clear"));
@@ -645,21 +653,30 @@ function handleResult(
 ): void {
 	const dataMap = entity.getResourceState().getDataMap();
 	const result = dataMap.getString("doubleTrackCopyResult");
+	if (!state.awaitingResult || !state.pendingAction) return;
 	if (!result || result === "waiting") return;
-	if (result === "ok") {
+	const pendingAction = state.pendingAction;
+	state.awaitingResult = false;
+	if (result === "ok" && pendingAction === "create") {
 		state.lastCreatedSelection = state.pendingCreateSelection;
 		state.selected = [];
 		state.actions = [];
+		state.lockedPlans = [];
+		state.placementLocked = false;
+		state.repeatCount = 0;
 		NGTLog.sendChatMessage(
 			sender,
 			"§a[SuperRailBuilderX] 複線を生成しました",
 		);
-	} else if (result === "undo_ok") {
+	} else if (result === "undo_ok" && pendingAction === "undo") {
 		state.selected = state.lastCreatedSelection
 			? state.lastCreatedSelection.map(copyTarget)
 			: [];
 		state.actions = [];
 		state.lastCreatedSelection = null;
+		state.lockedPlans = [];
+		state.placementLocked = false;
+		state.repeatCount = 0;
 		NGTLog.sendChatMessage(
 			sender,
 			"§a[SuperRailBuilderX] 直前に生成した複線を撤去しました",
@@ -670,7 +687,6 @@ function handleResult(
 			`§c[SuperRailBuilderX] 処理失敗: ${result}`,
 		);
 	}
-	state.awaitingResult = false;
 	state.pendingAction = null;
 	state.pendingCreateSelection = null;
 	dataMap.setString("doubleTrackCopyResult", "", 1);
@@ -697,6 +713,8 @@ function undoSelection(state: CopyState): void {
 }
 
 function toggleSelection(state: CopyState, target: SelectedRail): void {
+	state.placementLocked = false;
+	state.lockedPlans = [];
 	let index = -1;
 	for (let i = 0; i < state.selected.length; i++)
 		if (sameTarget(state.selected[i], target)) {
@@ -732,11 +750,35 @@ function handleInput(
 	const state = getState(entity);
 	if (keys.pressed("help")) showHelp(sender);
 	if (keys.down("exit")) dataMap.setBoolean("isEndEdit", true, 1);
-	if (!state.awaitingResult && leftClick) undoSelection(state);
+	if (!state.awaitingResult && leftClick) {
+		if (state.placementLocked) {
+			state.placementLocked = false;
+			state.lockedPlans = [];
+			NGTLog.sendChatMessage(
+				sender,
+				"§e[SuperRailBuilderX] 複製位置の確定を解除しました",
+			);
+		} else undoSelection(state);
+	}
 	if (!state.awaitingResult && rightClick) {
 		const target = findHoverRail(entity, partialTicks);
 		if (target) toggleSelection(state, target);
-		else
+		else if (state.selected.length > 0) {
+			state.placementLocked = false;
+			const plans = buildPlans(entity, partialTicks, state);
+			if (plans.length > 0) {
+				state.lockedPlans = plans;
+				state.placementLocked = true;
+				NGTLog.sendChatMessage(
+					sender,
+					"§a[SuperRailBuilderX] 複製位置を確定しました。Enterで生成します",
+				);
+			} else
+				NGTLog.sendChatMessage(
+					sender,
+					"§e[SuperRailBuilderX] 生成可能な2m超の複線がありません",
+				);
+		} else
 			NGTLog.sendChatMessage(
 				sender,
 				"§e[SuperRailBuilderX] 選択可能な通常レールが見つかりません",
@@ -757,13 +799,19 @@ function handleInput(
 		);
 		spacingChanged = true;
 	}
-	if (spacingChanged) showSpacing(sender, state);
+	if (spacingChanged) {
+		state.placementLocked = false;
+		state.lockedPlans = [];
+		showSpacing(sender, state);
+	}
 	if (!state.awaitingResult && keys.pressed("clear")) {
 		state.selected = [];
 		state.actions = [];
 		state.spacing = DEFAULT_SPACING;
 		state.side = 1;
 		state.repeatCount = 0;
+		state.lockedPlans = [];
+		state.placementLocked = false;
 		state.keyRepeatAt = {};
 		showSpacing(sender, state);
 	}
@@ -772,11 +820,11 @@ function handleInput(
 		keys.pressed("create") &&
 		state.selected.length > 0
 	) {
-		const plans = buildPlans(entity, partialTicks, state);
+		const plans = state.placementLocked ? state.lockedPlans : [];
 		if (plans.length === 0)
 			NGTLog.sendChatMessage(
 				sender,
-				"§e[SuperRailBuilderX] 生成可能な2m超の複線がありません",
+				"§e[SuperRailBuilderX] 先に空間を右クリックして複製位置を確定してください",
 			);
 		else {
 			state.pendingCreateSelection = state.selected.map(copyTarget);
@@ -818,17 +866,6 @@ function render(
 	if (!host || host !== player) return;
 	SRBXApiCompat.doFollowing(entity, host);
 	const state = getState(entity);
-	for (let i = 0; i < state.selected.length; i++) {
-		const resolved = resolveRail(entity, state.selected[i]);
-		if (resolved)
-			renderRailHighlight(
-				entity,
-				partialTicks,
-				resolved.map,
-				"00ffff",
-				0.65,
-			);
-	}
 	const hover = findHoverRail(entity, partialTicks);
 	let hoverSelected = false;
 	if (hover)
@@ -837,6 +874,19 @@ function render(
 				hoverSelected = true;
 				break;
 			}
+	for (let i = 0; i < state.selected.length; i++) {
+		const resolved = resolveRail(entity, state.selected[i]);
+		if (resolved)
+			renderRailHighlight(
+				entity,
+				partialTicks,
+				resolved.map,
+				hoverSelected && hover && sameTarget(state.selected[i], hover)
+					? "009999"
+					: "00ffff",
+				0.65,
+			);
+	}
 	if (hover && !hoverSelected) {
 		const resolved = resolveRail(entity, hover);
 		if (resolved) {
@@ -855,9 +905,22 @@ function render(
 				selectCursor,
 			);
 		}
+	} else if (hover && hoverSelected) {
+		const resolved = resolveRail(entity, hover);
+		if (resolved) {
+			const split = 1000;
+			renderCursor(
+				entity,
+				partialTicks,
+				railPoint(resolved.map, split, split / 2),
+				selectedCursor,
+			);
+		}
 	}
 	if (state.selected.length > 0) {
-		const plans = buildPlans(entity, partialTicks, state);
+		const plans = state.placementLocked
+			? state.lockedPlans
+			: buildPlans(entity, partialTicks, state);
 		for (let i = 0; i < plans.length; i++) {
 			renderPlan(entity, partialTicks, plans[i]);
 			renderCursor(

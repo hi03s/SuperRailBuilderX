@@ -1626,6 +1626,7 @@ export class SRBXApiCompat {
 		coreZ: number,
 		property: RailProperty,
 		protectedRailKeys: { [key: string]: boolean },
+		preserveSectionCores = false,
 	): number {
 		const blocks = this.getBuilderRoadbedBlocks(railMap, property);
 		let replaced = 0;
@@ -1634,6 +1635,17 @@ export class SRBXApiCompat {
 			const existingTile = world.getTileEntity(pos[0], pos[1], pos[2]);
 			if (existingTile instanceof TileEntityLargeRailBase) {
 				const owner = existingTile.getRailCore();
+				if (
+					preserveSectionCores &&
+					existingTile instanceof TileEntityLargeRailCore &&
+					owner &&
+					this.isSectionCore(owner)
+				) {
+					NGTLog.debug(
+						`[SuperRailBuilderX builder1] crossing section core preserved: pos=${pos[0]},${pos[1]},${pos[2]}, railKey=${this.getRailPositionCandidateKey(owner)}`,
+					);
+					continue;
+				}
 				if (
 					owner &&
 					protectedRailKeys[this.getRailPositionCandidateKey(owner)]
@@ -1697,6 +1709,7 @@ export class SRBXApiCompat {
 		maps: RailSectionMap[],
 		property: RailProperty,
 		protectedRailKeys: { [key: string]: boolean },
+		preserveSectionCores = false,
 	): string {
 		const coreBlocks: {
 			[key: string]: {
@@ -1733,12 +1746,47 @@ export class SRBXApiCompat {
 				);
 				continue;
 			}
+			if (preserveSectionCores && this.isSectionCore(target.core)) {
+				NGTLog.debug(
+					`[SuperRailBuilderX builder1] crossing section core accepted for normal rail: pos=${target.position[0]},${target.position[1]},${target.position[2]}, railKey=${target.railKey}`,
+				);
+				continue;
+			}
 			NGTLog.debug(
 				`[SuperRailBuilderX builder1] existing rail core blocks placement: pos=${target.position[0]},${target.position[1]},${target.position[2]}, railKey=${target.railKey}`,
 			);
 			return "rail_core_conflict";
 		}
 		return "ok";
+	}
+
+	private static hasOnlyBuilderSectionCoreCrossings(
+		world: net.minecraft.world.World,
+		railMap: RailSectionMap,
+		property: RailProperty,
+		protectedRailKeys: { [key: string]: boolean },
+		start: RailPosition,
+	): boolean {
+		const blocks = this.getBuilderRoadbedBlocks(railMap, property);
+		let found = false;
+		for (let i = 0; i < blocks.length; i++) {
+			const pos = blocks[i];
+			const tile = world.getTileEntity(pos[0], pos[1], pos[2]);
+			if (!(tile instanceof TileEntityLargeRailCore)) continue;
+			const core = tile.getRailCore();
+			if (!core) continue;
+			const railKey = this.getRailPositionCandidateKey(core);
+			if (protectedRailKeys[railKey]) continue;
+			if (
+				(pos[0] === start.blockX &&
+					pos[1] === start.blockY &&
+					pos[2] === start.blockZ) ||
+				!this.isSectionCore(core)
+			)
+				return false;
+			found = true;
+		}
+		return found;
 	}
 
 	private static isBuilderRoadbedLoaded(
@@ -1864,6 +1912,7 @@ export class SRBXApiCompat {
 		positions: RailPosition[],
 		property: RailProperty,
 		protectedRailKeys: { [key: string]: boolean },
+		preserveSectionCores = false,
 	): TileEntityLargeRailCore | null {
 		const start = positions[0];
 		const replaced = this.placeBuilderRoadbed(
@@ -1874,6 +1923,7 @@ export class SRBXApiCompat {
 			start.blockZ,
 			property,
 			protectedRailKeys,
+			preserveSectionCores,
 		);
 		const startBase = world.getTileEntity(
 			start.blockX,
@@ -2144,7 +2194,23 @@ export class SRBXApiCompat {
 		if (additionalProtectedRailKeys)
 			for (let i = 0; i < additionalProtectedRailKeys.length; i++)
 				protectedRailKeys[additionalProtectedRailKeys[i]] = true;
-		if (sections.size() > 1) {
+		const preserveSectionCores =
+			sections.size() > 1 &&
+			this.hasOnlyBuilderSectionCoreCrossings(
+				world,
+				source,
+				property,
+				protectedRailKeys,
+				positions[0],
+			);
+		const createAsNormal = sections.size() <= 1 || preserveSectionCores;
+		if (preserveSectionCores) {
+			property.autoSplit = false;
+			NGTLog.debug(
+				"[SuperRailBuilderX builder1] section-core crossing will be created as one normal rail",
+			);
+		}
+		if (!createAsNormal) {
 			const corePreparation = this.prepareBuilderSectionCorePositions(
 				world,
 				source,
@@ -2186,7 +2252,7 @@ export class SRBXApiCompat {
 			}
 		}
 		const placementMaps: RailSectionMap[] = [];
-		if (sections.size() > 1) {
+		if (!createAsNormal) {
 			for (let i = 0; i < sections.size(); i++) {
 				const section = sections.get(i);
 				const sectionMap =
@@ -2209,27 +2275,28 @@ export class SRBXApiCompat {
 			placementMaps,
 			property,
 			protectedRailKeys,
+			preserveSectionCores,
 		);
 		if (preparation !== "ok") return { status: preparation };
 		let core: TileEntityLargeRailCore | null = null;
 		try {
-			core =
-				sections.size() > 1
-					? this.createBuilderSectionedRail(
-							world,
-							source,
-							sections,
-							positions,
-							property,
-							protectedRailKeys,
-						)
-					: this.createBuilderNormalRail(
-							world,
-							source,
-							positions,
-							property,
-							protectedRailKeys,
-						);
+			core = !createAsNormal
+				? this.createBuilderSectionedRail(
+						world,
+						source,
+						sections,
+						positions,
+						property,
+						protectedRailKeys,
+					)
+				: this.createBuilderNormalRail(
+						world,
+						source,
+						positions,
+						property,
+						protectedRailKeys,
+						preserveSectionCores,
+					);
 		} catch (error) {
 			NGTLog.debug(
 				`[SuperRailBuilderX builder1] destructive rail creation exception: ${error}`,
@@ -2315,6 +2382,9 @@ export class SRBXApiCompat {
 			position: [number, number, number];
 			tile: TileEntityLargeRailBase;
 		}> = [];
+		const syncBlocks: Array<[number, number, number]> = [
+			[coreX, coreY, coreZ],
+		];
 		let cleanupMap = core.getRailMap(null) as unknown as RailSectionMap;
 		if (this.isSectionCore(core)) {
 			const logical = core.getLogicalRailPositions();
@@ -2332,6 +2402,7 @@ export class SRBXApiCompat {
 			);
 			for (let i = 0; i < blocks.length; i++) {
 				const pos = blocks[i];
+				syncBlocks.push(pos);
 				const roadbed = world.getTileEntity(pos[0], pos[1], pos[2]);
 				if (!(roadbed instanceof TileEntityLargeRailBase)) continue;
 				const owner = roadbed.getRailCore();
@@ -2366,8 +2437,12 @@ export class SRBXApiCompat {
 			);
 			correctedRemoved++;
 		}
+		for (let i = 0; i < syncBlocks.length; i++) {
+			const pos = syncBlocks[i];
+			world.markBlockForUpdate(pos[0], pos[1], pos[2]);
+		}
 		NGTLog.debug(
-			`[SuperRailBuilderX builder1] generated logical rail removed by undo: core=${coreX},${coreY},${coreZ}, correctedRoadbeds=${correctedRemoved}`,
+			`[SuperRailBuilderX builder1] generated logical rail removed by undo: core=${coreX},${coreY},${coreZ}, correctedRoadbeds=${correctedRemoved}, syncedBlocks=${syncBlocks.length}`,
 		);
 		return "ok";
 	}

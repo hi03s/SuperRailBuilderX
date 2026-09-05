@@ -1,0 +1,23 @@
+[03:13:19] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] request completed: action=create, result=ok
+[03:13:19] [Client thread/INFO]: [CHAT] §a[SuperRailBuilderX] 複線を生成しました
+[03:13:19] [Client thread/INFO]: [CHAT] §a[SuperRailBuilderX] 複線を生成しました
+[03:13:19] [Client thread/INFO]: [CHAT] §a[SuperRailBuilderX] 複線を生成しました
+[03:13:22] [Server thread/INFO]: [SuperRailBuilderX builder1] generated logical rail removed by undo: core=-180,4,341, correctedRoadbeds=0
+[03:13:22] [Server thread/INFO]: [SuperRailBuilderX builder1] generated logical rail removed by undo: core=-180,4,337, correctedRoadbeds=0
+[03:13:22] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] request completed: action=undo, result=undo_ok
+[03:13:22] [Client thread/INFO]: [CHAT] §a[SuperRailBuilderX] 直前に生成した複線を撤去しました
+[03:13:22] [Client thread/INFO]: [CHAT] §a[SuperRailBuilderX] 直前に生成した複線を撤去しました
+[03:13:22] [Client thread/INFO]: [CHAT] §a[SuperRailBuilderX] 直前に生成した複線を撤去しました
+[03:13:47] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] creation failed: plan=1/4, sourceKey=core:-180,4,341, sourceCore=-180,4,341, start=-179,4.063,337.5, end=-185.5,4.063,344, created=0, result=source_rail_changed
+[03:13:47] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] request completed: action=create, result=source_rail_changed
+[03:15:28] [Server thread/INFO]: [SuperRailBuilderX splitter] split succeeded: ratio=0.36666666666666664, bezierT=0.3727990033002613, sampledYaw=164.4443817138672, lengths=5.503211577918449/9.50554727095005, token=5d8bf0e6-40d3-41a7-80fd-e19036512ac6
+[03:15:28] [Server thread/INFO]: [SuperRailBuilderX splitter] request completed: action=split, result=ok
+[03:15:28] [Client thread/INFO]: [CHAT] §a[SuperRailBuilderX] 線路を2本に分割しました
+[03:15:28] [Client thread/INFO]: [CHAT] §a[SuperRailBuilderX] 線路を2本に分割しました
+[03:15:28] [Client thread/INFO]: [CHAT] §a[SuperRailBuilderX] 線路を2本に分割しました
+[03:19:00] [Server thread/INFO]: [SuperRailBuilderX transition] created: railKey=section:33a7fed4-c75e-4ae9-bdf6-5c047baf0880, core=-169,4,267, startPos=-168.5,4.0625,268, startBlock=-169,4,267, startOwner=section:33a7fed4-c75e-4ae9-bdf6-5c047baf0880, startConnection=-169,4,268, startConnectionOwner=section:fc9cc016-808a-4202-963f-019d9b92bb4a, endPos=-168.5,4.0625,250.4928585999884, endBlock=-169,4,250, endOwner=section:33a7fed4-c75e-4ae9-bdf6-5c047baf0880, endConnection=-169,4,249, endConnectionOwner=none(block=net.minecraft.block.BlockAir)
+[03:19:07] [Server thread/INFO]: [SuperRailBuilderX transition] created: railKey=section:30028f26-e643-4cbd-ad70-b22bb02c13aa, core=-169,4,307, startPos=-168.5,4.0625,307, startBlock=-169,4,307, startOwner=section:30028f26-e643-4cbd-ad70-b22bb02c13aa, startConnection=-169,4,306, startConnectionOwner=section:fc9cc016-808a-4202-963f-019d9b92bb4a, endPos=-168.5,4.0625,327.00624902374255, endBlock=-169,4,327, endOwner=none(block=net.minecraft.block.BlockAir), endConnection=-169,4,328, endConnectionOwner=none(block=net.minecraft.block.BlockAir)
+[03:20:52] [Server thread/INFO]: [SuperRailBuilderX transition] created: railKey=section:740e452d-7f9b-4134-8585-daae3b445ed8, core=-169,4,328, startPos=-168.5,4.0625,327.00624902374255, startBlock=-169,4,328, startOwner=section:740e452d-7f9b-4134-8585-daae3b445ed8, startConnection=-169,4,327, startConnectionOwner=section:740e452d-7f9b-4134-8585-daae3b445ed8, endPos=-168.5,4.0625,356.76449059076134, endBlock=-169,4,356, endOwner=section:740e452d-7f9b-4134-8585-daae3b445ed8, endConnection=-169,4,357, endConnectionOwner=none(block=net.minecraft.block.BlockAir)
+[03:21:14] [Server thread/INFO]: [SuperRailBuilderX builder1] section core relocated from occupied roadbed: from=-169,4,351, to=-167,4,351
+[03:21:14] [Server thread/INFO]: [SuperRailBuilderX builder1] existing rail core blocks placement: pos=-169,4,352, railKey=section:fb467995-acf6-4f82-960e-0a7afb59cee4
+[03:21:14] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=rail_core_conflict
