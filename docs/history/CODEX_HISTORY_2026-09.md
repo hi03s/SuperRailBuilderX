@@ -530,6 +530,19 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 実装コミット: https://github.com/hi03s/SuperRailBuilderX/commit/377a859
 - 同期: `origin/main`へ同期済み。
 
+### 2026-09-06 ローカルCodex — レールツール追加実機フィードバック修正
+
+- `logs/latest.log`を調査し、複線コピーでは曲率中心を越えた内側オフセットが元線側へ回り込み、生成物をUndo後の選択元として保持して`source_rail_changed`やゴーストの原因になることを確認した。内側列は近似半径の中心へ達する前に打ち切り、Undo選択復元時は左クリック用の選択履歴も再構成した。
+- 線路分割の`section_core_conflict`は短い前半を自動分割した内部コアが後半始点を塞ぐケースだったため、両区間が64 m以下なら2本とも単一通常レールとして生成するよう変更した。端部の既設接続レールも分割前に保護対象として収集する。`rail_occupied`は意図した安全停止として維持した。
+- KaizPatchXの`RailMapBasic#getRailHeight`がカント角による車両中心の持ち上がり量`abs(sin(cant) * 1.5)`を含むことを確認し、分割点RailPositionの基準Yから同量を除いてカントの二重加算を防いだ。
+- builder1はセクションコア交差を通常レールとして生成した場合にチャットへ通知し、この経路を64 m以下へ制限した。スナップONでは自由点にも`selectCursorMarker`を常時表示するよう変更した。
+- `SuperRailBuilderX_RailPositionTest`は通常・自動分割とも元RailProperty、信号、サブレールを退避し、builder1と同じ配置判定・道床生成で撤去再生成する方式へ統合した。失敗時は元線形を復元する。旧`SuperRailBuilderX_RailPositionNormalTest`のモデルと専用サーバースクリプトは削除した。
+- 生ログはGit対象外とし、必要な生成結果・失敗・ロールバックだけを`logs/rail-tools-retest-20260906-3.log`へ保存した。
+- 検証済み: 変更対象のPrettier、`git diff --check`、`pnpm gen`、`pnpm build`（kaizpatch・mc1710・mc1122）。
+- 未検証: 今回変更した複線Undo後の左クリック、曲率中心制限、分割衝突修正とカント高さ、builder1の通知・64 m制限・スナップマーカー、RailPosition統合再生成のゲーム内動作。
+- 実装コミット: https://github.com/hi03s/SuperRailBuilderX/commit/eeb7988
+- 同期: `origin/main`へ同期済み。
+
 ### 記録テンプレート
 
 ```text
