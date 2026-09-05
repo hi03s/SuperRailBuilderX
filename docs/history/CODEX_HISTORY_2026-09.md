@@ -131,6 +131,19 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 
 新しい記録を上に追加します。詳細な議論がGitHub Issueにある場合は、要点とリンクだけを記載します。
 
+### 2026-09-06 ローカルCodex — 複線コピー・線路分割の実機フィードバック対応
+
+- 開発者確認: builder1は交差を除く実機項目、Undo、概ねの走行が正常。複線コピーと線路分割も基本操作・Undo・概ねの走行が正常だった。
+- 両ツールのレール強調が見えない原因を、絶対ワールド座標で描く既存ヘルパーを車両ローカル座標のまま呼んでいたためと判断し、補間済み車両位置を逆平行移動して呼ぶよう修正した。
+- 複線コピーは生成時の選択を保持し、生成後に別の選択があってもCtrl+Z成功時に現在選択を破棄して生成時の選択へ戻すよう変更した。
+- 線路分割はレール非所持時に分割元RailPropertyを複製し、手持ちレールがあれば従来どおり優先するよう変更。片側2 m以下の候補をクライアント・サーバー双方で拒否した。
+- 開発者追加の`distancePanel_decimal`を含むMQO・テクスチャを取り込み、長さ表示を`distancePanel_0..9`、`distancePanel_decimal`、`distancePanel_M`へ変更した。
+- ログ上の複線生成失敗は、連続生成の途中で同一チャンク内に安全なセクションコア位置がなくなる`section_core_conflict`だった。途中生成分の逆順ロールバックは成功している。危険な上書きは行わず、失敗した計画番号・複製元・端点と各ロールバック結果を追加した。
+- 分割直後のUndoで`undo_rail_not_found`になった一例と、低速時だけ次の論理RailMapへ遷移できない報告は原因未確定。生成した両端の実所有コアを`[SuperRailBuilderX transition]`へ、Undo時の実ブロック・TileEntity・論理キーを`undo rail ...`へ記録する診断を追加した。
+- 生の`logs/latest.log`はコミットせず、必要行だけ`logs/rail-tools-retest-20260906-client.log`へ抜粋した。
+- 検証済み: 変更対象TypeScript・MarkdownのPrettier、`git diff --check`、`pnpm gen`、kaizpatch・mc1710・mc1122の`pnpm build`。
+- 未検証: 修正後のゲーム内強調、選択復元、分割モデル・距離表示・2 m制限、低速遷移診断。
+
 ### 2026-09-04 ローカルCodex — 複線コピーツールのmulti-targetビルド修正
 
 - `git fetch origin --prune`後、複線コピーツール追加コミットを含む最新`origin/main`へfast-forwardした。

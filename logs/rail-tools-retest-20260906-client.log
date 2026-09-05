@@ -1,0 +1,23 @@
+[01:38:46] [Server thread/INFO]: [SuperRailBuilderX splitter] request completed: action=split, result=hold_rail_item
+[01:38:51] [Server thread/INFO]: [SuperRailBuilderX splitter] split succeeded: ratio=0.5254237288135594, bezierT=0.525416434196865, sampledYaw=163.62840270996094, lengths=15.753567446509361/14.22902866136329, token=948a2b80-df96-4dfb-ae1d-3911f202b682
+[01:38:51] [Server thread/INFO]: [SuperRailBuilderX splitter] request completed: action=split, result=ok
+[01:39:27] [Server thread/INFO]: [SuperRailBuilderX splitter] request completed: action=undo, result=undo_ok
+[01:45:12] [Server thread/INFO]: [SuperRailBuilderX builder1] normal core position is occupied by rail: pos=-199,6,271
+[01:45:12] [Server thread/INFO]: [SuperRailBuilderX splitter] request completed: action=split, result=section_core_conflict
+[01:45:18] [Server thread/INFO]: [SuperRailBuilderX splitter] split succeeded: ratio=0.5254237288135594, bezierT=0.525416434196865, sampledYaw=163.62840270996094, lengths=15.753567446509361/14.22902866136329, token=9a169d8e-a7ac-4724-ac83-67dbe02e29d4
+[01:45:18] [Server thread/INFO]: [SuperRailBuilderX splitter] request completed: action=split, result=ok
+[01:45:21] [Server thread/INFO]: [SuperRailBuilderX splitter] request completed: action=undo, result=undo_rail_not_found
+[02:00:39] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] request completed: action=create, result=ok
+[02:00:40] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] request completed: action=undo, result=undo_ok
+[02:01:44] [Server thread/INFO]: [SuperRailBuilderX builder1] no safe section core position in chunk: original=-229,5,351
+[02:01:44] [Server thread/INFO]: [SuperRailBuilderX builder1] generated logical rail removed by undo: core=-229,5,351, correctedRoadbeds=0
+[02:01:44] [Server thread/INFO]: [SuperRailBuilderX builder1] generated logical rail removed by undo: core=-225,5,336, correctedRoadbeds=0
+[02:01:44] [Server thread/INFO]: [SuperRailBuilderX builder1] generated logical rail removed by undo: core=-221,5,321, correctedRoadbeds=0
+[02:01:44] [Server thread/INFO]: [SuperRailBuilderX builder1] generated logical rail removed by undo: core=-217,6,307, correctedRoadbeds=0
+[02:01:44] [Server thread/INFO]: [SuperRailBuilderX builder1] generated logical rail removed by undo: core=-215,6,297, correctedRoadbeds=0
+[02:01:44] [Server thread/INFO]: [SuperRailBuilderX builder1] generated logical rail removed by undo: core=-209,6,276, correctedRoadbeds=0
+[02:01:44] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] request completed: action=create, result=section_core_conflict
+[02:06:18] [Server thread/INFO]: [SuperRailBuilderX builder1] no safe section core position in chunk: original=-244,4,255
+[02:06:18] [Server thread/INFO]: [SuperRailBuilderX builder1] generated logical rail removed by undo: core=-244,4,255, correctedRoadbeds=0
+[02:06:18] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] request completed: action=create, result=section_core_conflict
+[02:06:24] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] request completed: action=create, result=ok

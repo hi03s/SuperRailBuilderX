@@ -2045,6 +2045,7 @@ export class SRBXApiCompat {
 		end: BuilderPoint,
 		additionalProtectedRailKeys?: string[],
 		sourceRail?: SourceRail,
+		fallbackProperty?: RailProperty,
 	) {
 		const startValidation = this.validateBuilderPoint(start);
 		if (startValidation !== "ok") return { status: startValidation };
@@ -2079,7 +2080,12 @@ export class SRBXApiCompat {
 		);
 		if (sourceRail && !sourceProperty)
 			return { status: "source_rail_changed" };
-		const property = this.createBuilderProperty(player) || sourceProperty;
+		const property =
+			this.createBuilderProperty(player) ||
+			sourceProperty ||
+			(fallbackProperty
+				? this.cloneRailProperty(fallbackProperty)
+				: null);
 		if (!property)
 			return {
 				status: sourceRail ? "source_rail_changed" : "hold_rail_item",
@@ -2232,11 +2238,48 @@ export class SRBXApiCompat {
 		}
 		if (!core) return { status: "create_failed" };
 		const corePos = this.getRailCorePos(core);
+		const createdKey = this.getRailPositionCandidateKey(core);
+		this.logBuilderTransitionState(
+			world,
+			createdKey,
+			corePos,
+			positions[0],
+			positions[1],
+		);
 		return {
 			status: "ok",
 			undoCore: corePos,
-			undoKey: this.getRailPositionCandidateKey(core),
+			undoKey: createdKey,
 		};
+	}
+
+	private static builderEndpointOwner(
+		world: net.minecraft.world.World,
+		x: number,
+		y: number,
+		z: number,
+	): string {
+		const tile = world.getTileEntity(x, y, z);
+		if (!(tile instanceof TileEntityLargeRailBase))
+			return `none(block=${world.getBlock(x, y, z)})`;
+		const owner = tile.getRailCore();
+		return owner
+			? this.getRailPositionCandidateKey(owner)
+			: "rail_without_core";
+	}
+
+	private static logBuilderTransitionState(
+		world: net.minecraft.world.World,
+		railKey: string,
+		core: [number, number, number],
+		start: RailPosition,
+		end: RailPosition,
+	): void {
+		const startConnection = this.getBuilderConnectionBlock(start);
+		const endConnection = this.getBuilderConnectionBlock(end);
+		NGTLog.debug(
+			`[SuperRailBuilderX transition] created: railKey=${railKey}, core=${core[0]},${core[1]},${core[2]}, startPos=${start.posX},${start.posY},${start.posZ}, startBlock=${start.blockX},${start.blockY},${start.blockZ}, startOwner=${this.builderEndpointOwner(world, start.blockX, start.blockY, start.blockZ)}, startConnection=${startConnection[0]},${startConnection[1]},${startConnection[2]}, startConnectionOwner=${this.builderEndpointOwner(world, startConnection[0], startConnection[1], startConnection[2])}, endPos=${end.posX},${end.posY},${end.posZ}, endBlock=${end.blockX},${end.blockY},${end.blockZ}, endOwner=${this.builderEndpointOwner(world, end.blockX, end.blockY, end.blockZ)}, endConnection=${endConnection[0]},${endConnection[1]},${endConnection[2]}, endConnectionOwner=${this.builderEndpointOwner(world, endConnection[0], endConnection[1], endConnection[2])}`,
+		);
 	}
 
 	static undoBuilderRail(
@@ -2247,12 +2290,26 @@ export class SRBXApiCompat {
 		expectedKey: string,
 	): string {
 		const tile = world.getTileEntity(coreX, coreY, coreZ);
-		if (!(tile instanceof TileEntityLargeRailBase))
+		if (!(tile instanceof TileEntityLargeRailBase)) {
+			NGTLog.debug(
+				`[SuperRailBuilderX builder1] undo rail not found: core=${coreX},${coreY},${coreZ}, expectedKey=${expectedKey}, block=${world.getBlock(coreX, coreY, coreZ)}, tile=${tile}`,
+			);
 			return "undo_rail_not_found";
+		}
 		const core = tile.getRailCore();
-		if (!core) return "undo_rail_not_found";
-		if (this.getRailPositionCandidateKey(core) !== expectedKey)
+		if (!core) {
+			NGTLog.debug(
+				`[SuperRailBuilderX builder1] undo rail core missing: core=${coreX},${coreY},${coreZ}, expectedKey=${expectedKey}, tile=${tile}`,
+			);
+			return "undo_rail_not_found";
+		}
+		const actualKey = this.getRailPositionCandidateKey(core);
+		if (actualKey !== expectedKey) {
+			NGTLog.debug(
+				`[SuperRailBuilderX builder1] undo rail changed: core=${coreX},${coreY},${coreZ}, expectedKey=${expectedKey}, actualKey=${actualKey}`,
+			);
 			return "undo_rail_changed";
+		}
 		if (core.isLogicalRailOccupied()) return "rail_occupied";
 		const correctedRoadbeds: Array<{
 			position: [number, number, number];
@@ -2516,8 +2573,6 @@ export class SRBXApiCompat {
 		if (this.getRailPositionCandidateKey(core) !== expectedKey)
 			return { status: "rail_changed" };
 		if (core.isLogicalRailOccupied()) return { status: "rail_occupied" };
-		if (!this.createBuilderProperty(player))
-			return { status: "hold_rail_item" };
 		const railMap = this.getLogicalRailMap(core);
 		if (!railMap) return { status: "invalid_rail" };
 		const renderSplit = Math.max(1, Math.floor(railMap.getLength() * 2));
@@ -2550,7 +2605,7 @@ export class SRBXApiCompat {
 		const length = railMap.getLength();
 		const leftLength = length * ratio;
 		const rightLength = length - leftLength;
-		if (leftLength < 0.01 || rightLength < 0.01)
+		if (leftLength <= 2 || rightLength <= 2)
 			return { status: "rail_too_short" };
 		const point = railMap.getRailPos(1000000, Math.round(ratio * 1000000));
 		const x = point[1];
@@ -2653,6 +2708,9 @@ export class SRBXApiCompat {
 			player,
 			firstStart,
 			firstEnd,
+			undefined,
+			undefined,
+			property,
 		);
 		if (first.status !== "ok" || !first.undoCore || !first.undoKey) {
 			return {
@@ -2668,6 +2726,8 @@ export class SRBXApiCompat {
 			secondStart,
 			secondEnd,
 			[first.undoKey],
+			undefined,
+			property,
 		);
 		if (second.status !== "ok" || !second.undoCore || !second.undoKey) {
 			this.undoBuilderRail(

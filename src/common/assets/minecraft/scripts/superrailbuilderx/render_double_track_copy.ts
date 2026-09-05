@@ -51,6 +51,8 @@ type ResolvedRail = {
 type CopyState = {
 	selected: SelectedRail[];
 	actions: SelectionAction[];
+	pendingCreateSelection: SelectedRail[] | null;
+	lastCreatedSelection: SelectedRail[] | null;
 	spacing: number;
 	side: number;
 	repeatCount: number;
@@ -90,6 +92,8 @@ function getState(entity: EntityVehicle): CopyState {
 		state = {
 			selected: [],
 			actions: [],
+			pendingCreateSelection: null,
+			lastCreatedSelection: null,
 			spacing: DEFAULT_SPACING,
 			side: 1,
 			repeatCount: 0,
@@ -570,6 +574,23 @@ function renderCursor(
 	GL11.glPopMatrix();
 }
 
+function renderRailHighlight(
+	entity: EntityVehicle,
+	partialTicks: number,
+	map: RailMap,
+	color: string,
+	alpha: number,
+): void {
+	const origin = NGTOBuilderUtilClient.getInterpolatedPos(
+		entity,
+		partialTicks,
+	);
+	GL11.glPushMatrix();
+	GL11.glTranslatef(-origin[0], -origin[1], -origin[2]);
+	NGTOBuilderUtilClient.renderRailMapHighlight(entity, map, color, alpha);
+	GL11.glPopMatrix();
+}
+
 function repeatedKey(state: CopyState, name: string): boolean {
 	if (!keys.down(name)) {
 		delete state.keyRepeatAt[name];
@@ -626,6 +647,7 @@ function handleResult(
 	const result = dataMap.getString("doubleTrackCopyResult");
 	if (!result || result === "waiting") return;
 	if (result === "ok") {
+		state.lastCreatedSelection = state.pendingCreateSelection;
 		state.selected = [];
 		state.actions = [];
 		NGTLog.sendChatMessage(
@@ -633,6 +655,11 @@ function handleResult(
 			"§a[SuperRailBuilderX] 複線を生成しました",
 		);
 	} else if (result === "undo_ok") {
+		state.selected = state.lastCreatedSelection
+			? state.lastCreatedSelection.map(copyTarget)
+			: [];
+		state.actions = [];
+		state.lastCreatedSelection = null;
 		NGTLog.sendChatMessage(
 			sender,
 			"§a[SuperRailBuilderX] 直前に生成した複線を撤去しました",
@@ -645,6 +672,7 @@ function handleResult(
 	}
 	state.awaitingResult = false;
 	state.pendingAction = null;
+	state.pendingCreateSelection = null;
 	dataMap.setString("doubleTrackCopyResult", "", 1);
 }
 
@@ -751,6 +779,7 @@ function handleInput(
 				"§e[SuperRailBuilderX] 生成可能な2m超の複線がありません",
 			);
 		else {
+			state.pendingCreateSelection = state.selected.map(copyTarget);
 			sendRequest(entity, state, { action: "create", plans });
 			NGTLog.sendChatMessage(
 				sender,
@@ -792,8 +821,9 @@ function render(
 	for (let i = 0; i < state.selected.length; i++) {
 		const resolved = resolveRail(entity, state.selected[i]);
 		if (resolved)
-			NGTOBuilderUtilClient.renderRailMapHighlight(
+			renderRailHighlight(
 				entity,
+				partialTicks,
 				resolved.map,
 				"00ffff",
 				0.65,
@@ -810,8 +840,9 @@ function render(
 	if (hover && !hoverSelected) {
 		const resolved = resolveRail(entity, hover);
 		if (resolved) {
-			NGTOBuilderUtilClient.renderRailMapHighlight(
+			renderRailHighlight(
 				entity,
+				partialTicks,
 				resolved.map,
 				"ffff00",
 				0.6,

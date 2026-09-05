@@ -69,12 +69,15 @@ function rollback(
 ): void {
 	for (let i = created.length - 1; i >= 0; i--) {
 		const rail = created[i];
-		SRBXApiCompat.undoBuilderRail(
+		const result = SRBXApiCompat.undoBuilderRail(
 			world,
 			rail.core[0],
 			rail.core[1],
 			rail.core[2],
 			rail.key,
+		);
+		NGTLog.debug(
+			`[SuperRailBuilderX double-track-copy] rollback: index=${i}, core=${rail.core[0]},${rail.core[1]},${rail.core[2]}, key=${rail.key}, result=${result}`,
 		);
 	}
 }
@@ -131,6 +134,9 @@ function processRequest(
 			},
 		);
 		if (result.status !== "ok" || !result.undoCore || !result.undoKey) {
+			NGTLog.debug(
+				`[SuperRailBuilderX double-track-copy] creation failed: plan=${i + 1}/${request.plans.length}, sourceKey=${plan.sourceRailKey}, sourceCore=${plan.sourceCore[0]},${plan.sourceCore[1]},${plan.sourceCore[2]}, start=${plan.start.position[0]},${plan.start.position[1]},${plan.start.position[2]}, end=${plan.end.position[0]},${plan.end.position[1]},${plan.end.position[2]}, created=${created.length}, result=${result.status}`,
+			);
 			rollback(world, created);
 			return result.status;
 		}

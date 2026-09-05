@@ -2,7 +2,7 @@ Metasequoia Document
 Format Text Ver 1.1
 
 Scene {
-	pos 3.12472105 -47.2447662 3839.99927
+	pos -0.75430727 -43.3657379 3839.99927
 	lookat 0 0 0
 	head 3.0500
 	pich 0.2400
@@ -1606,11 +1606,11 @@ Object "cantLine" {
 }
 Object "distancePanel_D" {
 	depth 0
-	folding 1
+	folding 0
 	scale 1 1 1
 	rotation 0 0 0
 	translation 0 0 0
-	visible 0
+	visible 15
 	locking 0
 	shading 1
 	facet 59.5
@@ -1633,7 +1633,7 @@ Object "distancePanel_M" {
 	scale 1 1 1
 	rotation 0 -0 0
 	translation 0 0 0
-	visible 0
+	visible 15
 	locking 0
 	shading 1
 	facet 59.5
@@ -1656,7 +1656,7 @@ Object "distancePanel_0" {
 	scale 1 1 1
 	rotation 0 -0 0
 	translation 0 0 0
-	visible 0
+	visible 15
 	locking 0
 	shading 1
 	facet 59.5
@@ -1679,7 +1679,7 @@ Object "distancePanel_1" {
 	scale 1 1 1
 	rotation 0 -0 0
 	translation 0 0 0
-	visible 0
+	visible 15
 	locking 0
 	shading 1
 	facet 59.5
@@ -1702,7 +1702,7 @@ Object "distancePanel_2" {
 	scale 1 1 1
 	rotation 0 -0 0
 	translation 0 0 0
-	visible 0
+	visible 15
 	locking 0
 	shading 1
 	facet 59.5
@@ -1725,7 +1725,7 @@ Object "distancePanel_3" {
 	scale 1 1 1
 	rotation 0 -0 0
 	translation 0 0 0
-	visible 0
+	visible 15
 	locking 0
 	shading 1
 	facet 59.5
@@ -1748,7 +1748,7 @@ Object "distancePanel_4" {
 	scale 1 1 1
 	rotation 0 -0 0
 	translation 0 0 0
-	visible 0
+	visible 15
 	locking 0
 	shading 1
 	facet 59.5
@@ -1771,7 +1771,7 @@ Object "distancePanel_5" {
 	scale 1 1 1
 	rotation 0 -0 0
 	translation 0 0 0
-	visible 0
+	visible 15
 	locking 0
 	shading 1
 	facet 59.5
@@ -1794,7 +1794,7 @@ Object "distancePanel_6" {
 	scale 1 1 1
 	rotation 0 -0 0
 	translation 0 0 0
-	visible 0
+	visible 15
 	locking 0
 	shading 1
 	facet 59.5
@@ -1817,7 +1817,7 @@ Object "distancePanel_7" {
 	scale 1 1 1
 	rotation 0 -0 0
 	translation 0 0 0
-	visible 0
+	visible 15
 	locking 0
 	shading 1
 	facet 59.5
@@ -1840,7 +1840,7 @@ Object "distancePanel_8" {
 	scale 1 1 1
 	rotation 0 -0 0
 	translation 0 0 0
-	visible 0
+	visible 15
 	locking 0
 	shading 1
 	facet 59.5
@@ -1863,7 +1863,7 @@ Object "distancePanel_9" {
 	scale 1 1 1
 	rotation 0 -0 0
 	translation 0 0 0
-	visible 0
+	visible 15
 	locking 0
 	shading 1
 	facet 59.5
@@ -1878,6 +1878,29 @@ Object "distancePanel_9" {
 	}
 	face 1 {
 		4 V(0 1 3 2) M(0) UV(0.964541 0.7420675 0.9957632 0.7420673 0.9957632 0.8276296 0.964541 0.8276297)
+	}
+}
+Object "distancePanel_decimal" {
+	depth 1
+	folding 0
+	scale 1 1 1
+	rotation 0 -0 0
+	translation 0 0 0
+	visible 15
+	locking 0
+	shading 1
+	facet 59.5
+	normal_weight 1
+	color 0.898 0.498 0.698
+	color_type 0
+	vertex 4 {
+		-4.57763672e-05 299.999939 3.27031521e-05
+		-99.9999542 299.999969 4.58165596e-05
+		-0.000106811523 100.000023 3.70743001e-05
+		-99.9999542 100.000069 5.01876966e-05
+	}
+	face 1 {
+		4 V(0 1 3 2) M(0) UV(0.5585963 0.7420686 0.5898185 0.7420684 0.5898185 0.8276308 0.5585963 0.8276308)
 	}
 }
 Object "cantPanel_angle" {
@@ -2158,11 +2181,11 @@ Object "cantPanel_9" {
 }
 Object "curvePanel_Radius" {
 	depth 0
-	folding 0
+	folding 1
 	scale 1 1 1
 	rotation 0 0 0
 	translation 0 0 0
-	visible 15
+	visible 0
 	locking 0
 	shading 1
 	facet 59.5
@@ -2185,7 +2208,7 @@ Object "curvePanel_m" {
 	scale 1 1 1
 	rotation 0 -0 0
 	translation 0 0 0
-	visible 15
+	visible 0
 	locking 0
 	shading 1
 	facet 59.5
@@ -2208,7 +2231,7 @@ Object "curvePanel_L" {
 	scale 1 1 1
 	rotation 0 -0 0
 	translation 0 0 0
-	visible 15
+	visible 0
 	locking 0
 	shading 1
 	facet 59.5
@@ -2231,7 +2254,7 @@ Object "curvePanel_R" {
 	scale 1 1 1
 	rotation 0 -0 0
 	translation 0 0 0
-	visible 15
+	visible 0
 	locking 0
 	shading 1
 	facet 59.5
@@ -2254,7 +2277,7 @@ Object "curvePanel_0" {
 	scale 1 1 1
 	rotation 0 -0 0
 	translation 0 0 0
-	visible 15
+	visible 0
 	locking 0
 	shading 1
 	facet 59.5
@@ -2277,7 +2300,7 @@ Object "curvePanel_1" {
 	scale 1 1 1
 	rotation 0 -0 0
 	translation 0 0 0
-	visible 15
+	visible 0
 	locking 0
 	shading 1
 	facet 59.5
@@ -2300,7 +2323,7 @@ Object "curvePanel_2" {
 	scale 1 1 1
 	rotation 0 -0 0
 	translation 0 0 0
-	visible 15
+	visible 0
 	locking 0
 	shading 1
 	facet 59.5
@@ -2323,7 +2346,7 @@ Object "curvePanel_3" {
 	scale 1 1 1
 	rotation 0 -0 0
 	translation 0 0 0
-	visible 15
+	visible 0
 	locking 0
 	shading 1
 	facet 59.5
@@ -2346,7 +2369,7 @@ Object "curvePanel_4" {
 	scale 1 1 1
 	rotation 0 -0 0
 	translation 0 0 0
-	visible 15
+	visible 0
 	locking 0
 	shading 1
 	facet 59.5
@@ -2369,7 +2392,7 @@ Object "curvePanel_5" {
 	scale 1 1 1
 	rotation 0 -0 0
 	translation 0 0 0
-	visible 15
+	visible 0
 	locking 0
 	shading 1
 	facet 59.5
@@ -2392,7 +2415,7 @@ Object "curvePanel_6" {
 	scale 1 1 1
 	rotation 0 -0 0
 	translation 0 0 0
-	visible 15
+	visible 0
 	locking 0
 	shading 1
 	facet 59.5
@@ -2415,7 +2438,7 @@ Object "curvePanel_7" {
 	scale 1 1 1
 	rotation 0 -0 0
 	translation 0 0 0
-	visible 15
+	visible 0
 	locking 0
 	shading 1
 	facet 59.5
@@ -2438,7 +2461,7 @@ Object "curvePanel_8" {
 	scale 1 1 1
 	rotation 0 -0 0
 	translation 0 0 0
-	visible 15
+	visible 0
 	locking 0
 	shading 1
 	facet 59.5
@@ -2461,7 +2484,7 @@ Object "curvePanel_9" {
 	scale 1 1 1
 	rotation 0 -0 0
 	translation 0 0 0
-	visible 15
+	visible 0
 	locking 0
 	shading 1
 	facet 59.5
@@ -2486,7 +2509,7 @@ Object "curvePanel_infinity" {
 	translation 0 0 0
 	patch 3
 	segment 1
-	visible 15
+	visible 0
 	locking 0
 	shading 1
 	facet 59.5

@@ -18,6 +18,8 @@ import { RailSplitterRequest } from "./server_rail_splitter";
 
 declare const renderer: VehiclePartsRenderer;
 
+const MIN_RAIL_LENGTH = 2;
+
 type Vec3 = [number, number, number];
 type SplitTarget = {
 	core: [number, number, number];
@@ -53,11 +55,11 @@ function init(par1: ModelSetVehicle, par2: ModelObject): void {
 	body = renderer.registerParts(new Parts("body"));
 	hoverCursor = renderer.registerParts(new Parts("selectCursor"));
 	selectedCursor = renderer.registerParts(new Parts("selectedCursor"));
-	decimalDot = renderer.registerParts(new Parts("selectCursorMarker"));
-	meter = renderer.registerParts(new Parts("curvePanel_m"));
+	decimalDot = renderer.registerParts(new Parts("distancePanel_decimal"));
+	meter = renderer.registerParts(new Parts("distancePanel_M"));
 	digits = [];
 	for (let i = 0; i <= 9; i++)
-		digits.push(renderer.registerParts(new Parts(`curvePanel_${i}`)));
+		digits.push(renderer.registerParts(new Parts(`distancePanel_${i}`)));
 }
 
 function getState(entity: EntityVehicle): SplitterState {
@@ -106,12 +108,18 @@ function findHoverTarget(
 					Math.floor(map.getLength() * 2),
 				);
 				const candidateSplit = Math.max(2, renderSplit * 2);
+				const minimumIndex =
+					Math.floor(
+						(MIN_RAIL_LENGTH * candidateSplit) / map.getLength(),
+					) + 1;
+				const maximumIndex = candidateSplit - minimumIndex;
+				if (minimumIndex > maximumIndex) continue;
 				let index = map.getNearlestPoint(
 					candidateSplit,
 					looking.posX,
 					looking.posZ,
 				);
-				index = Math.max(1, Math.min(candidateSplit - 1, index));
+				index = Math.max(minimumIndex, Math.min(maximumIndex, index));
 				const position = railPoint(map, candidateSplit, index);
 				const distance =
 					Math.pow(position[0] - looking.posX, 2) +
@@ -173,6 +181,23 @@ function renderAt(
 	GL11.glPopMatrix();
 }
 
+function renderRailHighlight(
+	entity: EntityVehicle,
+	partialTicks: number,
+	map: RailMap,
+	color: string,
+	alpha: number,
+): void {
+	const origin = NGTOBuilderUtilClient.getInterpolatedPos(
+		entity,
+		partialTicks,
+	);
+	GL11.glPushMatrix();
+	GL11.glTranslatef(-origin[0], -origin[1], -origin[2]);
+	NGTOBuilderUtilClient.renderRailMapHighlight(entity, map, color, alpha);
+	GL11.glPopMatrix();
+}
+
 function orientPanel(
 	entity: EntityVehicle,
 	partialTicks: number,
@@ -211,8 +236,6 @@ function renderLengthPanel(
 		GL11.glPushMatrix();
 		GL11.glTranslatef(-i, 0, 0);
 		if (char === ".") {
-			GL11.glTranslatef(0, -0.36, 0);
-			GL11.glScalef(0.08, 0.08, 0.08);
 			decimalDot.render(renderer);
 		} else {
 			digits[Number(char)].render(renderer);
@@ -340,8 +363,9 @@ function render(
 	if (target) {
 		const map = resolveMap(entity, target);
 		if (map) {
-			NGTOBuilderUtilClient.renderRailMapHighlight(
+			renderRailHighlight(
 				entity,
+				partialTicks,
 				map,
 				state.selected ? "00ffff" : "ffff00",
 				0.6,
