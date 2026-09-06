@@ -1,0 +1,22 @@
+[15:01:16] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive normal rail created: replacedBlocks=0
+[15:01:16] [Server thread/INFO]: [SuperRailBuilderX transition] created: railKey=core:-228,4,415, core=-228,4,415, startPos=-227.737,4.2170000000000005,415.569, startBlock=-228,4,415, startOwner=core:-228,4,415, startConnection=-228,4,416, startConnectionOwner=none, endPos=-224.25,4.463,400.78700000000003, endBlock=-225,4,401
+[15:01:16] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=free->free, startBlock=-234,4,439, startPos=-233.431,4.063,439.711, endBlock=-228,4,416, endPos=-227.737,4.2170000000000005,415.569
+[15:01:16] [Server thread/INFO]: [SuperRailBuilderX builder1] no safe section core position in chunk: original=-228,4,415
+[15:01:16] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] creation failed: plan=4/7, sourceCore=-236,4,431, start=-233.431,4.063,439.711, end=-227.737,4.2170000000000005,415.569, created=3, result=section_core_conflict
+[15:01:16] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] rollback: index=2, core=-228,4,415, key=core:-228,4,415, result=ok
+[15:01:16] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] rollback: index=1, core=-225,4,400, result=ok
+[15:01:16] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] rollback: index=0, core=-223,4,392, result=ok
+[15:01:48] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=free->rail, startBlock=-234,4,439, startPos=-233.431,4.063,439.711, endBlock=-228,4,416, endPos=-227.737,4.2170000000000005,415.569
+[15:01:48] [Server thread/INFO]: [SuperRailBuilderX builder1] no safe section core position in chunk: original=-228,4,415
+[15:01:48] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] creation failed: plan=1/1, sourceCore=-236,4,431, created=0, result=section_core_conflict
+[15:02:17] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=rail->rail, startBlock=-234,4,438, startPos=-233.431,4.063,439.711, endBlock=-228,4,416, endPos=-227.737,4.2170000000000005,415.569
+[15:02:17] [Server thread/INFO]: [SuperRailBuilderX builder1] no safe section core position in chunk: original=-228,4,415
+[15:02:17] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=section_core_conflict
+[15:13:42] [Server thread/INFO]: [SuperRailBuilderX builder1] section-core crossing will be created as one normal rail
+[15:13:42] [Server thread/INFO]: [SuperRailBuilderX builder1] crossing section core accepted for normal rail: pos=-176,5,541
+[15:13:42] [Server thread/INFO]: [SuperRailBuilderX builder1] foreign normal roadbed preserved: pos=-177,5,540
+[15:13:42] [Server thread/INFO]: [SuperRailBuilderX builder1] foreign normal roadbed preserved: pos=-176,5,540
+[15:13:42] [Server thread/INFO]: [SuperRailBuilderX builder1] foreign normal roadbed preserved: pos=-177,5,542
+[15:13:42] [Server thread/INFO]: [SuperRailBuilderX builder1] foreign normal roadbed preserved: pos=-176,5,542
+[15:13:42] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive normal rail created: replacedBlocks=0
+[15:14:44] [Client thread/INFO]: [CHAT] Rail not found > x:-176 z:542

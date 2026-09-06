@@ -10,7 +10,11 @@ import { WeakHashMap } from "java.util";
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { ErrorLogger } from "../lib_hi03toolkit_1_0/lib_ErrorLogger";
 import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
-import { SRBXApiCompat } from "@target/assets/minecraft/scripts/superrailbuilderx/SRBXApiCompat";
+import {
+	RailCorePos,
+	SRBXApiCompat,
+	SRBXBuilderPoint,
+} from "@target/assets/minecraft/scripts/superrailbuilderx/SRBXApiCompat";
 
 const VERSION = "0.1.0";
 
@@ -20,10 +24,21 @@ export type RailPositionMoveTarget = {
 	original: [number, number, number];
 };
 
-export type RailPositionMoveRequest = {
-	targets: RailPositionMoveTarget[];
-	destination: [number, number, number];
-};
+export type RailPositionMoveRequest =
+	| {
+			mode?: "endpoint";
+			targets: RailPositionMoveTarget[];
+			destination: RailCorePos;
+	  }
+	| {
+			mode: "parallel";
+			core: RailCorePos;
+			railKey: string;
+			originalStart: RailCorePos;
+			originalEnd: RailCorePos;
+			start: SRBXBuilderPoint;
+			end: SRBXBuilderPoint;
+	  };
 
 const hosts: WeakHashMap<Entity, EntityPlayer> = new WeakHashMap();
 
@@ -35,6 +50,48 @@ function applyRequest(
 	const world = SRBXApiCompat.getWorld(entity);
 	const dataMap = entity.getResourceState().getDataMap();
 	NGTOBuilderUtil.resetJsonData(dataMap, "railPositionUpdatedCores");
+	NGTOBuilderUtil.resetJsonData(dataMap, "railPositionRemovedRails");
+	if (request.mode === "parallel") {
+		if (
+			!request.core ||
+			!request.railKey ||
+			!request.originalStart ||
+			!request.originalEnd ||
+			!request.start ||
+			!request.end
+		)
+			return "invalid_parallel_request";
+		const tile = SRBXApiCompat.getTileEntity(
+			world,
+			request.core[0],
+			request.core[1],
+			request.core[2],
+		);
+		if (!(tile instanceof TileEntityLargeRailBase)) return "rail_not_found";
+		const core = tile.getRailCore();
+		if (!core) return "rail_not_found";
+		const result = SRBXApiCompat.moveBuilderRail(
+			core,
+			request.railKey,
+			request.originalStart,
+			request.originalEnd,
+			request.start,
+			request.end,
+			player,
+		);
+		const movedCores = SRBXApiCompat.consumeLastRailPositionMoveCores();
+		if (movedCores.length > 0)
+			NGTOBuilderUtil.sendJsonData(
+				dataMap,
+				"railPositionUpdatedCores",
+				movedCores,
+			);
+		if (result === "ok" || result === "ok_normal_crossing")
+			NGTOBuilderUtil.sendJsonData(dataMap, "railPositionRemovedRails", [
+				{ core: request.core, key: request.railKey },
+			]);
+		return result;
+	}
 	if (!request.targets || request.targets.length === 0) return "no_targets";
 	if (request.targets.length > 16) return "too_many_targets";
 	if (
@@ -52,6 +109,7 @@ function applyRequest(
 	}> = [];
 	const seen: { [key: string]: boolean } = {};
 	const updatedCores: Array<[number, number, number]> = [];
+	let usedNormalFallback = false;
 	for (let i = 0; i < request.targets.length; i++) {
 		const target = request.targets[i];
 		if (
@@ -110,7 +168,12 @@ function applyRequest(
 		const movedCores = SRBXApiCompat.consumeLastRailPositionMoveCores();
 		for (let j = 0; j < movedCores.length; j++)
 			updatedCores.push(movedCores[j]);
-		if (result !== "ok" && result !== "ok_sectioned") {
+		if (result === "ok_normal_crossing") usedNormalFallback = true;
+		if (
+			result !== "ok" &&
+			result !== "ok_sectioned" &&
+			result !== "ok_normal_crossing"
+		) {
 			if (updatedCores.length > 0)
 				NGTOBuilderUtil.sendJsonData(
 					dataMap,
@@ -130,7 +193,7 @@ function applyRequest(
 		"railPositionUpdatedCores",
 		updatedCores,
 	);
-	return "ok";
+	return usedNormalFallback ? "ok_normal_crossing" : "ok";
 }
 
 function onUpdate(entity: EntityVehicle, scriptExecuter: ScriptExecuter): void {
@@ -188,7 +251,13 @@ function onUpdate(entity: EntityVehicle, scriptExecuter: ScriptExecuter): void {
 				"SuperRailBuilderX RailPosition apply",
 				"applyRequest",
 				error,
-				{ targetCount: request.targets ? request.targets.length : -1 },
+				{
+					mode: request.mode || "endpoint",
+					targetCount:
+						request.mode === "parallel"
+							? 1
+							: request.targets.length,
+				},
 			);
 			dataMap.setString("applyResult", "internal_error", 1);
 		} finally {

@@ -311,6 +311,27 @@ function markerPositionForDirection(
 	);
 }
 
+function ownerBlockForDirection(
+	position: SRBXVec3,
+	direction: number,
+): [number, number, number] {
+	const marker = markerPositionForDirection(position, direction);
+	return [
+		Math.floor(marker[0]),
+		Math.floor(position[1] - DEFAULT_RAIL_HEIGHT + 0.000001),
+		Math.floor(marker[2]),
+	];
+}
+
+function updateFreePointMarker(point: SRBXBuilderPoint): void {
+	if (point.kind !== "free") return;
+	point.ownerBlock = ownerBlockForDirection(point.position, point.direction);
+	point.markerPosition = markerPositionForDirection(
+		point.position,
+		point.direction,
+	);
+}
+
 function logScanErrorOnce(
 	phase: string,
 	x: number,
@@ -585,6 +606,8 @@ function orientPair(
 			start.curveRadius =
 				fixed === start ? circular.radius : -circular.radius;
 	}
+	updateFreePointMarker(start);
+	updateFreePointMarker(end);
 	if (state && state.slopePermil !== null) {
 		const pitch = SRBXMath.pitchFromPermil(state.slopePermil);
 		if (start.kind === "rail" && end.kind === "free") {
@@ -626,19 +649,28 @@ function renderAt(
 	GL11.glPopMatrix();
 }
 
-function renderMarkerNeighborhood(
+function renderPossibleMarkerPositions(
 	entity: EntityVehicle,
 	partialTicks: number,
-	position: SRBXVec3,
+	point: SRBXBuilderPoint,
 ): void {
-	for (let dx = -1; dx <= 1; dx++)
-		for (let dz = -1; dz <= 1; dz++)
-			renderAt(
-				entity,
-				partialTicks,
-				[position[0] + dx, position[1], position[2] + dz],
-				selectCursorMarker,
-			);
+	if (point.kind === "rail") {
+		renderAt(
+			entity,
+			partialTicks,
+			point.markerPosition,
+			selectCursorMarker,
+		);
+		return;
+	}
+	const seen: { [key: string]: boolean } = {};
+	for (let direction = 0; direction < 8; direction++) {
+		const position = markerPositionForDirection(point.position, direction);
+		const key = `${position[0]},${position[1]},${position[2]}`;
+		if (seen[key]) continue;
+		seen[key] = true;
+		renderAt(entity, partialTicks, position, selectCursorMarker);
+	}
 }
 
 function renderSelectedPoint(
@@ -1116,24 +1148,37 @@ function alignZeroSlopeEndpointToGround(
 		);
 		return;
 	}
-	const targetY =
+	const baseTargetY =
 		Math.floor(free.position[1] - DEFAULT_RAIL_HEIGHT + 0.000001) +
 		DEFAULT_RAIL_HEIGHT;
-	const requiredHorizontal = SRBXMath.straightThenCurveHorizontalForHeight(
-		rail.position[1],
-		targetY,
-		rail.anchorPitch,
-		0,
-		state.verticalCurveRadius,
-	);
 	const currentHorizontal = SRBXMath.horizontalDistance(
 		rail.position,
 		free.position,
 	);
+	let targetY: number | null = null;
+	let requiredHorizontal: number | null = null;
+	const targetCandidates = [baseTargetY, baseTargetY + 1, baseTargetY - 1];
+	for (let i = 0; i < targetCandidates.length; i++) {
+		const candidate = SRBXMath.straightThenCurveHorizontalForHeight(
+			rail.position[1],
+			targetCandidates[i],
+			rail.anchorPitch,
+			0,
+			state.verticalCurveRadius,
+		);
+		if (
+			candidate !== null &&
+			candidate > currentHorizontal + 0.001 &&
+			candidate <= 4096
+		) {
+			targetY = targetCandidates[i];
+			requiredHorizontal = candidate;
+			break;
+		}
+	}
 	if (
 		requiredHorizontal === null ||
-		requiredHorizontal <= currentHorizontal + 0.001 ||
-		requiredHorizontal > 4096 ||
+		targetY === null ||
 		currentHorizontal < 0.001
 	) {
 		NGTLog.sendChatMessage(
@@ -1148,8 +1193,7 @@ function alignZeroSlopeEndpointToGround(
 		targetY,
 		rail.position[2] + (free.position[2] - rail.position[2]) * scale,
 	];
-	free.markerPosition = freeMarkerPosition(free.position);
-	free.ownerBlock = undefined;
+	updateFreePointMarker(free);
 	free.verticalProfile = "straight_circular";
 	state.selected[freeIndex] = free;
 	NGTLog.sendChatMessage(
@@ -1338,18 +1382,7 @@ function render(
 				? displayPoints[1]
 				: hover;
 		renderAt(entity, partialTicks, displayHover.position, selectCursor);
-		if (hover.kind === "rail" || state.snapEnabled) {
-			const looking = NGTOBuilderUtilClient.getLookingPos(partialTicks);
-			const markerPosition =
-				state.snapEnabled && looking
-					? ([
-							looking.posX,
-							looking.posY + DEFAULT_RAIL_HEIGHT,
-							looking.posZ,
-						] as SRBXVec3)
-					: displayHover.markerPosition;
-			renderMarkerNeighborhood(entity, partialTicks, markerPosition);
-		}
+		renderPossibleMarkerPositions(entity, partialTicks, displayHover);
 	}
 	for (let i = 0; i < state.selected.length; i++)
 		renderSelectedPoint(entity, partialTicks, displayPoints[i]);

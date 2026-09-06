@@ -118,6 +118,15 @@ export class SRBXApiCompat {
 		z: number,
 		player?: EntityPlayer,
 	): string;
+	static moveBuilderRail(
+		core: TileEntityLargeRailCore,
+		expectedKey: string,
+		originalStart: RailCorePos,
+		originalEnd: RailCorePos,
+		start: SRBXBuilderPoint,
+		end: SRBXBuilderPoint,
+		player?: EntityPlayer,
+	): string;
 	static validateRailPositionMoveAsNormal(
 		core: TileEntityLargeRailCore,
 		index: number,
@@ -148,6 +157,7 @@ export class SRBXApiCompat {
 		fallbackProperty?: RailProperty,
 		forceNormal?: boolean,
 		preferFallbackProperty?: boolean,
+		overwriteForeignRoadbeds?: boolean,
 	): SRBXBuilderCreateResult;
 	static undoBuilderRail(
 		world: World,

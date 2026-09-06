@@ -188,6 +188,25 @@ export class SRBXApiCompat {
 		return "unsupported";
 	}
 
+	static moveBuilderRail(
+		core: TileEntityLargeRailCore,
+		expectedKey: string,
+		originalStart: [number, number, number],
+		originalEnd: [number, number, number],
+		start: unknown,
+		end: unknown,
+		player?: EntityPlayer,
+	): string {
+		void core;
+		void expectedKey;
+		void originalStart;
+		void originalEnd;
+		void start;
+		void end;
+		void player;
+		return "unsupported";
+	}
+
 	static validateRailPositionMoveAsNormal(
 		core: TileEntityLargeRailCore,
 		index: number,
@@ -224,6 +243,7 @@ export class SRBXApiCompat {
 		fallbackProperty?: unknown,
 		forceNormal?: boolean,
 		preferFallbackProperty?: boolean,
+		overwriteForeignRoadbeds?: boolean,
 	) {
 		void world;
 		void player;
@@ -234,6 +254,7 @@ export class SRBXApiCompat {
 		void fallbackProperty;
 		void forceNormal;
 		void preferFallbackProperty;
+		void overwriteForeignRoadbeds;
 		return { status: "unsupported" };
 	}
 
