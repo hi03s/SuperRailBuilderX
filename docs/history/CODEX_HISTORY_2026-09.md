@@ -611,6 +611,17 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 実装コミット: `7850dc9`
 - 同期: `origin/main`へ同期済み。
 
+### 2026-09-07 ローカルCodex — alpha-0.1.0配布整備
+
+- NGTOBuilder2の現行READMEと同梱readme.txtを参照し、トップ`README.md`を概要、強調したバックアップ警告、動作環境、導入、収録ツール、開発方法、ライセンスを含む構成へ更新した。
+- 4ツールの概要と操作を1つにまとめた`docs/usage.md`を追加した。レール・道床・RailPositionの再生成によるワールド破損可能性を明記し、READMEと同梱`readme.txt`にも「使用前に必ずバックアップ」と記載した。
+- リリース表記を`alpha-0.1.0`へ統一した。npm内部は有効なSemVerの`0.1.0-alpha.0`とし、rtm-tsのパック名を`SuperRailBuilderX-alpha-0.1.0`へ変更した。配布物へ`readme.txt`とMIT `LICENSE`を同梱した。
+- 開発者が更新した4ツールの本体・ボタン・アイコンテクスチャを保持して配布物へ反映した。
+- 検証済み: 対象ファイルのPrettier、`git diff --check`、`pnpm gen`、`pnpm zip`。kaizpatch・mc1710・mc1122のビルドが成功し、`artifacts/SuperRailBuilderX-alpha-0.1.0.zip`へ57ファイル、更新テクスチャ、`readme.txt`、`LICENSE`が格納されることを確認した。
+- 未検証: Minecraft実機での配布ZIP導入、更新テクスチャと全4ツールの表示。
+- 実装コミット: `4ab0aa6`
+- 同期: `origin/main`へ同期済み。
+
 ### 記録テンプレート
 
 ```text
