@@ -3,7 +3,7 @@
 **Release: alpha-0.1.0**
 
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.7.10-62b47a)](https://www.minecraft.net/)
-[![KaizPatchX](https://img.shields.io/badge/KaizPatchX-1.10.3-57b57b)](https://github.com/Kai-Z-JP/KaizPatchX)
+[![KaizPatchX](https://img.shields.io/badge/KaizPatchX-1.10.3%2B-57b57b)](https://github.com/Kai-Z-JP/KaizPatchX)
 [![Release](https://img.shields.io/badge/release-alpha--0.1.0-orange)](https://github.com/hi03s/SuperRailBuilderX/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
@@ -25,7 +25,7 @@ SuperRailBuilderXは、KaizPatchX向けのレール制作支援ツール集で�
 ## 動作環境
 
 - Minecraft 1.7.10
-- RealTrainModとKaizPatchX 1.10.3
+- RealTrainModとKaizPatchX 1.10.3以降
 
 レール生成・移動などの主要機能はKaizPatchX専用です。通常RTM 1.7.10およびMinecraft 1.12.2向けの共通コードもビルドされますが、非対応機能はワールドを変更せず安全に停止します。
 
@@ -34,11 +34,11 @@ SuperRailBuilderXは、KaizPatchX向けのレール制作支援ツール集で�
 1. RealTrainModとKaizPatchXを導入します。
 2. [Releases](https://github.com/hi03s/SuperRailBuilderX/releases)から配布パックをダウンロードします。
 3. ダウンロードしたパックをMinecraftの`mods`フォルダーへ入れます。
-4. 起動後、自動車モデル選択画面から`SuperRailBuilderX`で始まるツールを選びます。
+4. 起動後、自動車モデル選択画面から`レール生成A`または`SuperRailBuilderX`で始まるツールを選びます。
 
 ## 収録ツール
 
-- **builder1** — 2点を選択してレールを新規敷設します。曲線半径、勾配、縦曲線、既設端点への接続に対応します。
+- **レール生成A** — 2点を選択してレールを新規敷設します。曲線半径、勾配、縦曲線、既設端点への接続に対応します。
 - **複線コピーツール** — 既設レールを複数選択し、指定間隔で平行なレールを生成します。
 - **線路分割ツール** — 既設レールを指定位置で2本へ分割します。
 - **レール移動ツール** — 既設レールの端点移動、単体または複数レールの平行移動を行います。

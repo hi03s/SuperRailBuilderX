@@ -2992,7 +2992,16 @@ export class SRBXApiCompat {
 	static getLogicalRailMap(core: TileEntityLargeRailCore) {
 		if (!core || core instanceof TileEntityLargeRailSwitchCore) return null;
 		if (this.isSectionCore(core)) {
-			const positions = core.getLogicalRailPositions();
+			let positions: JavaObjectArray<RailPosition> | null = null;
+			try {
+				if (!core.isRailSection()) return null;
+				positions = core.getLogicalRailPositions();
+			} catch (error) {
+				NGTLog.debug(
+					`[SuperRailBuilderX RailPosition] invalid logical rail map ignored: ${error}`,
+				);
+				return null;
+			}
 			if (!positions || positions.length !== 2) return null;
 			return new RailMapBasic(
 				positions[0],

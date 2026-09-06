@@ -1,0 +1,10 @@
+[01:30:39] [Server thread/INFO]: [SuperRailBuilderX RailPosition] parallel move succeeded: normalFallback=false
+[01:30:39] [Server thread/INFO]: [SuperRailBuilderX RailPosition] parallel undo recorded: operations=3
+[01:30:39] [Server thread/INFO]: [SuperRailBuilderX/RailMover] parallel multi undo recorded: plans=1, operations=3
+[01:30:39] [Server thread/INFO]: [SuperRailBuilderX RailPosition] request completed: action=move, mode=parallel_multi, result=ok
+[01:33:24] [Client thread/FATAL]: Reported exception thrown: Rendering entity in world
+[01:33:24] [Client thread/FATAL]: Caused by: java.lang.NullPointerException: getLogicalRailPositions(...) must not be null
+[01:33:24] [Client thread/FATAL]: at SRBXApiCompat.getLogicalRailMap -> getRailBaseHeightAt -> getDestination -> render
+
+# RailMoverの移動Undo記録は作成されているが、同ツールのUndoチャット・サーバー要求はlatest.log内に存在しない。
+# builder1、複線コピー、線路分割のCtrl+Z要求・応答は同ログ内で確認できる。

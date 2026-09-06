@@ -102,16 +102,47 @@ function sameRail(a: SelectedRail, b: SelectedRail): boolean {
 	return a.railKey === b.railKey;
 }
 
-function toggleRailSelection(state: EditorState, target: SelectedRail): void {
+function toggleRailSelection(
+	entity: EntityVehicle,
+	state: EditorState,
+	target: SelectedRail,
+): "added" | "removed" | "not_connected" {
 	for (let i = 0; i < state.selectedRails.length; i++)
 		if (sameRail(state.selectedRails[i], target)) {
 			state.selectedRails.splice(i, 1);
-			return;
+			return "removed";
 		}
+	if (state.selectedRails.length > 0) {
+		const targetRail = resolveRail(entity, target);
+		if (!targetRail) return "not_connected";
+		let connected = false;
+		for (let i = 0; i < state.selectedRails.length && !connected; i++) {
+			const selectedRail = resolveRail(entity, state.selectedRails[i]);
+			if (!selectedRail) continue;
+			for (let a = 0; a < targetRail.positions.length && !connected; a++)
+				for (let b = 0; b < selectedRail.positions.length; b++) {
+					const targetPosition = targetRail.positions[a];
+					const selectedPosition = selectedRail.positions[b];
+					if (
+						Math.abs(targetPosition.posX - selectedPosition.posX) <=
+							CONNECTED_ENDPOINT_TOLERANCE &&
+						Math.abs(targetPosition.posY - selectedPosition.posY) <=
+							CONNECTED_ENDPOINT_TOLERANCE &&
+						Math.abs(targetPosition.posZ - selectedPosition.posZ) <=
+							CONNECTED_ENDPOINT_TOLERANCE
+					) {
+						connected = true;
+						break;
+					}
+				}
+		}
+		if (!connected) return "not_connected";
+	}
 	state.selectedRails.push({
 		core: [target.core[0], target.core[1], target.core[2]],
 		railKey: target.railKey,
 	});
+	return "added";
 }
 
 let keys: InputManager;
@@ -125,6 +156,7 @@ let lastCandidateScanDiagnostics: CandidateScanDiagnostics | null = null;
 
 function init(par1: ModelSetVehicle, par2: ModelObject): void {
 	keys = new InputManager();
+	keys.setOptionKey(Keyboard.KEY_LCONTROL);
 	keys.register("help", Keyboard.KEY_H, false, "ヘルプを表示");
 	keys.register("exit", Keyboard.KEY_Q, false, "ツールを終了");
 	keys.register("apply", Keyboard.KEY_RETURN, false, "移動を適用");
@@ -181,6 +213,8 @@ function getRailBaseHeightAt(
 		const railKey = SRBXApiCompat.getRailPositionCandidateKey(core);
 		if (seen[railKey]) continue;
 		seen[railKey] = true;
+		if (SRBXApiCompat.getRailPositionUnsupportedReason(core) !== "")
+			continue;
 		const map = SRBXApiCompat.getLogicalRailMap(core);
 		if (!map) continue;
 		const split = Math.max(
@@ -1103,7 +1137,7 @@ function handleInput(
 		} else {
 			const rail = findHoverRail(entity, partialTicks);
 			if (rail) {
-				toggleRailSelection(state, rail);
+				toggleRailSelection(entity, state, rail);
 				state.selected = null;
 				state.stage = state.selectedRails.length > 0 ? 1 : 0;
 			} else {
@@ -1129,7 +1163,12 @@ function handleInput(
 		} else if (state.selectedRails.length > 0) {
 			const rail = findHoverRail(entity, partialTicks);
 			if (rail) {
-				toggleRailSelection(state, rail);
+				const selection = toggleRailSelection(entity, state, rail);
+				if (selection === "not_connected")
+					NGTLog.sendChatMessage(
+						sender,
+						"§e[SuperRailBuilderX] 選択済みレールへ接続するレールだけを追加できます",
+					);
 				if (state.selectedRails.length === 0) state.stage = 0;
 			} else {
 				state.parallelPlans = buildParallelPlans(
@@ -1300,30 +1339,22 @@ function render(
 	SRBXApiCompat.doFollowing(entity, host);
 	const state = getState(entity);
 	const candidates =
-		state.stage === 0 ? findCandidates(entity, partialTicks) : [];
+		!state.awaitingResult && state.stage === 0
+			? findCandidates(entity, partialTicks)
+			: [];
 	for (let i = 0; i < candidates.length; i++)
 		renderMarker(entity, partialTicks, candidates[i].position, point);
 	const hoverRail =
-		state.stage <= 1 && !state.selected
+		!state.awaitingResult && state.stage <= 1 && !state.selected
 			? findHoverRail(entity, partialTicks)
 			: null;
-	if (hoverRail && candidates.length === 0) {
-		const resolved = resolveRail(entity, hoverRail);
-		let hoverSelected = false;
+	let hoverSelected = false;
+	if (hoverRail)
 		for (let i = 0; i < state.selectedRails.length; i++)
 			if (sameRail(state.selectedRails[i], hoverRail)) {
 				hoverSelected = true;
 				break;
 			}
-		if (resolved)
-			renderRailHighlight(
-				entity,
-				partialTicks,
-				resolved.map,
-				hoverSelected ? "008888" : "ffff00",
-				0.6,
-			);
-	}
 	if (state.selected)
 		renderMarker(
 			entity,
@@ -1331,25 +1362,44 @@ function render(
 			state.selected.position,
 			selectedPoint,
 		);
-	for (let i = 0; i < state.selectedRails.length; i++) {
+	for (
+		let i = 0;
+		!state.awaitingResult && i < state.selectedRails.length;
+		i++
+	) {
 		const resolved = resolveRail(entity, state.selectedRails[i]);
 		if (resolved)
 			renderRailHighlight(
 				entity,
 				partialTicks,
 				resolved.map,
-				"00ffff",
+				hoverSelected &&
+					hoverRail &&
+					sameRail(state.selectedRails[i], hoverRail)
+					? "009999"
+					: "00ffff",
 				0.65,
 			);
 	}
+	if (hoverRail && !hoverSelected && candidates.length === 0) {
+		const resolved = resolveRail(entity, hoverRail);
+		if (resolved)
+			renderRailHighlight(
+				entity,
+				partialTicks,
+				resolved.map,
+				"ffff00",
+				0.6,
+			);
+	}
 	const endpointPreview =
-		state.selected && state.stage === 1
+		!state.awaitingResult && state.selected && state.stage === 1
 			? getDestination(entity, partialTicks, state.snapEnabled)
 			: state.destination;
 	if (endpointPreview)
 		renderMarker(entity, partialTicks, endpointPreview, point);
 	const parallelPreview =
-		state.selectedRails.length > 0
+		!state.awaitingResult && state.selectedRails.length > 0
 			? state.stage === 1
 				? buildParallelPlans(entity, partialTicks, state)
 				: state.parallelPlans

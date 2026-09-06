@@ -97,6 +97,57 @@ function samePosition(a: RailCorePos, b: RailCorePos): boolean {
 	);
 }
 
+function parallelPlansAreConnected(
+	plans: RailPositionParallelMoveRequest[],
+): boolean {
+	const connected: boolean[] = [];
+	const seenRailKeys: { [key: string]: boolean } = {};
+	for (let i = 0; i < plans.length; i++) {
+		const plan = plans[i];
+		if (
+			!plan ||
+			!plan.railKey ||
+			!plan.originalStart ||
+			!plan.originalEnd ||
+			seenRailKeys[plan.railKey]
+		)
+			return false;
+		seenRailKeys[plan.railKey] = true;
+		connected[i] = i === 0;
+	}
+	let changed = true;
+	while (changed) {
+		changed = false;
+		for (let i = 0; i < plans.length; i++) {
+			if (connected[i]) continue;
+			for (let j = 0; j < plans.length; j++) {
+				if (!connected[j]) continue;
+				if (
+					samePosition(
+						plans[i].originalStart,
+						plans[j].originalStart,
+					) ||
+					samePosition(
+						plans[i].originalStart,
+						plans[j].originalEnd,
+					) ||
+					samePosition(
+						plans[i].originalEnd,
+						plans[j].originalStart,
+					) ||
+					samePosition(plans[i].originalEnd, plans[j].originalEnd)
+				) {
+					connected[i] = true;
+					changed = true;
+					break;
+				}
+			}
+		}
+	}
+	for (let i = 0; i < connected.length; i++) if (!connected[i]) return false;
+	return true;
+}
+
 function sendClientChanges(
 	dataMap: any,
 	updated: RailCorePos[],
@@ -291,6 +342,8 @@ function applyRequest(
 	if (request.mode === "parallel_multi") {
 		if (!request.plans || request.plans.length === 0) return "no_targets";
 		if (request.plans.length > 16) return "too_many_targets";
+		if (!parallelPlansAreConnected(request.plans))
+			return "disconnected_targets";
 		const previousUndo = undoRecords.get(entity);
 		undoRecords.remove(entity);
 		const operations: UndoOperation[] = [];
