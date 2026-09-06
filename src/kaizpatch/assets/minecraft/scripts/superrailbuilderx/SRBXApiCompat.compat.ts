@@ -9,7 +9,12 @@ import {
 	TileEntityLargeRailSwitchCore,
 } from "jp.ngt.rtm.rail";
 import { ItemRail } from "jp.ngt.rtm.item";
-import { RailMapBasic, RailPosition, RailProperty } from "jp.ngt.rtm.rail.util";
+import {
+	RailMaker,
+	RailMapBasic,
+	RailPosition,
+	RailProperty,
+} from "jp.ngt.rtm.rail.util";
 import { EntityPlayer } from "net.minecraft.entity.player";
 import { NBTTagCompound } from "net.minecraft.nbt";
 import { ArrayList } from "java.util";
@@ -85,6 +90,20 @@ type SplitClientUpdate = {
 	refreshed: SplitCreatedRail[];
 };
 
+type CantTarget = {
+	core: [number, number, number];
+	railKey: string;
+	index: number;
+	position: [number, number, number];
+	angle: number;
+};
+
+type CantUndoRecord = Array<{
+	core: [number, number, number];
+	railKey: string;
+	positions: RailPosition[];
+}>;
+
 type RailSectionPlan = {
 	getStartRatio(): number;
 	getEndRatio(): number;
@@ -135,6 +154,8 @@ export class SRBXApiCompat {
 	private static lastSplitClientUpdate: SplitClientUpdate | null = null;
 	private static lastRailPositionMoveCores: Array<[number, number, number]> =
 		[];
+	private static cantUndoRecords: { [token: string]: CantUndoRecord } = {};
+	private static lastCantClientUpdate: Array<[number, number, number]> = [];
 	static getRider(entity: unknown) {
 		return (entity as jp.ngt.rtm.entity.vehicle.EntityVehicle)
 			.riddenByEntity;
@@ -3488,5 +3509,470 @@ export class SRBXApiCompat {
 		};
 		delete this.splitUndoRecords[undoToken];
 		return "undo_ok";
+	}
+
+	private static updateCantRail(
+		world: net.minecraft.world.World,
+		core: TileEntityLargeRailCore,
+		positions: RailPosition[],
+	): Array<[number, number, number]> {
+		const refreshed: Array<[number, number, number]> = [];
+		const apply = (target: TileEntityLargeRailCore) => {
+			if (this.isSectionCore(target)) {
+				const nbt = new NBTTagCompound();
+				target.writeToNBT(nbt);
+				const section = nbt.getCompoundTag("RailSection");
+				if (!section || !section.hasKey("LogicalStartRP")) return;
+				section.setTag("LogicalStartRP", positions[0].writeToNBT());
+				section.setTag("LogicalEndRP", positions[1].writeToNBT());
+				nbt.setTag("RailSection", section);
+				target.readFromNBT(nbt);
+			} else {
+				const targetPositions = this.getEditableRailPositions(target);
+				if (!targetPositions || targetPositions.length !== positions.length)
+					return;
+				for (let i = 0; i < positions.length; i++) {
+					targetPositions[i].cantEdge = positions[i].cantEdge;
+					targetPositions[i].cantCenter = positions[i].cantCenter;
+					targetPositions[i].cantRandom = positions[i].cantRandom;
+				}
+				target.setRailPositions(targetPositions);
+			}
+			target.createRailMap();
+			target.shouldRerenderRail = true;
+			this.markCoreDirty(target);
+			NGTUtil.sendPacketToClient(target);
+			world.markBlockForUpdate(
+				target.xCoord,
+				target.yCoord,
+				target.zCoord,
+			);
+			refreshed.push([target.xCoord, target.yCoord, target.zCoord]);
+		};
+		if (this.isSectionCore(core)) {
+			const group = core.getRailGroupCorePositions();
+			if (group)
+				for (let i = 0; i < group.size(); i++) {
+					const pos = group.get(i);
+					const tile = world.getTileEntity(pos[0], pos[1], pos[2]);
+					if (tile instanceof TileEntityLargeRailCore) apply(tile);
+				}
+		} else apply(core);
+		return refreshed;
+	}
+
+	static applyRailCants(
+		world: net.minecraft.world.World,
+		targets: CantTarget[],
+	) {
+		this.lastCantClientUpdate = [];
+		if (!targets || targets.length === 0) return { status: "no_selection" };
+		const records: CantUndoRecord = [];
+		const pending: {
+			[key: string]: {
+				core: TileEntityLargeRailCore;
+				positions: RailPosition[];
+			};
+		} = {};
+		for (let i = 0; i < targets.length; i++) {
+			const target = targets[i];
+			if (
+				!target ||
+				!isFinite(target.angle) ||
+				Math.abs(target.angle) > 9
+			)
+				return { status: "invalid_cant" };
+			const tile = world.getTileEntity(
+				target.core[0],
+				target.core[1],
+				target.core[2],
+			);
+			if (!(tile instanceof TileEntityLargeRailBase))
+				return { status: "rail_not_found" };
+			const core = tile.getRailCore();
+			if (!core || this.getRailPositionUnsupportedReason(core) !== "")
+				return { status: "unsupported_rail" };
+			if (this.getRailPositionCandidateKey(core) !== target.railKey)
+				return { status: "rail_changed" };
+			if (core.isLogicalRailOccupied())
+				return { status: "rail_occupied" };
+			let entry = pending[target.railKey];
+			if (!entry) {
+				const positions = this.copyRailPositions(
+					this.getEditableRailPositions(core),
+				);
+				if (!positions || positions.length !== 2)
+					return { status: "invalid_rail" };
+				records.push({
+					core: this.getRailCorePos(core),
+					railKey: target.railKey,
+					positions: this.copyRailPositions(positions),
+				});
+				entry = { core, positions };
+				pending[target.railKey] = entry;
+			}
+			if (target.index < 0 || target.index >= entry.positions.length)
+				return { status: "invalid_endpoint" };
+			const rp = entry.positions[target.index];
+			if (
+				Math.abs(rp.posX - target.position[0]) > 0.001 ||
+				Math.abs(rp.posY - target.position[1]) > 0.001 ||
+				Math.abs(rp.posZ - target.position[2]) > 0.001
+			)
+				return { status: "rail_changed" };
+			rp.cantEdge = target.angle;
+		}
+		const keys = Object.keys(pending);
+		for (let i = 0; i < keys.length; i++) {
+			const entry = pending[keys[i]];
+			const center =
+				(entry.positions[0].cantEdge - entry.positions[1].cantEdge) / 2;
+			entry.positions[0].cantCenter = center;
+			entry.positions[1].cantCenter = center;
+			this.lastCantClientUpdate = this.lastCantClientUpdate.concat(
+				this.updateCantRail(world, entry.core, entry.positions),
+			);
+		}
+		const token = java.util.UUID.randomUUID().toString();
+		this.cantUndoRecords[token] = records;
+		return { status: "ok", undoToken: token };
+	}
+
+	static undoRailCants(
+		world: net.minecraft.world.World,
+		undoToken: string,
+	): string {
+		this.lastCantClientUpdate = [];
+		const records = this.cantUndoRecords[undoToken];
+		if (!records) return "nothing_to_undo";
+		for (let i = 0; i < records.length; i++) {
+			const record = records[i];
+			const tile = world.getTileEntity(
+				record.core[0],
+				record.core[1],
+				record.core[2],
+			);
+			if (!(tile instanceof TileEntityLargeRailBase))
+				return "undo_rail_not_found";
+			const core = tile.getRailCore();
+			if (
+				!core ||
+				this.getRailPositionCandidateKey(core) !== record.railKey
+			)
+				return "undo_rail_changed";
+			if (core.isLogicalRailOccupied()) return "rail_occupied";
+			this.lastCantClientUpdate = this.lastCantClientUpdate.concat(
+				this.updateCantRail(world, core, record.positions),
+			);
+		}
+		delete this.cantUndoRecords[undoToken];
+		return "undo_ok";
+	}
+
+	static consumeLastCantClientUpdate(): Array<[number, number, number]> {
+		const result = this.lastCantClientUpdate;
+		this.lastCantClientUpdate = [];
+		return result;
+	}
+
+	private static withSwitchType(
+		source: RailPosition,
+		switchType: number,
+	): RailPosition {
+		const nbt = source.writeToNBT();
+		nbt.setByte("SwitchType", switchType);
+		return RailPosition.readFromNBT(nbt);
+	}
+
+	private static createBuilderBasicSwitch(
+		world: net.minecraft.world.World,
+		positions: RailPosition[],
+		property: RailProperty,
+		protectedKeys: string[],
+	): TileEntityLargeRailSwitchCore | null {
+		const root = positions[0];
+		const maker = new RailMaker(
+			world,
+			this.toRailPositionArray(positions),
+			RailMapBasic.fixRTMRailMapVersionCurrent,
+		);
+		const railSwitch = maker.getSwitch();
+		if (!railSwitch) return null;
+		const maps = railSwitch.getAllRailMap();
+		const protectedMap: { [key: string]: boolean } = {};
+		for (let i = 0; i < protectedKeys.length; i++)
+			protectedMap[protectedKeys[i]] = true;
+		for (let i = 0; i < maps.length; i++)
+			this.placeBuilderRoadbed(
+				world,
+				maps[i] as unknown as RailSectionMap,
+				root.blockX,
+				root.blockY,
+				root.blockZ,
+				property,
+				protectedMap,
+				false,
+				undefined,
+				true,
+			);
+		for (let i = 0; i < positions.length; i++) {
+			const rp = positions[i];
+			world.setBlock(
+				rp.blockX,
+				rp.blockY,
+				rp.blockZ,
+				RTMRail.largeRailSwitchBase0,
+				0,
+				2,
+			);
+			const base = world.getTileEntity(rp.blockX, rp.blockY, rp.blockZ);
+			if (base instanceof TileEntityLargeRailBase)
+				base.setStartPoint(root.blockX, root.blockY, root.blockZ);
+		}
+		world.setBlock(
+			root.blockX,
+			root.blockY,
+			root.blockZ,
+			RTMRail.largeRailSwitchCore0,
+			0,
+			2,
+		);
+		const tile = world.getTileEntity(root.blockX, root.blockY, root.blockZ);
+		if (!(tile instanceof TileEntityLargeRailSwitchCore)) return null;
+		tile.setRailPositions(this.toRailPositionArray(positions));
+		tile.setProperty(property);
+		tile.setStartPoint(root.blockX, root.blockY, root.blockZ);
+		(tile as unknown as NormalRailCore).fixRTMRailMapVersion =
+			RailMapBasic.fixRTMRailMapVersionCurrent;
+		tile.createRailMap();
+		this.markCoreDirty(tile);
+		NGTUtil.sendPacketToClient(tile);
+		world.markBlockForUpdate(root.blockX, root.blockY, root.blockZ);
+		return tile;
+	}
+
+	private static isFlatBuilderRail(core: TileEntityLargeRailCore): boolean {
+		const map = this.getLogicalRailMap(core);
+		return (
+			!!map &&
+			Math.abs(map.getRailPitch(1000, 0)) <= 0.001 &&
+			Math.abs(map.getRailPitch(1000, 500)) <= 0.001 &&
+			Math.abs(map.getRailPitch(1000, 1000)) <= 0.001
+		);
+	}
+
+	static createBranchBuilderRail(
+		world: net.minecraft.world.World,
+		player: EntityPlayer,
+		request: {
+			core: [number, number, number];
+			railKey: string;
+			ratio: number;
+			branchStart: BuilderPoint;
+			branchEnd: BuilderPoint;
+		},
+	) {
+		this.lastSplitClientUpdate = null;
+		if (
+			!request ||
+			this.validateBuilderPoint(request.branchStart) !== "ok" ||
+			this.validateBuilderPoint(request.branchEnd) !== "ok"
+		)
+			return { status: "invalid_request" };
+		if (request.branchStart.kind !== "free")
+			return { status: "invalid_branch_start" };
+		const sourceTile = world.getTileEntity(
+			request.core[0],
+			request.core[1],
+			request.core[2],
+		);
+		if (!(sourceTile instanceof TileEntityLargeRailBase))
+			return { status: "rail_not_found" };
+		const sourceCore = sourceTile.getRailCore();
+		if (
+			!sourceCore ||
+			this.getRailPositionCandidateKey(sourceCore) !== request.railKey ||
+			!this.isFlatBuilderRail(sourceCore)
+		)
+			return { status: "sloped_or_changed_rail" };
+		const sourceMap = this.getLogicalRailMap(sourceCore);
+		if (
+			!sourceMap ||
+			!isFinite(request.ratio) ||
+			request.ratio <= 0 ||
+			request.ratio >= 1
+		)
+			return { status: "invalid_split_position" };
+		const sampleIndex = Math.round(request.ratio * 1000000);
+		const sampled = sourceMap.getRailPos(1000000, sampleIndex);
+		const sampledCant = sourceMap.getCant(1000000, sampleIndex);
+		const sampledPosition: [number, number, number] = [
+			sampled[1],
+			sourceMap.getRailHeight(1000000, sampleIndex) -
+				Math.abs(Math.sin((sampledCant * Math.PI) / 180) * 1.5),
+			sampled[0],
+		];
+		if (
+			Math.abs(sampledPosition[0] - request.branchStart.position[0]) >
+				0.01 ||
+			Math.abs(sampledPosition[1] - request.branchStart.position[1]) >
+				0.01 ||
+			Math.abs(sampledPosition[2] - request.branchStart.position[2]) >
+				0.01
+		)
+			return { status: "rail_changed" };
+		let resolvedEnd: RailPosition | null = null;
+		if (request.branchEnd.kind === "rail") {
+			const endTile = request.branchEnd.core
+				? world.getTileEntity(
+						request.branchEnd.core[0],
+						request.branchEnd.core[1],
+						request.branchEnd.core[2],
+					)
+				: null;
+			const endCore =
+				endTile instanceof TileEntityLargeRailBase
+					? endTile.getRailCore()
+					: null;
+			if (!endCore || !this.isFlatBuilderRail(endCore))
+				return { status: "sloped_or_changed_rail" };
+			resolvedEnd = this.resolveBuilderRailPoint(
+				world,
+				request.branchEnd,
+			);
+		} else resolvedEnd = this.createBuilderFreePoint(request.branchEnd);
+		if (!resolvedEnd) return { status: "invalid_branch_end" };
+		const split = this.splitBuilderRail(
+			world,
+			player,
+			request.core,
+			request.railKey,
+			request.ratio,
+		);
+		if (split.status !== "ok" || !split.undoToken) return split;
+		const record = this.splitUndoRecords[split.undoToken];
+		if (!record || record.created.length !== 2)
+			return { status: "branch_split_failed" };
+		const splitPosition = request.branchStart.position;
+		const vx = request.branchEnd.position[0] - splitPosition[0],
+			vz = request.branchEnd.position[2] - splitPosition[2];
+		const sx = record.positions[0].posX - splitPosition[0],
+			sz = record.positions[0].posZ - splitPosition[2];
+		const ex = record.positions[1].posX - splitPosition[0],
+			ez = record.positions[1].posZ - splitPosition[2];
+		const selectedIndex = vx * sx + vz * sz >= vx * ex + vz * ez ? 0 : 1;
+		const selected = record.created[selectedIndex];
+		const selectedTile = world.getTileEntity(
+			selected.core[0],
+			selected.core[1],
+			selected.core[2],
+		);
+		if (!(selectedTile instanceof TileEntityLargeRailBase))
+			return { status: "branch_split_failed" };
+		const selectedCore = selectedTile.getRailCore();
+		if (!selectedCore) return { status: "branch_split_failed" };
+		const half = this.copyRailPositions(
+			this.getEditableRailPositions(selectedCore),
+		);
+		let rootIndex = 0;
+		if (
+			Math.pow(half[1].posX - splitPosition[0], 2) +
+				Math.pow(half[1].posZ - splitPosition[2], 2) <
+			Math.pow(half[0].posX - splitPosition[0], 2) +
+				Math.pow(half[0].posZ - splitPosition[2], 2)
+		)
+			rootIndex = 1;
+		const rootSource = half[rootIndex],
+			trunkSource = half[1 - rootIndex];
+		const removedStatus = this.undoBuilderRail(
+			world,
+			selected.core[0],
+			selected.core[1],
+			selected.core[2],
+			selected.key,
+		);
+		if (removedStatus !== "ok") return { status: removedStatus };
+		record.created.splice(selectedIndex, 1);
+		const root = this.withSwitchType(rootSource, 1);
+		root.anchorYaw = request.branchStart.anchorYaw;
+		root.anchorPitch = request.branchStart.anchorPitch;
+		root.anchorLengthHorizontal = request.branchStart.anchorLength;
+		root.anchorLengthVertical =
+			request.branchStart.anchorLengthVertical === undefined
+				? request.branchStart.anchorLength
+				: request.branchStart.anchorLengthVertical;
+		const trunk = this.withSwitchType(trunkSource, 0);
+		const branch = this.withSwitchType(resolvedEnd, 0);
+		branch.anchorLengthHorizontal = request.branchEnd.anchorLength;
+		branch.anchorLengthVertical =
+			request.branchEnd.anchorLengthVertical === undefined
+				? request.branchEnd.anchorLength
+				: request.branchEnd.anchorLengthVertical;
+		const held = this.createBuilderProperty(player);
+		const property = held || this.cloneRailProperty(record.property);
+		property.autoSplit = false;
+		let switchCore: TileEntityLargeRailSwitchCore | null = null;
+		try {
+			switchCore = this.createBuilderBasicSwitch(
+				world,
+				[root, trunk, branch],
+				property,
+				record.created.map((rail) => rail.key),
+			);
+		} catch (error) {
+			NGTLog.debug(
+				`[SuperRailBuilderX branch] switch creation exception: ${error}`,
+			);
+		}
+		if (!switchCore) {
+			for (let i = record.created.length - 1; i >= 0; i--) {
+				const rail = record.created[i];
+				this.undoBuilderRail(
+					world,
+					rail.core[0],
+					rail.core[1],
+					rail.core[2],
+					rail.key,
+				);
+			}
+			record.created = [];
+			const restored = this.restoreSplitSource(world, player, record);
+			if (restored)
+				this.lastSplitClientUpdate = {
+					removed: [
+						{ core: request.core, key: request.railKey },
+						selected,
+					],
+					refreshed: [restored],
+				};
+			delete this.splitUndoRecords[split.undoToken];
+			return {
+				status: restored
+					? "switch_create_failed"
+					: "split_rollback_failed",
+			};
+		}
+		const created = {
+			core: this.getRailCorePos(switchCore),
+			key: this.getRailPositionCandidateKey(switchCore),
+		};
+		record.created.push(created);
+		this.lastSplitClientUpdate = {
+			removed: [{ core: request.core, key: request.railKey }, selected],
+			refreshed: record.created.slice(),
+		};
+		return { status: "ok", undoToken: split.undoToken };
+	}
+
+	static undoBranchBuilderRail(
+		world: net.minecraft.world.World,
+		player: EntityPlayer,
+		undoToken: string,
+	): string {
+		return this.undoSplitBuilderRail(world, player, undoToken);
+	}
+
+	static consumeLastBranchClientUpdate(): SplitClientUpdate | null {
+		return this.consumeLastSplitClientUpdate();
 	}
 }

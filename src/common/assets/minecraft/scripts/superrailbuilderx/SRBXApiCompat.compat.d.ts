@@ -51,6 +51,22 @@ export type SRBXRailSplitResult = {
 	undoToken?: string;
 };
 
+export type SRBXCantTarget = {
+	core: RailCorePos;
+	railKey: string;
+	index: number;
+	position: RailCorePos;
+	angle: number;
+};
+
+export type SRBXBranchRequest = {
+	core: RailCorePos;
+	railKey: string;
+	ratio: number;
+	branchStart: SRBXBuilderPoint;
+	branchEnd: SRBXBuilderPoint;
+};
+
 export class SRBXApiCompat {
 	static getRider(entity: unknown): Entity | null;
 	static getRidingEntity(entity: unknown): Entity | null;
@@ -185,4 +201,24 @@ export class SRBXApiCompat {
 		player: EntityPlayer,
 		undoToken: string,
 	): string;
+	static applyRailCants(
+		world: World,
+		targets: SRBXCantTarget[],
+	): { status: string; undoToken?: string };
+	static undoRailCants(world: World, undoToken: string): string;
+	static consumeLastCantClientUpdate(): RailCorePos[];
+	static createBranchBuilderRail(
+		world: World,
+		player: EntityPlayer,
+		request: SRBXBranchRequest,
+	): SRBXRailSplitResult;
+	static undoBranchBuilderRail(
+		world: World,
+		player: EntityPlayer,
+		undoToken: string,
+	): string;
+	static consumeLastBranchClientUpdate(): {
+		removed: Array<{ core: RailCorePos; key: string }>;
+		refreshed: Array<{ core: RailCorePos; key: string }>;
+	} | null;
 }

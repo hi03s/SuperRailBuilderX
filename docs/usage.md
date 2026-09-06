@@ -125,13 +125,21 @@ Enterを押した時にレールを持っていればそのモデルを使い、
 
 移動元の前後に接続されたレールがある場合は、接続端点も連動して移動します。移動先付近に別のレール端点がある場合は、その端点への接続を優先します。
 
+## カント整形ツール
+
+通常レールの端点を右クリックで複数選択し、`Enter`で設計速度に応じた均衡カントを一括適用します。`↑` / `↓`で設計速度を1 km/hずつ変更し、`Ctrl+←` / `Ctrl+→`で1067 mm、1372 mm、1435 mm（在来線）、1435 mm（新幹線）、1000 mm（モノレール）を切り替えます。速度変更はチャットへ出さず、画面上の数字で確認します。今回はカント不足を考慮しません。
+
+## 分岐生成ツール
+
+既設レール上の分割点を右クリックした後、自由点または別レール端点を右クリックし、`Enter`で単純分岐を生成します。レール生成Aと同じ`P` / `Ctrl+P`のスナップ、`O`と矢印キーの曲線半径固定を使用できます。手持ちレールがあればそのモデル、なければ分割元モデルを使います。勾配・縦曲線のあるレールと既存分岐は選択できません。
+
 ## 制限事項
 
-- レール生成・分割・移動のワールド変更機能はKaizPatchX向けです。
+- レール生成・分割・移動・カント整形・分岐生成のワールド変更機能はKaizPatchX向けです。
 - 分岐器は線路分割・レール移動の対象外です。
 - 列車が在線しているレールは安全のため変更できません。
 - 未ロードチャンクに物理コアがある自動分割レールは変更できない場合があります。
 - 見た目上レールが接していても、道床所有状態や端点条件によって列車が遷移できない場合があります。
 - Undoでレールは復元されても、生成時に破壊された通常ブロックなどは復元されません。
 
-より詳しい仕様は、[`builder1.md`](builder1.md)、[`double-track-copy.md`](double-track-copy.md)、[`rail-splitter.md`](rail-splitter.md)、[`rail-position-free-positioning.md`](rail-position-free-positioning.md)を参照してください。
+より詳しい仕様は、[`builder1.md`](builder1.md)、[`double-track-copy.md`](double-track-copy.md)、[`rail-splitter.md`](rail-splitter.md)、[`rail-position-free-positioning.md`](rail-position-free-positioning.md)、[`cant-formatter.md`](cant-formatter.md)、[`branch-builder.md`](branch-builder.md)を参照してください。

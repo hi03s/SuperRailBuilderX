@@ -312,4 +312,41 @@ export class SRBXApiCompat {
 	static consumeLastSplitClientUpdate(): null {
 		return null;
 	}
+
+	static applyRailCants(world: unknown, targets: unknown[]) {
+		void world;
+		void targets;
+		return { status: "unsupported_target" };
+	}
+	static undoRailCants(world: unknown, token: string): string {
+		void world;
+		void token;
+		return "unsupported_target";
+	}
+	static consumeLastCantClientUpdate(): Array<[number, number, number]> {
+		return [];
+	}
+	static createBranchBuilderRail(
+		world: unknown,
+		player: unknown,
+		request: unknown,
+	) {
+		void world;
+		void player;
+		void request;
+		return { status: "unsupported_target" };
+	}
+	static undoBranchBuilderRail(
+		world: unknown,
+		player: unknown,
+		token: string,
+	): string {
+		void world;
+		void player;
+		void token;
+		return "unsupported_target";
+	}
+	static consumeLastBranchClientUpdate(): null {
+		return null;
+	}
 }

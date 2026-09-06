@@ -65,8 +65,12 @@ Undo情報はツール終了、スクリプト再読み込み、サーバー再�
 　│  既設レールを複数選択し、指定間隔で平行レールを生成します。
 　├SuperRailBuilderX_RailSplitter
 　│  既設レールを指定位置で2本へ分割します。
-　└SuperRailBuilderX_RailMover
-　　 既設レールの端点移動、単体・複数レールの平行移動を行います。
+　├SuperRailBuilderX_RailMover
+　│  既設レールの端点移動、単体・複数レールの平行移動を行います。
+　├SuperRailBuilderX_CantFormatter
+　│  設計速度と軌間から通常レール端点のカントを一括整形します。
+　└SuperRailBuilderX_BranchBuilder
+　　 既設レールを分割し、自由点または別レール端点へ単純分岐を生成します。
 
 レール移動ツールで複数平行移動する場合、2本目以降は選択済みレールへ接続するレールだけを追加できます。
 
