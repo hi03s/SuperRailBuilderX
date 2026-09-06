@@ -86,6 +86,13 @@ export class SRBXApiCompat {
 		y: number,
 		z: number,
 	): void;
+	static removeRailClientGhost(
+		world: World,
+		core: RailCorePos,
+		expectedKey: string,
+	): void;
+	static refreshRailCoreClient(core: TileEntityLargeRailCore): void;
+	static consumeLastRailPositionMoveCores(): RailCorePos[];
 	static validateRailPositionMove(
 		core: TileEntityLargeRailCore,
 		index: number,

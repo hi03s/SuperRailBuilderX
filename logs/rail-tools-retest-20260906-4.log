@@ -1,0 +1,22 @@
+[04:31:51] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] request completed: action=create, result=ok
+[04:31:52] [Server thread/INFO]: [SuperRailBuilderX builder1] generated logical rail removed by undo: core=-197,4,357, correctedRoadbeds=0, syncedBlocks=21
+[04:31:52] [Server thread/INFO]: [SuperRailBuilderX builder1] generated logical rail removed by undo: core=-193,4,357, correctedRoadbeds=0, syncedBlocks=42
+[04:31:52] [Server thread/INFO]: [SuperRailBuilderX builder1] generated logical rail removed by undo: core=-189,4,356, correctedRoadbeds=0, syncedBlocks=63
+[04:31:52] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] request completed: action=undo, result=undo_ok
+[04:31:56] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] creation failed: plan=2/3, created=1, result=rail_endpoint_changed
+[04:31:56] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] rollback: index=0, result=ok
+[04:31:56] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] request completed: action=create, result=rail_endpoint_changed
+[04:32:16] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] creation failed: plan=1/2, sourceKey=core:-197,4,357, sourceCore=-197,4,357, created=0, result=source_rail_changed
+[04:32:16] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] request completed: action=create, result=source_rail_changed
+
+[04:41:06] [Server thread/INFO]: [SuperRailBuilderX splitter] split succeeded: ratio=0.36666666666666664, lengths=2.7848678260517645/4.810226244998503
+[04:41:09] [Server thread/INFO]: [SuperRailBuilderX splitter] split succeeded: ratio=0.7, lengths=5.316247416969325/2.2783917501297104
+[04:41:10] [Server thread/INFO]: [SuperRailBuilderX splitter] request completed: action=split, result=invalid_split_position
+
+[04:35:52] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=normal_rail_too_long
+[04:54:41] [Server thread/INFO]: [SuperRailBuilderX builder1] section-core crossing will be created as one normal rail
+[04:54:41] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive normal rail created: replacedBlocks=41
+[04:54:41] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
+
+[04:54:02] [Server thread/INFO]: [SuperRailBuilderX RailPosition] builder-rule rebuild succeeded: sectioned=true, normalCrossing=true
+[04:54:12] [Server thread/INFO]: [SuperRailBuilderX RailPosition] builder-rule rebuild succeeded: sectioned=false, normalCrossing=true

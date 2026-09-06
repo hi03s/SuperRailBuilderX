@@ -61,6 +61,7 @@ type CopyState = {
 	keyRepeatAt: { [name: string]: number };
 	awaitingResult: boolean;
 	pendingAction: "create" | "undo" | null;
+	ignoredRailKeys: { [key: string]: boolean };
 };
 
 let keys: InputManager;
@@ -104,6 +105,7 @@ function getState(entity: EntityVehicle): CopyState {
 			keyRepeatAt: {},
 			awaitingResult: false,
 			pendingAction: null,
+			ignoredRailKeys: {},
 		};
 		states.put(entity, state);
 	}
@@ -136,6 +138,7 @@ function resolveRail(
 	const core = tile.getRailCore();
 	if (
 		!core ||
+		stateIgnoredRail(entity, target.railKey) ||
 		SRBXApiCompat.getRailPositionCandidateKey(core) !== target.railKey
 	)
 		return null;
@@ -144,6 +147,11 @@ function resolveRail(
 	const positions = SRBXApiCompat.getEditableRailPositions(core);
 	if (!positions || positions.length !== 2) return null;
 	return { target, map, positions };
+}
+
+function stateIgnoredRail(entity: EntityVehicle, railKey: string): boolean {
+	const state = states.get(entity);
+	return !!state && state.ignoredRailKeys[railKey] === true;
 }
 
 function railPoint(map: RailMap, split: number, index: number): SRBXVec3 {
@@ -174,7 +182,8 @@ function findHoverRail(
 				const core = tile.getRailCore();
 				if (!core) continue;
 				const railKey = SRBXApiCompat.getRailPositionCandidateKey(core);
-				if (seen[railKey]) continue;
+				if (seen[railKey] || stateIgnoredRail(entity, railKey))
+					continue;
 				seen[railKey] = true;
 				const map = SRBXApiCompat.getLogicalRailMap(core);
 				if (!map) continue;
@@ -381,19 +390,24 @@ function planLength(plan: DoubleTrackCopyPlan): number {
 	);
 }
 
-function staysOutsideCurveCenter(
+function staysBeforeCurveCenter(
 	start: SRBXBuilderPoint,
 	end: SRBXBuilderPoint,
 	distance: number,
 ): boolean {
-	const radius = SRBXMath.approximateBezierRadius(
-		start.position,
-		controlPoint(start),
-		controlPoint(end),
-		end.position,
+	const offsetStart = offsetPoint(start, start.anchorYaw, distance);
+	const offsetEnd = offsetPoint(
+		end,
+		SRBXMath.normalizeDegrees(end.anchorYaw + 180),
+		distance,
 	);
-	if (!isFinite(radius) || radius * distance <= 0) return true;
-	return Math.abs(distance) < Math.abs(radius) - 0.05;
+	const sourceX = end.position[0] - start.position[0];
+	const sourceZ = end.position[2] - start.position[2];
+	const offsetX = offsetEnd.position[0] - offsetStart.position[0];
+	const offsetZ = offsetEnd.position[2] - offsetStart.position[2];
+	const sourceLengthSquared = sourceX * sourceX + sourceZ * sourceZ;
+	if (sourceLengthSquared <= 0.000001) return false;
+	return sourceX * offsetX + sourceZ * offsetZ > sourceLengthSquared * 0.01;
 }
 
 function updateSide(
@@ -425,6 +439,9 @@ function buildPlans(
 	if (!state.placementLocked) updateSide(entity, partialTicks, state);
 	const plans: DoubleTrackCopyPlan[] = [];
 	const excluded: { [key: string]: boolean } = {};
+	const ignoredKeys = Object.keys(state.ignoredRailKeys);
+	for (let i = 0; i < ignoredKeys.length; i++)
+		excluded[ignoredKeys[i]] = true;
 	for (let i = 0; i < state.selected.length; i++)
 		excluded[state.selected[i].railKey] = true;
 	for (let repeat = 1; repeat <= state.repeatCount; repeat++) {
@@ -434,7 +451,7 @@ function buildPlans(
 			const resolved = resolveRail(entity, state.selected[i]);
 			if (!resolved) continue;
 			if (
-				!staysOutsideCurveCenter(
+				!staysBeforeCurveCenter(
 					sourcePoint(resolved.positions[0]),
 					sourcePoint(resolved.positions[1]),
 					distance,
@@ -700,6 +717,19 @@ function handleResult(
 			"§a[SuperRailBuilderX] 複線を生成しました",
 		);
 	} else if (result === "undo_ok" && pendingAction === "undo") {
+		const removed =
+			NGTOBuilderUtil.getJsonData<
+				Array<{ core: RailCorePos; key: string }>
+			>(dataMap, "doubleTrackCopyRemovedRails") || [];
+		for (let i = 0; i < removed.length; i++) {
+			state.ignoredRailKeys[removed[i].key] = true;
+			SRBXApiCompat.removeRailClientGhost(
+				SRBXApiCompat.getWorld(entity),
+				removed[i].core,
+				removed[i].key,
+			);
+		}
+		NGTOBuilderUtil.resetJsonData(dataMap, "doubleTrackCopyRemovedRails");
 		state.selected = state.lastCreatedSelection
 			? state.lastCreatedSelection.map(copyTarget)
 			: [];

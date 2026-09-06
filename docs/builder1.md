@@ -83,7 +83,7 @@ builder1はクリエイティブ敷設に近い試験方針として、生成経
 
 ## 描画
 
-- 未確定位置には `selectCursor` を表示する。`selectCursorMarker`は既設レール端部に加え、スナップONでは自由点にも常時表示し、選択中のブロック内位置を確認できるようにする。スナップOFFで方向未確定の自由点には表示しない。
+- 未確定位置には `selectCursor` を表示する。`selectCursorMarker`は既設レール端部に加え、スナップONでは自由点にも常時表示し、中心ブロックと水平周囲8ブロックへ展開して選択位置を確認できるようにする。スナップOFFで方向未確定の自由点には表示しない。
 - 確定位置には `selectedCursor` と、生成予定RailPositionの `direction` に対応する `marker0`〜`marker7` を表示する。
 - `selectCursor` / `selectedCursor` は精密端点へ表示し、`selectCursorMarker` / `marker0`〜`marker7` は通常のマーカーブロック設置位置へ表示する。既設端部ではSRB3準拠の接続ブロック中央を使う。
 - 1点以上選択したときは、生成に使うYaw・Pitch・アンカー長から3次ベジェ曲線を計算し、始点から現在位置または終点まで `selectedLine` を分割表示する。

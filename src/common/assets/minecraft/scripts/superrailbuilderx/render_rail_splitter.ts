@@ -19,6 +19,7 @@ import { RailSplitterRequest } from "./server_rail_splitter";
 declare const renderer: VehiclePartsRenderer;
 
 const MIN_RAIL_LENGTH = 2;
+const MIN_SPLITTABLE_LENGTH = 6;
 
 type Vec3 = [number, number, number];
 type SplitTarget = {
@@ -103,6 +104,7 @@ function findHoverTarget(
 				seen[railKey] = true;
 				const map = SRBXApiCompat.getLogicalRailMap(core);
 				if (!map) continue;
+				if (map.getLength() <= MIN_SPLITTABLE_LENGTH) continue;
 				const renderSplit = Math.max(
 					1,
 					Math.floor(map.getLength() * 2),

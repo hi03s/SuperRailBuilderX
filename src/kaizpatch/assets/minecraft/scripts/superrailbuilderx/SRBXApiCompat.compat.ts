@@ -122,6 +122,8 @@ declare const Packages: {
 
 export class SRBXApiCompat {
 	private static splitUndoRecords: { [token: string]: SplitUndoRecord } = {};
+	private static lastRailPositionMoveCores: Array<[number, number, number]> =
+		[];
 	static getRider(entity: unknown) {
 		return (entity as jp.ngt.rtm.entity.vehicle.EntityVehicle)
 			.riddenByEntity;
@@ -868,6 +870,70 @@ export class SRBXApiCompat {
 		);
 	}
 
+	static removeRailClientGhost(
+		world: net.minecraft.world.World,
+		corePosition: [number, number, number],
+		expectedKey: string,
+	): void {
+		try {
+			const tile = world.getTileEntity(
+				corePosition[0],
+				corePosition[1],
+				corePosition[2],
+			);
+			if (!(tile instanceof TileEntityLargeRailBase)) return;
+			const core = tile.getRailCore();
+			if (!core || this.getRailPositionCandidateKey(core) !== expectedKey)
+				return;
+			core.breakLogicalRail();
+		} catch (error) {
+			NGTLog.debug(
+				`[SuperRailBuilderX DoubleTrackCopy] client ghost cleanup failed: ${error}`,
+			);
+		}
+	}
+
+	static refreshRailCoreClient(core: TileEntityLargeRailCore): void {
+		if (!core) return;
+		core.createRailMap();
+		core.shouldRerenderRail = true;
+		this.getCoreWorld(core).markBlockForUpdate(
+			core.xCoord,
+			core.yCoord,
+			core.zCoord,
+		);
+	}
+
+	static consumeLastRailPositionMoveCores(): Array<[number, number, number]> {
+		const result = this.lastRailPositionMoveCores;
+		this.lastRailPositionMoveCores = [];
+		return result;
+	}
+
+	private static recordLastRailPositionMoveCores(
+		core: TileEntityLargeRailCore,
+	): void {
+		this.lastRailPositionMoveCores = [];
+		if (this.isSectionCore(core)) {
+			const positions = core.getRailGroupCorePositions();
+			if (positions)
+				for (let i = 0; i < positions.size(); i++) {
+					const pos = positions.get(i);
+					this.lastRailPositionMoveCores.push([
+						pos[0],
+						pos[1],
+						pos[2],
+					]);
+				}
+		}
+		if (this.lastRailPositionMoveCores.length === 0)
+			this.lastRailPositionMoveCores.push([
+				core.xCoord,
+				core.yCoord,
+				core.zCoord,
+			]);
+	}
+
 	static validateRailPositionMove(
 		core: TileEntityLargeRailCore,
 		index: number,
@@ -1018,6 +1084,7 @@ export class SRBXApiCompat {
 		z: number,
 		player?: EntityPlayer,
 	): string {
+		this.lastRailPositionMoveCores = [];
 		const validation = this.validateRailPositionMove(
 			core,
 			index,
@@ -1085,6 +1152,18 @@ export class SRBXApiCompat {
 			result.status === "ok" &&
 			this.applyBuilderRailState(world, result, signal, subRails)
 		) {
+			if (result.undoCore) {
+				const createdTile = world.getTileEntity(
+					result.undoCore[0],
+					result.undoCore[1],
+					result.undoCore[2],
+				);
+				if (createdTile instanceof TileEntityLargeRailBase) {
+					const createdCore = createdTile.getRailCore();
+					if (createdCore)
+						this.recordLastRailPositionMoveCores(createdCore);
+				}
+			}
 			NGTLog.debug(
 				`[SuperRailBuilderX RailPosition] builder-rule rebuild succeeded: sectioned=${wasSectioned}, normalCrossing=${result.createdAsNormalCrossing === true}`,
 			);
@@ -2809,6 +2888,8 @@ export class SRBXApiCompat {
 		if (core.isLogicalRailOccupied()) return { status: "rail_occupied" };
 		const railMap = this.getLogicalRailMap(core);
 		if (!railMap) return { status: "invalid_rail" };
+		const length = railMap.getLength();
+		if (length <= 6) return { status: "rail_too_short" };
 		const renderSplit = Math.max(1, Math.floor(railMap.getLength() * 2));
 		const candidateSplit = Math.max(2, renderSplit * 2);
 		const candidateIndex = Math.round(ratio * candidateSplit);
@@ -2836,7 +2917,6 @@ export class SRBXApiCompat {
 			subRails,
 			created: [],
 		};
-		const length = railMap.getLength();
 		const leftLength = length * ratio;
 		const rightLength = length - leftLength;
 		if (leftLength <= 2 || rightLength <= 2)

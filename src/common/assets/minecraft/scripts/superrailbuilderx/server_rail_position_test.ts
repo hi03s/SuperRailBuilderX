@@ -33,6 +33,8 @@ function applyRequest(
 	request: RailPositionMoveRequest,
 ): string {
 	const world = SRBXApiCompat.getWorld(entity);
+	const dataMap = entity.getResourceState().getDataMap();
+	NGTOBuilderUtil.resetJsonData(dataMap, "railPositionUpdatedCores");
 	if (!request.targets || request.targets.length === 0) return "no_targets";
 	if (request.targets.length > 16) return "too_many_targets";
 	if (
@@ -49,6 +51,7 @@ function applyRequest(
 		target: RailPositionMoveTarget;
 	}> = [];
 	const seen: { [key: string]: boolean } = {};
+	const updatedCores: Array<[number, number, number]> = [];
 	for (let i = 0; i < request.targets.length; i++) {
 		const target = request.targets[i];
 		if (
@@ -104,7 +107,16 @@ function applyRequest(
 			request.destination[2],
 			player,
 		);
+		const movedCores = SRBXApiCompat.consumeLastRailPositionMoveCores();
+		for (let j = 0; j < movedCores.length; j++)
+			updatedCores.push(movedCores[j]);
 		if (result !== "ok" && result !== "ok_sectioned") {
+			if (updatedCores.length > 0)
+				NGTOBuilderUtil.sendJsonData(
+					dataMap,
+					"railPositionUpdatedCores",
+					updatedCores,
+				);
 			NGTLog.debug(
 				`[SuperRailBuilderX RailPosition] connected endpoint apply failed: target=${i}, applied=${i}, result=${result}`,
 			);
@@ -113,6 +125,11 @@ function applyRequest(
 				: `target_${i}:${result}`;
 		}
 	}
+	NGTOBuilderUtil.sendJsonData(
+		dataMap,
+		"railPositionUpdatedCores",
+		updatedCores,
+	);
 	return "ok";
 }
 

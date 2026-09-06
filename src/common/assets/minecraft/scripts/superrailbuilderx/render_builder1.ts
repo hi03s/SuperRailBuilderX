@@ -620,6 +620,21 @@ function renderAt(
 	GL11.glPopMatrix();
 }
 
+function renderMarkerNeighborhood(
+	entity: EntityVehicle,
+	partialTicks: number,
+	position: SRBXVec3,
+): void {
+	for (let dx = -1; dx <= 1; dx++)
+		for (let dz = -1; dz <= 1; dz++)
+			renderAt(
+				entity,
+				partialTicks,
+				[position[0] + dx, position[1], position[2] + dz],
+				selectCursorMarker,
+			);
+}
+
 function renderSelectedPoint(
 	entity: EntityVehicle,
 	partialTicks: number,
@@ -1248,11 +1263,10 @@ function render(
 				: hover;
 		renderAt(entity, partialTicks, displayHover.position, selectCursor);
 		if (hover.kind === "rail" || state.snapEnabled)
-			renderAt(
+			renderMarkerNeighborhood(
 				entity,
 				partialTicks,
 				displayHover.markerPosition,
-				selectCursorMarker,
 			);
 	}
 	for (let i = 0; i < state.selected.length; i++)

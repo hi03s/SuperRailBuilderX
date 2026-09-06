@@ -104,6 +104,11 @@ function processRequest(
 			);
 			if (result !== "ok") return result;
 		}
+		NGTOBuilderUtil.sendJsonData(
+			entity.getResourceState().getDataMap(),
+			"doubleTrackCopyRemovedRails",
+			undo.rails,
+		);
 		undoRecords.remove(entity);
 		return "undo_ok";
 	}

@@ -17,6 +17,7 @@ import { InputManager } from "../lib_hi03toolkit_1_0/lib_InputManager";
 import { ErrorLogger } from "../lib_hi03toolkit_1_0/lib_ErrorLogger";
 import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
 import { NGTOBuilderUtilClient } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtilClient";
+import { RTMApiCompat } from "@target/assets/minecraft/scripts/lib_hi03toolkit_1_0/lib_RTMApiCompat";
 import { SRBXApiCompat } from "@target/assets/minecraft/scripts/superrailbuilderx/SRBXApiCompat";
 import { RailPositionMoveRequest } from "./server_rail_position_test";
 
@@ -25,6 +26,8 @@ declare const renderer: VehiclePartsRenderer;
 const VERSION = "0.1.0";
 const SEARCH_RADIUS = 1.05;
 const CONNECTED_ENDPOINT_TOLERANCE = 0.001;
+const NORMAL_RAIL_HEIGHT = 1 / 16;
+const SNAP_STEP = 0.1;
 
 type Candidate = {
 	core: TileEntityLargeRailCore;
@@ -46,6 +49,7 @@ type EditorState = {
 	selected: SelectedEndpoint | null;
 	destination: [number, number, number] | null;
 	awaitingResult: boolean;
+	snapEnabled: boolean;
 };
 
 type CandidateScanDiagnostics = {
@@ -73,9 +77,10 @@ function init(par1: ModelSetVehicle, par2: ModelObject): void {
 	keys.register("help", Keyboard.KEY_H, false, "ヘルプを表示");
 	keys.register("exit", Keyboard.KEY_Q, false, "ツールを終了");
 	keys.register("apply", Keyboard.KEY_RETURN, false, "移動を適用");
+	keys.register("snap", Keyboard.KEY_P, false, "0.1mスナップ切替");
 	body = renderer.registerParts(new Parts("body"));
-	point = renderer.registerParts(new Parts("point"));
-	selectedPoint = renderer.registerParts(new Parts("selected"));
+	point = renderer.registerParts(new Parts("selectCursor"));
+	selectedPoint = renderer.registerParts(new Parts("selectedCursor"));
 }
 
 function getState(entity: EntityVehicle): EditorState {
@@ -86,6 +91,7 @@ function getState(entity: EntityVehicle): EditorState {
 			selected: null,
 			destination: null,
 			awaitingResult: false,
+			snapEnabled: false,
 		};
 		states.put(entity, state);
 	}
@@ -96,15 +102,73 @@ function roundCentimeter(value: number): number {
 	return Math.round(value * 100) / 100;
 }
 
-function getDestination(partialTicks: number): [number, number, number] | null {
+function roundSnap(value: number): number {
+	return Math.round(value / SNAP_STEP) * SNAP_STEP;
+}
+
+function getRailBaseHeightAt(
+	entity: EntityVehicle,
+	x: number,
+	y: number,
+	z: number,
+): number | null {
+	const world = SRBXApiCompat.getWorld(entity);
+	let bestHeight: number | null = null;
+	let bestDistance = 2.25;
+	const seen: { [key: string]: boolean } = {};
+	for (let dy = -1; dy <= 1; dy++) {
+		const tile = SRBXApiCompat.getTileEntity(world, x, y + dy, z);
+		if (!(tile instanceof TileEntityLargeRailBase)) continue;
+		const core = tile.getRailCore();
+		if (!core) continue;
+		const railKey = SRBXApiCompat.getRailPositionCandidateKey(core);
+		if (seen[railKey]) continue;
+		seen[railKey] = true;
+		const map = SRBXApiCompat.getLogicalRailMap(core);
+		if (!map) continue;
+		const split = Math.max(
+			8,
+			Math.min(512, Math.ceil(map.getLength() * 4)),
+		);
+		const index = map.getNearlestPoint(split, x, z);
+		const railPos = map.getRailPos(split, index);
+		const railHeight = map.getRailHeight(split, index);
+		const distance =
+			Math.pow(railPos[1] - x, 2) +
+			Math.pow(railHeight - y, 2) +
+			Math.pow(railPos[0] - z, 2);
+		if (distance >= bestDistance) continue;
+		const cant = RTMApiCompat.getCant(map, split, index);
+		bestDistance = distance;
+		bestHeight =
+			railHeight - Math.abs(Math.sin((cant * Math.PI) / 180) * 1.5);
+	}
+	return bestHeight;
+}
+
+function getDestination(
+	entity: EntityVehicle,
+	partialTicks: number,
+	snapEnabled: boolean,
+): [number, number, number] | null {
 	const looking = NGTOBuilderUtilClient.getLookingPos(partialTicks);
-	return looking
-		? [
-				roundCentimeter(looking.posX),
-				roundCentimeter(looking.posY),
-				roundCentimeter(looking.posZ),
-			]
-		: null;
+	if (!looking) return null;
+	const railHeight = getRailBaseHeightAt(
+		entity,
+		looking.posX,
+		looking.posY,
+		looking.posZ,
+	);
+	const roundHorizontal = snapEnabled ? roundSnap : roundCentimeter;
+	return [
+		roundHorizontal(looking.posX),
+		railHeight === null
+			? (snapEnabled
+					? roundSnap(looking.posY)
+					: roundCentimeter(looking.posY)) + NORMAL_RAIL_HEIGHT
+			: railHeight,
+		roundHorizontal(looking.posZ),
+	];
 }
 
 function logCandidateErrorOnce(
@@ -329,10 +393,22 @@ function handleInput(
 		NGTLog.sendChatMessage(sender, "--- RailPosition移動ツール ---");
 		NGTLog.sendChatMessage(sender, "[右クリック] 接続点/移動先を確定");
 		NGTLog.sendChatMessage(sender, "[左クリック] 1段階戻る");
+		NGTLog.sendChatMessage(sender, keys.getDescription("snap"));
 		NGTLog.sendChatMessage(sender, keys.getDescription("apply"));
 		NGTLog.sendChatMessage(sender, keys.getDescription("exit"));
 	}
 	if (keys.down("exit")) dataMap.setBoolean("isEndEdit", true, 1);
+	if (keys.pressed("snap")) {
+		state.snapEnabled = !state.snapEnabled;
+		if (state.stage === 2) {
+			state.stage = 1;
+			state.destination = null;
+		}
+		NGTLog.sendChatMessage(
+			sender,
+			`[SuperRailBuilderX] 0.1mスナップ: ${state.snapEnabled ? "ON" : "OFF"}`,
+		);
+	}
 	if (leftClick) {
 		if (state.stage === 2) {
 			state.stage = 1;
@@ -366,7 +442,11 @@ function handleInput(
 			);
 		}
 	} else if (rightClick && state.stage === 1) {
-		state.destination = getDestination(partialTicks);
+		state.destination = getDestination(
+			entity,
+			partialTicks,
+			state.snapEnabled,
+		);
 		if (state.destination) state.stage = 2;
 	}
 	if (
@@ -391,6 +471,30 @@ function handleInput(
 	const result = dataMap.getString("applyResult");
 	if (state.awaitingResult && result !== "" && result !== "waiting") {
 		state.awaitingResult = false;
+		const updatedCores =
+			NGTOBuilderUtil.getJsonData<Array<[number, number, number]>>(
+				dataMap,
+				"railPositionUpdatedCores",
+			) || [];
+		const refreshed: { [key: string]: boolean } = {};
+		const world = SRBXApiCompat.getWorld(entity);
+		for (let i = 0; i < updatedCores.length; i++) {
+			const pos = updatedCores[i];
+			const tile = SRBXApiCompat.getTileEntity(
+				world,
+				pos[0],
+				pos[1],
+				pos[2],
+			);
+			if (!(tile instanceof TileEntityLargeRailBase)) continue;
+			const core = tile.getRailCore();
+			if (!core) continue;
+			const key = SRBXApiCompat.getRailPositionCandidateKey(core);
+			if (refreshed[key]) continue;
+			refreshed[key] = true;
+			SRBXApiCompat.refreshRailCoreClient(core);
+		}
+		NGTOBuilderUtil.resetJsonData(dataMap, "railPositionUpdatedCores");
 		if (result === "ok") {
 			NGTLog.sendChatMessage(
 				sender,
@@ -441,7 +545,9 @@ function render(
 			selectedPoint,
 		);
 	const preview =
-		state.stage === 1 ? getDestination(partialTicks) : state.destination;
+		state.stage === 1
+			? getDestination(entity, partialTicks, state.snapEnabled)
+			: state.destination;
 	if (preview) renderMarker(entity, partialTicks, preview, point);
 	const isOpenGUI = NGTUtilClient.getMinecraft().currentScreen !== null;
 	const left = Mouse.isButtonDown(0);

@@ -126,6 +126,24 @@ export class SRBXApiCompat {
 		void z;
 	}
 
+	static removeRailClientGhost(
+		world: net.minecraft.world.World,
+		core: [number, number, number],
+		expectedKey: string,
+	): void {
+		void world;
+		void core;
+		void expectedKey;
+	}
+
+	static refreshRailCoreClient(core: TileEntityLargeRailCore): void {
+		void core;
+	}
+
+	static consumeLastRailPositionMoveCores(): Array<[number, number, number]> {
+		return [];
+	}
+
 	static validateRailPositionMove(
 		core: TileEntityLargeRailCore,
 		index: number,
