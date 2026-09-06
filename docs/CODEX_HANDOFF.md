@@ -69,6 +69,9 @@
   関連ファイルまたはIssue:
 ```
 
+- 2026-09-06 hi03:
+    - usage.mdの文章を修正。
+
 ### Codexから開発者・ローカルCodexへ
 
 - 2026-09-06 ローカルCodex:
@@ -118,6 +121,7 @@
 
 ## 直近の完了
 
+- 2026-09-07 hi03: usage.mdの文章修正。
 - 2026-09-07 ローカルCodex: alpha-0.1.0のバージョン設定、README・統合操作ガイド・同梱文書、更新テクスチャを配布ZIPへ反映。詳細は`docs/history/CODEX_HISTORY_2026-09.md`とコミット`4ab0aa6`を参照（`origin/main`へ同期済み）。
 - 2026-09-07 ローカルCodex: 専用アセット、分割3 m制限・赤表示、レール移動の複数選択・Undo・描画同期を実装し、サンプルを削除。詳細は`docs/history/CODEX_HISTORY_2026-09.md`とコミット`7850dc9`を参照（`origin/main`へ同期済み）。
 - 2026-09-06 ローカルCodex: 分割点コア衝突、builder1の勾配時モデル継承・端点表示、レール移動の連動端点・片側補正・Undoを修正。詳細は`docs/history/CODEX_HISTORY_2026-09.md`とコミット`5eea584`を参照（`origin/main`へ同期済み）。
