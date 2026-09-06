@@ -288,10 +288,16 @@ export class SRBXApiCompat {
 
 	static undoSplitBuilderRail(
 		world: net.minecraft.world.World,
+		player: net.minecraft.entity.player.EntityPlayer,
 		undoToken: string,
 	): string {
 		void world;
+		void player;
 		void undoToken;
 		return "unsupported_target";
+	}
+
+	static consumeLastSplitClientUpdate(): null {
+		return null;
 	}
 }

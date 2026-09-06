@@ -1,15 +1,15 @@
 {
-	"name": "SuperRailBuilderX_RailPositionTest",
+	"name": "SuperRailBuilderX_RailMover",
 	"model": {
 		"modelFile": "superrailbuilderx/builder1.mqo",
 		"textures": [
 			["mat1", "textures/superrailbuilderx/builder1.png", "AlphaBlend"],
 			["mat2", "textures/superrailbuilderx/builder1.png", "AlphaBlend"]
 		],
-		"rendererPath": "scripts/superrailbuilderx/render_rail_position_test.js"
+		"rendererPath": "scripts/superrailbuilderx/render_rail_mover.js"
 	},
 	"buttonTexture": "textures/superrailbuilderx/button_builder1.png",
-	"serverScriptPath": "scripts/superrailbuilderx/server_rail_position_test.js",
+	"serverScriptPath": "scripts/superrailbuilderx/server_rail_mover.js",
 	"playerPos": [[0, 0, 0]],
 	"vehicleType": "Car",
 	"size": [1, 1],

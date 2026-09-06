@@ -19,7 +19,7 @@ import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
 import { NGTOBuilderUtilClient } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtilClient";
 import { RTMApiCompat } from "@target/assets/minecraft/scripts/lib_hi03toolkit_1_0/lib_RTMApiCompat";
 import { SRBXApiCompat } from "@target/assets/minecraft/scripts/superrailbuilderx/SRBXApiCompat";
-import { RailPositionMoveRequest } from "./server_rail_position_test";
+import { RailPositionMoveRequest } from "./server_rail_mover";
 
 declare const renderer: VehiclePartsRenderer;
 
@@ -390,7 +390,10 @@ function handleInput(
 	const dataMap = entity.getResourceState().getDataMap();
 	const state = getState(entity);
 	if (keys.pressed("help")) {
-		NGTLog.sendChatMessage(sender, "--- RailPosition移動ツール ---");
+		NGTLog.sendChatMessage(
+			sender,
+			"--- SuperRailBuilderX レール移動ツール ---",
+		);
 		NGTLog.sendChatMessage(sender, "[右クリック] 接続点/移動先を確定");
 		NGTLog.sendChatMessage(sender, "[左クリック] 1段階戻る");
 		NGTLog.sendChatMessage(sender, keys.getDescription("snap"));

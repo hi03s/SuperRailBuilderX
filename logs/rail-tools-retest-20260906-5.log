@@ -1,0 +1,19 @@
+[13:26:04] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive sectioned rail created: sections=3, replacedBlocks=2
+[13:26:04] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive normal rail created: replacedBlocks=0
+[13:26:04] [Server thread/INFO]: [SuperRailBuilderX builder1] no safe section core position in chunk: original=-228,4,415
+[13:26:04] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] creation failed: plan=3/6, created=2, result=section_core_conflict
+[13:26:04] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] rollback: index=1, core=-228,4,415, result=ok
+[13:26:04] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] rollback: index=0, core=-225,4,400, result=ok
+[13:26:04] [Server thread/INFO]: [SuperRailBuilderX double-track-copy] request completed: action=create, result=section_core_conflict
+
+[13:33:03] [Server thread/INFO]: [SuperRailBuilderX splitter] split succeeded: ratio=0.4186046511627907, lengths=9.044922965641407/12.562393007835285
+[13:33:05] [Server thread/INFO]: [SuperRailBuilderX splitter] split succeeded: ratio=0.4444444444444444, lengths=4.0199817434642435/5.024977179330304
+[13:33:10] [Server thread/INFO]: [SuperRailBuilderX builder1] generated logical rail removed by undo: core=-222,4,388, correctedRoadbeds=0, syncedBlocks=18
+[13:33:10] [Server thread/INFO]: [SuperRailBuilderX builder1] generated logical rail removed by undo: core=-223,4,392, correctedRoadbeds=0, syncedBlocks=15
+[13:33:10] [Server thread/INFO]: [SuperRailBuilderX splitter] request completed: action=undo, result=undo_restore_failed
+
+[13:33:20] [Server thread/INFO]: [SuperRailBuilderX splitter] split succeeded: ratio=0.5, lengths=3.643161512329651/3.643161512329651
+[13:33:31] [Server thread/INFO]: [SuperRailBuilderX splitter] split succeeded: ratio=0.16129032258064516, lengths=2.5362217287877744/13.188352989696426
+[13:33:39] [Server thread/INFO]: [SuperRailBuilderX splitter] split succeeded: ratio=0.1724137931034483, lengths=2.559217274054784/12.284242915462963
+[13:34:00] [Server thread/INFO]: [SuperRailBuilderX splitter] request completed: action=undo, result=undo_ok
+[13:34:03] [Server thread/INFO]: [SuperRailBuilderX splitter] request completed: action=undo, result=undo_ok

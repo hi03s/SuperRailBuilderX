@@ -22,6 +22,11 @@ export type RailSplitterRequest =
 	  }
 	| { action: "undo" };
 
+export type RailSplitterClientUpdate = {
+	removed: Array<{ core: RailCorePos; key: string }>;
+	refreshed: Array<{ core: RailCorePos; key: string }>;
+};
+
 const hosts: WeakHashMap<Entity, EntityPlayer> = new WeakHashMap();
 const undoTokens: WeakHashMap<EntityVehicle, string> = new WeakHashMap();
 
@@ -36,7 +41,7 @@ function processRequest(
 	if (request.action === "undo") {
 		const token = undoTokens.get(entity);
 		if (!token) return "nothing_to_undo";
-		const result = SRBXApiCompat.undoSplitBuilderRail(world, token);
+		const result = SRBXApiCompat.undoSplitBuilderRail(world, host, token);
 		if (result === "undo_ok") undoTokens.remove(entity);
 		return result;
 	}
@@ -101,7 +106,15 @@ function onUpdate(entity: EntityVehicle, scriptExecuter: ScriptExecuter): void {
 	);
 	if (!request) return;
 	try {
+		NGTOBuilderUtil.resetJsonData(dataMap, "railSplitterClientUpdate");
 		const result = processRequest(entity, host, request);
+		const clientUpdate = SRBXApiCompat.consumeLastSplitClientUpdate();
+		if (clientUpdate)
+			NGTOBuilderUtil.sendJsonData(
+				dataMap,
+				"railSplitterClientUpdate",
+				clientUpdate,
+			);
 		dataMap.setString("railSplitterResult", result, 1);
 		const updatedCanUndo = undoTokens.get(entity) !== null;
 		if (dataMap.getBoolean("railSplitterCanUndo") !== updatedCanUndo)

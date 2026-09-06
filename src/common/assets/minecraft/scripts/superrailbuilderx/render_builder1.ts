@@ -121,6 +121,12 @@ function init(par1: ModelSetVehicle, par2: ModelObject): void {
 		"高さ/縦曲線半径を細かく変更",
 	);
 	keys.register("heightReset", Keyboard.KEY_F, false, "空中高さをリセット");
+	keys.register(
+		"slopeGroundAlign",
+		Keyboard.KEY_I,
+		false,
+		"0‰側を地上レール高へ延長",
+	);
 	keys.register("undo", Keyboard.KEY_Z, true, "直前の生成を取り消す");
 	body = renderer.registerParts(new Parts("body"));
 	selectCursor = renderer.registerParts(new Parts("selectCursor"));
@@ -915,6 +921,7 @@ function showHelp(sender: ICommandSender): void {
 		"[Ctrl+↑/↓] 高さを1/16mまたは縦曲線半径を1000m変更",
 	);
 	NGTLog.sendChatMessage(sender, keys.getDescription("heightReset"));
+	NGTLog.sendChatMessage(sender, keys.getDescription("slopeGroundAlign"));
 	NGTLog.sendChatMessage(sender, keys.getDescription("undo"));
 	NGTLog.sendChatMessage(sender, keys.getDescription("exit"));
 }
@@ -1074,6 +1081,9 @@ function changeHeightOrSlope(
 		} else if (hasSlopeAdjustment(state)) {
 			if (state.slopePermil === null) state.slopePermil = 0;
 			state.slopePermil += direction;
+			for (let i = 0; i < state.selected.length; i++)
+				if (state.selected[i].kind === "free")
+					state.selected[i].verticalProfile = undefined;
 		}
 		return;
 	}
@@ -1081,6 +1091,70 @@ function changeHeightOrSlope(
 	NGTLog.sendChatMessage(
 		sender,
 		`[SuperRailBuilderX] 高さオフセット: ${state.heightOffsetSixteenths}/16m (${state.heightOffsetSixteenths / 16}m)`,
+	);
+}
+
+function alignZeroSlopeEndpointToGround(
+	sender: ICommandSender,
+	state: BuilderState,
+): void {
+	if (state.selected.length !== 2 || state.slopePermil !== 0) {
+		NGTLog.sendChatMessage(
+			sender,
+			"§e[SuperRailBuilderX] 既設端点と自由点を選択し、自由点側を0‰にしてください",
+		);
+		return;
+	}
+	const railIndex = state.selected[0].kind === "rail" ? 0 : 1;
+	const freeIndex = railIndex === 0 ? 1 : 0;
+	const rail = state.selected[railIndex];
+	const free = copyPoint(state.selected[freeIndex]);
+	if (rail.kind !== "rail" || free.kind !== "free") {
+		NGTLog.sendChatMessage(
+			sender,
+			"§e[SuperRailBuilderX] 既設端点と自由点の組み合わせで使用してください",
+		);
+		return;
+	}
+	const targetY =
+		Math.floor(free.position[1] - DEFAULT_RAIL_HEIGHT + 0.000001) +
+		DEFAULT_RAIL_HEIGHT;
+	const requiredHorizontal = SRBXMath.straightThenCurveHorizontalForHeight(
+		rail.position[1],
+		targetY,
+		rail.anchorPitch,
+		0,
+		state.verticalCurveRadius,
+	);
+	const currentHorizontal = SRBXMath.horizontalDistance(
+		rail.position,
+		free.position,
+	);
+	if (
+		requiredHorizontal === null ||
+		requiredHorizontal <= currentHorizontal + 0.001 ||
+		requiredHorizontal > 4096 ||
+		currentHorizontal < 0.001
+	) {
+		NGTLog.sendChatMessage(
+			sender,
+			"§e[SuperRailBuilderX] 現在の勾配・高さでは直線勾配を延長して地上高へ合わせられません",
+		);
+		return;
+	}
+	const scale = requiredHorizontal / currentHorizontal;
+	free.position = [
+		rail.position[0] + (free.position[0] - rail.position[0]) * scale,
+		targetY,
+		rail.position[2] + (free.position[2] - rail.position[2]) * scale,
+	];
+	free.markerPosition = freeMarkerPosition(free.position);
+	free.ownerBlock = undefined;
+	free.verticalProfile = "straight_circular";
+	state.selected[freeIndex] = free;
+	NGTLog.sendChatMessage(
+		sender,
+		`§a[SuperRailBuilderX] 0‰側を地上高へ調整しました（水平距離 ${requiredHorizontal.toFixed(2)}m）`,
 	);
 }
 
@@ -1163,6 +1237,8 @@ function handleInput(
 			"[SuperRailBuilderX] 高さオフセット: 0/16m (0m)",
 		);
 	}
+	if (keys.pressed("slopeGroundAlign") && !state.awaitingResult)
+		alignZeroSlopeEndpointToGround(sender, state);
 	if (keys.pressed("clear") && !state.awaitingResult) {
 		state.selected = [];
 		state.curveKeepSelectedEndpoints = false;
@@ -1262,12 +1338,18 @@ function render(
 				? displayPoints[1]
 				: hover;
 		renderAt(entity, partialTicks, displayHover.position, selectCursor);
-		if (hover.kind === "rail" || state.snapEnabled)
-			renderMarkerNeighborhood(
-				entity,
-				partialTicks,
-				displayHover.markerPosition,
-			);
+		if (hover.kind === "rail" || state.snapEnabled) {
+			const looking = NGTOBuilderUtilClient.getLookingPos(partialTicks);
+			const markerPosition =
+				state.snapEnabled && looking
+					? ([
+							looking.posX,
+							looking.posY + DEFAULT_RAIL_HEIGHT,
+							looking.posZ,
+						] as SRBXVec3)
+					: displayHover.markerPosition;
+			renderMarkerNeighborhood(entity, partialTicks, markerPosition);
+		}
 	}
 	for (let i = 0; i < state.selected.length; i++)
 		renderSelectedPoint(entity, partialTicks, displayPoints[i]);

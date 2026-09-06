@@ -23,7 +23,11 @@ export type SRBXVerticalBuilderPoint = {
 	ownerBlock?: SRBXVec3;
 	slopeTarget?: boolean;
 	verticalCurveRadius?: number;
-	verticalProfile?: "circular_straight" | "circular_limited" | "straight";
+	verticalProfile?:
+		| "circular_straight"
+		| "straight_circular"
+		| "circular_limited"
+		| "straight";
 };
 
 export class SRBXMath {
@@ -310,6 +314,115 @@ export class SRBXMath {
 		const radius = angle > 0 ? configuredRadius : -configuredRadius;
 		const arcX = radius * (Math.sin(targetPitch) - Math.sin(startPitch));
 		const arcY = radius * (Math.cos(startPitch) - Math.cos(targetPitch));
+		if (end.verticalProfile === "straight_circular") {
+			const straightHorizontal = horizontal - arcX;
+			if (arcX > 0.001 && straightHorizontal >= -0.0001) {
+				const p0 = start.position;
+				const p1 = this.pointAtYawPitchDistance(
+					p0,
+					start.anchorYaw,
+					0,
+					start.anchorLength,
+				);
+				const p3 = end.position;
+				const p2 = this.pointAtYawPitchDistance(
+					p3,
+					end.anchorYaw,
+					0,
+					end.anchorLength,
+				);
+				let ratioMinimum = 0;
+				let ratioMaximum = 1;
+				for (let i = 0; i < 24; i++) {
+					const candidateRatio = (ratioMinimum + ratioMaximum) / 2;
+					const candidate = this.cubicBezierPoint(
+						p0,
+						p1,
+						p2,
+						p3,
+						candidateRatio,
+					);
+					if (
+						this.horizontalDistance(p0, candidate) <
+						Math.max(0, straightHorizontal)
+					)
+						ratioMinimum = candidateRatio;
+					else ratioMaximum = candidateRatio;
+				}
+				const ratio = (ratioMinimum + ratioMaximum) / 2;
+				const a = this.lerpPoint(p0, p1, ratio);
+				const b = this.lerpPoint(p1, p2, ratio);
+				const c = this.lerpPoint(p2, p3, ratio);
+				const d = this.lerpPoint(a, b, ratio);
+				const e = this.lerpPoint(b, c, ratio);
+				const midXZ = this.lerpPoint(d, e, ratio);
+				const mid = this.copyVerticalPoint(start);
+				mid.kind = "free";
+				mid.position = [
+					midXZ[0],
+					start.position[1] +
+						Math.max(0, straightHorizontal) * Math.tan(startPitch),
+					midXZ[2],
+				];
+				end.position[1] = mid.position[1] + arcY;
+				mid.anchorYaw = this.horizontalYaw(mid.position, e);
+				mid.anchorPitch = (startPitch * 180) / Math.PI;
+				mid.direction = this.directionFromYaw(mid.anchorYaw);
+				mid.markerPosition = [
+					mid.position[0],
+					mid.position[1],
+					mid.position[2],
+				];
+				mid.slopeTarget = false;
+				const firstEnd = this.copyVerticalPoint(mid);
+				firstEnd.anchorYaw = this.horizontalYaw(mid.position, d);
+				firstEnd.anchorPitch = (-startPitch * 180) / Math.PI;
+				firstEnd.direction = this.directionFromYaw(firstEnd.anchorYaw);
+				const ownerYaw = (firstEnd.direction * 45 * Math.PI) / 180;
+				const ownerY = Math.floor(mid.position[1] - 1 / 16 + 0.000001);
+				firstEnd.ownerBlock = [
+					Math.floor(mid.position[0] + Math.sin(ownerYaw) * 0.000001),
+					ownerY,
+					Math.floor(mid.position[2] + Math.cos(ownerYaw) * 0.000001),
+				];
+				const connectionOffsets: Array<[number, number]> = [
+					[0, -1],
+					[-1, -1],
+					[-1, 0],
+					[-1, 1],
+					[0, 1],
+					[1, 1],
+					[1, 0],
+					[1, -1],
+				];
+				const connectionOffset =
+					connectionOffsets[firstEnd.direction & 7];
+				mid.ownerBlock = [
+					firstEnd.ownerBlock[0] + connectionOffset[0],
+					ownerY,
+					firstEnd.ownerBlock[2] + connectionOffset[1],
+				];
+				start.anchorLength = this.horizontalDistance(p0, a);
+				firstEnd.anchorLength = this.horizontalDistance(
+					mid.position,
+					d,
+				);
+				mid.anchorLength = this.horizontalDistance(mid.position, e);
+				end.anchorLength = this.horizontalDistance(p3, c);
+				const verticalAnchor = Math.abs(
+					radius * (4 / 3) * Math.tan(Math.abs(angle) / 4),
+				);
+				start.anchorLengthVertical = 0;
+				firstEnd.anchorLengthVertical = 0;
+				mid.anchorLengthVertical = verticalAnchor;
+				end.anchorLengthVertical = verticalAnchor;
+				start.verticalProfile = "straight_circular";
+				return [
+					[start, firstEnd],
+					[mid, end],
+				];
+			}
+		}
 		const reachesTarget = arcX > 0.001 && arcX <= horizontal + 0.0001;
 		if (reachesTarget) {
 			const remainingHorizontal = Math.max(0, horizontal - arcX);
@@ -440,6 +553,38 @@ export class SRBXMath {
 		end.anchorLengthVertical = verticalAnchor;
 		start.verticalProfile = "circular_limited";
 		return [[start, end]];
+	}
+
+	static straightThenCurveHorizontalForHeight(
+		startY: number,
+		targetY: number,
+		startPitchDegrees: number,
+		targetPitchDegrees: number,
+		configuredRadius: number,
+	): number | null {
+		const startPitch = (startPitchDegrees * Math.PI) / 180;
+		const targetPitch = (targetPitchDegrees * Math.PI) / 180;
+		const tangent = Math.tan(startPitch);
+		const angle = targetPitch - startPitch;
+		if (Math.abs(tangent) < 0.0000001 || Math.abs(angle) < 0.0000001)
+			return null;
+		const radius =
+			angle > 0
+				? Math.max(
+						DEFAULT_VERTICAL_CURVE_RADIUS,
+						Math.abs(configuredRadius),
+					)
+				: -Math.max(
+						DEFAULT_VERTICAL_CURVE_RADIUS,
+						Math.abs(configuredRadius),
+					);
+		const arcX = radius * (Math.sin(targetPitch) - Math.sin(startPitch));
+		const arcY = radius * (Math.cos(startPitch) - Math.cos(targetPitch));
+		const straightHorizontal = (targetY - startY - arcY) / tangent;
+		const result = straightHorizontal + arcX;
+		return arcX > 0.001 && straightHorizontal >= 0 && isFinite(result)
+			? result
+			: null;
 	}
 
 	static planVerticalRailSegments<T extends SRBXVerticalBuilderPoint>(

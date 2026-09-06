@@ -20,7 +20,11 @@ export type SRBXBuilderPoint = {
 	curveRadius?: number;
 	slopeTarget?: boolean;
 	verticalCurveRadius?: number;
-	verticalProfile?: "circular_straight" | "circular_limited" | "straight";
+	verticalProfile?:
+		| "circular_straight"
+		| "straight_circular"
+		| "circular_limited"
+		| "straight";
 	cantEdge?: number;
 	cantCenter?: number;
 	cantRandom?: number;
@@ -160,5 +164,13 @@ export class SRBXApiCompat {
 		expectedKey: string,
 		ratio: number,
 	): SRBXRailSplitResult;
-	static undoSplitBuilderRail(world: World, undoToken: string): string;
+	static consumeLastSplitClientUpdate(): {
+		removed: Array<{ core: RailCorePos; key: string }>;
+		refreshed: Array<{ core: RailCorePos; key: string }>;
+	} | null;
+	static undoSplitBuilderRail(
+		world: World,
+		player: EntityPlayer,
+		undoToken: string,
+	): string;
 }

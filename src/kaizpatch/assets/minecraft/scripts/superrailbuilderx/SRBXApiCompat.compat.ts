@@ -47,7 +47,11 @@ type BuilderPoint = {
 	curveRadius?: number;
 	slopeTarget?: boolean;
 	verticalCurveRadius?: number;
-	verticalProfile?: "circular_straight" | "circular_limited" | "straight";
+	verticalProfile?:
+		| "circular_straight"
+		| "straight_circular"
+		| "circular_limited"
+		| "straight";
 	core?: [number, number, number];
 	index?: number;
 	cantEdge?: number;
@@ -73,6 +77,12 @@ type SplitUndoRecord = {
 	signal: any;
 	subRails: java.util.List<RailProperty>;
 	created: SplitCreatedRail[];
+	wasSectioned: boolean;
+};
+
+type SplitClientUpdate = {
+	removed: SplitCreatedRail[];
+	refreshed: SplitCreatedRail[];
 };
 
 type RailSectionPlan = {
@@ -122,6 +132,7 @@ declare const Packages: {
 
 export class SRBXApiCompat {
 	private static splitUndoRecords: { [token: string]: SplitUndoRecord } = {};
+	private static lastSplitClientUpdate: SplitClientUpdate | null = null;
 	private static lastRailPositionMoveCores: Array<[number, number, number]> =
 		[];
 	static getRider(entity: unknown) {
@@ -1855,6 +1866,7 @@ export class SRBXApiCompat {
 		property: RailProperty,
 		protectedRailKeys: { [key: string]: boolean },
 		preserveSectionCores = false,
+		replacementEndpoint?: [number, number, number],
 	): number {
 		const blocks = this.getBuilderRoadbedBlocks(railMap, property);
 		let replaced = 0;
@@ -1863,6 +1875,26 @@ export class SRBXApiCompat {
 			const existingTile = world.getTileEntity(pos[0], pos[1], pos[2]);
 			if (existingTile instanceof TileEntityLargeRailBase) {
 				const owner = existingTile.getRailCore();
+				const replacesEndpoint =
+					!(existingTile instanceof TileEntityLargeRailCore) &&
+					replacementEndpoint !== undefined &&
+					pos[0] === replacementEndpoint[0] &&
+					pos[1] === replacementEndpoint[1] &&
+					pos[2] === replacementEndpoint[2];
+				if (
+					!(existingTile instanceof TileEntityLargeRailCore) &&
+					owner &&
+					!replacesEndpoint
+				) {
+					NGTLog.debug(
+						`[SuperRailBuilderX builder1] foreign normal roadbed preserved: pos=${pos[0]},${pos[1]},${pos[2]}, railKey=${this.getRailPositionCandidateKey(owner)}`,
+					);
+					continue;
+				}
+				if (replacesEndpoint)
+					NGTLog.debug(
+						`[SuperRailBuilderX builder1] endpoint roadbed ownership replaced: pos=${pos[0]},${pos[1]},${pos[2]}`,
+					);
 				if (
 					preserveSectionCores &&
 					existingTile instanceof TileEntityLargeRailCore &&
@@ -1875,6 +1907,7 @@ export class SRBXApiCompat {
 					continue;
 				}
 				if (
+					!replacesEndpoint &&
 					owner &&
 					protectedRailKeys[this.getRailPositionCandidateKey(owner)]
 				) {
@@ -2035,7 +2068,6 @@ export class SRBXApiCompat {
 		source: RailMapBasic,
 		sections: java.util.List<RailSectionPlan>,
 		property: RailProperty,
-		protectedRailKeys: { [key: string]: boolean },
 	): string {
 		const used: { [key: string]: boolean } = {};
 		for (let i = 0; i < sections.size(); i++) {
@@ -2051,25 +2083,13 @@ export class SRBXApiCompat {
 				start.blockZ,
 			);
 			if (!(existing instanceof BlockLargeRailBase)) continue;
-			if (i === 0) {
-				const existingTile = world.getTileEntity(
-					start.blockX,
-					start.blockY,
-					start.blockZ,
+			if (!existing.isCore()) {
+				NGTLog.debug(
+					`[SuperRailBuilderX builder1] section core will replace normal roadbed: pos=${start.blockX},${start.blockY},${start.blockZ}`,
 				);
-				if (
-					!existing.isCore() &&
-					existingTile instanceof TileEntityLargeRailBase
-				) {
-					const owner = existingTile.getRailCore();
-					if (
-						owner &&
-						protectedRailKeys[
-							this.getRailPositionCandidateKey(owner)
-						]
-					)
-						continue;
-				}
+				continue;
+			}
+			if (i === 0) {
 				NGTLog.debug(
 					`[SuperRailBuilderX builder1] logical start core position is occupied by rail: pos=${start.blockX},${start.blockY},${start.blockZ}`,
 				);
@@ -2105,7 +2125,8 @@ export class SRBXApiCompat {
 						candidate[1],
 						candidate[2],
 					) ||
-					block instanceof BlockMarker
+					block instanceof BlockMarker ||
+					(block instanceof BlockLargeRailBase && !block.isCore())
 				) {
 					replacement = candidate;
 					break;
@@ -2152,6 +2173,7 @@ export class SRBXApiCompat {
 			property,
 			protectedRailKeys,
 			preserveSectionCores,
+			[positions[1].blockX, positions[1].blockY, positions[1].blockZ],
 		);
 		const startBase = world.getTileEntity(
 			start.blockX,
@@ -2231,6 +2253,8 @@ export class SRBXApiCompat {
 				rp.blockZ,
 				property,
 				protectedRailKeys,
+				false,
+				[positions[1].blockX, positions[1].blockY, positions[1].blockZ],
 			);
 		}
 		let firstCore: TileEntityLargeRailCore | null = null;
@@ -2453,7 +2477,6 @@ export class SRBXApiCompat {
 				source,
 				sections,
 				property,
-				protectedRailKeys,
 			);
 			if (corePreparation !== "ok") return { status: corePreparation };
 		} else if (
@@ -2463,30 +2486,10 @@ export class SRBXApiCompat {
 				positions[0].blockZ,
 			) instanceof BlockLargeRailBase
 		) {
-			const startBlock = world.getBlock(
-				positions[0].blockX,
-				positions[0].blockY,
-				positions[0].blockZ,
-			) as unknown as BlockLargeRailBase;
-			const startBase = world.getTileEntity(
-				positions[0].blockX,
-				positions[0].blockY,
-				positions[0].blockZ,
+			NGTLog.debug(
+				`[SuperRailBuilderX builder1] normal core position is occupied by rail: pos=${positions[0].blockX},${positions[0].blockY},${positions[0].blockZ}`,
 			);
-			const owner =
-				startBase instanceof TileEntityLargeRailBase
-					? startBase.getRailCore()
-					: null;
-			const protectedRoadbed =
-				!startBlock.isCore() &&
-				owner &&
-				protectedRailKeys[this.getRailPositionCandidateKey(owner)];
-			if (!protectedRoadbed) {
-				NGTLog.debug(
-					`[SuperRailBuilderX builder1] normal core position is occupied by rail: pos=${positions[0].blockX},${positions[0].blockY},${positions[0].blockZ}`,
-				);
-				return { status: "section_core_conflict" };
-			}
+			return { status: "section_core_conflict" };
 		}
 		const placementMaps: RailSectionMap[] = [];
 		if (!createAsNormal) {
@@ -2826,41 +2829,86 @@ export class SRBXApiCompat {
 
 	private static restoreSplitSource(
 		world: net.minecraft.world.World,
+		player: EntityPlayer,
 		record: SplitUndoRecord,
-	): boolean {
-		let restored = false;
+	): SplitCreatedRail | null {
 		try {
-			restored = BlockMarker.createRail(
+			const protectedKeys: { [key: string]: boolean } = {};
+			for (let i = 0; i < record.positions.length; i++) {
+				const rp = record.positions[i];
+				const candidates = [
+					[rp.blockX, rp.blockY, rp.blockZ],
+					this.getBuilderConnectionBlock(rp),
+				];
+				for (let j = 0; j < candidates.length; j++) {
+					const pos = candidates[j];
+					const tile = world.getTileEntity(pos[0], pos[1], pos[2]);
+					if (!(tile instanceof TileEntityLargeRailBase)) continue;
+					const owner = tile.getRailCore();
+					if (owner)
+						protectedKeys[this.getRailPositionCandidateKey(owner)] =
+							true;
+				}
+			}
+			const restored = this.createBuilderRail(
 				world,
-				record.positions[0].blockX,
-				record.positions[0].blockY,
-				record.positions[0].blockZ,
-				this.toJavaList(this.copyRailPositions(record.positions)),
-				this.cloneRailProperty(record.property),
-				true,
+				player,
+				this.splitPointFromRailPosition(
+					record.positions[0],
+					record.positions[0].anchorLengthHorizontal,
+					record.positions[0].anchorLengthVertical,
+				),
+				this.splitPointFromRailPosition(
+					record.positions[1],
+					record.positions[1].anchorLengthHorizontal,
+					record.positions[1].anchorLengthVertical,
+				),
+				Object.keys(protectedKeys),
+				undefined,
+				record.property,
+				!record.wasSectioned,
 				true,
 			);
-			if (!restored) return false;
-			const tile = world.getTileEntity(
-				record.positions[0].blockX,
-				record.positions[0].blockY,
-				record.positions[0].blockZ,
-			);
-			if (!(tile instanceof TileEntityLargeRailBase)) return false;
-			const core = tile.getRailCore();
-			if (!core) return false;
-			core.setSignal(record.signal);
-			for (let i = 0; i < record.subRails.size(); i++)
-				core.addSubRail(record.subRails.get(i));
-			this.markCoreDirty(core);
-			NGTUtil.sendPacketToClient(core);
-			return true;
+			if (
+				restored.status !== "ok" ||
+				!restored.undoCore ||
+				!restored.undoKey
+			) {
+				NGTLog.debug(
+					`[SuperRailBuilderX splitter] source restore failed: result=${restored.status}`,
+				);
+				return null;
+			}
+			if (
+				!this.applyBuilderRailState(
+					world,
+					restored,
+					record.signal,
+					record.subRails,
+				)
+			) {
+				this.undoBuilderRail(
+					world,
+					restored.undoCore[0],
+					restored.undoCore[1],
+					restored.undoCore[2],
+					restored.undoKey,
+				);
+				return null;
+			}
+			return { core: restored.undoCore, key: restored.undoKey };
 		} catch (error) {
 			NGTLog.debug(
 				`[SuperRailBuilderX splitter] source restore exception: ${error}`,
 			);
-			return false;
+			return null;
 		}
+	}
+
+	static consumeLastSplitClientUpdate(): SplitClientUpdate | null {
+		const result = this.lastSplitClientUpdate;
+		this.lastSplitClientUpdate = null;
+		return result;
 	}
 
 	static splitBuilderRail(
@@ -2870,6 +2918,7 @@ export class SRBXApiCompat {
 		expectedKey: string,
 		ratio: number,
 	) {
+		this.lastSplitClientUpdate = null;
 		if (!isFinite(ratio) || ratio <= 0 || ratio >= 1)
 			return { status: "invalid_split_position" };
 		const tile = world.getTileEntity(
@@ -2916,10 +2965,11 @@ export class SRBXApiCompat {
 			signal: core.getSignal(),
 			subRails,
 			created: [],
+			wasSectioned: this.isSectionCore(core),
 		};
 		const leftLength = length * ratio;
 		const rightLength = length - leftLength;
-		if (leftLength <= 2 || rightLength <= 2)
+		if (leftLength <= 6 || rightLength <= 6)
 			return { status: "rail_too_short" };
 		const point = railMap.getRailPos(1000000, Math.round(ratio * 1000000));
 		const x = point[1];
@@ -3029,10 +3079,14 @@ export class SRBXApiCompat {
 			leftLength <= 64 && rightLength <= 64,
 		);
 		if (first.status !== "ok" || !first.undoCore || !first.undoKey) {
+			const restored = this.restoreSplitSource(world, player, record);
+			if (restored)
+				this.lastSplitClientUpdate = {
+					removed: [{ core: corePosition, key: expectedKey }],
+					refreshed: [restored],
+				};
 			return {
-				status: this.restoreSplitSource(world, record)
-					? first.status
-					: "split_rollback_failed",
+				status: restored ? first.status : "split_rollback_failed",
 			};
 		}
 		record.created.push({ core: first.undoCore, key: first.undoKey });
@@ -3054,15 +3108,26 @@ export class SRBXApiCompat {
 				first.undoCore[2],
 				first.undoKey,
 			);
+			const restored = this.restoreSplitSource(world, player, record);
+			if (restored)
+				this.lastSplitClientUpdate = {
+					removed: [
+						{ core: corePosition, key: expectedKey },
+						{ core: first.undoCore, key: first.undoKey },
+					],
+					refreshed: [restored],
+				};
 			return {
-				status: this.restoreSplitSource(world, record)
-					? second.status
-					: "split_rollback_failed",
+				status: restored ? second.status : "split_rollback_failed",
 			};
 		}
 		record.created.push({ core: second.undoCore, key: second.undoKey });
 		const token = java.util.UUID.randomUUID().toString();
 		this.splitUndoRecords[token] = record;
+		this.lastSplitClientUpdate = {
+			removed: [{ core: corePosition, key: expectedKey }],
+			refreshed: record.created.slice(),
+		};
 		NGTLog.debug(
 			`[SuperRailBuilderX splitter] split succeeded: ratio=${ratio}, bezierT=${horizontal.t}, sampledYaw=${sampledYaw}, lengths=${leftLength}/${rightLength}, token=${token}`,
 		);
@@ -3071,10 +3136,13 @@ export class SRBXApiCompat {
 
 	static undoSplitBuilderRail(
 		world: net.minecraft.world.World,
+		player: EntityPlayer,
 		undoToken: string,
 	): string {
+		this.lastSplitClientUpdate = null;
 		const record = this.splitUndoRecords[undoToken];
 		if (!record) return "nothing_to_undo";
+		const removed: SplitCreatedRail[] = [];
 		for (let i = record.created.length - 1; i >= 0; i--) {
 			const rail = record.created[i];
 			const result = this.undoBuilderRail(
@@ -3084,10 +3152,22 @@ export class SRBXApiCompat {
 				rail.core[2],
 				rail.key,
 			);
-			if (result !== "ok") return result;
+			if (result !== "ok") {
+				if (removed.length > 0)
+					this.lastSplitClientUpdate = {
+						removed,
+						refreshed: [],
+					};
+				return result;
+			}
+			removed.push(rail);
 		}
-		if (!this.restoreSplitSource(world, record))
-			return "undo_restore_failed";
+		const restored = this.restoreSplitSource(world, player, record);
+		if (!restored) return "undo_restore_failed";
+		this.lastSplitClientUpdate = {
+			removed,
+			refreshed: [restored],
+		};
 		delete this.splitUndoRecords[undoToken];
 		return "undo_ok";
 	}

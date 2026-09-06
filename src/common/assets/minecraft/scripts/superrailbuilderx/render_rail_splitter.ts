@@ -14,11 +14,14 @@ import { InputManager } from "../lib_hi03toolkit_1_0/lib_InputManager";
 import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
 import { NGTOBuilderUtilClient } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtilClient";
 import { SRBXApiCompat } from "@target/assets/minecraft/scripts/superrailbuilderx/SRBXApiCompat";
-import { RailSplitterRequest } from "./server_rail_splitter";
+import {
+	RailSplitterClientUpdate,
+	RailSplitterRequest,
+} from "./server_rail_splitter";
 
 declare const renderer: VehiclePartsRenderer;
 
-const MIN_RAIL_LENGTH = 2;
+const MIN_RESULT_LENGTH = 6;
 const MIN_SPLITTABLE_LENGTH = 6;
 
 type Vec3 = [number, number, number];
@@ -33,6 +36,7 @@ type SplitterState = {
 	selected: SplitTarget | null;
 	awaitingResult: boolean;
 	pendingAction: "split" | "undo" | null;
+	ignoredRailKeys: { [key: string]: boolean };
 };
 
 let keys: InputManager;
@@ -66,7 +70,12 @@ function init(par1: ModelSetVehicle, par2: ModelObject): void {
 function getState(entity: EntityVehicle): SplitterState {
 	let state = states.get(entity);
 	if (!state) {
-		state = { selected: null, awaitingResult: false, pendingAction: null };
+		state = {
+			selected: null,
+			awaitingResult: false,
+			pendingAction: null,
+			ignoredRailKeys: {},
+		};
 		states.put(entity, state);
 	}
 	return state;
@@ -100,7 +109,8 @@ function findHoverTarget(
 				const core = tile.getRailCore();
 				if (!core) continue;
 				const railKey = SRBXApiCompat.getRailPositionCandidateKey(core);
-				if (seen[railKey]) continue;
+				if (seen[railKey] || getState(entity).ignoredRailKeys[railKey])
+					continue;
 				seen[railKey] = true;
 				const map = SRBXApiCompat.getLogicalRailMap(core);
 				if (!map) continue;
@@ -112,7 +122,7 @@ function findHoverTarget(
 				const candidateSplit = Math.max(2, renderSplit * 2);
 				const minimumIndex =
 					Math.floor(
-						(MIN_RAIL_LENGTH * candidateSplit) / map.getLength(),
+						(MIN_RESULT_LENGTH * candidateSplit) / map.getLength(),
 					) + 1;
 				const maximumIndex = candidateSplit - minimumIndex;
 				if (minimumIndex > maximumIndex) continue;
@@ -157,6 +167,7 @@ function resolveMap(
 	const core = tile.getRailCore();
 	if (
 		!core ||
+		getState(entity).ignoredRailKeys[target.railKey] ||
 		SRBXApiCompat.getRailPositionCandidateKey(core) !== target.railKey
 	)
 		return null;
@@ -284,6 +295,37 @@ function handleResult(
 	if (!result || result === "waiting") return;
 	const pendingAction = state.pendingAction;
 	state.awaitingResult = false;
+	const clientUpdate =
+		NGTOBuilderUtil.getJsonData<RailSplitterClientUpdate>(
+			dataMap,
+			"railSplitterClientUpdate",
+		) || null;
+	if (clientUpdate) {
+		const world = SRBXApiCompat.getWorld(entity);
+		const refreshedKeys: { [key: string]: boolean } = {};
+		for (let i = 0; i < clientUpdate.refreshed.length; i++)
+			refreshedKeys[clientUpdate.refreshed[i].key] = true;
+		for (let i = 0; i < clientUpdate.removed.length; i++) {
+			const rail = clientUpdate.removed[i];
+			if (refreshedKeys[rail.key]) continue;
+			state.ignoredRailKeys[rail.key] = true;
+			SRBXApiCompat.removeRailClientGhost(world, rail.core, rail.key);
+		}
+		for (let i = 0; i < clientUpdate.refreshed.length; i++) {
+			const rail = clientUpdate.refreshed[i];
+			delete state.ignoredRailKeys[rail.key];
+			const tile = SRBXApiCompat.getTileEntity(
+				world,
+				rail.core[0],
+				rail.core[1],
+				rail.core[2],
+			);
+			if (!(tile instanceof TileEntityLargeRailBase)) continue;
+			const core = tile.getRailCore();
+			if (core) SRBXApiCompat.refreshRailCoreClient(core);
+		}
+		NGTOBuilderUtil.resetJsonData(dataMap, "railSplitterClientUpdate");
+	}
 	if (result === "ok" && pendingAction === "split") {
 		NGTLog.sendChatMessage(
 			sender,
