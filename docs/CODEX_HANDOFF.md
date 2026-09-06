@@ -12,10 +12,9 @@
 - `SuperRailBuilderX_builder1`を実装済み。自由点・既設端接続、曲線半径固定、勾配・縦曲線、複数レール一括Undo、道床・コア保護を備える。-X/-Z道床と勾配・縦曲線は実機確認済み。
 - `SuperRailBuilderX_RailSplitter`を実装済み。論理RailMap強調、約0.25 m間隔の候補、予定長表示、手持ちモデルによる2本生成、分割前状態へ戻すUndoを備える。分割後の両区間を3 m超に制限し、分割不可レールは赤表示する。
 - `SuperRailBuilderX_DoubleTrackCopy`を実装済み。通常レールの複数選択、カーソル距離に応じた指定間隔の反復複製、水平平行線形、0.5 m端点接続、手持ち/複製元モデル、一括Undoを備える。
+- `SuperRailBuilderX_CantFormatter`を実装済み。設計速度・5種類の軌間別上限から通常/自動分割レール端点の均衡カントを計算し、複数点一括適用・Undoに対応する。
+- `SuperRailBuilderX_BranchBuilder`を実装済み。既設レール途中の分割点から自由点/別レール端点へ理論RailMapを作り、進行側半区間と単純分岐へ合成する。スナップ・半径固定・モデル選択・Undoを備える。
 - builder1のチャンク境界交差・候補表示・Iキー地上高合わせ、複線コピーの生成、分割パネル・縦勾配・カント、レール移動の基本操作・接続・回り込み防止・三線軌条の相互走行は実機確認済み。
-- 実装コミット`7434eec`でセクションコア衝突時の通常レール化、builder1の候補マーカー・モデル継承・Iキー高さ探索、レール移動の道床所有回帰修正と単一RailMap平行移動を反映し、`origin/main`へ同期済み。
-- 実装コミット`5eea584`で分割点共有道床の安全なコア化、builder1の複数勾配区間への接続先モデル継承と端点ホバー表示、レール移動の接続端点連動・片側接続補正・Undoを反映し、`origin/main`へ同期済み。
-- 実装コミット`7850dc9`で専用アセット適用とサンプル削除、分割の赤表示・3 m制限、レール移動の複数平行移動・Undo要求・全物理コア描画同期を反映し、`origin/main`へ同期済み。
 - `alpha-0.1.0`の配布設定、README、統合操作ガイド、同梱readme.txt・LICENSEを整備済み。配布ZIPは`SuperRailBuilderX-alpha-0.1.0.zip`として生成できる。
 - 実装コミット`667481b`でレール移動のCtrl+Z入力、接続レール限定の複数選択、暗色ホバー、再生成中の旧強調非表示、未初期化セクションによる描画クラッシュを修正し、builder1の表示名を`レール生成A`へ変更した。`origin/main`へ同期済み。
 - レール生成・自由点移動の構造は `docs/rail-generation-and-free-positioning.md`、各ツールの仕様と検証方法は下記「関連資料」を参照する。
@@ -49,10 +48,17 @@
 
 - 自動車モデル選択画面と設置後の名称が`レール生成A`になっていることを確認する。
 
+### カント整形・分岐生成
+
+- カント整形で速度長押し、5種類の軌間切替、左右曲線の符号、通常/自動分割レールへの複数適用・Undoを確認する。
+- 分岐生成で自由点/別レール端点、スナップ・半径固定、手持ち/分割元モデル、分岐切替と両経路走行、道床、Undoを確認する。
+- 勾配・縦曲線・既存分岐・在線・短レールが安全に拒否されることを確認する。
+
 ## 次に行うこと
 
-1. 上記「優先確認事項」をバックアップ済みワールドで実機確認する。
-2. 不具合を再現した場合は、機能名・操作順・おおよその時刻と`logs/latest.log`を共有する。
+1. 新規のカント整形・分岐生成を`docs/cant-formatter.md`と`docs/branch-builder.md`に従ってバックアップ済みワールドで実機確認する。
+2. 既存の「優先確認事項」も同じ環境で確認する。
+3. 不具合を再現した場合は、機能名・操作順・おおよその時刻と`logs/latest.log`を共有する。
 
 ## 双方向連絡
 
@@ -116,6 +122,7 @@
 
 ## 直近の完了
 
+- 2026-09-07 ローカルCodex: カント整形と分岐生成ツール、両ツールのUndo・multi-targetスタブ・操作資料を実装。詳細は`docs/history/CODEX_HISTORY_2026-09.md`とコミット`51f855d`を参照（`origin/main`へ同期済み）。
 - 2026-09-07 ローカルCodex: レール移動のクラッシュ、Ctrl+Z入力、接続レール限定選択、暗色ホバー・旧強調表示を修正し、builder1をレール生成Aへ改名。詳細は`docs/history/CODEX_HISTORY_2026-09.md`とコミット`667481b`を参照（`origin/main`へ同期済み）。
 - 2026-09-07 hi03: usage.mdの文章修正。
 - 2026-09-07 ローカルCodex: alpha-0.1.0のバージョン設定、README・統合操作ガイド・同梱文書、更新テクスチャを配布ZIPへ反映。詳細は`docs/history/CODEX_HISTORY_2026-09.md`とコミット`4ab0aa6`を参照（`origin/main`へ同期済み）。
@@ -124,16 +131,6 @@
 - 2026-09-06 Web側Codex: トークン節約を目的としたモデル・サブエージェント使い分け規則を`AGENTS.md`へ追加。
 - 2026-09-06 ローカルCodex: レール生成の内部コア衝突、builder1の候補表示・モデル継承・高さ探索、レール移動の道床回帰と平行移動を修正。詳細は`docs/history/CODEX_HISTORY_2026-09.md`とコミット`7434eec`を参照（`origin/main`へ同期済み）。
 - 2026-09-06 ローカルCodex: 複線・分割の再失敗を修正し、builder1の地上高合わせと正式レール移動ツールを実装。詳細は`docs/history/CODEX_HISTORY_2026-09.md`とコミット`85e3572`を参照（`origin/main`へ同期済み）。
-- 2026-09-06 ローカルCodex: 複線Undo・短レール分割・builder1マーカー・RailPosition表示同期を修正。詳細は`docs/history/CODEX_HISTORY_2026-09.md`とコミット`e40f361`を参照（`origin/main`へ同期済み）。
-- 2026-09-06 ローカルCodex: 複線コピー・分割・builder1・RailPosition移動の追加実機不具合を修正し、旧NormalTestを削除。詳細は`docs/history/CODEX_HISTORY_2026-09.md`とコミット`eeb7988`を参照（`origin/main`へ同期済み）。
-- 2026-09-06 ローカルCodex: チャンク境界交差、複線コピーの段階操作・Undo同期、分割パネル透明描画を修正。詳細は `docs/history/CODEX_HISTORY_2026-09.md` とコミット `377a859` を参照（`origin/main`へ同期済み）。
-- 2026-09-06 ローカルCodex: 両ツールの実機フィードバックを反映し、生成失敗と低速遷移の診断を追加。詳細は `docs/history/CODEX_HISTORY_2026-09.md` とコミット `74c287f` を参照（`origin/main`へ同期済み）。
-- 2026-09-04 ローカルCodex: 複線コピーツールのmulti-targetビルドエラーを修正し、全3ターゲットの生成・ビルドに成功。詳細は `docs/history/CODEX_HISTORY_2026-09.md` とコミット `d8fe798` を参照（`origin/main`へ同期済み）。
-- 2026-09-04 Web側Codex: 論理RailMapの複数選択と反復平行生成を行う複線コピーツールを初期実装。詳細は `docs/double-track-copy.md` とコミット `0e2b30e` を参照。
-- 2026-09-03 ローカルCodex: 線路分割ツールを含む全3ターゲットのコード生成・ビルドに成功。詳細は `docs/history/CODEX_HISTORY_2026-09.md` とコミット `3de4133` を参照（`origin/main`へ同期済み）。
-- 2026-09-03 Web側Codex: 引継ぎ帳を短期情報と月別履歴へ分離し、`AGENTS.md`へコンテキスト・トークン使用量の管理規則を追加。実装コミット `439c456` はGitHubへ同期済み。
-- 2026-09-03 Web側Codex: 線路分割ツールを初期実装。詳細は `docs/rail-splitter.md` とコミット `70fe67e` を参照。
-- 2026-09-03 ローカルCodex: builder1の-X/-Z道床、勾配、縦曲線が正常に動作することを実機確認。
 
 詳細な作業履歴は `docs/history/CODEX_HISTORY_2026-09.md` に保存しています。過去の原因や判断経緯が必要な場合だけ、対象機能名・エラー名・コミットSHAで検索してください。
 
@@ -143,6 +140,8 @@
 | ---------------------- | ---------------------------------------------- |
 | 複線コピーツール       | `docs/double-track-copy.md`                    |
 | 線路分割ツール         | `docs/rail-splitter.md`                        |
+| カント整形ツール       | `docs/cant-formatter.md`                       |
+| 分岐生成ツール         | `docs/branch-builder.md`                       |
 | builder1               | `docs/builder1.md`                             |
 | RailPosition自由化     | `docs/rail-position-free-positioning.md`       |
 | レール生成・道床・同期 | `docs/rail-generation-and-free-positioning.md` |
