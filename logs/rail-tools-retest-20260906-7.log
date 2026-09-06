@@ -1,0 +1,24 @@
+[19:03:12] [Server thread/INFO]: [SuperRailBuilderX builder1] vertical profile plan: type=circular_straight, logicalRails=2, radius=2000
+[19:03:12] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=rail->free, startBlock=-197,4,477, endBlock=-197,4,516
+[19:03:12] [Server thread/INFO]: [SuperRailBuilderX builder1] generated logical rail removed by undo: core=-197,4,477, correctedRoadbeds=0, syncedBlocks=121
+[19:03:12] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=hold_rail_item
+
+[19:12:59] [Server thread/INFO]: [SuperRailBuilderX builder1] vertical profile plan: type=circular_straight, logicalRails=2, radius=1000
+[19:12:59] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=rail->free, startBlock=-169,4,249, endBlock=-169,4,220
+[19:12:59] [Server thread/INFO]: [SuperRailBuilderX builder1] generated logical rail removed by undo: core=-169,4,249, correctedRoadbeds=0, syncedBlocks=88
+[19:12:59] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=hold_rail_item
+
+[19:04:26] [Server thread/INFO]: [SuperRailBuilderX splitter] split succeeded: lengths=17.440843284546073/14.407653148103272
+[19:04:26] [Server thread/INFO]: [SuperRailBuilderX splitter] request completed: action=split, result=ok
+
+[19:04:36] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=free->free, startBlock=-246,4,490, endBlock=-248,4,499
+[19:04:36] [Server thread/INFO]: [SuperRailBuilderX transition] created: core=-246,4,490, endBlock=-248,4,499, endConnection=-248,4,500, endConnectionOwner=core:-246,4,490
+[19:04:36] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=free->free, startBlock=-248,4,500, endBlock=-250,4,506
+[19:04:36] [Server thread/INFO]: [SuperRailBuilderX builder1] normal core position is occupied by rail: pos=-248,4,500
+[19:04:36] [Server thread/INFO]: [SuperRailBuilderX builder1] generated logical rail removed by undo: core=-246,4,490, correctedRoadbeds=0, syncedBlocks=37
+[19:04:36] [Server thread/INFO]: [SuperRailBuilderX splitter] request completed: action=split, result=section_core_conflict
+
+[19:04:39] [Server thread/INFO]: [SuperRailBuilderX transition] created: core=-246,4,490, endBlock=-248,4,496, endConnection=-248,4,497, endConnectionOwner=core:-246,4,490
+[19:04:39] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=free->free, startBlock=-248,4,497, endBlock=-250,4,506
+[19:04:39] [Server thread/INFO]: [SuperRailBuilderX builder1] normal core position is occupied by rail: pos=-248,4,497
+[19:04:39] [Server thread/INFO]: [SuperRailBuilderX splitter] request completed: action=split, result=section_core_conflict

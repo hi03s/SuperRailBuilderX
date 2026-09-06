@@ -257,6 +257,8 @@ export class SRBXApiCompat {
 		forceNormal?: boolean,
 		preferFallbackProperty?: boolean,
 		overwriteForeignRoadbeds?: boolean,
+		propertySourcePoint?: unknown,
+		replaceProtectedCoreRoadbedAt?: [number, number, number],
 	) {
 		void world;
 		void player;
@@ -268,6 +270,8 @@ export class SRBXApiCompat {
 		void forceNormal;
 		void preferFallbackProperty;
 		void overwriteForeignRoadbeds;
+		void propertySourcePoint;
+		void replaceProtectedCoreRoadbedAt;
 		return { status: "unsupported" };
 	}
 

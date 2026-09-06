@@ -83,6 +83,12 @@ function processRequest(
 		key: string;
 	}> = [];
 	let createdAsNormalCrossing = false;
+	const propertySourcePoint =
+		request.start.kind === "rail"
+			? request.start
+			: request.end.kind === "rail"
+				? request.end
+				: undefined;
 	for (let i = 0; i < segments.length; i++) {
 		const result = SRBXApiCompat.createBuilderRail(
 			world,
@@ -90,6 +96,12 @@ function processRequest(
 			segments[i][0],
 			segments[i][1],
 			created.map((rail) => rail.key),
+			undefined,
+			undefined,
+			false,
+			false,
+			false,
+			propertySourcePoint,
 		);
 		if (result.status !== "ok" || !result.undoCore || !result.undoKey) {
 			for (let rollback = created.length - 1; rollback >= 0; rollback--) {

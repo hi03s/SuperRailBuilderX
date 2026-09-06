@@ -158,6 +158,8 @@ export class SRBXApiCompat {
 		forceNormal?: boolean,
 		preferFallbackProperty?: boolean,
 		overwriteForeignRoadbeds?: boolean,
+		propertySourcePoint?: SRBXBuilderPoint,
+		replaceProtectedCoreRoadbedAt?: RailCorePos,
 	): SRBXBuilderCreateResult;
 	static undoBuilderRail(
 		world: World,

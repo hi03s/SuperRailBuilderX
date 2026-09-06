@@ -62,6 +62,7 @@ let keys: InputManager;
 let body: Parts;
 let selectCursor: Parts;
 let selectCursorMarker: Parts;
+let snapCursorMarker: Parts;
 let selectedCursor: Parts;
 let selectedLine: Parts;
 let cantLine: Parts;
@@ -133,6 +134,7 @@ function init(par1: ModelSetVehicle, par2: ModelObject): void {
 	selectCursorMarker = renderer.registerParts(
 		new Parts("selectCursorMarker"),
 	);
+	snapCursorMarker = renderer.registerParts(new Parts("snapCursorMarker"));
 	selectedCursor = renderer.registerParts(new Parts("selectedCursor"));
 	selectedLine = renderer.registerParts(new Parts("selectedLine"));
 	cantLine = renderer.registerParts(new Parts("cantLine"));
@@ -655,12 +657,7 @@ function renderPossibleMarkerPositions(
 	point: SRBXBuilderPoint,
 ): void {
 	if (point.kind === "rail") {
-		renderAt(
-			entity,
-			partialTicks,
-			point.markerPosition,
-			selectCursorMarker,
-		);
+		renderAt(entity, partialTicks, point.markerPosition, snapCursorMarker);
 		return;
 	}
 	const seen: { [key: string]: boolean } = {};

@@ -1270,6 +1270,23 @@ export class SRBXApiCompat {
 		const world = this.getCoreWorld(core);
 		const property = this.cloneRailProperty(core.getProperty());
 		const originalPositions = this.copyRailPositions(sourcePositions);
+		const movedStart =
+			start.kind === "rail"
+				? this.resolveBuilderRailPoint(world, start)
+				: this.createBuilderFreePoint(start);
+		const movedEnd =
+			end.kind === "rail"
+				? this.resolveBuilderRailPoint(world, end)
+				: this.createBuilderFreePoint(end);
+		if (!movedStart || !movedEnd) return "rail_endpoint_changed";
+		const protectedKeys = this.getBuilderMoveProtectedRailKeys(core, [
+			movedStart,
+			movedEnd,
+		]);
+		const rollbackProtectedKeys = this.getBuilderMoveProtectedRailKeys(
+			core,
+			originalPositions,
+		);
 		const originalMap = this.getLogicalRailMap(core) as RailSectionMap;
 		const oldSyncBlocks = originalMap
 			? this.getBuilderRoadbedBlocks(originalMap, property)
@@ -1289,7 +1306,7 @@ export class SRBXApiCompat {
 			player,
 			start,
 			end,
-			[expectedKey],
+			protectedKeys,
 			undefined,
 			property,
 			false,
@@ -1338,7 +1355,7 @@ export class SRBXApiCompat {
 				originalPositions[1].anchorLengthHorizontal,
 				originalPositions[1].anchorLengthVertical,
 			),
-			[expectedKey],
+			rollbackProtectedKeys,
 			undefined,
 			property,
 			false,
@@ -2580,6 +2597,8 @@ export class SRBXApiCompat {
 		forceNormal = false,
 		preferFallbackProperty = false,
 		overwriteForeignRoadbeds = false,
+		propertySourcePoint?: BuilderPoint,
+		replaceProtectedCoreRoadbedAt?: [number, number, number],
 	) {
 		const startValidation = this.validateBuilderPoint(start);
 		if (startValidation !== "ok") return { status: startValidation };
@@ -2620,6 +2639,9 @@ export class SRBXApiCompat {
 				: null) ||
 			this.createBuilderProperty(player) ||
 			sourceProperty ||
+			(propertySourcePoint
+				? this.createBuilderEndpointProperty(world, propertySourcePoint)
+				: null) ||
 			this.createBuilderEndpointProperty(world, start) ||
 			this.createBuilderEndpointProperty(world, end) ||
 			(fallbackProperty
@@ -2731,17 +2753,41 @@ export class SRBXApiCompat {
 					);
 				} else return { status: corePreparation };
 			}
-		} else if (
-			world.getBlock(
+		} else {
+			const startTile = world.getTileEntity(
 				positions[0].blockX,
 				positions[0].blockY,
 				positions[0].blockZ,
-			) instanceof BlockLargeRailBase
-		) {
-			NGTLog.debug(
-				`[SuperRailBuilderX builder1] normal core position is occupied by rail: pos=${positions[0].blockX},${positions[0].blockY},${positions[0].blockZ}`,
 			);
-			return { status: "section_core_conflict" };
+			const startOwner =
+				startTile instanceof TileEntityLargeRailBase
+					? startTile.getRailCore()
+					: null;
+			const canReplaceProtectedStartRoadbed =
+				replaceProtectedCoreRoadbedAt &&
+				positions[0].blockX === replaceProtectedCoreRoadbedAt[0] &&
+				positions[0].blockY === replaceProtectedCoreRoadbedAt[1] &&
+				positions[0].blockZ === replaceProtectedCoreRoadbedAt[2] &&
+				startTile instanceof TileEntityLargeRailBase &&
+				!(startTile instanceof TileEntityLargeRailCore) &&
+				startOwner &&
+				protectedRailKeys[this.getRailPositionCandidateKey(startOwner)];
+			if (canReplaceProtectedStartRoadbed)
+				NGTLog.debug(
+					`[SuperRailBuilderX splitter] shared split endpoint roadbed will be replaced by core: pos=${positions[0].blockX},${positions[0].blockY},${positions[0].blockZ}`,
+				);
+			else if (
+				world.getBlock(
+					positions[0].blockX,
+					positions[0].blockY,
+					positions[0].blockZ,
+				) instanceof BlockLargeRailBase
+			) {
+				NGTLog.debug(
+					`[SuperRailBuilderX builder1] normal core position is occupied by rail: pos=${positions[0].blockX},${positions[0].blockY},${positions[0].blockZ}`,
+				);
+				return { status: "section_core_conflict" };
+			}
 		}
 		const placementMaps: RailSectionMap[] = [];
 		if (!createAsNormal) {
@@ -3332,6 +3378,10 @@ export class SRBXApiCompat {
 			undefined,
 			property,
 			leftLength <= 64 && rightLength <= 64,
+			false,
+			false,
+			undefined,
+			firstEnd.ownerBlock,
 		);
 		if (first.status !== "ok" || !first.undoCore || !first.undoKey) {
 			const restored = this.restoreSplitSource(world, player, record);
@@ -3354,6 +3404,10 @@ export class SRBXApiCompat {
 			undefined,
 			property,
 			leftLength <= 64 && rightLength <= 64,
+			false,
+			false,
+			undefined,
+			secondStart.ownerBlock,
 		);
 		if (second.status !== "ok" || !second.undoCore || !second.undoKey) {
 			this.undoBuilderRail(

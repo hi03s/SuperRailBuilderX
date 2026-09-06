@@ -24,7 +24,10 @@ import {
 	SRBXBuilderPoint,
 } from "@target/assets/minecraft/scripts/superrailbuilderx/SRBXApiCompat";
 import { SRBXMath, SRBXVec3 } from "./SRBXMath";
-import { RailPositionMoveRequest } from "./server_rail_mover";
+import {
+	RailPositionConnectedMove,
+	RailPositionMoveRequest,
+} from "./server_rail_mover";
 
 declare const renderer: VehiclePartsRenderer;
 
@@ -62,6 +65,8 @@ type ParallelPlan = {
 	target: SelectedRail;
 	originalStart: RailCorePos;
 	originalEnd: RailCorePos;
+	originalStartPoint: SRBXBuilderPoint;
+	originalEndPoint: SRBXBuilderPoint;
 	start: SRBXBuilderPoint;
 	end: SRBXBuilderPoint;
 };
@@ -73,6 +78,7 @@ type EditorState = {
 	destination: [number, number, number] | null;
 	parallelPlan: ParallelPlan | null;
 	awaitingResult: boolean;
+	pendingAction: "move" | "undo" | null;
 	snapEnabled: boolean;
 };
 
@@ -103,6 +109,7 @@ function init(par1: ModelSetVehicle, par2: ModelObject): void {
 	keys.register("exit", Keyboard.KEY_Q, false, "ツールを終了");
 	keys.register("apply", Keyboard.KEY_RETURN, false, "移動を適用");
 	keys.register("snap", Keyboard.KEY_P, false, "0.1mスナップ切替");
+	keys.register("undo", Keyboard.KEY_Z, true, "直前の移動を取り消す");
 	body = renderer.registerParts(new Parts("body"));
 	point = renderer.registerParts(new Parts("selectCursor"));
 	selectedPoint = renderer.registerParts(new Parts("selectedCursor"));
@@ -119,6 +126,7 @@ function getState(entity: EntityVehicle): EditorState {
 			destination: null,
 			parallelPlan: null,
 			awaitingResult: false,
+			pendingAction: null,
 			snapEnabled: false,
 		};
 		states.put(entity, state);
@@ -482,10 +490,90 @@ function sourcePoint(rp: RailPosition): SRBXBuilderPoint {
 		anchorLength: SRBXApiCompat.getHorizontalAnchorLength(rp),
 		anchorLengthVertical: SRBXApiCompat.getVerticalAnchorLength(rp),
 		markerPosition: [rp.posX, rp.posY, rp.posZ],
+		ownerBlock: [rp.blockX, rp.blockY, rp.blockZ],
 		cantEdge: SRBXApiCompat.getRailPositionCantEdge(rp),
 		cantCenter: SRBXApiCompat.getRailPositionCantCenter(rp),
 		cantRandom: SRBXApiCompat.getRailPositionCantRandom(rp),
 	};
+}
+
+function connectedEndpointMoves(
+	entity: EntityVehicle,
+	target: SelectedRail,
+	plan: ParallelPlan,
+): RailPositionConnectedMove[] {
+	const world = SRBXApiCompat.getWorld(entity);
+	const result: RailPositionConnectedMove[] = [];
+	const seen: { [key: string]: boolean } = {};
+	const endpoints: Array<{
+		position: SRBXVec3;
+		destination: RailCorePos;
+	}> = [
+		{ position: plan.originalStart, destination: plan.start.position },
+		{ position: plan.originalEnd, destination: plan.end.position },
+	];
+	for (
+		let endpointIndex = 0;
+		endpointIndex < endpoints.length;
+		endpointIndex++
+	) {
+		const endpoint = endpoints[endpointIndex];
+		for (
+			let x = Math.floor(endpoint.position[0]) - 1;
+			x <= Math.floor(endpoint.position[0]) + 1;
+			x++
+		)
+			for (
+				let y = Math.floor(endpoint.position[1]) - 1;
+				y <= Math.floor(endpoint.position[1]) + 1;
+				y++
+			)
+				for (
+					let z = Math.floor(endpoint.position[2]) - 1;
+					z <= Math.floor(endpoint.position[2]) + 1;
+					z++
+				) {
+					const tile = SRBXApiCompat.getTileEntity(world, x, y, z);
+					if (!(tile instanceof TileEntityLargeRailBase)) continue;
+					const core = tile.getRailCore();
+					if (!core) continue;
+					const railKey =
+						SRBXApiCompat.getRailPositionCandidateKey(core);
+					if (railKey === target.railKey) continue;
+					if (
+						SRBXApiCompat.getRailPositionUnsupportedReason(core) !==
+						""
+					)
+						continue;
+					const positions =
+						SRBXApiCompat.getEditableRailPositions(core);
+					const corePos = SRBXApiCompat.getRailCorePos(core);
+					for (let index = 0; index < positions.length; index++) {
+						const rp = positions[index] as RailPosition;
+						if (
+							Math.abs(rp.posX - endpoint.position[0]) >
+								CONNECTED_ENDPOINT_TOLERANCE ||
+							Math.abs(rp.posY - endpoint.position[1]) >
+								CONNECTED_ENDPOINT_TOLERANCE ||
+							Math.abs(rp.posZ - endpoint.position[2]) >
+								CONNECTED_ENDPOINT_TOLERANCE
+						)
+							continue;
+						const key = `${railKey}:${index}`;
+						if (seen[key]) continue;
+						seen[key] = true;
+						result.push({
+							target: {
+								core: corePos,
+								index,
+								original: [rp.posX, rp.posY, rp.posZ],
+							},
+							destination: endpoint.destination,
+						});
+					}
+				}
+	}
+	return result;
 }
 
 function horizontalNormal(yaw: number): [number, number] {
@@ -657,6 +745,50 @@ function buildParallelPlan(
 		SRBXMath.normalizeDegrees(sourceEnd.anchorYaw + 180),
 		offset,
 	);
+	const startConnection = connectionCandidate(
+		entity,
+		start,
+		resolved.target.railKey,
+	);
+	const endConnection = connectionCandidate(
+		entity,
+		end,
+		resolved.target.railKey,
+	);
+	if (startConnection && !endConnection) {
+		const delta: SRBXVec3 = [
+			startConnection.position[0] - start.position[0],
+			startConnection.position[1] - start.position[1],
+			startConnection.position[2] - start.position[2],
+		];
+		start = startConnection;
+		end.position = SRBXMath.roundPosition(
+			[
+				end.position[0] + delta[0],
+				end.position[1] + delta[1],
+				end.position[2] + delta[2],
+			],
+			0.001,
+		);
+	} else if (!startConnection && endConnection) {
+		const delta: SRBXVec3 = [
+			endConnection.position[0] - end.position[0],
+			endConnection.position[1] - end.position[1],
+			endConnection.position[2] - end.position[2],
+		];
+		end = endConnection;
+		start.position = SRBXMath.roundPosition(
+			[
+				start.position[0] + delta[0],
+				start.position[1] + delta[1],
+				start.position[2] + delta[2],
+			],
+			0.001,
+		);
+	} else {
+		if (startConnection) start = startConnection;
+		if (endConnection) end = endConnection;
+	}
 	const sourceChord = SRBXMath.horizontalDistance(
 		sourceStart.position,
 		sourceEnd.position,
@@ -672,9 +804,6 @@ function buildParallelPlan(
 		start.anchorLengthVertical *= anchorScale;
 	if (end.anchorLengthVertical !== undefined)
 		end.anchorLengthVertical *= anchorScale;
-	start =
-		connectionCandidate(entity, start, resolved.target.railKey) || start;
-	end = connectionCandidate(entity, end, resolved.target.railKey) || end;
 	if (start.kind === "free") setDefaultOwner(start);
 	if (end.kind === "free") setDefaultOwner(end);
 	return {
@@ -688,6 +817,8 @@ function buildParallelPlan(
 		},
 		originalStart: sourceStart.position,
 		originalEnd: sourceEnd.position,
+		originalStartPoint: sourceStart,
+		originalEndPoint: sourceEnd,
 		start,
 		end,
 	};
@@ -839,6 +970,7 @@ function handleInput(
 		NGTLog.sendChatMessage(sender, "[左クリック] 1段階戻る");
 		NGTLog.sendChatMessage(sender, keys.getDescription("snap"));
 		NGTLog.sendChatMessage(sender, keys.getDescription("apply"));
+		NGTLog.sendChatMessage(sender, keys.getDescription("undo"));
 		NGTLog.sendChatMessage(sender, keys.getDescription("exit"));
 	}
 	if (keys.down("exit")) dataMap.setBoolean("isEndEdit", true, 1);
@@ -924,18 +1056,27 @@ function handleInput(
 			};
 		else if (state.parallelPlan)
 			request = {
+				action: "move",
 				mode: "parallel",
 				core: state.parallelPlan.target.core,
 				railKey: state.parallelPlan.target.railKey,
 				originalStart: state.parallelPlan.originalStart,
 				originalEnd: state.parallelPlan.originalEnd,
+				originalStartPoint: state.parallelPlan.originalStartPoint,
+				originalEndPoint: state.parallelPlan.originalEndPoint,
 				start: state.parallelPlan.start,
 				end: state.parallelPlan.end,
+				connectedMoves: connectedEndpointMoves(
+					entity,
+					state.parallelPlan.target,
+					state.parallelPlan,
+				),
 			};
 		if (!request) return;
 		NGTOBuilderUtil.sendJsonData(dataMap, "railPositionMove", request);
 		dataMap.setString("applyResult", "waiting", 1);
 		state.awaitingResult = true;
+		state.pendingAction = "move";
 		NGTLog.sendChatMessage(sender, "[SuperRailBuilderX] 移動・再生成中...");
 	}
 	const result = dataMap.getString("applyResult");
@@ -977,7 +1118,21 @@ function handleInput(
 				);
 		NGTOBuilderUtil.resetJsonData(dataMap, "railPositionUpdatedCores");
 		NGTOBuilderUtil.resetJsonData(dataMap, "railPositionRemovedRails");
-		if (result === "ok" || result === "ok_normal_crossing") {
+		if (result === "undo_ok" && state.pendingAction === "undo") {
+			NGTLog.sendChatMessage(
+				sender,
+				"§a[SuperRailBuilderX] 移動前の状態へ戻しました",
+			);
+			state.stage = 0;
+			state.selected = null;
+			state.selectedRail = null;
+			state.destination = null;
+			state.parallelPlan = null;
+		} else if (
+			result === "ok" ||
+			result === "ok_sectioned" ||
+			result === "ok_normal_crossing"
+		) {
 			NGTLog.sendChatMessage(
 				sender,
 				"§a[SuperRailBuilderX] 移動・再生成しました",
@@ -998,7 +1153,21 @@ function handleInput(
 				`§c[SuperRailBuilderX] 適用失敗: ${result}`,
 			);
 		}
+		state.pendingAction = null;
 		dataMap.setString("applyResult", "", 1);
+	}
+	if (
+		keys.pressed("undo") &&
+		!state.awaitingResult &&
+		dataMap.getBoolean("railMoverCanUndo")
+	) {
+		NGTOBuilderUtil.sendJsonData(dataMap, "railPositionMove", {
+			action: "undo",
+		} as RailPositionMoveRequest);
+		dataMap.setString("applyResult", "waiting", 1);
+		state.awaitingResult = true;
+		state.pendingAction = "undo";
+		NGTLog.sendChatMessage(sender, "[SuperRailBuilderX] Undo...");
 	}
 }
 
