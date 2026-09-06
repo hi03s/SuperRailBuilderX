@@ -12,7 +12,7 @@ import {
 } from "@target/assets/minecraft/scripts/superrailbuilderx/SRBXApiCompat";
 import { SRBXMath } from "./SRBXMath";
 
-const VERSION = "0.1.0";
+const VERSION = "alpha-0.1.0";
 
 export type Builder1Request =
 	| {

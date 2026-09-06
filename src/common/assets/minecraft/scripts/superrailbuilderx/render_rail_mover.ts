@@ -32,7 +32,7 @@ import {
 
 declare const renderer: VehiclePartsRenderer;
 
-const VERSION = "0.1.0";
+const VERSION = "alpha-0.1.0";
 const SEARCH_RADIUS = 1.05;
 const CONNECTED_ENDPOINT_TOLERANCE = 0.001;
 const NORMAL_RAIL_HEIGHT = 1 / 16;
