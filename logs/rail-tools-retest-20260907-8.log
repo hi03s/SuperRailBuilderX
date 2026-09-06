@@ -1,0 +1,13 @@
+[20:22:59] [Server thread/INFO]: [SuperRailBuilderX splitter] shared split endpoint roadbed will be replaced by core
+[20:22:59] [Server thread/INFO]: [SuperRailBuilderX splitter] split succeeded: lengths=8.207/9.233
+[20:22:59] [Server thread/INFO]: [SuperRailBuilderX splitter] request completed: action=split, result=ok
+[20:29:10] [Server thread/INFO]: [SuperRailBuilderX RailPosition] parallel move succeeded: normalFallback=false
+[20:29:10] [Server thread/INFO]: [SuperRailBuilderX RailPosition] builder-rule rebuild succeeded: sectioned=false, normalCrossing=false
+[20:30:58] [Server thread/INFO]: [SuperRailBuilderX RailPosition] parallel move succeeded: normalFallback=false
+[20:30:58] [Server thread/INFO]: [SuperRailBuilderX RailPosition] builder-rule rebuild succeeded: sectioned=true, normalCrossing=false
+[20:31:15] [Server thread/INFO]: [SuperRailBuilderX RailPosition] applying connected endpoint: targets=2
+[20:31:15] [Server thread/INFO]: [SuperRailBuilderX RailPosition] builder-rule rebuild succeeded: sectioned=true, normalCrossing=false
+[20:32:13] [Server thread/INFO]: [SuperRailBuilderX RailPosition] parallel move succeeded: normalFallback=false
+[20:32:13] [Server thread/INFO]: [SuperRailBuilderX RailPosition] builder-rule rebuild succeeded: sectioned=true, normalCrossing=false
+
+# latest.logにはレール移動のUndo要求・応答がなく、クライアント側で要求送信前に遮断されていたと判断した。

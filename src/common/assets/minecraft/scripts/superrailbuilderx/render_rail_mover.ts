@@ -27,6 +27,7 @@ import { SRBXMath, SRBXVec3 } from "./SRBXMath";
 import {
 	RailPositionConnectedMove,
 	RailPositionMoveRequest,
+	RailPositionParallelMoveRequest,
 } from "./server_rail_mover";
 
 declare const renderer: VehiclePartsRenderer;
@@ -38,6 +39,7 @@ const NORMAL_RAIL_HEIGHT = 1 / 16;
 const SNAP_STEP = 0.1;
 const PARALLEL_MIN_OFFSET = 0.05;
 const ENDPOINT_SNAP_RADIUS = 0.5;
+const HOVER_BLOCK_RADIUS = 2;
 const SELECTED_LINE_MODEL_LENGTH = 0.6225;
 
 type Candidate = {
@@ -69,17 +71,19 @@ type ParallelPlan = {
 	originalEndPoint: SRBXBuilderPoint;
 	start: SRBXBuilderPoint;
 	end: SRBXBuilderPoint;
+	offset: number;
 };
 
 type EditorState = {
 	stage: number;
 	selected: SelectedEndpoint | null;
-	selectedRail: SelectedRail | null;
+	selectedRails: SelectedRail[];
 	destination: [number, number, number] | null;
-	parallelPlan: ParallelPlan | null;
+	parallelPlans: ParallelPlan[];
 	awaitingResult: boolean;
 	pendingAction: "move" | "undo" | null;
 	snapEnabled: boolean;
+	ignoredRailKeys: { [key: string]: boolean };
 };
 
 type CandidateScanDiagnostics = {
@@ -93,6 +97,22 @@ type CandidateScanDiagnostics = {
 	outOfRangePositions: number;
 	errors: number;
 };
+
+function sameRail(a: SelectedRail, b: SelectedRail): boolean {
+	return a.railKey === b.railKey;
+}
+
+function toggleRailSelection(state: EditorState, target: SelectedRail): void {
+	for (let i = 0; i < state.selectedRails.length; i++)
+		if (sameRail(state.selectedRails[i], target)) {
+			state.selectedRails.splice(i, 1);
+			return;
+		}
+	state.selectedRails.push({
+		core: [target.core[0], target.core[1], target.core[2]],
+		railKey: target.railKey,
+	});
+}
 
 let keys: InputManager;
 let body: Parts;
@@ -122,12 +142,13 @@ function getState(entity: EntityVehicle): EditorState {
 		state = {
 			stage: 0,
 			selected: null,
-			selectedRail: null,
+			selectedRails: [],
 			destination: null,
-			parallelPlan: null,
+			parallelPlans: [],
 			awaitingResult: false,
 			pendingAction: null,
 			snapEnabled: false,
+			ignoredRailKeys: {},
 		};
 		states.put(entity, state);
 	}
@@ -404,6 +425,7 @@ function resolveRail(
 	entity: EntityVehicle,
 	target: SelectedRail,
 ): ResolvedRail | null {
+	if (getState(entity).ignoredRailKeys[target.railKey]) return null;
 	const world = SRBXApiCompat.getWorld(entity);
 	const tile = SRBXApiCompat.getTileEntity(
 		world,
@@ -434,9 +456,9 @@ function findHoverRail(
 	const seen: { [key: string]: boolean } = {};
 	let best: SelectedRail | null = null;
 	let bestDistance = 2.25;
-	for (let dx = -1; dx <= 1; dx++) {
+	for (let dx = -HOVER_BLOCK_RADIUS; dx <= HOVER_BLOCK_RADIUS; dx++) {
 		for (let dy = -1; dy <= 1; dy++) {
-			for (let dz = -1; dz <= 1; dz++) {
+			for (let dz = -HOVER_BLOCK_RADIUS; dz <= HOVER_BLOCK_RADIUS; dz++) {
 				const tile = SRBXApiCompat.getTileEntity(
 					world,
 					looking.posX + dx,
@@ -449,6 +471,7 @@ function findHoverRail(
 				const railKey = SRBXApiCompat.getRailPositionCandidateKey(core);
 				if (seen[railKey]) continue;
 				seen[railKey] = true;
+				if (getState(entity).ignoredRailKeys[railKey]) continue;
 				if (SRBXApiCompat.getRailPositionUnsupportedReason(core) !== "")
 					continue;
 				const map = SRBXApiCompat.getLogicalRailMap(core);
@@ -501,6 +524,7 @@ function connectedEndpointMoves(
 	entity: EntityVehicle,
 	target: SelectedRail,
 	plan: ParallelPlan,
+	excludedRailKeys?: { [key: string]: boolean },
 ): RailPositionConnectedMove[] {
 	const world = SRBXApiCompat.getWorld(entity);
 	const result: RailPositionConnectedMove[] = [];
@@ -539,7 +563,11 @@ function connectedEndpointMoves(
 					if (!core) continue;
 					const railKey =
 						SRBXApiCompat.getRailPositionCandidateKey(core);
-					if (railKey === target.railKey) continue;
+					if (
+						railKey === target.railKey ||
+						(excludedRailKeys && excludedRailKeys[railKey])
+					)
+						continue;
 					if (
 						SRBXApiCompat.getRailPositionUnsupportedReason(core) !==
 						""
@@ -574,6 +602,31 @@ function connectedEndpointMoves(
 				}
 	}
 	return result;
+}
+
+function parallelRequest(
+	entity: EntityVehicle,
+	plan: ParallelPlan,
+	excludedRailKeys: { [key: string]: boolean },
+): RailPositionParallelMoveRequest {
+	return {
+		action: "move",
+		mode: "parallel",
+		core: plan.target.core,
+		railKey: plan.target.railKey,
+		originalStart: plan.originalStart,
+		originalEnd: plan.originalEnd,
+		originalStartPoint: plan.originalStartPoint,
+		originalEndPoint: plan.originalEndPoint,
+		start: plan.start,
+		end: plan.end,
+		connectedMoves: connectedEndpointMoves(
+			entity,
+			plan.target,
+			plan,
+			excludedRailKeys,
+		),
+	};
 }
 
 function horizontalNormal(yaw: number): [number, number] {
@@ -722,9 +775,12 @@ function buildParallelPlan(
 	entity: EntityVehicle,
 	partialTicks: number,
 	state: EditorState,
+	target?: SelectedRail,
+	fixedOffset?: number,
 ): ParallelPlan | null {
-	if (!state.selectedRail) return null;
-	const resolved = resolveRail(entity, state.selectedRail);
+	const selected = target || state.selectedRails[0];
+	if (!selected) return null;
+	const resolved = resolveRail(entity, selected);
 	const looking = NGTOBuilderUtilClient.getLookingPos(partialTicks);
 	if (!resolved || !looking) return null;
 	const split = 1000;
@@ -732,9 +788,14 @@ function buildParallelPlan(
 	const yaw = RTMApiCompat.getRailYaw(resolved.map, split, split / 2);
 	const normal = horizontalNormal(yaw);
 	let offset =
-		(looking.posX - center[0]) * normal[0] +
-		(looking.posZ - center[2]) * normal[1];
-	offset = state.snapEnabled ? roundSnap(offset) : roundCentimeter(offset);
+		fixedOffset === undefined
+			? (looking.posX - center[0]) * normal[0] +
+				(looking.posZ - center[2]) * normal[1]
+			: fixedOffset;
+	if (fixedOffset === undefined)
+		offset = state.snapEnabled
+			? roundSnap(offset)
+			: roundCentimeter(offset);
 	if (Math.abs(offset) < PARALLEL_MIN_OFFSET) return null;
 	const sourceStart = sourcePoint(resolved.positions[0]);
 	const sourceEnd = sourcePoint(resolved.positions[1]);
@@ -821,7 +882,36 @@ function buildParallelPlan(
 		originalEndPoint: sourceEnd,
 		start,
 		end,
+		offset,
 	};
+}
+
+function buildParallelPlans(
+	entity: EntityVehicle,
+	partialTicks: number,
+	state: EditorState,
+): ParallelPlan[] {
+	if (state.selectedRails.length === 0) return [];
+	const first = buildParallelPlan(
+		entity,
+		partialTicks,
+		state,
+		state.selectedRails[0],
+	);
+	if (!first) return [];
+	const result = [first];
+	for (let i = 1; i < state.selectedRails.length; i++) {
+		const plan = buildParallelPlan(
+			entity,
+			partialTicks,
+			state,
+			state.selectedRails[i],
+			first.offset,
+		);
+		if (!plan) return [];
+		result.push(plan);
+	}
+	return result;
 }
 
 function renderMarker(
@@ -964,7 +1054,7 @@ function handleInput(
 		);
 		NGTLog.sendChatMessage(
 			sender,
-			"[右クリック] レール中央を選択: 単一レールを平行移動",
+			"[右クリック] レール中央を選択/解除: 複数レールを平行移動",
 		);
 		NGTLog.sendChatMessage(sender, "[右クリック] 移動先を固定");
 		NGTLog.sendChatMessage(sender, "[左クリック] 1段階戻る");
@@ -979,7 +1069,7 @@ function handleInput(
 		if (state.stage === 2) {
 			state.stage = 1;
 			state.destination = null;
-			state.parallelPlan = null;
+			state.parallelPlans = [];
 		}
 		NGTLog.sendChatMessage(
 			sender,
@@ -990,11 +1080,15 @@ function handleInput(
 		if (state.stage === 2) {
 			state.stage = 1;
 			state.destination = null;
-			state.parallelPlan = null;
+			state.parallelPlans = [];
 		} else if (state.stage === 1) {
-			state.stage = 0;
-			state.selected = null;
-			state.selectedRail = null;
+			if (state.selected) {
+				state.selected = null;
+				state.stage = 0;
+			} else {
+				state.selectedRails.pop();
+				if (state.selectedRails.length === 0) state.stage = 0;
+			}
 		}
 	}
 	if (rightClick && state.stage === 0) {
@@ -1004,14 +1098,14 @@ function handleInput(
 		);
 		if (endpoint) {
 			state.selected = endpoint;
-			state.selectedRail = null;
+			state.selectedRails = [];
 			state.stage = 1;
 		} else {
 			const rail = findHoverRail(entity, partialTicks);
 			if (rail) {
-				state.selectedRail = rail;
+				toggleRailSelection(state, rail);
 				state.selected = null;
-				state.stage = 1;
+				state.stage = state.selectedRails.length > 0 ? 1 : 0;
 			} else {
 				const switchRail =
 					lastCandidateScanDiagnostics &&
@@ -1032,14 +1126,25 @@ function handleInput(
 				state.snapEnabled,
 			);
 			if (state.destination) state.stage = 2;
-		} else if (state.selectedRail) {
-			state.parallelPlan = buildParallelPlan(entity, partialTicks, state);
-			if (state.parallelPlan) state.stage = 2;
-			else
-				NGTLog.sendChatMessage(
-					sender,
-					"§e[SuperRailBuilderX] 有効な平行移動位置がありません",
+		} else if (state.selectedRails.length > 0) {
+			const rail = findHoverRail(entity, partialTicks);
+			if (rail) {
+				toggleRailSelection(state, rail);
+				if (state.selectedRails.length === 0) state.stage = 0;
+			} else {
+				state.parallelPlans = buildParallelPlans(
+					entity,
+					partialTicks,
+					state,
 				);
+				if (state.parallelPlans.length === state.selectedRails.length)
+					state.stage = 2;
+				else
+					NGTLog.sendChatMessage(
+						sender,
+						"§e[SuperRailBuilderX] 選択中に平行移動できないレールがあります",
+					);
+			}
 		}
 	}
 	if (keys.pressed("apply") && state.stage === 2) {
@@ -1054,24 +1159,29 @@ function handleInput(
 				})),
 				destination: state.destination,
 			};
-		else if (state.parallelPlan)
+		else if (state.parallelPlans.length > 0) {
+			const excluded: { [key: string]: boolean } = {};
+			for (let i = 0; i < state.selectedRails.length; i++)
+				excluded[state.selectedRails[i].railKey] = true;
+			const plans = state.parallelPlans.map((plan) =>
+				parallelRequest(entity, plan, excluded),
+			);
+			const connectedSeen: { [key: string]: boolean } = {};
+			for (let i = 0; i < plans.length; i++) {
+				const moves = plans[i].connectedMoves || [];
+				plans[i].connectedMoves = moves.filter((move) => {
+					const key = `${move.target.core[0]},${move.target.core[1]},${move.target.core[2]}:${move.target.index}`;
+					if (connectedSeen[key]) return false;
+					connectedSeen[key] = true;
+					return true;
+				});
+			}
 			request = {
 				action: "move",
-				mode: "parallel",
-				core: state.parallelPlan.target.core,
-				railKey: state.parallelPlan.target.railKey,
-				originalStart: state.parallelPlan.originalStart,
-				originalEnd: state.parallelPlan.originalEnd,
-				originalStartPoint: state.parallelPlan.originalStartPoint,
-				originalEndPoint: state.parallelPlan.originalEndPoint,
-				start: state.parallelPlan.start,
-				end: state.parallelPlan.end,
-				connectedMoves: connectedEndpointMoves(
-					entity,
-					state.parallelPlan.target,
-					state.parallelPlan,
-				),
+				mode: "parallel_multi",
+				plans,
 			};
+		}
 		if (!request) return;
 		NGTOBuilderUtil.sendJsonData(dataMap, "railPositionMove", request);
 		dataMap.setString("applyResult", "waiting", 1);
@@ -1101,8 +1211,8 @@ function handleInput(
 			const core = tile.getRailCore();
 			if (!core) continue;
 			const key = SRBXApiCompat.getRailPositionCandidateKey(core);
-			if (refreshed[key]) continue;
 			refreshed[key] = true;
+			delete state.ignoredRailKeys[key];
 			SRBXApiCompat.refreshRailCoreClient(core);
 		}
 		const removed =
@@ -1110,12 +1220,14 @@ function handleInput(
 				Array<{ core: RailCorePos; key: string }>
 			>(dataMap, "railPositionRemovedRails") || [];
 		for (let i = 0; i < removed.length; i++)
-			if (!refreshed[removed[i].key])
+			if (!refreshed[removed[i].key]) {
+				state.ignoredRailKeys[removed[i].key] = true;
 				SRBXApiCompat.removeRailClientGhost(
 					world,
 					removed[i].core,
 					removed[i].key,
 				);
+			}
 		NGTOBuilderUtil.resetJsonData(dataMap, "railPositionUpdatedCores");
 		NGTOBuilderUtil.resetJsonData(dataMap, "railPositionRemovedRails");
 		if (result === "undo_ok" && state.pendingAction === "undo") {
@@ -1125,9 +1237,9 @@ function handleInput(
 			);
 			state.stage = 0;
 			state.selected = null;
-			state.selectedRail = null;
+			state.selectedRails = [];
 			state.destination = null;
-			state.parallelPlan = null;
+			state.parallelPlans = [];
 		} else if (
 			result === "ok" ||
 			result === "ok_sectioned" ||
@@ -1144,9 +1256,9 @@ function handleInput(
 				);
 			state.stage = 0;
 			state.selected = null;
-			state.selectedRail = null;
+			state.selectedRails = [];
 			state.destination = null;
-			state.parallelPlan = null;
+			state.parallelPlans = [];
 		} else {
 			NGTLog.sendChatMessage(
 				sender,
@@ -1156,11 +1268,7 @@ function handleInput(
 		state.pendingAction = null;
 		dataMap.setString("applyResult", "", 1);
 	}
-	if (
-		keys.pressed("undo") &&
-		!state.awaitingResult &&
-		dataMap.getBoolean("railMoverCanUndo")
-	) {
+	if (keys.pressed("undo") && !state.awaitingResult) {
 		NGTOBuilderUtil.sendJsonData(dataMap, "railPositionMove", {
 			action: "undo",
 		} as RailPositionMoveRequest);
@@ -1196,15 +1304,23 @@ function render(
 	for (let i = 0; i < candidates.length; i++)
 		renderMarker(entity, partialTicks, candidates[i].position, point);
 	const hoverRail =
-		state.stage === 0 ? findHoverRail(entity, partialTicks) : null;
+		state.stage <= 1 && !state.selected
+			? findHoverRail(entity, partialTicks)
+			: null;
 	if (hoverRail && candidates.length === 0) {
 		const resolved = resolveRail(entity, hoverRail);
+		let hoverSelected = false;
+		for (let i = 0; i < state.selectedRails.length; i++)
+			if (sameRail(state.selectedRails[i], hoverRail)) {
+				hoverSelected = true;
+				break;
+			}
 		if (resolved)
 			renderRailHighlight(
 				entity,
 				partialTicks,
 				resolved.map,
-				"ffff00",
+				hoverSelected ? "008888" : "ffff00",
 				0.6,
 			);
 	}
@@ -1215,8 +1331,8 @@ function render(
 			state.selected.position,
 			selectedPoint,
 		);
-	if (state.selectedRail) {
-		const resolved = resolveRail(entity, state.selectedRail);
+	for (let i = 0; i < state.selectedRails.length; i++) {
+		const resolved = resolveRail(entity, state.selectedRails[i]);
 		if (resolved)
 			renderRailHighlight(
 				entity,
@@ -1232,13 +1348,14 @@ function render(
 			: state.destination;
 	if (endpointPreview)
 		renderMarker(entity, partialTicks, endpointPreview, point);
-	const parallelPreview = state.selectedRail
-		? state.stage === 1
-			? buildParallelPlan(entity, partialTicks, state)
-			: state.parallelPlan
-		: null;
-	if (parallelPreview)
-		renderParallelPlan(entity, partialTicks, parallelPreview);
+	const parallelPreview =
+		state.selectedRails.length > 0
+			? state.stage === 1
+				? buildParallelPlans(entity, partialTicks, state)
+				: state.parallelPlans
+			: [];
+	for (let i = 0; i < parallelPreview.length; i++)
+		renderParallelPlan(entity, partialTicks, parallelPreview[i]);
 	const isOpenGUI = NGTUtilClient.getMinecraft().currentScreen !== null;
 	const left = Mouse.isButtonDown(0);
 	const right = Mouse.isButtonDown(1);

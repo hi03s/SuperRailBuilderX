@@ -9,6 +9,7 @@
 		"rendererPath": "scripts/superrailbuilderx/render_builder1.js"
 	},
 	"buttonTexture": "textures/superrailbuilderx/button_builder1.png",
+	"customIconTexture": "textures/superrailbuilderx/icon_builder1.png",
 	"serverScriptPath": "scripts/superrailbuilderx/server_builder1.js",
 	"playerPos": [[0, 0, 0]],
 	"vehicleType": "Car",

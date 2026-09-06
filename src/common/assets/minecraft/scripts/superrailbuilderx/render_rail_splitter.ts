@@ -21,7 +21,7 @@ import {
 
 declare const renderer: VehiclePartsRenderer;
 
-const MIN_RESULT_LENGTH = 6;
+const MIN_RESULT_LENGTH = 3;
 const MIN_SPLITTABLE_LENGTH = 6;
 
 type Vec3 = [number, number, number];
@@ -31,6 +31,7 @@ type SplitTarget = {
 	ratio: number;
 	position: Vec3;
 	length: number;
+	splittable: boolean;
 };
 type SplitterState = {
 	selected: SplitTarget | null;
@@ -114,7 +115,6 @@ function findHoverTarget(
 				seen[railKey] = true;
 				const map = SRBXApiCompat.getLogicalRailMap(core);
 				if (!map) continue;
-				if (map.getLength() <= MIN_SPLITTABLE_LENGTH) continue;
 				const renderSplit = Math.max(
 					1,
 					Math.floor(map.getLength() * 2),
@@ -125,13 +125,19 @@ function findHoverTarget(
 						(MIN_RESULT_LENGTH * candidateSplit) / map.getLength(),
 					) + 1;
 				const maximumIndex = candidateSplit - minimumIndex;
-				if (minimumIndex > maximumIndex) continue;
+				const splittable =
+					map.getLength() > MIN_SPLITTABLE_LENGTH &&
+					minimumIndex <= maximumIndex;
 				let index = map.getNearlestPoint(
 					candidateSplit,
 					looking.posX,
 					looking.posZ,
 				);
-				index = Math.max(minimumIndex, Math.min(maximumIndex, index));
+				if (splittable)
+					index = Math.max(
+						minimumIndex,
+						Math.min(maximumIndex, index),
+					);
 				const position = railPoint(map, candidateSplit, index);
 				const distance =
 					Math.pow(position[0] - looking.posX, 2) +
@@ -145,6 +151,7 @@ function findHoverTarget(
 					ratio: index / candidateSplit,
 					position,
 					length: map.getLength(),
+					splittable,
 				};
 			}
 		}
@@ -362,7 +369,7 @@ function handleInput(
 	if (leftClick && !state.awaitingResult) state.selected = null;
 	if (rightClick && !state.awaitingResult) {
 		const target = findHoverTarget(entity, partialTicks);
-		if (target) state.selected = target;
+		if (target && target.splittable) state.selected = target;
 		else
 			NGTLog.sendChatMessage(
 				sender,
@@ -417,15 +424,20 @@ function render(
 				entity,
 				partialTicks,
 				map,
-				state.selected ? "00ffff" : "ffff00",
+				state.selected
+					? "00ffff"
+					: target.splittable
+						? "ffff00"
+						: "ff0000",
 				0.6,
 			);
-			renderAt(
-				entity,
-				partialTicks,
-				target.position,
-				state.selected ? selectedCursor : hoverCursor,
-			);
+			if (target.splittable)
+				renderAt(
+					entity,
+					partialTicks,
+					target.position,
+					state.selected ? selectedCursor : hoverCursor,
+				);
 			if (state.selected) {
 				const split = 1000000;
 				const selectedIndex = Math.round(target.ratio * split);

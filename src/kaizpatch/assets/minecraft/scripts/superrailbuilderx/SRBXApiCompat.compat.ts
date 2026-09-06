@@ -3270,7 +3270,7 @@ export class SRBXApiCompat {
 		};
 		const leftLength = length * ratio;
 		const rightLength = length - leftLength;
-		if (leftLength <= 6 || rightLength <= 6)
+		if (leftLength <= 3 || rightLength <= 3)
 			return { status: "rail_too_short" };
 		const point = railMap.getRailPos(1000000, Math.round(ratio * 1000000));
 		const x = point[1];

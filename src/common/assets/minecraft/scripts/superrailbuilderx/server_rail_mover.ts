@@ -51,7 +51,12 @@ export type RailPositionMoveRequest =
 			targets: RailPositionMoveTarget[];
 			destination: RailCorePos;
 	  }
-	| RailPositionParallelMoveRequest;
+	| RailPositionParallelMoveRequest
+	| {
+			action?: "move";
+			mode: "parallel_multi";
+			plans: RailPositionParallelMoveRequest[];
+	  };
 
 const hosts: WeakHashMap<Entity, EntityPlayer> = new WeakHashMap();
 type RemovedRail = { core: RailCorePos; key: string };
@@ -283,6 +288,64 @@ function applyRequest(
 	NGTOBuilderUtil.resetJsonData(dataMap, "railPositionUpdatedCores");
 	NGTOBuilderUtil.resetJsonData(dataMap, "railPositionRemovedRails");
 	if (request.action === "undo") return applyUndo(entity, player, dataMap);
+	if (request.mode === "parallel_multi") {
+		if (!request.plans || request.plans.length === 0) return "no_targets";
+		if (request.plans.length > 16) return "too_many_targets";
+		const previousUndo = undoRecords.get(entity);
+		undoRecords.remove(entity);
+		const operations: UndoOperation[] = [];
+		const updated: RailCorePos[] = [];
+		const removed: RemovedRail[] = [];
+		let usedNormalFallback = false;
+		for (let i = 0; i < request.plans.length; i++) {
+			const result = applyRequest(entity, player, request.plans[i]);
+			const planUpdated =
+				NGTOBuilderUtil.getJsonData<RailCorePos[]>(
+					dataMap,
+					"railPositionUpdatedCores",
+				) || [];
+			const planRemoved =
+				NGTOBuilderUtil.getJsonData<RemovedRail[]>(
+					dataMap,
+					"railPositionRemovedRails",
+				) || [];
+			for (let j = 0; j < planUpdated.length; j++)
+				updated.push(planUpdated[j]);
+			for (let j = 0; j < planRemoved.length; j++)
+				removed.push(planRemoved[j]);
+			const planUndo = undoRecords.get(entity);
+			if (planUndo)
+				for (let j = 0; j < planUndo.operations.length; j++)
+					operations.push(planUndo.operations[j]);
+			undoRecords.remove(entity);
+			if (!isMoveSuccess(result)) {
+				if (operations.length > 0)
+					undoRecords.put(entity, { operations });
+				else if (previousUndo) undoRecords.put(entity, previousUndo);
+				NGTOBuilderUtil.resetJsonData(
+					dataMap,
+					"railPositionUpdatedCores",
+				);
+				NGTOBuilderUtil.resetJsonData(
+					dataMap,
+					"railPositionRemovedRails",
+				);
+				sendClientChanges(dataMap, updated, removed);
+				return i > 0
+					? `partial_parallel_${i}:${result}`
+					: `parallel_${i}:${result}`;
+			}
+			if (result === "ok_normal_crossing") usedNormalFallback = true;
+		}
+		if (operations.length > 0) undoRecords.put(entity, { operations });
+		NGTLog.debug(
+			`[SuperRailBuilderX/RailMover] parallel multi undo recorded: plans=${request.plans.length}, operations=${operations.length}`,
+		);
+		NGTOBuilderUtil.resetJsonData(dataMap, "railPositionUpdatedCores");
+		NGTOBuilderUtil.resetJsonData(dataMap, "railPositionRemovedRails");
+		sendClientChanges(dataMap, updated, removed);
+		return usedNormalFallback ? "ok_normal_crossing" : "ok";
+	}
 	if (request.mode === "parallel") {
 		if (
 			!request.core ||
@@ -424,6 +487,9 @@ function applyRequest(
 		}
 		if (operations.length > 0) undoRecords.put(entity, { operations });
 		sendClientChanges(dataMap, movedCores, removed);
+		NGTLog.debug(
+			`[SuperRailBuilderX RailPosition] parallel undo recorded: operations=${operations.length}`,
+		);
 		return result;
 	}
 	if (!request.targets || request.targets.length === 0) return "no_targets";
@@ -534,6 +600,9 @@ function applyRequest(
 	}
 	if (operations.length > 0) undoRecords.put(entity, { operations });
 	sendClientChanges(dataMap, updatedCores, removedRails);
+	NGTLog.debug(
+		`[SuperRailBuilderX RailPosition] endpoint undo recorded: operations=${operations.length}`,
+	);
 	return usedNormalFallback ? "ok_normal_crossing" : "ok";
 }
 
@@ -576,17 +645,19 @@ function onUpdate(entity: EntityVehicle, scriptExecuter: ScriptExecuter): void {
 		entity.setDead();
 		return;
 	}
-	dataMap.setBoolean("railMoverCanUndo", undoRecords.containsKey(entity), 1);
+	const canUndo = undoRecords.get(entity) !== null;
+	if (dataMap.getBoolean("railMoverCanUndo") !== canUndo)
+		dataMap.setBoolean("railMoverCanUndo", canUndo, 1);
 	const request = NGTOBuilderUtil.getJsonData<RailPositionMoveRequest>(
 		dataMap,
 		"railPositionMove",
 	);
 	if (request) {
 		try {
-			dataMap.setString(
-				"applyResult",
-				applyRequest(entity, host, request),
-				1,
+			const result = applyRequest(entity, host, request);
+			dataMap.setString("applyResult", result, 1);
+			NGTLog.debug(
+				`[SuperRailBuilderX RailPosition] request completed: action=${request.action || "move"}, mode=${request.action === "undo" ? "undo" : request.mode || "endpoint"}, result=${result}`,
 			);
 		} catch (error) {
 			ErrorLogger.log(
@@ -604,17 +675,17 @@ function onUpdate(entity: EntityVehicle, scriptExecuter: ScriptExecuter): void {
 							? 0
 							: request.mode === "parallel"
 								? 1
-								: request.targets.length,
+								: request.mode === "parallel_multi"
+									? request.plans.length
+									: request.targets.length,
 				},
 			);
 			dataMap.setString("applyResult", "internal_error", 1);
 		} finally {
 			NGTOBuilderUtil.resetJsonData(dataMap, "railPositionMove");
-			dataMap.setBoolean(
-				"railMoverCanUndo",
-				undoRecords.containsKey(entity),
-				1,
-			);
+			const updatedCanUndo = undoRecords.get(entity) !== null;
+			if (dataMap.getBoolean("railMoverCanUndo") !== updatedCanUndo)
+				dataMap.setBoolean("railMoverCanUndo", updatedCanUndo, 1);
 		}
 	}
 }
