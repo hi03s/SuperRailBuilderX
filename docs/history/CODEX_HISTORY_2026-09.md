@@ -648,6 +648,15 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 実装コミット: `51f855d`
 - 同期: `origin/main`へ同期済み。
 
+### 2026-09-08 ローカルCodex — AppleExtended最新コミットのビルド確認
+
+- AppleExtended上流`main`が`74fe2ed`から`b6e07695074b9c490bd24868cca85ecd6d26a8c6`へ更新されたことを確認し、`feature/appleextended`のJitPack依存、README、対象資料を更新した。
+- `pnpm gen`を実行し、以前の`No build artifacts found`を通過できることを確認した。kaizpatch・mc1710の生成後、AE環境のRetroFuturaGradle `generateForgeSrgMappings`がMCP snapshot `20171003`の`joined.exc`と`joined.srg`不在で失敗したため、appleextended・mc1122の生成には到達しなかった。
+- 続けて`pnpm build`も実行したが、生成処理が未完了のため共通Java型宣言が不足し、最終的に`generated/appleextended/mappings/mcp-to-srg.json`不在で失敗した。現時点ではAEを含むビルドは不可。
+- 次はAE側またはrtm-ts側でRetroFuturaGradleのタスク依存関係・対応Gradle構成を修正し、MCP mapping生成後に再試行する。
+- 実装コミット: `f8b4753`
+- 同期: `origin/feature/appleextended`へ同期済み。
+
 ### 記録テンプレート
 
 ### 2026-09-08 Web側Codex — AppleExtended実験ターゲット
