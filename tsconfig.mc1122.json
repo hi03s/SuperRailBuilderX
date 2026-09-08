@@ -11,9 +11,7 @@
 		"src/common",
 		"src/kaizpatch",
 		"src/mc1710",
-		"src/appleextended",
 		"generated/kaizpatch",
-		"generated/mc1710",
-		"generated/appleextended"
+		"generated/mc1710"
 	]
 }

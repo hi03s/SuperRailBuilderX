@@ -2,11 +2,11 @@
 
 このファイルは、次の作業に必要な現行情報だけを共有するための短期引継ぎ帳です。詳細な過去記録は `docs/history/` に保存し、通常は読みません。
 
-最終更新: 2026-09-08（ローカルCodex）
+最終更新: 2026-09-07（ローカルCodex）
 
 ## 現在の状態
 
-- rtm-ts 0.12.0、`kaizpatch`・`mc1710`・`appleextended`・`mc1122`のmulti-targetを構成済み。AEは`74fe2ed`基準の実験対応。
+- rtm-ts 0.12.0、`kaizpatch`・`mc1710`・`mc1122`のmulti-target環境を構築済み。
 - NGTOBuilder2由来のツールキットは `src/common/assets/minecraft/scripts/lib_hi03toolkit_1_0` に置き、参照専用とする。SuperRailBuilderX固有処理は `superrailbuilderx` ディレクトリと `SRBXApiCompat` に実装する。
 - 正式版`SuperRailBuilderX_RailMover`は通常・自動分割レールとも元状態を退避し、builder1と同じ衝突判定・道床生成規則で再生成する。論理RailMapの複数選択・一括平行移動・一括Undoに対応する。
 - `SuperRailBuilderX_builder1`を実装済み。自由点・既設端接続、曲線半径固定、勾配・縦曲線、複数レール一括Undo、道床・コア保護を備える。-X/-Z道床と勾配・縦曲線は実機確認済み。
@@ -14,16 +14,19 @@
 - `SuperRailBuilderX_DoubleTrackCopy`を実装済み。通常レールの複数選択、カーソル距離に応じた指定間隔の反復複製、水平平行線形、0.5 m端点接続、手持ち/複製元モデル、一括Undoを備える。
 - `SuperRailBuilderX_CantFormatter`を実装済み。設計速度・5種類の軌間別上限から通常/自動分割レール端点の均衡カントを計算し、複数点一括適用・Undoに対応する。
 - `SuperRailBuilderX_BranchBuilder`を実装済み。既設レール途中の分割点から自由点/別レール端点へ理論RailMapを作り、進行側半区間と単純分岐へ合成する。スナップ・半径固定・モデル選択・Undoを備える。
+- AppleExtended実験対応は`feature/appleextended`へ退避し、上流側のビルド対応完了まで`main`の生成・ビルド対象から除外する。
 - builder1のチャンク境界交差・候補表示・Iキー地上高合わせ、複線コピーの生成、分割パネル・縦勾配・カント、レール移動の基本操作・接続・回り込み防止・三線軌条の相互走行は実機確認済み。
 - `alpha-0.1.0`の配布設定、README、統合操作ガイド、同梱readme.txt・LICENSEを整備済み。配布ZIPは`SuperRailBuilderX-alpha-0.1.0.zip`として生成できる。
-- AEでは通常レールの端点移動・同期・Undoだけを有効化した。道床再生成を必要とする平行移動・生成・分割・複線・カント・分岐は、AE側API不足のため安全スタブへフォールバックする。
+- 実装コミット`667481b`でレール移動のCtrl+Z入力、接続レール限定の複数選択、暗色ホバー、再生成中の旧強調非表示、未初期化セクションによる描画クラッシュを修正し、builder1の表示名を`レール生成A`へ変更した。`origin/main`へ同期済み。
+- レール生成・自由点移動の構造は `docs/rail-generation-and-free-positioning.md`、各ツールの仕様と検証方法は下記「関連資料」を参照する。
+- `AGENTS.md`へ、親モデルを途中変更するのではなく、限定作業だけを軽量・バランス型サブエージェントへ委譲するモデル運用規則を追加済み。
 
 ## 作業中
 
 - 担当: ローカルCodex
   開始日: 2026-09-08
-  内容: AppleExtendedターゲットのコード生成・ビルド阻害を調査し、ローカルで修正可能な範囲を検証する。
-  主な変更予定: `rtmx.json`、`tsconfig.appleextended.json`、`src/appleextended`、関連資料
+  内容: 実機ログを基にカント整形・分岐生成・分割精度・builder1識別子を修正し、AE対応を専用ブランチへ分離する。
+  主な変更予定: モデルJSON、カント/分岐/分割スクリプト、compat、資料
 
 ## 優先確認事項
 
@@ -48,17 +51,11 @@
 - 分岐生成で自由点/別レール端点、スナップ・半径固定、手持ち/分割元モデル、分岐切替と両経路走行、道床、Undoを確認する。
 - 勾配・縦曲線・既存分岐・在線・短レールが安全に拒否されることを確認する。
 
-### AppleExtended
-
-- 2026-09-08時点でも上流`main`は`74fe2ed`のまま。AE側でMac固有の`org.gradle.java.home`を管理対象から外してJitPackの`publishToMavenLocal`を直すまで、既知の`No build artifacts found`を再試行しない。
-- 修正後、ローカルで`pnpm gen && pnpm build`を実行する。`.npmrc`の`gradle-java-home`は実在するJDKへ合わせる。
-- バックアップ済みワールドで通常レールの小さい端点オフセット、再ログイン後の永続化、描画、走行、Ctrl+Zを確認する。大移動は道床範囲外になるため未対応。
-
 ## 次に行うこと
 
 1. 新規のカント整形・分岐生成を`docs/cant-formatter.md`と`docs/branch-builder.md`に従ってバックアップ済みワールドで実機確認する。
-2. AEの上記ビルド阻害を修正後、AEターゲットの生成・ビルド・実機検証を行う。
-3. 既存の「優先確認事項」も確認し、不具合時は機能名・操作順・時刻と`logs/latest.log`を共有する。
+2. 既存の「優先確認事項」も同じ環境で確認する。
+3. 不具合を再現した場合は、機能名・操作順・おおよその時刻と`logs/latest.log`を共有する。
 
 ## 双方向連絡
 
@@ -122,7 +119,6 @@
 
 ## 直近の完了
 
-- 2026-09-08 Web側Codex: AppleExtended `74fe2ed`向けmulti-target、通常レール端点移動・同期・Undo、compile-onlyサンプルを実装。詳細は`docs/appleextended-target.md`とコミット`ea55874`を参照（`origin/main`へ同期済み）。
 - 2026-09-07 ローカルCodex: カント整形と分岐生成ツール、両ツールのUndo・multi-targetスタブ・操作資料を実装。詳細は`docs/history/CODEX_HISTORY_2026-09.md`とコミット`51f855d`を参照（`origin/main`へ同期済み）。
 - 2026-09-07 ローカルCodex: レール移動のクラッシュ、Ctrl+Z入力、接続レール限定選択、暗色ホバー・旧強調表示を修正し、builder1をレール生成Aへ改名。詳細は`docs/history/CODEX_HISTORY_2026-09.md`とコミット`667481b`を参照（`origin/main`へ同期済み）。
 - 2026-09-07 hi03: usage.mdの文章修正。

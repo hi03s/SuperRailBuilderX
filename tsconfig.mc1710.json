@@ -10,10 +10,8 @@
 	"exclude": [
 		"src/common",
 		"src/kaizpatch",
-		"src/appleextended",
 		"src/mc1122",
 		"generated/kaizpatch",
-		"generated/appleextended",
 		"generated/mc1122"
 	]
 }

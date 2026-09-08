@@ -6,17 +6,12 @@
 			"@target/*": ["src/kaizpatch/*.compat.ts", "src/kaizpatch/*"]
 		}
 	},
-	"include": [
-		"src/kaizpatch/**/*.ts",
-		"generated/kaizpatch/typings/**/*.d.ts"
-	],
+	"include": ["src/kaizpatch/**/*.ts", "generated/kaizpatch/typings/**/*.d.ts"],
 	"exclude": [
 		"src/common",
 		"src/mc1710",
-		"src/appleextended",
 		"src/mc1122",
 		"generated/mc1710",
-		"generated/appleextended",
 		"generated/mc1122"
 	]
 }
