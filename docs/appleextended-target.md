@@ -20,11 +20,13 @@ pnpm build
 
 `src/appleextended/.../appleextended_build_test.ts`は実行用スクリプトではなく、AEの`setPosition`とoffsetフィールドが型スキャンされたことを確認するサンプルである。
 
-AE commit `b6e0769`では従来のJitPack成果物なしの問題を通過できる。ただし2026-09-08のローカル検証では、`pnpm gen`がRetroFuturaGradleの`generateForgeSrgMappings`で、MCP snapshot `20171003`の`joined.exc`と`joined.srg`が存在しないため停止した。その結果AE typings・mappingsが生成されず、続く`pnpm build`も`generated/appleextended/mappings/mcp-to-srg.json`不在で失敗する。
+AEターゲットのMCP mappingsは、同じMinecraft 1.12.2環境の`mc1122`ターゲットと同じ`stable/39`を使用する。`snapshot/20171003`ではRetroFuturaGradleの`generateForgeSrgMappings`が、存在しない`joined.exc`と`joined.srg`を入力として要求して停止する。
+
+2026-09-08のローカル検証では、この変更によりMCP mapping生成は通過した。その後、AE commit `b6e0769`のJitPack依存が`No build artifacts found`のため解決できず、`pnpm gen`はAE型スキャン前に停止した。JitPack上ではAE本体のGradleビルドは成功しているが、ルートの`publishToMavenLocal`に公開処理がなく、期待されるMaven成果物が生成されていない。
 
 ## AE側に必要な追加対応
 
-1. RetroFuturaGradleのタスク依存関係または対応Gradle構成を調整し、MCP snapshot `20171003`の`joined.exc`と`joined.srg`を`generateForgeSrgMappings`より前に生成する。
+1. JitPackから依存解決できるように`maven-publish`とpublicationを設定し、`publishToMavenLocal`でMaven成果物を生成する。
 2. 道床の回収・再配置、RailMap再生成、保存、クライアント同期を一括で行う公開APIを用意する。
 3. SRBXで自動分割レールを扱う場合は、論理RailMap、構成セクション一覧、論理レールの削除・再生成APIを用意する。
 

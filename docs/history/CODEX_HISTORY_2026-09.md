@@ -657,6 +657,13 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 実装コミット: `f8b4753`
 - 同期: `origin/feature/appleextended`へ同期済み。
 
+### 2026-09-08 ローカルCodex — AppleExtended MCP設定の修正
+
+- AEターゲットのMCP mappingsを`mc1122`と同じ`stable/39`へ変更し、`snapshot/20171003`で発生していた`joined.exc`・`joined.srg`不在エラーを解消した。
+- `pnpm gen`を再実行し、RetroFuturaGradleのMCP mapping生成が通過することを確認した。
+- 生成はAE commit `b6e0769`の依存解決で停止した。JitPack APIとビルドログではGradleビルド自体は成功する一方、ルートの`publishToMavenLocal`に公開処理がなく、最終結果が`No build artifacts found`となっている。
+- AE側でJitPack向けMaven publicationを追加後、`pnpm gen`と`pnpm build`を再検証する。今回は生成が前提段階で停止したため、`pnpm build`は未実施。
+
 ### 記録テンプレート
 
 ### 2026-09-08 Web側Codex — AppleExtended実験ターゲット

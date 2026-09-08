@@ -84,8 +84,8 @@
 			"scan": {
 				"minecraftVersion": "1.12.2",
 				"forgeVersion": "14.23.5.2860",
-				"channel": "snapshot",
-				"mappingsVersion": "20171003",
+				"channel": "stable",
+				"mappingsVersion": "39",
 				"mods": [
 					"com.github.ringo-1234:AppleExtended:b6e07695074b9c490bd24868cca85ecd6d26a8c6"
 				],
