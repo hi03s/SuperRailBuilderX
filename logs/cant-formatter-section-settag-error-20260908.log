@@ -1,0 +1,9 @@
+[22:46:58] [Server thread/INFO]: ### SuperRailBuilderX cant ERROR (detailed) ###
+[22:46:58] [Server thread/INFO]: phase:processRequest
+[22:46:58] [Server thread/INFO]: action:apply, actionClass:java.lang.String
+[22:46:58] [Server thread/INFO]: exception.name:TypeError
+[22:46:58] [Server thread/INFO]: exception.message:<RailSection compound> has no such function "setTag"
+[22:46:58] [Server thread/INFO]: at <anonymous> (scripts/superrailbuilderx/server_cant_formatter.js:6021)
+[22:46:58] [Server thread/INFO]: at <anonymous> (scripts/superrailbuilderx/server_cant_formatter.js:6052)
+[22:46:58] [Server thread/INFO]: at onUpdate (scripts/superrailbuilderx/server_cant_formatter.js:6889)
+[22:47:28] [Server thread/INFO]: [SuperRailBuilderX cant] action=apply, result=ok

@@ -33,6 +33,7 @@ type SplitTarget = {
 	position: SRBXVec3;
 	yaw: number;
 	length: number;
+	endpoint: SRBXBuilderPoint | null;
 };
 type BranchClientUpdate = {
 	removed: Array<{ core: [number, number, number]; key: string }>;
@@ -140,7 +141,7 @@ function findSplit(e: EntityVehicle, pt: number): SplitTarget | null {
 				if (seen[key] || getState(e).ignored[key]) continue;
 				seen[key] = true;
 				const map = SRBXApiCompat.getLogicalRailMap(core);
-				if (!map || map.getLength() <= 6) continue;
+				if (!map) continue;
 				if (
 					Math.abs(RTMApiCompat.getRailPitch(map, 1000, 0)) > 0.001 ||
 					Math.abs(RTMApiCompat.getRailPitch(map, 1000, 500)) >
@@ -160,39 +161,80 @@ function findSplit(e: EntityVehicle, pt: number): SplitTarget | null {
 					min =
 						Math.floor((MIN_LENGTH * split) / map.getLength()) + 1,
 					max = split - min;
-				if (min > max) continue;
-				let index = Math.max(
-					min,
-					Math.min(
-						max,
-						map.getNearlestPoint(split, looking.posX, looking.posZ),
-					),
-				);
-				const pos = railPoint(map, split, index);
-				pos[1] -= Math.abs(
-					Math.sin(
-						(RTMApiCompat.getCant(map, split, index) * Math.PI) /
-							180,
-					) * 1.5,
-				);
-				const d =
-					Math.pow(pos[0] - looking.posX, 2) +
-					Math.pow(pos[1] - looking.posY, 2) +
-					Math.pow(pos[2] - looking.posZ, 2);
-				if (d < dist) {
+				const corePos = SRBXApiCompat.getRailCorePos(core);
+				const consider = (
+					index: number,
+					pos: SRBXVec3,
+					endpoint: SRBXBuilderPoint | null,
+				) => {
+					const d =
+						Math.pow(pos[0] - looking.posX, 2) +
+						Math.pow(pos[1] - looking.posY, 2) +
+						Math.pow(pos[2] - looking.posZ, 2);
+					if (d >= dist) return;
 					dist = d;
 					best = {
-						core: SRBXApiCompat.getRailCorePos(core),
+						core: corePos,
 						railKey: key,
 						ratio: index / split,
 						position: pos,
-						yaw: RTMApiCompat.getRailYaw(
-							map,
-							1000000,
-							Math.round((index / split) * 1000000),
-						),
+						yaw: endpoint
+							? endpoint.anchorYaw
+							: RTMApiCompat.getRailYaw(
+									map,
+									1000000,
+									Math.round((index / split) * 1000000),
+								),
 						length: map.getLength(),
+						endpoint,
 					};
+				};
+				if (map.getLength() > 6 && min <= max) {
+					const index = Math.max(
+						min,
+						Math.min(
+							max,
+							map.getNearlestPoint(
+								split,
+								looking.posX,
+								looking.posZ,
+							),
+						),
+					);
+					const pos = railPoint(map, split, index);
+					pos[1] -= Math.abs(
+						Math.sin(
+							(RTMApiCompat.getCant(map, split, index) *
+								Math.PI) /
+								180,
+						) * 1.5,
+					);
+					consider(index, pos, null);
+				}
+				for (let index = 0; index < 2; index++) {
+					const rp = rps[index] as RailPosition;
+					const endpoint: SRBXBuilderPoint = {
+						kind: "rail",
+						position: [rp.posX, rp.posY, rp.posZ],
+						direction: (rp.direction + 4) & 7,
+						anchorYaw: SRBXMath.normalizeDegrees(
+							SRBXApiCompat.getHorizontalAnchorYaw(rp) + 180,
+						),
+						anchorPitch:
+							-SRBXApiCompat.getRailPositionAnchorPitch(rp),
+						anchorLength: 0,
+						markerPosition:
+							SRBXApiCompat.getRailPositionConnectionMarkerPosition(
+								rp,
+							),
+						core: corePos,
+						index,
+					};
+					consider(
+						index === 0 ? 0 : split,
+						endpoint.position,
+						endpoint,
+					);
 				}
 			}
 	return best;
@@ -338,6 +380,7 @@ function hoverEnd(e: EntityVehicle, pt: number, s: State) {
 	return findEndpoint(e, pt) || freePoint(e, pt, s);
 }
 function bestRootYaw(split: SplitTarget, end: SRBXVec3): number {
+	if (split.endpoint) return split.endpoint.anchorYaw;
 	const direct = SRBXMath.horizontalYaw(split.position, end),
 		a = split.yaw,
 		b = SRBXMath.normalizeDegrees(split.yaw + 180);
@@ -356,15 +399,22 @@ function plan(
 			markerPosition: endSource.markerPosition.slice() as SRBXVec3,
 		},
 		rootYaw = bestRootYaw(s.split!, end.position),
-		root: SRBXBuilderPoint = {
-			kind: "free",
-			position: s.split!.position.slice() as SRBXVec3,
-			direction: SRBXMath.directionFromYaw(rootYaw),
-			anchorYaw: rootYaw,
-			anchorPitch: 0,
-			anchorLength: 0,
-			markerPosition: s.split!.position.slice() as SRBXVec3,
-		};
+		root: SRBXBuilderPoint = s.split!.endpoint
+			? {
+					...s.split!.endpoint!,
+					position: s.split!.endpoint!.position.slice() as SRBXVec3,
+					markerPosition:
+						s.split!.endpoint!.markerPosition.slice() as SRBXVec3,
+				}
+			: {
+					kind: "free",
+					position: s.split!.position.slice() as SRBXVec3,
+					direction: SRBXMath.directionFromYaw(rootYaw),
+					anchorYaw: rootYaw,
+					anchorPitch: 0,
+					anchorLength: 0,
+					markerPosition: s.split!.position.slice() as SRBXVec3,
+				};
 	if (s.locked && s.radius < MAX_RADIUS && end.kind === "free") {
 		const direct = SRBXMath.horizontalYaw(root.position, end.position),
 			sign = SRBXMath.relativeDegrees(direct, rootYaw) <= 0 ? 1 : -1,

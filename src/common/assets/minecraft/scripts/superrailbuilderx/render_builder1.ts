@@ -375,10 +375,9 @@ function findRailCandidate(
 					if (seen[railKey]) continue;
 					seen[railKey] = true;
 					phase = "getRailPositionUnsupportedReason";
-					if (
-						SRBXApiCompat.getRailPositionUnsupportedReason(core) !==
-						""
-					)
+					const unsupported =
+						SRBXApiCompat.getRailPositionUnsupportedReason(core);
+					if (unsupported !== "" && unsupported !== "switch")
 						continue;
 					phase = "getEditableRailPositions";
 					const positions =
