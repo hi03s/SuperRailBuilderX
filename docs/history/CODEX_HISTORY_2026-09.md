@@ -648,6 +648,19 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 実装コミット: `51f855d`
 - 同期: `origin/main`へ同期済み。
 
+### 2026-09-08 ローカルCodex — AE分離・カント・分岐・分割精度修正
+
+- AppleExtended実験対応を`feature/appleextended`へ退避してリモートへpushし、上流対応前でも通常ターゲットを生成・ビルドできるよう、AE関連3コミットを`main`でrevertした。`main`は再びkaizpatch・mc1710・mc1122の3ターゲット構成となる。
+- 実機ログから、カント適用失敗をKaizPatchXの`TileEntityLargeRailSectionCore`に存在しない通常TileEntity用`writeToNBT`の呼び出しと特定した。公開`writeSectionData/readSectionData`で各セクションの論理RailPositionを更新するよう修正し、必要部分だけ`logs/cant-formatter-section-nbt-error-20260908.log`へ匿名化して保存した。
+- カントの1435 mmは`(在来線)`と`(新幹線)`を明記し、1000 mmを含む5種類すべての最大カントを切替チャットとヘルプへ表示した。
+- 分岐生成は、単純分岐で共用する根元RailPositionの接線・アンカー長を分割元半区間から保持するよう修正した。新線プレビューのアンカーで短い本線側が過伸長する問題を防ぎ、曲線半径パネルへアルファブレンドと白色を明示した。
+- 分割ツールと分岐生成の候補数を、レールパーツ描画と同じ`floor(RailMap.length × 2)`へ統一した。クライアント選択とサーバー再検証の両方を約0.5 m刻みに揃えた。
+- builder1のモデルJSON名を`SuperRailBuilderX_builder1`へ戻した。README・操作ガイド・ヘルプ上の機能名は`レール生成A`を維持し、モデル選択時の識別名を併記した。
+- 検証済み: 対象Prettier、JSON解析、`git diff --check`、`pnpm gen`、`pnpm build`。kaizpatch・mc1710・mc1122のコード生成とビルドに成功し、AEが`main`の対象外であることを確認した。
+- 未検証: Minecraft実機でのカント通常/自動分割適用・Undo、分岐本線形状・透明パネル・走行・Undo、約0.5 m分割点での低速双方向遷移。
+- 実装コミット: AE分離`ef99a59`、不具合修正`a92fcdb`
+- 同期: `feature/appleextended`と`origin/main`へ同期済み。
+
 ### 記録テンプレート
 
 ```text
