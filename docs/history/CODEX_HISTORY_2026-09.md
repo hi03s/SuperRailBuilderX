@@ -650,6 +650,15 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 
 ### 記録テンプレート
 
+### 2026-09-08 Web側Codex — AppleExtended実験ターゲット
+
+- `appleextended`を`mc1122`より先に判定するmulti-targetとして追加し、AE commit `74fe2ed`をJitPack依存に指定した。専用tsconfigと、`RailPosition.setPosition`・`offsetX/Y/Z`のcompile-only確認サンプルを追加した。
+- AE専用compatは通常レールの端点移動、クライアントRailMap再生成・再描画、サーバー保存・パケット同期、Undoを実装した。分岐と不正RailPosition配列は拒否する。
+- AEにはKaizPatchXの自動分割APIと安全な道床再生成APIがないため、平行移動、生成、分割、複線、カント、分岐は`mc1122`安全スタブへフォールバックした。
+- 検証済み: 対象Prettier、JSON構文、TypeScript構文変換、`git diff --check`、AE対象コミットのソース/API照合。
+- 未検証: `pnpm gen`と`pnpm build`。Web環境ではGradle配布取得がネットワーク制限で停止。さらにAEのJitPackビルドは`gradle.properties`のMac固有`org.gradle.java.home`により失敗し、依存JARが未公開。ローカルCodexはAE修正後に上記コマンドと実機試験を行うこと。
+- 詳細: `docs/appleextended-target.md`
+
 ```text
 ### YYYY-MM-DD 名前 — 作業名
 

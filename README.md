@@ -4,6 +4,7 @@
 
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.7.10-62b47a)](https://www.minecraft.net/)
 [![KaizPatchX](https://img.shields.io/badge/KaizPatchX-1.10.3%2B-57b57b)](https://github.com/Kai-Z-JP/KaizPatchX)
+[![AppleExtended](https://img.shields.io/badge/AppleExtended-74fe2ed_experimental-c96f4a)](https://github.com/ringo-1234/AppleExtended/commit/74fe2edd938bacbdb619bc0ccb9542f37857d054)
 [![Release](https://img.shields.io/badge/release-alpha--0.1.0-orange)](https://github.com/hi03s/SuperRailBuilderX/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
@@ -28,6 +29,8 @@ SuperRailBuilderXは、KaizPatchX向けのレール制作支援ツール集で�
 - RealTrainModとKaizPatchX 1.10.3以降
 
 レール生成・移動などの主要機能はKaizPatchX専用です。通常RTM 1.7.10およびMinecraft 1.12.2向けの共通コードもビルドされますが、非対応機能はワールドを変更せず安全に停止します。
+
+AppleExtended `74fe2ed`向け対応は実験段階です。通常レールの端点移動とUndoだけを有効化し、道床再生成を必要とする機能は安全のため無効化しています。詳細は[AppleExtended target](docs/appleextended-target.md)を参照してください。
 
 ## 導入方法
 
@@ -56,6 +59,7 @@ pnpm zip
 
 - 共通コード: `src/common`
 - KaizPatchX固有コード: `src/kaizpatch`
+- AppleExtended固有コード: `src/appleextended`
 - multi-target設定: `rtmx.json`
 
 技術仕様と検証資料は[`docs`](docs/)にあります。

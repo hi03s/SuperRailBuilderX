@@ -2,11 +2,11 @@
 
 このファイルは、次の作業に必要な現行情報だけを共有するための短期引継ぎ帳です。詳細な過去記録は `docs/history/` に保存し、通常は読みません。
 
-最終更新: 2026-09-07（ローカルCodex）
+最終更新: 2026-09-08（Web側Codex）
 
 ## 現在の状態
 
-- rtm-ts 0.12.0、`kaizpatch`・`mc1710`・`mc1122`のmulti-target環境を構築済み。
+- rtm-ts 0.12.0、`kaizpatch`・`mc1710`・`appleextended`・`mc1122`のmulti-targetを構成済み。AEは`74fe2ed`基準の実験対応。
 - NGTOBuilder2由来のツールキットは `src/common/assets/minecraft/scripts/lib_hi03toolkit_1_0` に置き、参照専用とする。SuperRailBuilderX固有処理は `superrailbuilderx` ディレクトリと `SRBXApiCompat` に実装する。
 - 正式版`SuperRailBuilderX_RailMover`は通常・自動分割レールとも元状態を退避し、builder1と同じ衝突判定・道床生成規則で再生成する。論理RailMapの複数選択・一括平行移動・一括Undoに対応する。
 - `SuperRailBuilderX_builder1`を実装済み。自由点・既設端接続、曲線半径固定、勾配・縦曲線、複数レール一括Undo、道床・コア保護を備える。-X/-Z道床と勾配・縦曲線は実機確認済み。
@@ -19,6 +19,7 @@
 - 実装コミット`667481b`でレール移動のCtrl+Z入力、接続レール限定の複数選択、暗色ホバー、再生成中の旧強調非表示、未初期化セクションによる描画クラッシュを修正し、builder1の表示名を`レール生成A`へ変更した。`origin/main`へ同期済み。
 - レール生成・自由点移動の構造は `docs/rail-generation-and-free-positioning.md`、各ツールの仕様と検証方法は下記「関連資料」を参照する。
 - `AGENTS.md`へ、親モデルを途中変更するのではなく、限定作業だけを軽量・バランス型サブエージェントへ委譲するモデル運用規則を追加済み。
+- AEでは通常レールの端点移動・同期・Undoだけを有効化した。道床再生成を必要とする平行移動・生成・分割・複線・カント・分岐は、AE側API不足のため安全スタブへフォールバックする。
 
 ## 作業中
 
@@ -54,11 +55,17 @@
 - 分岐生成で自由点/別レール端点、スナップ・半径固定、手持ち/分割元モデル、分岐切替と両経路走行、道床、Undoを確認する。
 - 勾配・縦曲線・既存分岐・在線・短レールが安全に拒否されることを確認する。
 
+### AppleExtended
+
+- AE側で`gradle.properties`のMac固有`org.gradle.java.home`を削除し、JitPackの`publishToMavenLocal`を成功させる。現状は`No build artifacts found`。
+- 修正後、ローカルで`pnpm gen && pnpm build`を実行する。`.npmrc`の`gradle-java-home`は実在するJDKへ合わせる。
+- バックアップ済みワールドで通常レールの小さい端点オフセット、再ログイン後の永続化、描画、走行、Ctrl+Zを確認する。大移動は道床範囲外になるため未対応。
+
 ## 次に行うこと
 
 1. 新規のカント整形・分岐生成を`docs/cant-formatter.md`と`docs/branch-builder.md`に従ってバックアップ済みワールドで実機確認する。
-2. 既存の「優先確認事項」も同じ環境で確認する。
-3. 不具合を再現した場合は、機能名・操作順・おおよその時刻と`logs/latest.log`を共有する。
+2. AEの上記ビルド阻害を修正後、AEターゲットの生成・ビルド・実機検証を行う。
+3. 既存の「優先確認事項」も確認し、不具合時は機能名・操作順・時刻と`logs/latest.log`を共有する。
 
 ## 双方向連絡
 

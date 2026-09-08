@@ -4,6 +4,7 @@
 		{ "path": "./tsconfig.common.json" },
 		{ "path": "./tsconfig.kaizpatch.json" },
 		{ "path": "./tsconfig.mc1710.json" },
+		{ "path": "./tsconfig.appleextended.json" },
 		{ "path": "./tsconfig.mc1122.json" }
 	]
 }
