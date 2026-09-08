@@ -2,7 +2,7 @@
 
 このファイルは、次の作業に必要な現行情報だけを共有するための短期引継ぎ帳です。詳細な過去記録は `docs/history/` に保存し、通常は読みません。
 
-最終更新: 2026-09-08（Web側Codex）
+最終更新: 2026-09-08（ローカルCodex）
 
 ## 現在の状態
 
@@ -16,21 +16,14 @@
 - `SuperRailBuilderX_BranchBuilder`を実装済み。既設レール途中の分割点から自由点/別レール端点へ理論RailMapを作り、進行側半区間と単純分岐へ合成する。スナップ・半径固定・モデル選択・Undoを備える。
 - builder1のチャンク境界交差・候補表示・Iキー地上高合わせ、複線コピーの生成、分割パネル・縦勾配・カント、レール移動の基本操作・接続・回り込み防止・三線軌条の相互走行は実機確認済み。
 - `alpha-0.1.0`の配布設定、README、統合操作ガイド、同梱readme.txt・LICENSEを整備済み。配布ZIPは`SuperRailBuilderX-alpha-0.1.0.zip`として生成できる。
-- 実装コミット`667481b`でレール移動のCtrl+Z入力、接続レール限定の複数選択、暗色ホバー、再生成中の旧強調非表示、未初期化セクションによる描画クラッシュを修正し、builder1の表示名を`レール生成A`へ変更した。`origin/main`へ同期済み。
-- レール生成・自由点移動の構造は `docs/rail-generation-and-free-positioning.md`、各ツールの仕様と検証方法は下記「関連資料」を参照する。
-- `AGENTS.md`へ、親モデルを途中変更するのではなく、限定作業だけを軽量・バランス型サブエージェントへ委譲するモデル運用規則を追加済み。
 - AEでは通常レールの端点移動・同期・Undoだけを有効化した。道床再生成を必要とする平行移動・生成・分割・複線・カント・分岐は、AE側API不足のため安全スタブへフォールバックする。
 
 ## 作業中
 
-作業を開始する場合だけ、次の形式で1件追記します。完了時に削除し、結果は「直近の完了」に要約します。
-
-```text
-- 担当: 人間 / ローカルCodex / Web側Codex
-  開始日: YYYY-MM-DD
-  内容: 今回の成果物を1〜2文で記載
-  主な変更予定: ファイルまたはディレクトリ
-```
+- 担当: ローカルCodex
+  開始日: 2026-09-08
+  内容: AppleExtendedターゲットのコード生成・ビルド阻害を調査し、ローカルで修正可能な範囲を検証する。
+  主な変更予定: `rtmx.json`、`tsconfig.appleextended.json`、`src/appleextended`、関連資料
 
 ## 優先確認事項
 
@@ -57,7 +50,7 @@
 
 ### AppleExtended
 
-- AE側で`gradle.properties`のMac固有`org.gradle.java.home`を削除し、JitPackの`publishToMavenLocal`を成功させる。現状は`No build artifacts found`。
+- 2026-09-08時点でも上流`main`は`74fe2ed`のまま。AE側でMac固有の`org.gradle.java.home`を管理対象から外してJitPackの`publishToMavenLocal`を直すまで、既知の`No build artifacts found`を再試行しない。
 - 修正後、ローカルで`pnpm gen && pnpm build`を実行する。`.npmrc`の`gradle-java-home`は実在するJDKへ合わせる。
 - バックアップ済みワールドで通常レールの小さい端点オフセット、再ログイン後の永続化、描画、走行、Ctrl+Zを確認する。大移動は道床範囲外になるため未対応。
 
