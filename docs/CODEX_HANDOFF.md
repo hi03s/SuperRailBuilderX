@@ -129,6 +129,7 @@
 
 ## 直近の完了
 
+- 2026-09-08 Web側Codex: AppleExtended `74fe2ed`向けmulti-target、通常レール端点移動・同期・Undo、compile-onlyサンプルを実装。詳細は`docs/appleextended-target.md`とコミット`ea55874`を参照（`origin/main`へ同期済み）。
 - 2026-09-07 ローカルCodex: カント整形と分岐生成ツール、両ツールのUndo・multi-targetスタブ・操作資料を実装。詳細は`docs/history/CODEX_HISTORY_2026-09.md`とコミット`51f855d`を参照（`origin/main`へ同期済み）。
 - 2026-09-07 ローカルCodex: レール移動のクラッシュ、Ctrl+Z入力、接続レール限定選択、暗色ホバー・旧強調表示を修正し、builder1をレール生成Aへ改名。詳細は`docs/history/CODEX_HISTORY_2026-09.md`とコミット`667481b`を参照（`origin/main`へ同期済み）。
 - 2026-09-07 hi03: usage.mdの文章修正。

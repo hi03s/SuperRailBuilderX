@@ -658,6 +658,8 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 検証済み: 対象Prettier、JSON構文、TypeScript構文変換、`git diff --check`、AE対象コミットのソース/API照合。
 - 未検証: `pnpm gen`と`pnpm build`。Web環境ではGradle配布取得がネットワーク制限で停止。さらにAEのJitPackビルドは`gradle.properties`のMac固有`org.gradle.java.home`により失敗し、依存JARが未公開。ローカルCodexはAE修正後に上記コマンドと実機試験を行うこと。
 - 詳細: `docs/appleextended-target.md`
+- 実装コミット: https://github.com/hi03s/SuperRailBuilderX/commit/ea5587445a315e8fbe1899abc1d2fd7669a59a7e
+- 同期: `origin/main`へ同期済み。
 
 ```text
 ### YYYY-MM-DD 名前 — 作業名
