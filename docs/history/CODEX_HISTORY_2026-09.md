@@ -663,6 +663,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - `pnpm gen`を再実行し、RetroFuturaGradleのMCP mapping生成が通過することを確認した。
 - 生成はAE commit `b6e0769`の依存解決で停止した。JitPack APIとビルドログではGradleビルド自体は成功する一方、ルートの`publishToMavenLocal`に公開処理がなく、最終結果が`No build artifacts found`となっている。
 - AE側でJitPack向けMaven publicationを追加後、`pnpm gen`と`pnpm build`を再検証する。今回は生成が前提段階で停止したため、`pnpm build`は未実施。
+- 実装コミット: `40ff327`
 
 ### 記録テンプレート
 

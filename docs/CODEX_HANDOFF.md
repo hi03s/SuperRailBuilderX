@@ -45,13 +45,13 @@
 
 ### AppleExtended
 
-- AE `b6e0769`でJitPack成果物なしの問題は通過したが、`pnpm gen`は`generateForgeSrgMappings`がMCP 20171003の`joined.exc`・`joined.srg`を入力前に生成できず停止する。AE側またはrtm-ts側でRetroFuturaGradleのタスク依存関係・Gradle互換性を修正後に再検証する。
+- AEのMCP設定は`stable/39`へ修正し、従来の`joined.exc`・`joined.srg`不在エラーを解消した。AE `b6e0769`はJitPack上のGradleビルドには成功するが、`publishToMavenLocal`でMaven成果物を公開しておらず、依存解決が`No build artifacts found`で停止する。AE側のpublication設定後に再検証する。
 - バックアップ済みワールドで通常レールの小さい端点オフセット、再ログイン後の永続化、描画、走行、Ctrl+Zを確認する。大移動は道床範囲外になるため未対応。
 
 ## 次に行うこと
 
 1. 新規のカント整形・分岐生成を`docs/cant-formatter.md`と`docs/branch-builder.md`に従ってバックアップ済みワールドで実機確認する。
-2. AEのMCP mapping生成順序を修正後、`pnpm gen && pnpm build`とAE実機検証を行う。
+2. AEのJitPack publication設定後、`pnpm gen && pnpm build`とAE実機検証を行う。
 3. 既存の「優先確認事項」も確認し、不具合時は機能名・操作順・時刻と`logs/latest.log`を共有する。
 
 ## 双方向連絡
@@ -116,6 +116,7 @@
 
 ## 直近の完了
 
+- 2026-09-08 ローカルCodex: AEのMCP設定を`stable/39`へ修正してmapping生成通過を確認。残る阻害はAEのJitPack成果物未公開。詳細は月別履歴とコミット`40ff327`を参照（`origin/feature/appleextended`へ同期済み）。
 - 2026-09-08 ローカルCodex: AE依存を最新`b6e0769`へ更新して生成・ビルドを再試行。JitPack阻害の解消と新しいMCP mapping生成阻害を確認。詳細は月別履歴とコミット`f8b4753`を参照（`origin/feature/appleextended`へ同期済み）。
 - 2026-09-08 Web側Codex: AppleExtended `74fe2ed`向けmulti-target、通常レール端点移動・同期・Undo、compile-onlyサンプルを実装。詳細は`docs/appleextended-target.md`とコミット`ea55874`を参照（`origin/main`へ同期済み）。
 - 2026-09-07 ローカルCodex: カント整形と分岐生成ツール、両ツールのUndo・multi-targetスタブ・操作資料を実装。詳細は`docs/history/CODEX_HISTORY_2026-09.md`とコミット`51f855d`を参照（`origin/main`へ同期済み）。
