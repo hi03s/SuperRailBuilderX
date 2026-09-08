@@ -157,7 +157,7 @@ function candidate(
 								),
 							)
 						: 0;
-					const baseSign = delta >= 0 ? 1 : -1;
+					const baseSign = delta >= 0 ? -1 : 1;
 					const angle =
 						((Math.asin(height / g.gauge) * 180) / Math.PI) *
 						baseSign *

@@ -1,0 +1,5 @@
+[00:06:29] [Server thread/INFO]: [SuperRailBuilderX cant] action=apply, result=ok
+[00:06:37] [Server thread/INFO]: [SuperRailBuilderX cant] action=undo, result=undo_ok
+[00:08:56] [Server thread/INFO]: [SuperRailBuilderX cant] action=apply, result=ok
+[00:09:00] [Server thread/INFO]: [SuperRailBuilderX cant] action=apply, result=ok
+[00:10:35] [Server thread/INFO]: [SuperRailBuilderX builder1] creation plan: kinds=rail->free, result=ok

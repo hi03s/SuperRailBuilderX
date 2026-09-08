@@ -216,13 +216,12 @@ function findSplit(e: EntityVehicle, pt: number): SplitTarget | null {
 					const endpoint: SRBXBuilderPoint = {
 						kind: "rail",
 						position: [rp.posX, rp.posY, rp.posZ],
-						direction: (rp.direction + 4) & 7,
-						anchorYaw: SRBXMath.normalizeDegrees(
-							SRBXApiCompat.getHorizontalAnchorYaw(rp) + 180,
-						),
+						direction: rp.direction,
+						anchorYaw: SRBXApiCompat.getHorizontalAnchorYaw(rp),
 						anchorPitch:
-							-SRBXApiCompat.getRailPositionAnchorPitch(rp),
-						anchorLength: 0,
+							SRBXApiCompat.getRailPositionAnchorPitch(rp),
+						anchorLength:
+							SRBXApiCompat.getHorizontalAnchorLength(rp),
 						markerPosition:
 							SRBXApiCompat.getRailPositionConnectionMarkerPosition(
 								rp,
@@ -399,6 +398,7 @@ function plan(
 			markerPosition: endSource.markerPosition.slice() as SRBXVec3,
 		},
 		rootYaw = bestRootYaw(s.split!, end.position),
+		preserveRoot = !!s.split!.endpoint,
 		root: SRBXBuilderPoint = s.split!.endpoint
 			? {
 					...s.split!.endpoint!,
@@ -423,10 +423,11 @@ function plan(
 			angle =
 				(2 * Math.asin(Math.min(1, chord / (2 * s.radius))) * 180) /
 				Math.PI;
-		root.anchorLength = SRBXMath.circularAnchorLength(r, angle);
+		const circularLength = SRBXMath.circularAnchorLength(r, angle);
+		if (!preserveRoot) root.anchorLength = circularLength;
 		end.anchorYaw = SRBXMath.normalizeDegrees(rootYaw - angle * sign + 180);
 		end.direction = SRBXMath.directionFromYaw(end.anchorYaw);
-		end.anchorLength = root.anchorLength;
+		end.anchorLength = circularLength;
 	} else if (end.kind === "rail") {
 		const length = SRBXMath.fixedPairAnchorLength(
 			root.position,
@@ -436,7 +437,7 @@ function plan(
 			end.anchorYaw,
 			end.anchorPitch,
 		);
-		root.anchorLength = length;
+		if (!preserveRoot) root.anchorLength = length;
 		end.anchorLength = length;
 	} else {
 		const c = SRBXMath.circularConnection(
@@ -445,7 +446,7 @@ function plan(
 			0,
 			end.position,
 		);
-		root.anchorLength = c.anchorLength;
+		if (!preserveRoot) root.anchorLength = c.anchorLength;
 		end.anchorYaw = c.freeYaw;
 		end.anchorPitch = c.freePitch;
 		end.direction = SRBXMath.directionFromYaw(end.anchorYaw);

@@ -107,11 +107,6 @@ type CantUndoRecord = Array<{
 	positions: RailPosition[];
 }>;
 
-type EndpointBranchUndoRecord = {
-	created: SplitCreatedRail;
-	cants: CantUndoRecord;
-};
-
 type RailSectionPlan = {
 	getStartRatio(): number;
 	getEndRatio(): number;
@@ -163,9 +158,6 @@ export class SRBXApiCompat {
 	private static lastRailPositionMoveCores: Array<[number, number, number]> =
 		[];
 	private static cantUndoRecords: { [token: string]: CantUndoRecord } = {};
-	private static endpointBranchUndoRecords: {
-		[token: string]: EndpointBranchUndoRecord;
-	} = {};
 	private static lastCantClientUpdate: Array<[number, number, number]> = [];
 	static getRider(entity: unknown) {
 		return (entity as jp.ngt.rtm.entity.vehicle.EntityVehicle)
@@ -3713,6 +3705,24 @@ export class SRBXApiCompat {
 				positions: RailPosition[];
 			};
 		} = {};
+		const getPending = (core: TileEntityLargeRailCore) => {
+			const railKey = this.getRailPositionCandidateKey(core);
+			let entry = pending[railKey];
+			if (!entry) {
+				const positions = this.copyRailPositions(
+					this.getEditableRailPositions(core),
+				);
+				if (!positions || positions.length !== 2) return null;
+				records.push({
+					core: this.getRailCorePos(core),
+					railKey,
+					positions: this.copyRailPositions(positions),
+				});
+				entry = { core, positions };
+				pending[railKey] = entry;
+			}
+			return entry;
+		};
 		for (let i = 0; i < targets.length; i++) {
 			const target = targets[i];
 			if (
@@ -3735,21 +3745,8 @@ export class SRBXApiCompat {
 				return { status: "rail_changed" };
 			if (core.isLogicalRailOccupied())
 				return { status: "rail_occupied" };
-			let entry = pending[target.railKey];
-			if (!entry) {
-				const positions = this.copyRailPositions(
-					this.getEditableRailPositions(core),
-				);
-				if (!positions || positions.length !== 2)
-					return { status: "invalid_rail" };
-				records.push({
-					core: this.getRailCorePos(core),
-					railKey: target.railKey,
-					positions: this.copyRailPositions(positions),
-				});
-				entry = { core, positions };
-				pending[target.railKey] = entry;
-			}
+			const entry = getPending(core);
+			if (!entry) return { status: "invalid_rail" };
 			if (target.index < 0 || target.index >= entry.positions.length)
 				return { status: "invalid_endpoint" };
 			const rp = entry.positions[target.index];
@@ -3760,6 +3757,20 @@ export class SRBXApiCompat {
 			)
 				return { status: "rail_changed" };
 			rp.cantEdge = target.angle;
+			const connected = this.findConnectedCantEndpoints(world, core, [
+				rp,
+			]);
+			for (let j = 0; j < connected.length; j++) {
+				const neighbor = connected[j];
+				if (this.getRailPositionUnsupportedReason(neighbor.core) !== "")
+					return { status: "unsupported_rail" };
+				if (neighbor.core.isLogicalRailOccupied())
+					return { status: "rail_occupied" };
+				const neighborEntry = getPending(neighbor.core);
+				if (!neighborEntry) return { status: "invalid_rail" };
+				neighborEntry.positions[neighbor.index].cantEdge =
+					-target.angle;
+			}
 		}
 		const keys = Object.keys(pending);
 		for (let i = 0; i < keys.length; i++) {
@@ -3904,6 +3915,8 @@ export class SRBXApiCompat {
 		world: net.minecraft.world.World,
 		player: EntityPlayer,
 		sourceCore: TileEntityLargeRailCore,
+		resolvedEnd: RailPosition,
+		resolvedEndCore: TileEntityLargeRailCore | null,
 		request: {
 			core: [number, number, number];
 			railKey: string;
@@ -3912,29 +3925,108 @@ export class SRBXApiCompat {
 			branchEnd: BuilderPoint;
 		},
 	) {
+		const sourcePositions = this.copyRailPositions(
+			this.getEditableRailPositions(sourceCore),
+		);
+		if (!sourcePositions || sourcePositions.length !== 2)
+			return { status: "invalid_source_rail" };
+		const rootIndex = request.ratio === 0 ? 0 : 1;
+		const sourceRoot = sourcePositions[rootIndex];
+		if (
+			Math.abs(
+				this.builderAngleDifference(
+					sourceRoot.anchorYaw,
+					request.branchStart.anchorYaw,
+				),
+			) > 0.001 ||
+			Math.abs(sourceRoot.anchorPitch - request.branchStart.anchorPitch) >
+				0.001
+		)
+			return { status: "rail_changed" };
 		const connectedEndpoints = this.findConnectedCantEndpoints(
 			world,
 			sourceCore,
-			this.getEditableRailPositions(sourceCore),
+			sourcePositions,
 		);
-		const createdResult = this.createBuilderRail(
-			world,
-			player,
-			request.branchStart,
-			request.branchEnd,
-			[request.railKey],
-		);
-		if (
-			createdResult.status !== "ok" ||
-			!createdResult.undoCore ||
-			!createdResult.undoKey
-		)
-			return createdResult;
-		const created = {
-			core: createdResult.undoCore,
-			key: createdResult.undoKey,
+		const subRails = new ArrayList<RailProperty>();
+		for (let i = 0; i < sourceCore.subRails.size(); i++)
+			subRails.add(this.cloneRailProperty(sourceCore.subRails.get(i)));
+		const record: SplitUndoRecord = {
+			positions: this.copyRailPositions(sourcePositions),
+			property: this.cloneRailProperty(sourceCore.getProperty()),
+			signal: sourceCore.getSignal(),
+			subRails,
+			created: [],
+			wasSectioned: this.isSectionCore(sourceCore),
 		};
-		const cants: CantUndoRecord = [];
+		const root = this.withSwitchType(sourcePositions[rootIndex], 1);
+		const trunk = this.withSwitchType(sourcePositions[1 - rootIndex], 0);
+		const branch = this.withSwitchType(resolvedEnd, 0);
+		branch.anchorLengthHorizontal = request.branchEnd.anchorLength;
+		branch.anchorLengthVertical =
+			request.branchEnd.anchorLengthVertical === undefined
+				? request.branchEnd.anchorLength
+				: request.branchEnd.anchorLengthVertical;
+		const switchPositions = [root, trunk, branch];
+		for (let i = 0; i < switchPositions.length; i++) {
+			switchPositions[i].cantEdge = 0;
+			switchPositions[i].cantCenter = 0;
+			switchPositions[i].cantRandom = 0;
+		}
+		const protectedKeys = this.getBuilderMoveProtectedRailKeys(
+			sourceCore,
+			sourcePositions,
+		);
+		if (resolvedEndCore)
+			protectedKeys.push(
+				this.getRailPositionCandidateKey(resolvedEndCore),
+			);
+		const held = this.createBuilderProperty(player);
+		const property = held || this.cloneRailProperty(record.property);
+		property.autoSplit = false;
+		NGTLog.debug(
+			`[SuperRailBuilderX branch] endpoint switch plan: rootIndex=${rootIndex}, rootPos=${root.posX},${root.posY},${root.posZ}, rootYaw=${root.anchorYaw}, rootLength=${root.anchorLengthHorizontal}, trunkPos=${trunk.posX},${trunk.posY},${trunk.posZ}, branchPos=${branch.posX},${branch.posY},${branch.posZ}, branchYaw=${branch.anchorYaw}, branchLength=${branch.anchorLengthHorizontal}`,
+		);
+		sourceCore.breakLogicalRail();
+		let switchCore: TileEntityLargeRailSwitchCore | null = null;
+		try {
+			switchCore = this.createBuilderBasicSwitch(
+				world,
+				switchPositions,
+				property,
+				protectedKeys,
+			);
+		} catch (error) {
+			NGTLog.debug(
+				`[SuperRailBuilderX branch] endpoint switch creation exception: ${error}`,
+			);
+		}
+		if (!switchCore) {
+			const restored = this.restoreSplitSource(world, player, record);
+			if (restored)
+				this.lastSplitClientUpdate = {
+					removed: [{ core: request.core, key: request.railKey }],
+					refreshed: [restored],
+				};
+			return {
+				status: restored
+					? "switch_create_failed"
+					: "split_rollback_failed",
+			};
+		}
+		switchCore.setSignal(record.signal);
+		for (let i = 0; i < record.subRails.size(); i++)
+			switchCore.addSubRail(
+				this.cloneRailProperty(record.subRails.get(i)),
+			);
+		this.markCoreDirty(switchCore);
+		NGTUtil.sendPacketToClient(switchCore);
+		const created = {
+			core: this.getRailCorePos(switchCore),
+			key: this.getRailPositionCandidateKey(switchCore),
+		};
+		record.created.push(created);
+		record.cants = [];
 		let refreshed: SplitCreatedRail[] = [created];
 		const appendRefresh = (
 			core: TileEntityLargeRailCore,
@@ -3944,10 +4036,6 @@ export class SRBXApiCompat {
 			for (let i = 0; i < positions.length; i++)
 				refreshed.push({ core: positions[i], key });
 		};
-		appendRefresh(
-			sourceCore,
-			this.zeroRailCants(world, sourceCore, null, cants),
-		);
 		for (let i = 0; i < connectedEndpoints.length; i++) {
 			const endpoint = connectedEndpoints[i];
 			appendRefresh(
@@ -3956,47 +4044,26 @@ export class SRBXApiCompat {
 					world,
 					endpoint.core,
 					[endpoint.index],
-					cants,
+					record.cants,
 				),
 			);
 		}
 		if (
-			request.branchEnd.kind === "rail" &&
-			request.branchEnd.core &&
-			request.branchEnd.index !== undefined
-		) {
-			const tile = world.getTileEntity(
-				request.branchEnd.core[0],
-				request.branchEnd.core[1],
-				request.branchEnd.core[2],
+			resolvedEndCore &&
+			request.branchEnd.index !== undefined &&
+			resolvedEndCore !== sourceCore
+		)
+			appendRefresh(
+				resolvedEndCore,
+				this.zeroRailCants(
+					world,
+					resolvedEndCore,
+					[request.branchEnd.index],
+					record.cants,
+				),
 			);
-			const core =
-				tile instanceof TileEntityLargeRailBase
-					? tile.getRailCore()
-					: null;
-			if (core && core !== sourceCore)
-				appendRefresh(
-					core,
-					this.zeroRailCants(
-						world,
-						core,
-						[request.branchEnd.index],
-						cants,
-					),
-				);
-		}
-		const createdTile = world.getTileEntity(
-			created.core[0],
-			created.core[1],
-			created.core[2],
-		);
-		if (createdTile instanceof TileEntityLargeRailBase) {
-			const core = createdTile.getRailCore();
-			if (core)
-				appendRefresh(core, this.zeroRailCants(world, core, null));
-		}
 		const token = java.util.UUID.randomUUID().toString();
-		this.endpointBranchUndoRecords[token] = { created, cants };
+		this.splitUndoRecords[token] = record;
 		const seen: { [key: string]: boolean } = {};
 		refreshed = refreshed.filter((rail) => {
 			const id = `${rail.core[0]},${rail.core[1]},${rail.core[2]}`;
@@ -4004,7 +4071,10 @@ export class SRBXApiCompat {
 			seen[id] = true;
 			return true;
 		});
-		this.lastSplitClientUpdate = { removed: [], refreshed };
+		this.lastSplitClientUpdate = {
+			removed: [{ core: request.core, key: request.railKey }],
+			refreshed,
+		};
 		return { status: "ok", undoToken: token };
 	}
 
@@ -4122,6 +4192,8 @@ export class SRBXApiCompat {
 				world,
 				player,
 				sourceCore,
+				resolvedEnd,
+				resolvedEndCore,
 				request,
 			);
 		const connectedEndpoints = this.findConnectedCantEndpoints(
@@ -4303,26 +4375,6 @@ export class SRBXApiCompat {
 		player: EntityPlayer,
 		undoToken: string,
 	): string {
-		const endpoint = this.endpointBranchUndoRecords[undoToken];
-		if (endpoint) {
-			this.lastSplitClientUpdate = null;
-			const removed = this.undoBuilderRail(
-				world,
-				endpoint.created.core[0],
-				endpoint.created.core[1],
-				endpoint.created.core[2],
-				endpoint.created.key,
-			);
-			if (removed !== "ok") return removed;
-			const restored = this.restoreCantRecords(world, endpoint.cants);
-			if (restored.status !== "ok") return restored.status;
-			this.lastSplitClientUpdate = {
-				removed: [endpoint.created],
-				refreshed: restored.refreshed,
-			};
-			delete this.endpointBranchUndoRecords[undoToken];
-			return "undo_ok";
-		}
 		return this.undoSplitBuilderRail(world, player, undoToken);
 	}
 
