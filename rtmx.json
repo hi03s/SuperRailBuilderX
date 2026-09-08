@@ -87,7 +87,7 @@
 				"channel": "snapshot",
 				"mappingsVersion": "20171003",
 				"mods": [
-					"com.github.ringo-1234:AppleExtended:74fe2edd938bacbdb619bc0ccb9542f37857d054"
+					"com.github.ringo-1234:AppleExtended:b6e07695074b9c490bd24868cca85ecd6d26a8c6"
 				],
 				"packages": [
 					"net.minecraft",
