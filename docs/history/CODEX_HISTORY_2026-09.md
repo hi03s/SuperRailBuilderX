@@ -661,6 +661,18 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 実装コミット: AE分離`ef99a59`、不具合修正`a92fcdb`
 - 同期: `feature/appleextended`と`origin/main`へ同期済み。
 
+### 2026-09-08 ローカルCodex — 分岐端点・カントSection更新・端点分岐
+
+- builder1の候補探索とサーバー再検証で分岐レールだけを例外的に許可し、分岐の各RailPositionを通常レールの接続始点・終点として選択できるようにした。分岐コア自体は変更しない。
+- 実機ログから、自動分割レールのカント適用がSection NBT compoundに存在しない非変換名`setTag`で失敗していたことを特定した。Minecraft 1.7.10の実行時MCP名`func_74782_a`を明示して`LogicalStartRP`・`LogicalEndRP`を書き戻すよう修正した。生ログは除外し、必要箇所だけ`logs/cant-formatter-section-settag-error-20260908.log`へ匿名化して保存した。
+- 分岐生成の最初の選択に既設レールの正確な両端点を追加した。端点選択時は元レールを分割・分岐化せず、選択RailPositionからbuilder1方式の通常レールを生成する。短いレールも端点起点には使用でき、専用Undoで新設レールだけを撤去する。
+- 中央分岐・端点起点とも、ベースレール全体、ベースの両端へ接続する既設端点、新線の接続先端点、生成物のカントを0へ揃える。変更前の既設カントをUndo記録へ保存して復元する。
+- KaizPatchX/RTMの`LibRenderRail.js`を調査し、分岐根元から中央までの動的描画だけが自由配置根元オフセットを外側変換と`renderRailMapDynamic`で二重加算していることを確認した。台車が追従するRailMapは正しく、任意モデルに影響する共通描画処理なのでSRBXから上書きせず上流修正待ちとした。
+- 検証済み: 対象Prettier、`git diff --check`、`pnpm gen`、`pnpm build`（kaizpatch・mc1710・mc1122）、生成JavaScriptが`func_74782_a`を保持すること。
+- 未検証: Minecraft実機でのbuilder1分岐端点接続、自動分割カント適用・Undo、中央/端点分岐生成、接続部カント0化とUndo。分岐の根元～中央描画は上流修正後の再確認が必要。
+- 実装コミット: `ae697dd`
+- 同期: `origin/main`へ同期済み。
+
 ### 記録テンプレート
 
 ```text
