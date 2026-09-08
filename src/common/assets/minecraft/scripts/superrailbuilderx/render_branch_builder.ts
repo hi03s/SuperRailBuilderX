@@ -156,7 +156,7 @@ function findSplit(e: EntityVehicle, pt: number): SplitTarget | null {
 						0.001
 				)
 					continue;
-				const split = Math.max(2, Math.floor(map.getLength() * 4)),
+				const split = Math.max(2, Math.floor(map.getLength() * 2)),
 					min =
 						Math.floor((MIN_LENGTH * split) / map.getLength()) + 1,
 					max = split - min;
@@ -477,6 +477,9 @@ function radiusPanel(
 		dz = o[2] - p[2],
 		h = Math.sqrt(dx * dx + dz * dz);
 	GL11.glPushMatrix();
+	GL11.glEnable(GL11.GL_BLEND);
+	GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+	GL11.glColor4f(1, 1, 1, 1);
 	GL11.glTranslatef(p[0] - o[0], p[1] - o[1] + 0.5, p[2] - o[2]);
 	GL11.glRotatef((Math.atan2(dx, dz) * 180) / Math.PI + 180, 0, 1, 0);
 	GL11.glRotatef((Math.atan2(dy, h) * 180) / Math.PI, 1, 0, 0);
@@ -500,6 +503,7 @@ function radiusPanel(
 			GL11.glPopMatrix();
 		}
 	}
+	GL11.glDisable(GL11.GL_BLEND);
 	GL11.glPopMatrix();
 }
 function repeat(s: State, name: string, key: number, delta: number) {

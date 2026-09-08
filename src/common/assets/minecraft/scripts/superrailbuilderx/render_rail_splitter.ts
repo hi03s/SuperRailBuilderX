@@ -119,7 +119,7 @@ function findHoverTarget(
 					1,
 					Math.floor(map.getLength() * 2),
 				);
-				const candidateSplit = Math.max(2, renderSplit * 2);
+				const candidateSplit = Math.max(2, renderSplit);
 				const minimumIndex =
 					Math.floor(
 						(MIN_RESULT_LENGTH * candidateSplit) / map.getLength(),

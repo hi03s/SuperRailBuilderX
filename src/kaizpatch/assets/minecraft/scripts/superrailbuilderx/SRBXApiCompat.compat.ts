@@ -33,6 +33,8 @@ type RailSectionCore = TileEntityLargeRailCore & {
 	getRailGroupCorePositions(): java.util.List<number[]> | null;
 	getRailGroupId(): { toString(): string } | null;
 	isRailSection(): boolean;
+	readSectionData(parent: NBTTagCompound): void;
+	writeSectionData(parent: NBTTagCompound): void;
 };
 
 type NormalRailCore = TileEntityLargeRailCore & {
@@ -3271,7 +3273,7 @@ export class SRBXApiCompat {
 		const length = railMap.getLength();
 		if (length <= 6) return { status: "rail_too_short" };
 		const renderSplit = Math.max(1, Math.floor(railMap.getLength() * 2));
-		const candidateSplit = Math.max(2, renderSplit * 2);
+		const candidateSplit = Math.max(2, renderSplit);
 		const candidateIndex = Math.round(ratio * candidateSplit);
 		if (
 			candidateIndex <= 0 ||
@@ -3520,16 +3522,19 @@ export class SRBXApiCompat {
 		const apply = (target: TileEntityLargeRailCore) => {
 			if (this.isSectionCore(target)) {
 				const nbt = new NBTTagCompound();
-				target.writeToNBT(nbt);
+				target.writeSectionData(nbt);
 				const section = nbt.getCompoundTag("RailSection");
 				if (!section || !section.hasKey("LogicalStartRP")) return;
 				section.setTag("LogicalStartRP", positions[0].writeToNBT());
 				section.setTag("LogicalEndRP", positions[1].writeToNBT());
 				nbt.setTag("RailSection", section);
-				target.readFromNBT(nbt);
+				target.readSectionData(nbt);
 			} else {
 				const targetPositions = this.getEditableRailPositions(target);
-				if (!targetPositions || targetPositions.length !== positions.length)
+				if (
+					!targetPositions ||
+					targetPositions.length !== positions.length
+				)
 					return;
 				for (let i = 0; i < positions.length; i++) {
 					targetPositions[i].cantEdge = positions[i].cantEdge;
@@ -3894,13 +3899,6 @@ export class SRBXApiCompat {
 		if (removedStatus !== "ok") return { status: removedStatus };
 		record.created.splice(selectedIndex, 1);
 		const root = this.withSwitchType(rootSource, 1);
-		root.anchorYaw = request.branchStart.anchorYaw;
-		root.anchorPitch = request.branchStart.anchorPitch;
-		root.anchorLengthHorizontal = request.branchStart.anchorLength;
-		root.anchorLengthVertical =
-			request.branchStart.anchorLengthVertical === undefined
-				? request.branchStart.anchorLength
-				: request.branchStart.anchorLengthVertical;
 		const trunk = this.withSwitchType(trunkSource, 0);
 		const branch = this.withSwitchType(resolvedEnd, 0);
 		branch.anchorLengthHorizontal = request.branchEnd.anchorLength;

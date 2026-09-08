@@ -1,0 +1,10 @@
+[19:37:11] [Server thread/INFO]: ### SuperRailBuilderX cant ERROR (detailed) ###
+phase: processRequest
+action: apply
+exception: TypeError: TileEntityLargeRailSectionCore has no such function "writeToNBT"
+at scripts/superrailbuilderx/server_cant_formatter.js
+at process (scripts/superrailbuilderx/server_cant_formatter.js)
+at onUpdate (scripts/superrailbuilderx/server_cant_formatter.js)
+[Client thread/INFO]: [SuperRailBuilderX] 処理失敗: internal_error
+
+[19:37:16] 同じ自動分割レールへの再適用でも同一例外を再現。

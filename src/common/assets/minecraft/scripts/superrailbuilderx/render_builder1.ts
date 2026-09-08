@@ -933,7 +933,7 @@ function sendRequest(
 }
 
 function showHelp(sender: ICommandSender): void {
-	NGTLog.sendChatMessage(sender, "--- SuperRailBuilderX builder1 ---");
+	NGTLog.sendChatMessage(sender, "--- SuperRailBuilderX レール生成A ---");
 	NGTLog.sendChatMessage(sender, "[右クリック] 始点→終点を選択");
 	NGTLog.sendChatMessage(sender, "[左クリック] 最後の選択を解除");
 	NGTLog.sendChatMessage(sender, keys.getDescription("build"));

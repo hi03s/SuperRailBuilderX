@@ -18,7 +18,7 @@
 
 1. Minecraft 1.7.10へKaizPatchX 1.10.3以降を導入します。
 2. SuperRailBuilderXの配布パックを`mods`フォルダーへ入れます。
-3. 自動車モデル選択画面から`レール生成A`または目的の`SuperRailBuilderX`ツールを選び、地面へ設置します。
+3. 自動車モデル選択画面から`SuperRailBuilderX_builder1`（機能名: レール生成A）または目的の`SuperRailBuilderX`ツールを選び、地面へ設置します。
 4. 設置したツールを右クリックして使用を開始します。
 
 ## 共通操作

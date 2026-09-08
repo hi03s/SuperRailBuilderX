@@ -34,7 +34,7 @@ SuperRailBuilderXは、KaizPatchX向けのレール制作支援ツール集で�
 1. RealTrainModとKaizPatchXを導入します。
 2. [Releases](https://github.com/hi03s/SuperRailBuilderX/releases)から配布パックをダウンロードします。
 3. ダウンロードしたパックをMinecraftの`mods`フォルダーへ入れます。
-4. 起動後、自動車モデル選択画面から`レール生成A`または`SuperRailBuilderX`で始まるツールを選びます。
+4. 起動後、自動車モデル選択画面から`SuperRailBuilderX_builder1`（機能名: レール生成A）または`SuperRailBuilderX`で始まるツールを選びます。
 
 ## 収録ツール
 

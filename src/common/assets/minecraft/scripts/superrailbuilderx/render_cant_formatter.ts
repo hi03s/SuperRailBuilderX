@@ -26,9 +26,9 @@ type Gauge = { gauge: number; name: string; maxCant: number };
 const GAUGES: Gauge[] = [
 	{ gauge: 1067, name: "1067mm", maxCant: 105 },
 	{ gauge: 1372, name: "1372mm", maxCant: 150 },
-	{ gauge: 1435, name: "1435mm（在来線）", maxCant: 150 },
-	{ gauge: 1435, name: "1435mm（新幹線）", maxCant: 200 },
-	{ gauge: 1000, name: "1000mm（モノレール）", maxCant: 110 },
+	{ gauge: 1435, name: "1435mm (在来線)", maxCant: 150 },
+	{ gauge: 1435, name: "1435mm (新幹線)", maxCant: 200 },
+	{ gauge: 1000, name: "1000mm (モノレール)", maxCant: 110 },
 ];
 type Candidate = SRBXCantTarget & { height: number; radius: number };
 type State = {
@@ -267,6 +267,14 @@ function help(sender: ICommandSender) {
 	NGTLog.sendChatMessage(
 		sender,
 		"[Ctrl+←/→] レール種類を変更（チャット表示）",
+	);
+	NGTLog.sendChatMessage(
+		sender,
+		"上限: 1067mm=105mm / 1372mm=150mm / 1435mm (在来線)=150mm",
+	);
+	NGTLog.sendChatMessage(
+		sender,
+		"上限: 1435mm (新幹線)=200mm / 1000mm (モノレール)=110mm",
 	);
 	NGTLog.sendChatMessage(
 		sender,

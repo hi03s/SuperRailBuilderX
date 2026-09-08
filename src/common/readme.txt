@@ -40,7 +40,7 @@ alpha-0.1.0は開発途中のアルファ版です。
 ○導入方法
 
 RealTrainModとKaizPatchXを導入した状態で、このパックをmodsフォルダーへ入れてください。
-自動車モデル選択画面から「レール生成A」または「SuperRailBuilderX」で始まるモデルを選択します。
+自動車モデル選択画面から「SuperRailBuilderX_builder1」（機能名: レール生成A）または「SuperRailBuilderX」で始まるモデルを選択します。
 
 
 ○共通操作
