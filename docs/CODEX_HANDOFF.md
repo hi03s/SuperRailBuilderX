@@ -22,7 +22,7 @@
 
 ## 作業中
 
-- AppleExtended `ca255fd`対応をmainへ統合し、最終検証・同期を行う。
+- なし。
 
 ## 優先確認事項
 
@@ -123,6 +123,7 @@
 
 ## 直近の完了
 
+- 2026-09-10 ローカルCodex: AppleExtended `ca255fd`のJitPack公開対応を確認し、AEターゲットをmainへ再統合。4ターゲットの生成・ビルド成功。詳細は月別履歴とマージコミット`de3c3cb`を参照（`origin/main`へ同期済み）。
 - 2026-09-09 ローカルCodex: カントの曲率符号と共有端点両側反映、分岐生成の端点起点を元レール全線形を保持する単純分岐へ修正。詳細は月別履歴とコミット`b2bf9db`を参照（`origin/main`へ同期済み）。
 - 2026-09-08 ローカルCodex: builder1の分岐端点接続、カントSection NBT更新、分岐生成の端点起点・接続部カント解除/Undoを修正。描画ずれはKaizPatchX共通スクリプトの二重オフセットと特定。詳細は月別履歴とコミット`ae697dd`を参照（`origin/main`へ同期済み）。
 - 2026-09-08 ローカルCodex: AE対応を`feature/appleextended`へ退避してmainから除外し、カントSection NBT例外、分岐描画、分割精度、builder1識別名を修正。詳細は月別履歴とコミット`ef99a59`・`a92fcdb`を参照（`origin/main`へ同期済み）。

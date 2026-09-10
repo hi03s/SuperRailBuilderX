@@ -701,6 +701,16 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 実装コミット: `b2bf9db`
 - 同期: `origin/main`へ同期済み。
 
+### 2026-09-10 ローカルCodex — AppleExtended対応のmain再統合
+
+- AppleExtended上流`main`が`b6e0769`から`ca255fd65758ef4d587f80e3e23ad5eaa6b81e45`へ進み、JitPack/Maven公開用のgroup・artifact・publication設定が追加されたことを確認した。
+- AE依存を`ca255fd`へ更新し、`stable/39`のAEターゲット、専用compat、compile-onlyサンプル、各TypeScript project referenceをmainへ再統合した。main側のカント整形・分岐生成など、その後の修正は維持した。
+- 初回のJitPack取得はHTTP 429とread timeoutで停止したが、再試行で成果物を取得できた。統合後のmainで`pnpm gen`と`pnpm build`が成功し、common・kaizpatch・mc1710・appleextended・mc1122を生成・ビルドした。
+- AE専用TypeScriptはPrettier適用済み。全体の`pnpm format:check`は今回の差分外である`render_rail_splitter.ts`の既存整形差分だけが残るため不成功。
+- 未検証: Minecraft実機でのAE通常レール端点移動、再ログイン後の永続化、描画、走行、Ctrl+Z。道床再生成APIがないため大移動や他のレール編集ツールは引き続き安全に無効化する。
+- マージコミット: `de3c3cb`
+- 同期: `origin/main`へ同期済み。
+
 ### 記録テンプレート
 
 ```text
