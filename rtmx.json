@@ -76,6 +76,44 @@
 				"skipLibCheck": true
 			}
 		},
+		"appleextended": {
+			"compatFallbackTarget": "mc1122",
+			"runtimeDispatch": "Packages.net.minecraftforge.fml.common.Loader.isModLoaded('appleextended')",
+			"srcDirs": ["src/common", "src/appleextended"],
+			"outDir": "dist/assets/minecraft/__targets__/appleextended",
+			"scan": {
+				"minecraftVersion": "1.12.2",
+				"forgeVersion": "14.23.5.2860",
+				"channel": "stable",
+				"mappingsVersion": "39",
+				"mods": [
+					"com.github.ringo-1234:AppleExtended:ca255fd65758ef4d587f80e3e23ad5eaa6b81e45"
+				],
+				"packages": [
+					"net.minecraft",
+					"net.minecraftforge",
+					"net.minecraftforge.fml",
+					"jp.ngt",
+					"jp.apple",
+					"org.lwjgl",
+					"java.util",
+					"java.nio",
+					"java.lang.System",
+					"javax.script",
+					"java.lang.String",
+					"java.lang.Integer",
+					"java.lang.Class",
+					"java.lang.reflect"
+				]
+			},
+			"compilerOptions": {
+				"strict": false,
+				"target": "ES5",
+				"module": "none",
+				"noEmitOnError": true,
+				"skipLibCheck": true
+			}
+		},
 		"mc1122": {
 			"runtimeDispatch": "true",
 			"srcDirs": ["src/common", "src/mc1122"],

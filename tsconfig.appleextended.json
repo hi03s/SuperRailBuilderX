@@ -3,17 +3,23 @@
 	"compilerOptions": {
 		"paths": {
 			"@common/*": ["src/common/*"],
-			"@target/*": ["src/mc1710/*.compat.ts", "src/mc1710/*"]
+			"@target/*": [
+				"src/appleextended/*.compat.ts",
+				"src/appleextended/*"
+			]
 		}
 	},
-	"include": ["src/mc1710/**/*.ts", "generated/mc1710/typings/**/*.d.ts"],
+	"include": [
+		"src/appleextended/**/*.ts",
+		"generated/appleextended/typings/**/*.d.ts"
+	],
 	"exclude": [
 		"src/common",
 		"src/kaizpatch",
-		"src/appleextended",
+		"src/mc1710",
 		"src/mc1122",
 		"generated/kaizpatch",
-		"generated/appleextended",
+		"generated/mc1710",
 		"generated/mc1122"
 	]
 }
