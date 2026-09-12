@@ -8,6 +8,7 @@ import {
 	AppleExtendedRailCompat,
 	AppleExtendedSourceRail,
 } from "./AppleExtendedRailCompat";
+import { AppleExtendedRailToolsCompat } from "./AppleExtendedRailToolsCompat";
 
 /** AppleExtended ca255fd provides persistent free coordinates on normal RailPosition. */
 export class SRBXApiCompat {
@@ -67,6 +68,18 @@ export class SRBXApiCompat {
 		const pos = core.getPos();
 		const state = world.getBlockState(pos);
 		world.notifyBlockUpdate(pos, state, state, 3);
+	}
+
+	static removeRailClientGhost(
+		world: net.minecraft.world.World,
+		corePosition: [number, number, number],
+		expectedKey: string,
+	): void {
+		const core = AppleExtendedRailCompat.getCore(world, corePosition);
+		if (!core || this.getRailPositionCandidateKey(core) !== expectedKey)
+			return;
+		const map = core.getRailMap(null);
+		if (map) map.breakRail(world, core.getResourceState(), core);
 	}
 
 	static consumeLastRailPositionMoveCores(): Array<[number, number, number]> {
@@ -220,5 +233,90 @@ export class SRBXApiCompat {
 			[coreX, coreY, coreZ],
 			expectedKey,
 		);
+	}
+
+	static applyRailCants(
+		world: net.minecraft.world.World,
+		targets: unknown[],
+	) {
+		return AppleExtendedRailToolsCompat.applyRailCants(
+			world,
+			targets as Parameters<
+				typeof AppleExtendedRailToolsCompat.applyRailCants
+			>[1],
+		);
+	}
+
+	static undoRailCants(
+		world: net.minecraft.world.World,
+		undoToken: string,
+	): string {
+		return AppleExtendedRailToolsCompat.undoRailCants(world, undoToken);
+	}
+
+	static consumeLastCantClientUpdate(): Array<[number, number, number]> {
+		return AppleExtendedRailToolsCompat.consumeLastCantClientUpdate();
+	}
+
+	static splitBuilderRail(
+		world: net.minecraft.world.World,
+		player: net.minecraft.entity.player.EntityPlayer,
+		core: [number, number, number],
+		expectedKey: string,
+		ratio: number,
+	) {
+		return AppleExtendedRailToolsCompat.splitBuilderRail(
+			world,
+			player,
+			core,
+			expectedKey,
+			ratio,
+		);
+	}
+
+	static undoSplitBuilderRail(
+		world: net.minecraft.world.World,
+		player: net.minecraft.entity.player.EntityPlayer,
+		undoToken: string,
+	): string {
+		return AppleExtendedRailToolsCompat.undoSplitBuilderRail(
+			world,
+			player,
+			undoToken,
+		);
+	}
+
+	static consumeLastSplitClientUpdate() {
+		return AppleExtendedRailToolsCompat.consumeLastSplitClientUpdate();
+	}
+
+	static createBranchBuilderRail(
+		world: net.minecraft.world.World,
+		player: net.minecraft.entity.player.EntityPlayer,
+		request: unknown,
+	) {
+		return AppleExtendedRailToolsCompat.createBranchBuilderRail(
+			world,
+			player,
+			request as Parameters<
+				typeof AppleExtendedRailToolsCompat.createBranchBuilderRail
+			>[2],
+		);
+	}
+
+	static undoBranchBuilderRail(
+		world: net.minecraft.world.World,
+		player: net.minecraft.entity.player.EntityPlayer,
+		undoToken: string,
+	): string {
+		return AppleExtendedRailToolsCompat.undoBranchBuilderRail(
+			world,
+			player,
+			undoToken,
+		);
+	}
+
+	static consumeLastBranchClientUpdate() {
+		return AppleExtendedRailToolsCompat.consumeLastSplitClientUpdate();
 	}
 }

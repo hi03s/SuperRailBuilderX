@@ -40,23 +40,26 @@ KaizPatchX版`SRBXApiCompat`には、上記のほか、道床衝突検査、Sect
 
 このモジュールではKaizPatchXのクラス名を参照しない。AE側に同等の公開APIが追加された際は、対応メソッドの呼び出し先をAE APIへ置き換え、不要になった補完コードを同じ変更で削除する。
 
+分割・分岐・カントと各Undoの一時実装は`AppleExtendedRailToolsCompat.ts`へ分離する。分割と分岐は変更前のRailPosition、モデル、信号、サブレールを退避し、途中失敗時とUndo時に元の通常レールを復元する。分岐で0化する接続端点のカントもUndo記録へ含める。
+
 ## 対応範囲
 
 - 通常レールのRailPosition端点移動、クライアント同期、Undo
 - レール生成Aの通常レール生成とUndo
 - `createBuilderRail`を共有する通常レール複製経路
+- 通常レールを2本の通常レールへ置き換えるレール分割と一括Undo
+- 通常レールの中央・端点を起点とする標準RTM分岐生成と一括Undo
+- 通常レールのカント整形、接続端点への反対符号適用、Undo
 - AE固有APIの型生成を検査するcompile-onlyサンプル
 - `Loader.isModLoaded("appleextended")`による`mc1122`より優先した実行時選択
 - その他の差分がない1.12.2処理は`compatFallbackTarget: "mc1122"`を利用
 
-## 未対応
+## 制限
 
 - 既設レールを撤去・再生成する複数レール平行移動
-- レール分割と分岐生成
-- 自動分割Section NBTを更新するカント整形
 - 自動分割レールの選択、生成、削除、Undo
 
-これらは現在`mc1122`安全スタブへフォールバックし、ワールドを書き換えず`unsupported_target`等を返す。通常レールだけで安全に実装できる処理は、今後も`AppleExtendedRailCompat.ts`へ追加する。
+AEでの分割結果は距離やチャンク境界にかかわらず通常レール2本となる。カント整形は通常レールだけを対象とし、KaizPatchXのSection NBT更新は実行しない。通常レールだけで安全に実装できる処理は、今後もAE専用compatへ追加する。
 
 ## ビルド確認
 

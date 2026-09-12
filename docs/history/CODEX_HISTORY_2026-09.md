@@ -721,6 +721,14 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 実装コミット: `6289a96`
 - 同期: `origin/feature/appleextended-compat`へ同期済み。
 
+### 2026-09-12 ローカルCodex — AE分割・分岐・カント対応
+
+- AE通常レール向けの`AppleExtendedRailToolsCompat.ts`を追加し、レール分割、中央/端点分岐生成、カント整形と各Undoを実装した。分割結果は常に通常レール2本とし、分岐はAE標準RTMのSwitch core生成へ委譲する。
+- 分割形状は元RailMapの候補位置、水平Bezier分割、勾配、カントを引き継ぐ。変更前のRailPosition、モデル、信号、サブレールを記録し、生成途中の失敗時とUndo時に元レールを復元する。
+- カントは通常RailPositionを更新し、共有端点の接続相手へ反対符号を適用する。分岐接続部のカント0化もUndo対象に含めた。削除レールのクライアントゴースト除去をAE用に追加した。
+- 検証済み: `pnpm format:check`、`pnpm gen`、`pnpm build`（4ターゲット）、AE生成JavaScriptへの全compatメソッド出力、AE生成物にKaizPatchX Section API参照がないこと、`git diff --check`。
+- 未検証: Minecraft実機でのAE通常レール分割・Undo、中央/端点分岐の切替・走行・Undo、カント共有端点反映・Undo、各失敗時ロールバック。
+
 ### 記録テンプレート
 
 ```text

@@ -44,17 +44,17 @@ export type AppleExtendedSourceRail = {
  * exposes an equivalent supported API.
  */
 export class AppleExtendedRailCompat {
-	private static normalizeDegrees(angle: number): number {
+	static normalizeDegrees(angle: number): number {
 		let result = angle % 360;
 		if (result < 0) result += 360;
 		return result;
 	}
 
-	private static directionFromYaw(yaw: number): number {
+	static directionFromYaw(yaw: number): number {
 		return Math.round(this.normalizeDegrees(yaw) / 45) & 7;
 	}
 
-	private static coreKey(core: TileEntityLargeRailCore): string {
+	static coreKey(core: TileEntityLargeRailCore): string {
 		const pos = core.getPos();
 		return `core:${pos.getX()},${pos.getY()},${pos.getZ()}`;
 	}
@@ -83,7 +83,7 @@ export class AppleExtendedRailCompat {
 		return "ok";
 	}
 
-	private static cloneRailPosition(source: RailPosition): RailPosition {
+	static cloneRailPosition(source: RailPosition): RailPosition {
 		const target = new RailPosition(
 			source.blockX,
 			source.blockY,
@@ -167,9 +167,16 @@ export class AppleExtendedRailCompat {
 		return result;
 	}
 
-	private static propertyFromPlayer(
-		player: EntityPlayer,
-	): ResourceStateRail | null {
+	static resolveBuilderPoint(
+		world: World,
+		point: AppleExtendedBuilderPoint,
+	): RailPosition | null {
+		return point.kind === "rail"
+			? this.resolveRailPoint(world, point)
+			: this.createFreePoint(point);
+	}
+
+	static propertyFromPlayer(player: EntityPlayer): ResourceStateRail | null {
 		const held = player.inventory.getCurrentItem();
 		if (!held || held.getItem() !== RTMItem.itemLargeRail) return null;
 		return (held.getItem() as ItemRail).getModelState(held);
@@ -186,6 +193,56 @@ export class AppleExtendedRailCompat {
 		if (!(tile instanceof TileEntityLargeRailBase)) return null;
 		const core = tile.getRailCore();
 		return core ? core.getResourceState() : null;
+	}
+
+	static getCore(
+		world: World,
+		position: RailCorePos,
+	): TileEntityLargeRailCore | null {
+		const tile = world.getTileEntity(
+			new BlockPos(position[0], position[1], position[2]),
+		);
+		if (!(tile instanceof TileEntityLargeRailBase)) return null;
+		return tile.getRailCore();
+	}
+
+	static createFromPositions(
+		world: World,
+		player: EntityPlayer,
+		positions: RailPosition[],
+		property: ResourceStateRail,
+	): { core: RailCorePos; key: string } | null {
+		if (!positions || positions.length < 2) return null;
+		const ordered = positions.slice();
+		if (ordered.length === 2 && ordered[0].posY > ordered[1].posY)
+			ordered.reverse();
+		const list = new ArrayList<RailPosition>();
+		for (let i = 0; i < ordered.length; i++) list.add(ordered[i]);
+		const root = list.get(0);
+		if (
+			!BlockMarker.createRail(
+				world,
+				root.blockX,
+				root.blockY,
+				root.blockZ,
+				list,
+				property,
+				true,
+				player.capabilities.isCreativeMode,
+			)
+		)
+			return null;
+		const core = this.getCore(world, [
+			root.blockX,
+			root.blockY,
+			root.blockZ,
+		]);
+		if (!core) return null;
+		const pos = core.getPos();
+		return {
+			core: [pos.getX(), pos.getY(), pos.getZ()],
+			key: this.coreKey(core),
+		};
 	}
 
 	private static propertyFromSource(
@@ -266,38 +323,17 @@ export class AppleExtendedRailCompat {
 				: this.createFreePoint(end);
 		if (!startRP || !endRP) return { status: "rail_endpoint_changed" };
 
-		const positions = new ArrayList<RailPosition>();
-		if (startRP.posY <= endRP.posY) {
-			positions.add(startRP);
-			positions.add(endRP);
-		} else {
-			positions.add(endRP);
-			positions.add(startRP);
-		}
-		const first = positions.get(0);
-		if (
-			!BlockMarker.createRail(
-				world,
-				first.blockX,
-				first.blockY,
-				first.blockZ,
-				positions,
-				property,
-				true,
-				player.capabilities.isCreativeMode,
-			)
-		)
-			return { status: "create_failed" };
-		const tile = world.getTileEntity(
-			new BlockPos(first.blockX, first.blockY, first.blockZ),
+		const created = this.createFromPositions(
+			world,
+			player,
+			[startRP, endRP],
+			property,
 		);
-		if (!(tile instanceof TileEntityLargeRailCore))
-			return { status: "create_failed" };
-		const pos = tile.getPos();
+		if (!created) return { status: "create_failed" };
 		return {
 			status: "ok",
-			undoCore: [pos.getX(), pos.getY(), pos.getZ()],
-			undoKey: this.coreKey(tile),
+			undoCore: created.core,
+			undoKey: created.key,
 		};
 	}
 
