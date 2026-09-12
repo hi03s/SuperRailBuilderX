@@ -751,6 +751,16 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 実装コミット: `34cb8a0`
 - 同期: 実装`34cb8a0`・引継ぎ更新`2d13246`を`origin/main`へ同期済み。
 
+### 2026-09-13 ローカルCodex — レール候補取得復旧・分岐描画クラッシュ修正
+
+- `logs/latest.log`でレール移動の候補走査が`railTiles=0`となっていること、クラッシュレポートで分岐生成成功直後の描画がnullのRailPositionの`posX`を参照したことを特定した。必要行だけを匿名化して`logs/branch-selection-crash-20260913.log`へ保存した。
+- KaizPatchXでは見えているレールがあっても`World.loadedTileEntityList`が空だったため、視点周辺のロード済みチャンクが持つTileEntityマップから現行レールコアを毎回列挙するよう変更した。mc1710・mc1122/AEにも各APIに合わせた実装を追加し、TE一覧は範囲外の長いレール向け補助としてチャンク側の後に統合する。
+- 分岐端点ハイライトでnull RailPositionを除外し、生成要求の結果待ち中は置換途中のコアを走査しないようにした。
+- 分岐先端点の確定後は選択されたベースレールだけを水色表示し、変更しない側の黄色表示を停止するようにした。
+- 検証済み: `pnpm gen`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、`pnpm format:check`、`git diff --check`。
+- 未検証: Minecraft実機でのレール移動・カント選択、分岐生成直後のクラッシュ解消、確定後ハイライト。
+- 実装コミット: `b78ab58`
+
 ### 記録テンプレート
 
 ```text
