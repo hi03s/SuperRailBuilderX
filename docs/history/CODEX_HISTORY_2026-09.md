@@ -760,6 +760,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 検証済み: `pnpm gen`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、`pnpm format:check`、`git diff --check`。
 - 未検証: Minecraft実機でのレール移動・カント選択、分岐生成直後のクラッシュ解消、確定後ハイライト。
 - 実装コミット: `b78ab58`
+- 同期: 実装`b78ab58`・引継ぎ更新`b70e88c`を`origin/main`へ同期済み。
 
 ### 記録テンプレート
 
