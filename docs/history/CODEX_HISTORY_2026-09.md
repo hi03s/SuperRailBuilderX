@@ -749,6 +749,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 検証済み: `pnpm gen`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、`pnpm format:check`、`git diff --check`。
 - 未検証: Minecraft実機でのレール移動ホバー、カント端点/中央方向、分岐端点切替・生成直後同期・Undo。
 - 実装コミット: `34cb8a0`
+- 同期: 実装`34cb8a0`・引継ぎ更新`2d13246`を`origin/main`へ同期済み。
 
 ### 記録テンプレート
 
