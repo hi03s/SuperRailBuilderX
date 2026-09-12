@@ -739,6 +739,17 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 実装コミット: `fc0a02e`
 - 同期: `origin/main`へ同期済み。
 
+### 2026-09-13 ローカルCodex — 常時コア取得・共有端点方向・分岐同期修正
+
+- `logs/latest.log`から、カント共有端点の選択元による半径・符号差、分岐生成直後の`TileEntityLargeRailSwitchCore.readRailData`空配列例外、続くUndo失敗を確認した。必要行のみ匿名化して`logs/rail-tools-retest-20260913-3.log`へ保存した。
+- レール移動とカント整形の候補探索を、周辺道床の`getRailCore()`参照ではなく、ロード済みの実レールコア一覧から毎フレーム取得する方式へ変更した。KaizPatchXでは引き続き現在のRailPositionから理論RailMapを再構築する。
+- カント共有端点はカーソル側のレールではなく、同一点候補中でカント高が最大の曲線を計算基準とした。接続先の`cantEdge`符号は両RailPositionの水平アンカー方向差で決める。
+- 分岐生成は共有端点選択前の両レールを黄色表示し、選択後は分岐先カーソル方向と各レール内向き方向の差からベースを切り替え、水色表示する。
+- 分岐コア設置時の初期化前ブロック更新を止め、RailPosition設定後だけ同期するようにした。中央分岐Undoは通常レールを先に除去してから分岐コアを除去する順へ変更した。
+- 検証済み: `pnpm gen`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、`pnpm format:check`、`git diff --check`。
+- 未検証: Minecraft実機でのレール移動ホバー、カント端点/中央方向、分岐端点切替・生成直後同期・Undo。
+- 実装コミット: `34cb8a0`
+
 ### 記録テンプレート
 
 ```text
