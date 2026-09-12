@@ -762,6 +762,18 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 実装コミット: `b78ab58`
 - 同期: 実装`b78ab58`・引継ぎ更新`b70e88c`を`origin/main`へ同期済み。
 
+### 2026-09-13 ローカルCodex — 分岐Undo・カント分割・現行コア参照修正
+
+- `logs/latest.log`から、分岐Undo成功直後に旧分岐TileEntityが通常レール用`PacketNBT`を受けて`TileEntityLargeRailSwitchCore.readRailData`で配列範囲外となる切断、中央分岐Undoの`undo_rail_changed`、カント付きレール分割後の`split_endpoint_not_found`を特定した。必要行のみ`logs/branch-undo-cant-split-diagnostic-20260913.log`へ保存した。
+- KaizPatchXのレール更新NBTへ通常レール形式の`StartRP`/`EndRP`と分岐形式の`Size`/`RPn`を併記し、ブロック置換と独自パケットの到着順が逆でも旧TileEntityが安全に読み取れるようにした。
+- 中央分岐で生成した残存半レールを外部接続レールのカントUndo記録から除外し、元レール復元後に別キーとして照合していた`undo_rail_changed`を防止した。
+- カント分割点のY照合は、クライアントRailMap高さに含まれるカント由来の持ち上がりを許容するよう修正した。カントUndo記録をスタック化し、2回以上の適用を新しい順に戻せるようにした。
+- 各ターゲットのロード済みコア列挙では、チャンクやTileEntity一覧の要素をそのまま返さず、コア座標から現在ワールドにあるTileEntityを引き直すようにした。レール移動・カント整形のホバーが撤去済みコアの旧RailMapを描く経路を除去した。
+- 検証済み: `pnpm format`、`pnpm format:check`、`pnpm gen`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、`git diff --check`。
+- 未検証: Minecraft実機での分岐Undo時の切断/エラー解消、カント付き任意点分割、カント複数回Undo、レール移動・カント整形の適用/Undo後ハイライト。
+- 実装コミット: `f6e700b`
+- 同期: 引継ぎ更新後に`origin/main`へ同期予定。
+
 ### 記録テンプレート
 
 ```text
