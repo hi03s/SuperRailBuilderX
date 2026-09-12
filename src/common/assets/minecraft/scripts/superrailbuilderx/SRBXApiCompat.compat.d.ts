@@ -57,6 +57,9 @@ export type SRBXCantTarget = {
 	index: number;
 	position: RailCorePos;
 	angle: number;
+	mode?: "edge" | "center" | "split";
+	ratio?: number;
+	yaw?: number;
 };
 
 export type SRBXBranchRequest = {

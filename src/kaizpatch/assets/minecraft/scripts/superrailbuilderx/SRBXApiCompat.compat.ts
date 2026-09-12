@@ -99,6 +99,9 @@ type CantTarget = {
 	index: number;
 	position: [number, number, number];
 	angle: number;
+	mode?: "edge" | "center" | "split";
+	ratio?: number;
+	yaw?: number;
 };
 
 type CantUndoRecord = Array<{
@@ -3747,18 +3750,29 @@ export class SRBXApiCompat {
 				return { status: "rail_occupied" };
 			const entry = getPending(core);
 			if (!entry) return { status: "invalid_rail" };
-			if (target.index < 0 || target.index >= entry.positions.length)
-				return { status: "invalid_endpoint" };
-			const rp = entry.positions[target.index];
+			const isCenter = target.mode === "center";
 			if (
-				Math.abs(rp.posX - target.position[0]) > 0.001 ||
-				Math.abs(rp.posY - target.position[1]) > 0.001 ||
-				Math.abs(rp.posZ - target.position[2]) > 0.001
+				!isCenter &&
+				(target.index < 0 || target.index >= entry.positions.length)
+			)
+				return { status: "invalid_endpoint" };
+			const rp = isCenter ? null : entry.positions[target.index];
+			if (
+				!isCenter &&
+				(!rp ||
+					Math.abs(rp.posX - target.position[0]) > 0.001 ||
+					Math.abs(rp.posY - target.position[1]) > 0.001 ||
+					Math.abs(rp.posZ - target.position[2]) > 0.001)
 			)
 				return { status: "rail_changed" };
-			rp.cantEdge = target.angle;
+			if (isCenter) {
+				entry.positions[0].cantCenter = target.angle;
+				entry.positions[1].cantCenter = target.angle;
+				continue;
+			}
+			rp!.cantEdge = target.angle;
 			const connected = this.findConnectedCantEndpoints(world, core, [
-				rp,
+				rp!,
 			]);
 			for (let j = 0; j < connected.length; j++) {
 				const neighbor = connected[j];
@@ -3775,10 +3789,21 @@ export class SRBXApiCompat {
 		const keys = Object.keys(pending);
 		for (let i = 0; i < keys.length; i++) {
 			const entry = pending[keys[i]];
-			const center =
-				(entry.positions[0].cantEdge - entry.positions[1].cantEdge) / 2;
-			entry.positions[0].cantCenter = center;
-			entry.positions[1].cantCenter = center;
+			let hasCenterTarget = false;
+			for (let j = 0; j < targets.length; j++)
+				if (
+					targets[j].railKey === keys[i] &&
+					targets[j].mode === "center"
+				)
+					hasCenterTarget = true;
+			if (!hasCenterTarget) {
+				const center =
+					(entry.positions[0].cantEdge -
+						entry.positions[1].cantEdge) /
+					2;
+				entry.positions[0].cantCenter = center;
+				entry.positions[1].cantCenter = center;
+			}
 			this.lastCantClientUpdate = this.lastCantClientUpdate.concat(
 				this.updateCantRail(world, entry.core, entry.positions),
 			);
@@ -4026,6 +4051,23 @@ export class SRBXApiCompat {
 			key: this.getRailPositionCandidateKey(switchCore),
 		};
 		record.created.push(created);
+		const postConnected = this.findConnectedCantEndpoints(
+			world,
+			switchCore,
+			switchPositions,
+		);
+		for (let i = 0; i < postConnected.length; i++) {
+			const candidate = postConnected[i],
+				id = `${this.getRailPositionCandidateKey(candidate.core)}:${candidate.index}`;
+			let duplicate = false;
+			for (let j = 0; j < connectedEndpoints.length; j++)
+				if (
+					`${this.getRailPositionCandidateKey(connectedEndpoints[j].core)}:${connectedEndpoints[j].index}` ===
+					id
+				)
+					duplicate = true;
+			if (!duplicate) connectedEndpoints.push(candidate);
+		}
 		record.cants = [];
 		let refreshed: SplitCreatedRail[] = [created];
 		const appendRefresh = (
@@ -4315,6 +4357,23 @@ export class SRBXApiCompat {
 			key: this.getRailPositionCandidateKey(switchCore),
 		};
 		record.created.push(created);
+		const postConnected = this.findConnectedCantEndpoints(
+			world,
+			switchCore,
+			switchPositions,
+		);
+		for (let i = 0; i < postConnected.length; i++) {
+			const candidate = postConnected[i],
+				id = `${this.getRailPositionCandidateKey(candidate.core)}:${candidate.index}`;
+			let duplicate = false;
+			for (let j = 0; j < connectedEndpoints.length; j++)
+				if (
+					`${this.getRailPositionCandidateKey(connectedEndpoints[j].core)}:${connectedEndpoints[j].index}` ===
+					id
+				)
+					duplicate = true;
+			if (!duplicate) connectedEndpoints.push(candidate);
+		}
 		record.cants = [];
 		let refreshed = record.created.slice();
 		const zeroAndRefresh = (

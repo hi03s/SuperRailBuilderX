@@ -121,14 +121,14 @@ function findSplit(e: EntityVehicle, pt: number): SplitTarget | null {
 		seen: { [k: string]: boolean } = {};
 	let best: SplitTarget | null = null,
 		dist = 2.25;
-	for (let dx = -1; dx <= 1; dx++)
-		for (let dy = -1; dy <= 1; dy++)
-			for (let dz = -1; dz <= 1; dz++) {
+	for (let dx = -2; dx <= 2; dx++)
+		for (let dy = -2; dy <= 2; dy++)
+			for (let dz = -2; dz <= 2; dz++) {
 				const tile = SRBXApiCompat.getTileEntity(
 					world,
-					looking.posX + dx,
-					looking.posY + dy,
-					looking.posZ + dz,
+					Math.floor(looking.posX) + dx,
+					Math.floor(looking.posY) + dy,
+					Math.floor(looking.posZ) + dz,
 				);
 				if (!(tile instanceof TileEntityLargeRailBase)) continue;
 				const core = tile.getRailCore();
@@ -166,11 +166,18 @@ function findSplit(e: EntityVehicle, pt: number): SplitTarget | null {
 					index: number,
 					pos: SRBXVec3,
 					endpoint: SRBXBuilderPoint | null,
+					directionPoint?: SRBXVec3,
 				) => {
-					const d =
+					let d =
 						Math.pow(pos[0] - looking.posX, 2) +
 						Math.pow(pos[1] - looking.posY, 2) +
 						Math.pow(pos[2] - looking.posZ, 2);
+					if (directionPoint)
+						d +=
+							0.1 *
+							(Math.pow(directionPoint[0] - looking.posX, 2) +
+								Math.pow(directionPoint[1] - looking.posY, 2) +
+								Math.pow(directionPoint[2] - looking.posZ, 2));
 					if (d >= dist) return;
 					dist = d;
 					best = {
@@ -233,6 +240,7 @@ function findSplit(e: EntityVehicle, pt: number): SplitTarget | null {
 						index === 0 ? 0 : split,
 						endpoint.position,
 						endpoint,
+						railPoint(map, split, index === 0 ? 1 : split - 1),
 					);
 				}
 			}

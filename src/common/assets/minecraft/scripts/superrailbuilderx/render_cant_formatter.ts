@@ -30,7 +30,11 @@ const GAUGES: Gauge[] = [
 	{ gauge: 1435, name: "1435mm (新幹線)", maxCant: 200 },
 	{ gauge: 1000, name: "1000mm (モノレール)", maxCant: 110 },
 ];
-type Candidate = SRBXCantTarget & { height: number; radius: number };
+type Candidate = SRBXCantTarget & {
+	height: number;
+	radius: number;
+	mode: "edge" | "center" | "split";
+};
 type State = {
 	speed: number;
 	gaugeIndex: number;
@@ -120,59 +124,124 @@ function candidate(
 				seen[railKey] = true;
 				const map = SRBXApiCompat.getLogicalRailMap(core);
 				if (!map) continue;
-				const rps = SRBXApiCompat.getEditableRailPositions(core);
-				for (let index = 0; index < 2; index++) {
-					const rp = rps[index] as RailPosition;
-					const dx = rp.posX - looking.posX,
-						dy = rp.posY - looking.posY,
-						dz = rp.posZ - looking.posZ,
-						d = dx * dx + dy * dy + dz * dz;
-					if (d >= bestD) continue;
-					const a =
-							index === 0
-								? RTMApiCompat.getRailYaw(map, 1000, 0)
-								: RTMApiCompat.getRailYaw(map, 1000, 980),
-						bb =
-							index === 0
-								? RTMApiCompat.getRailYaw(map, 1000, 20)
-								: RTMApiCompat.getRailYaw(map, 1000, 1000);
-					const delta = SRBXMath.relativeDegrees(bb, a);
-					const arc = Math.max(0.001, map.getLength() * 0.02);
-					const radius =
-						Math.abs(delta) < 0.0001
-							? Infinity
-							: Math.abs(arc / ((delta * Math.PI) / 180));
-					const g = GAUGES[state(entity).gaugeIndex];
-					const height = isFinite(radius)
-						? Math.min(
-								g.maxCant,
-								Math.max(
-									0,
-									Math.round(
-										(g.gauge *
-											state(entity).speed *
-											state(entity).speed) /
-											(127 * radius),
+				const rps = SRBXApiCompat.getEditableRailPositions(core),
+					length = map.getLength(),
+					split = Math.max(2, Math.floor(length * 2)),
+					corePos = SRBXApiCompat.getRailCorePos(core),
+					g = GAUGES[state(entity).gaugeIndex];
+				const consider = (
+					mode: "edge" | "center" | "split",
+					index: number,
+					ratio: number,
+					position: [number, number, number],
+					directionPoint?: [number, number, number],
+				) => {
+					let d =
+						Math.pow(position[0] - looking.posX, 2) +
+						Math.pow(position[1] - looking.posY, 2) +
+						Math.pow(position[2] - looking.posZ, 2);
+					if (directionPoint)
+						d +=
+							0.1 *
+							(Math.pow(directionPoint[0] - looking.posX, 2) +
+								Math.pow(directionPoint[1] - looking.posY, 2) +
+								Math.pow(directionPoint[2] - looking.posZ, 2));
+					if (d >= bestD) return;
+					const sample = Math.max(1, Math.floor(split * 0.02)),
+						aIndex = Math.max(0, index - sample),
+						bIndex = Math.min(split, index + sample),
+						a = RTMApiCompat.getRailYaw(map, split, aIndex),
+						b = RTMApiCompat.getRailYaw(map, split, bIndex),
+						delta = SRBXMath.relativeDegrees(b, a),
+						arc = Math.max(
+							0.001,
+							(length * (bIndex - aIndex)) / split,
+						),
+						radius =
+							Math.abs(delta) < 0.0001
+								? Infinity
+								: Math.abs(arc / ((delta * Math.PI) / 180)),
+						height = isFinite(radius)
+							? Math.min(
+									g.maxCant,
+									Math.max(
+										0,
+										Math.round(
+											(g.gauge *
+												state(entity).speed *
+												state(entity).speed) /
+												(127 * radius),
+										),
 									),
-								),
-							)
-						: 0;
-					const baseSign = delta >= 0 ? -1 : 1;
-					const angle =
-						((Math.asin(height / g.gauge) * 180) / Math.PI) *
-						baseSign *
-						(index === 0 ? 1 : -1);
+								)
+							: 0,
+						physicalAngle =
+							((Math.asin(height / g.gauge) * 180) / Math.PI) *
+							(delta >= 0 ? -1 : 1),
+						angle =
+							mode === "edge" && index === split
+								? -physicalAngle
+								: physicalAngle;
 					bestD = d;
 					best = {
-						core: SRBXApiCompat.getRailCorePos(core),
+						core: corePos,
 						railKey,
-						index,
-						position: [rp.posX, rp.posY, rp.posZ],
+						index: mode === "edge" ? (index === 0 ? 0 : 1) : -1,
+						position,
 						angle,
 						height,
 						radius,
+						mode,
+						ratio,
+						yaw: RTMApiCompat.getRailYaw(map, split, index),
 					};
+				};
+				for (let index = 0; index < 2; index++) {
+					const rp = rps[index] as RailPosition,
+						mapIndex = index === 0 ? 0 : split,
+						directionSample = Math.max(
+							1,
+							Math.round(
+								(Math.min(2, length * 0.05) * 1000) / length,
+							),
+						);
+					consider(
+						"edge",
+						mapIndex,
+						index,
+						[rp.posX, rp.posY, rp.posZ],
+						point(
+							map,
+							index === 0
+								? directionSample
+								: 1000 - directionSample,
+						),
+					);
 				}
+				const centerIndex = Math.floor(split / 2),
+					center = point(
+						map,
+						Math.round((centerIndex * 1000) / split),
+					);
+				consider("center", centerIndex, 0.5, center);
+				const near = map.getNearlestPoint(
+						split,
+						looking.posX,
+						looking.posZ,
+					),
+					ratio = near / split,
+					distanceFromEnds = Math.min(
+						length * ratio,
+						length * (1 - ratio),
+					),
+					distanceFromCenter = Math.abs(length * (ratio - 0.5));
+				if (distanceFromEnds >= 10 && distanceFromCenter >= 10)
+					consider(
+						"split",
+						near,
+						ratio,
+						point(map, Math.round(ratio * 1000)),
+					);
 			}
 	return best;
 }
@@ -233,7 +302,8 @@ function result(sender: ICommandSender, entity: EntityVehicle, s: State) {
 			d,
 			"cantFormatterClientUpdate",
 		) || [];
-	const world = SRBXApiCompat.getWorld(entity);
+	const world = SRBXApiCompat.getWorld(entity),
+		freshKeys: { [key: string]: boolean } = {};
 	for (let i = 0; i < updates.length; i++) {
 		const t = SRBXApiCompat.getTileEntity(
 			world,
@@ -243,9 +313,25 @@ function result(sender: ICommandSender, entity: EntityVehicle, s: State) {
 		);
 		if (t instanceof TileEntityLargeRailBase) {
 			const c = t.getRailCore();
-			if (c) SRBXApiCompat.refreshRailCoreClient(c);
+			if (c) {
+				freshKeys[SRBXApiCompat.getRailPositionCandidateKey(c)] = true;
+				SRBXApiCompat.refreshRailCoreClient(c);
+			}
 		}
 	}
+	const removed =
+		NGTOBuilderUtil.getJsonData<
+			Array<{ core: [number, number, number]; key: string }>
+		>(d, "cantFormatterRemovedRails") || [];
+	for (let i = 0; i < removed.length; i++)
+		if (!freshKeys[removed[i].key])
+			SRBXApiCompat.removeRailClientGhost(
+				world,
+				removed[i].core,
+				removed[i].key,
+			);
+	NGTOBuilderUtil.resetJsonData(d, "cantFormatterClientUpdate");
+	NGTOBuilderUtil.resetJsonData(d, "cantFormatterRemovedRails");
 	NGTLog.sendChatMessage(
 		sender,
 		r === "ok"
@@ -278,7 +364,7 @@ function help(sender: ICommandSender) {
 	);
 	NGTLog.sendChatMessage(
 		sender,
-		"[右クリック] 端点を複数選択 / [左クリック] 1点戻る",
+		"[右クリック] 端点・中央・離れたレール上を複数選択 / [左クリック] 1点戻る",
 	);
 	NGTLog.sendChatMessage(sender, keys.getDescription("apply"));
 	NGTLog.sendChatMessage(sender, keys.getDescription("undo"));
@@ -358,10 +444,13 @@ function input(
 	if (right && !s.awaiting) {
 		const c = candidate(entity, pt);
 		if (c) {
-			const k = `${c.railKey}:${c.index}`;
+			const k = `${c.railKey}:${c.mode}:${Math.round((c.ratio || 0) * 1000000)}`;
 			let found = -1;
 			for (let i = 0; i < s.selected.length; i++)
-				if (`${s.selected[i].railKey}:${s.selected[i].index}` === k)
+				if (
+					`${s.selected[i].railKey}:${s.selected[i].mode}:${Math.round((s.selected[i].ratio || 0) * 1000000)}` ===
+					k
+				)
 					found = i;
 			if (found >= 0) s.selected.splice(found, 1);
 			else s.selected.push(c);
@@ -377,6 +466,67 @@ function input(
 		send(entity, s, { action: "undo" });
 	result(sender, entity, s);
 }
+
+function renderRailHighlight(
+	entity: EntityVehicle,
+	pt: number,
+	map: RailMap,
+	color: string,
+): void {
+	const origin = NGTOBuilderUtilClient.getInterpolatedPos(entity, pt);
+	GL11.glPushMatrix();
+	GL11.glTranslatef(-origin[0], -origin[1], -origin[2]);
+	NGTOBuilderUtilClient.renderRailMapHighlight(entity, map, color, 0.65);
+	GL11.glPopMatrix();
+}
+
+function renderAffectedRails(
+	entity: EntityVehicle,
+	pt: number,
+	target: Candidate,
+): void {
+	const world = SRBXApiCompat.getWorld(entity),
+		seen: { [key: string]: boolean } = {};
+	for (let dx = -2; dx <= 2; dx++)
+		for (let dy = -2; dy <= 2; dy++)
+			for (let dz = -2; dz <= 2; dz++) {
+				const tile = SRBXApiCompat.getTileEntity(
+					world,
+					Math.floor(target.position[0]) + dx,
+					Math.floor(target.position[1]) + dy,
+					Math.floor(target.position[2]) + dz,
+				);
+				if (!(tile instanceof TileEntityLargeRailBase)) continue;
+				const core = tile.getRailCore();
+				if (!core) continue;
+				const key = SRBXApiCompat.getRailPositionCandidateKey(core);
+				if (seen[key]) continue;
+				const positions = SRBXApiCompat.getEditableRailPositions(core),
+					map = SRBXApiCompat.getLogicalRailMap(core);
+				if (!positions || !map) continue;
+				let affected = key === target.railKey;
+				if (!affected && target.mode === "edge")
+					for (let i = 0; i < positions.length; i++)
+						if (
+							Math.abs(positions[i].posX - target.position[0]) <=
+								0.001 &&
+							Math.abs(positions[i].posY - target.position[1]) <=
+								0.001 &&
+							Math.abs(positions[i].posZ - target.position[2]) <=
+								0.001
+						)
+							affected = true;
+				if (!affected) continue;
+				seen[key] = true;
+				renderRailHighlight(
+					entity,
+					pt,
+					map,
+					target.mode === "split" ? "ffff00" : "00ffff",
+				);
+			}
+}
+
 function render(entity: EntityVehicle, pass: number, pt: number): void {
 	if (!entity) {
 		body.render(renderer);
@@ -396,6 +546,7 @@ function render(entity: EntityVehicle, pass: number, pt: number): void {
 		hover = candidate(entity, pt);
 	if (hover) renderAt(entity, pt, hover.position, hoverCursor);
 	for (let i = 0; i < s.selected.length; i++) {
+		renderAffectedRails(entity, pt, s.selected[i]);
 		renderAt(entity, pt, s.selected[i].position, selectedCursor);
 		panel(
 			entity,

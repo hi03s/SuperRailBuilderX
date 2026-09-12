@@ -84,6 +84,7 @@ type EditorState = {
 	pendingAction: "move" | "undo" | null;
 	snapEnabled: boolean;
 	ignoredRailKeys: { [key: string]: boolean };
+	pendingRefreshes: Array<{ core: RailCorePos; expiresAt: number }>;
 };
 
 type CandidateScanDiagnostics = {
@@ -181,6 +182,7 @@ function getState(entity: EntityVehicle): EditorState {
 			pendingAction: null,
 			snapEnabled: false,
 			ignoredRailKeys: {},
+			pendingRefreshes: [],
 		};
 		states.put(entity, state);
 	}
@@ -1067,6 +1069,36 @@ function renderRailHighlight(
 	GL11.glPopMatrix();
 }
 
+function refreshPendingRailMaps(
+	entity: EntityVehicle,
+	state: EditorState,
+): void {
+	if (state.pendingRefreshes.length === 0) return;
+	const world = SRBXApiCompat.getWorld(entity),
+		now = Date.now(),
+		remaining: Array<{ core: RailCorePos; expiresAt: number }> = [];
+	for (let i = 0; i < state.pendingRefreshes.length; i++) {
+		const refresh = state.pendingRefreshes[i],
+			tile = SRBXApiCompat.getTileEntity(
+				world,
+				refresh.core[0],
+				refresh.core[1],
+				refresh.core[2],
+			);
+		if (tile instanceof TileEntityLargeRailBase) {
+			const core = tile.getRailCore();
+			if (core) {
+				delete state.ignoredRailKeys[
+					SRBXApiCompat.getRailPositionCandidateKey(core)
+				];
+				SRBXApiCompat.refreshRailCoreClient(core);
+			}
+		}
+		if (now < refresh.expiresAt) remaining.push(refresh);
+	}
+	state.pendingRefreshes = remaining;
+}
+
 function handleInput(
 	host: EntityPlayer,
 	entity: EntityVehicle,
@@ -1095,6 +1127,7 @@ function handleInput(
 		NGTLog.sendChatMessage(sender, keys.getDescription("snap"));
 		NGTLog.sendChatMessage(sender, keys.getDescription("apply"));
 		NGTLog.sendChatMessage(sender, keys.getDescription("undo"));
+		NGTLog.sendChatMessage(sender, "[Ctrl押下中] レールの追加選択を無効化");
 		NGTLog.sendChatMessage(sender, keys.getDescription("exit"));
 	}
 	if (keys.down("exit")) dataMap.setBoolean("isEndEdit", true, 1);
@@ -1136,7 +1169,7 @@ function handleInput(
 			state.stage = 1;
 		} else {
 			const rail = findHoverRail(entity, partialTicks);
-			if (rail) {
+			if (rail && !Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)) {
 				toggleRailSelection(entity, state, rail);
 				state.selected = null;
 				state.stage = state.selectedRails.length > 0 ? 1 : 0;
@@ -1163,7 +1196,17 @@ function handleInput(
 		} else if (state.selectedRails.length > 0) {
 			const rail = findHoverRail(entity, partialTicks);
 			if (rail) {
-				const selection = toggleRailSelection(entity, state, rail);
+				let alreadySelected = false;
+				for (let i = 0; i < state.selectedRails.length; i++)
+					if (sameRail(state.selectedRails[i], rail)) {
+						alreadySelected = true;
+						break;
+					}
+				const selection =
+					Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) &&
+					!alreadySelected
+						? "blocked"
+						: toggleRailSelection(entity, state, rail);
 				if (selection === "not_connected")
 					NGTLog.sendChatMessage(
 						sender,
@@ -1253,6 +1296,10 @@ function handleInput(
 			refreshed[key] = true;
 			delete state.ignoredRailKeys[key];
 			SRBXApiCompat.refreshRailCoreClient(core);
+			state.pendingRefreshes.push({
+				core: [pos[0], pos[1], pos[2]],
+				expiresAt: Date.now() + 1500,
+			});
 		}
 		const removed =
 			NGTOBuilderUtil.getJsonData<
@@ -1338,6 +1385,7 @@ function render(
 	if (!host || host !== player) return;
 	SRBXApiCompat.doFollowing(entity, host);
 	const state = getState(entity);
+	refreshPendingRailMaps(entity, state);
 	const candidates =
 		!state.awaitingResult && state.stage === 0
 			? findCandidates(entity, partialTicks)
