@@ -718,6 +718,8 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 自動分割構造に依存する分割・分岐・カントSection更新・既設レール再生成は、引き続き安全スタブで無効化した。AE側に同等公開APIが追加された補完から順次削除する。
 - 検証済み: `pnpm format:check`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、AE生成JavaScriptへの専用compat includeと通常レール生成呼び出しの出力、`git diff --check`。
 - 未検証: Minecraft実機でのAEレール生成A・複線コピーの生成、接続、モデル継承、走行、Undo。
+- 実装コミット: `6289a96`
+- 同期: `origin/feature/appleextended-compat`へ同期済み。
 
 ### 記録テンプレート
 
