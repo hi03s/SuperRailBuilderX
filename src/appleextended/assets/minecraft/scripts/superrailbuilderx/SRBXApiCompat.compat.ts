@@ -3,6 +3,11 @@ import {
 	TileEntityLargeRailSwitchCore,
 } from "jp.ngt.rtm.rail";
 import { RailPosition } from "jp.ngt.rtm.rail.util";
+import {
+	AppleExtendedBuilderPoint,
+	AppleExtendedRailCompat,
+	AppleExtendedSourceRail,
+} from "./AppleExtendedRailCompat";
 
 /** AppleExtended ca255fd provides persistent free coordinates on normal RailPosition. */
 export class SRBXApiCompat {
@@ -170,6 +175,50 @@ export class SRBXApiCompat {
 			x,
 			y,
 			z,
+		);
+	}
+
+	static createBuilderRail(
+		world: net.minecraft.world.World,
+		player: net.minecraft.entity.player.EntityPlayer,
+		start: AppleExtendedBuilderPoint,
+		end: AppleExtendedBuilderPoint,
+		additionalProtectedRailKeys?: string[],
+		sourceRail?: AppleExtendedSourceRail,
+		fallbackProperty?: unknown,
+		forceNormal?: boolean,
+		preferFallbackProperty?: boolean,
+		overwriteForeignRoadbeds?: boolean,
+		propertySourcePoint?: AppleExtendedBuilderPoint,
+		replaceProtectedCoreRoadbedAt?: [number, number, number],
+	) {
+		void additionalProtectedRailKeys;
+		void forceNormal;
+		void overwriteForeignRoadbeds;
+		void replaceProtectedCoreRoadbedAt;
+		return AppleExtendedRailCompat.createNormalRail(
+			world,
+			player,
+			start,
+			end,
+			fallbackProperty,
+			sourceRail,
+			preferFallbackProperty,
+			propertySourcePoint,
+		);
+	}
+
+	static undoBuilderRail(
+		world: net.minecraft.world.World,
+		coreX: number,
+		coreY: number,
+		coreZ: number,
+		expectedKey: string,
+	): string {
+		return AppleExtendedRailCompat.undoNormalRail(
+			world,
+			[coreX, coreY, coreZ],
+			expectedKey,
 		);
 	}
 }
