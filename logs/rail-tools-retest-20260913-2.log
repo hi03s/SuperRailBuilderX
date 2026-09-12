@@ -1,0 +1,9 @@
+# logs/latest.logから、今回の実機結果の判断に必要な行だけを匿名化して抜粋。
+[01:53:36] [Server thread/INFO]: [SuperRailBuilderX RailPosition] request completed: action=move, mode=parallel_multi, result=ok
+[01:54:30] [Server thread/INFO]: [SuperRailBuilderX RailPosition] request completed: action=undo, mode=undo, result=undo_ok
+[01:54:40] [Server thread/INFO]: [SuperRailBuilderX RailPosition] request completed: action=move, mode=endpoint, result=ok
+[01:54:47] [Server thread/INFO]: [SuperRailBuilderX RailPosition] request completed: action=undo, mode=undo, result=undo_ok
+[02:07:23] [Server thread/INFO]: [SuperRailBuilderX cant] action=apply, result=ok
+[02:07:25] [Server thread/INFO]: [SuperRailBuilderX cant] action=undo, result=undo_ok
+[02:12:25] [Server thread/INFO]: [SuperRailBuilderX branch] action=create, result=ok
+[02:12:26] [Server thread/INFO]: [SuperRailBuilderX branch] action=undo, result=undo_ok
