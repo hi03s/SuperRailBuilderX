@@ -1,4 +1,7 @@
-import { TileEntityLargeRailCore } from "jp.ngt.rtm.rail";
+import {
+	TileEntityLargeRailBase,
+	TileEntityLargeRailCore,
+} from "jp.ngt.rtm.rail";
 import { RailPosition } from "jp.ngt.rtm.rail.util";
 import { EntityPlayer } from "net.minecraft.entity.player";
 
@@ -19,10 +22,17 @@ export class SRBXApiCompat {
 		const add = (tile: unknown) => {
 			if (!(tile instanceof TileEntityLargeRailCore)) return;
 			const pos = this.getRailCorePos(tile),
-				key = `${pos[0]},${pos[1]},${pos[2]}`;
+				currentTile = this.getTileEntity(world, pos[0], pos[1], pos[2]),
+				current =
+					currentTile instanceof TileEntityLargeRailBase
+						? currentTile.getRailCore()
+						: null;
+			if (!current) return;
+			const currentPos = this.getRailCorePos(current),
+				key = `${currentPos[0]},${currentPos[1]},${currentPos[2]}`;
 			if (seen[key]) return;
 			seen[key] = true;
-			cores.push(tile);
+			cores.push(current);
 		};
 		const provider = world.getChunkProvider();
 		for (

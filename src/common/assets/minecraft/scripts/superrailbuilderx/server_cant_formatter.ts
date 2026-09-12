@@ -17,7 +17,7 @@ export type CantFormatterRequest =
 	{ action: "apply"; targets: SRBXCantTarget[] } | { action: "undo" };
 const hosts: WeakHashMap<Entity, EntityPlayer> = new WeakHashMap();
 type CantUndo = { cantToken: string | null; splitTokens: string[] };
-const undoRecords: WeakHashMap<EntityVehicle, CantUndo> = new WeakHashMap();
+const undoRecords: WeakHashMap<EntityVehicle, CantUndo[]> = new WeakHashMap();
 type ClientUpdate = {
 	refreshed: Array<[number, number, number]>;
 	removed: Array<{ core: [number, number, number]; key: string }>;
@@ -75,7 +75,9 @@ function resolveSplitEndpoint(
 			const rp = positions[index];
 			if (
 				Math.abs(rp.posX - target.position[0]) > 0.001 ||
-				Math.abs(rp.posY - target.position[1]) > 0.001 ||
+				// RailMap#getRailHeight includes the visual cant lift, while the
+				// split RailPosition is placed on the center line.
+				Math.abs(rp.posY - target.position[1]) > 0.25 ||
 				Math.abs(rp.posZ - target.position[2]) > 0.001
 			)
 				continue;
@@ -121,8 +123,10 @@ function process(
 	if (!request || (request.action !== "apply" && request.action !== "undo"))
 		return { status: "invalid_request", update };
 	if (request.action === "undo") {
-		const record = undoRecords.get(entity);
-		if (!record) return { status: "nothing_to_undo", update };
+		const stack = undoRecords.get(entity);
+		if (!stack || stack.length === 0)
+			return { status: "nothing_to_undo", update };
+		const record = stack[stack.length - 1];
 		if (record.cantToken) {
 			const cantStatus = SRBXApiCompat.undoRailCants(
 				world,
@@ -144,7 +148,8 @@ function process(
 				return { status: splitStatus, update };
 			record.splitTokens.pop();
 		}
-		undoRecords.remove(entity);
+		stack.pop();
+		if (stack.length === 0) undoRecords.remove(entity);
 		return { status: "undo_ok", update };
 	}
 	const splitTokens: string[] = [],
@@ -181,9 +186,14 @@ function process(
 	}
 	const result = SRBXApiCompat.applyRailCants(world, targets);
 	appendCantUpdate(update);
-	if (result.status === "ok" && result.undoToken)
-		undoRecords.put(entity, { cantToken: result.undoToken, splitTokens });
-	else if (result.status !== "ok")
+	if (result.status === "ok" && result.undoToken) {
+		let stack = undoRecords.get(entity);
+		if (!stack) {
+			stack = [];
+			undoRecords.put(entity, stack);
+		}
+		stack.push({ cantToken: result.undoToken, splitTokens });
+	} else if (result.status !== "ok")
 		rollbackSplits(world, player, splitTokens, update);
 	return { status: result.status, update };
 }
@@ -228,7 +238,8 @@ function onUpdate(entity: EntityVehicle, scriptExecuter: ScriptExecuter): void {
 		entity.setDead();
 		return;
 	}
-	const canUndo = undoRecords.get(entity) !== null;
+	const undoStack = undoRecords.get(entity),
+		canUndo = undoStack !== null && undoStack.length > 0;
 	if (dataMap.getBoolean("cantFormatterCanUndo") !== canUndo)
 		dataMap.setBoolean("cantFormatterCanUndo", canUndo, 1);
 	const request = NGTOBuilderUtil.getJsonData<CantFormatterRequest>(
@@ -237,7 +248,8 @@ function onUpdate(entity: EntityVehicle, scriptExecuter: ScriptExecuter): void {
 	);
 	if (!request) return;
 	try {
-		const result = process(entity, host, request);
+		const result = process(entity, host, request),
+			remainingUndo = undoRecords.get(entity);
 		NGTOBuilderUtil.sendJsonData(
 			dataMap,
 			"cantFormatterClientUpdate",
@@ -251,7 +263,7 @@ function onUpdate(entity: EntityVehicle, scriptExecuter: ScriptExecuter): void {
 		dataMap.setString("cantFormatterResult", result.status, 1);
 		dataMap.setBoolean(
 			"cantFormatterCanUndo",
-			undoRecords.get(entity) !== null,
+			remainingUndo !== null && remainingUndo.length > 0,
 			1,
 		);
 		NGTLog.debug(

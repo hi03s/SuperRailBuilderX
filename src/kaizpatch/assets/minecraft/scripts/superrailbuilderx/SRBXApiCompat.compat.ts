@@ -1,5 +1,6 @@
 import { NGTLog } from "jp.ngt.ngtlib.io";
-import { NGTUtil } from "jp.ngt.ngtlib.util";
+import { NGTCore } from "jp.ngt.ngtlib";
+import { PacketNBT } from "jp.ngt.ngtlib.network";
 import { RTMItem, RTMRail } from "jp.ngt.rtm";
 import {
 	BlockLargeRailBase,
@@ -156,6 +157,28 @@ declare const Packages: {
 };
 
 export class SRBXApiCompat {
+	private static sendRailCorePacket(core: TileEntityLargeRailCore): void {
+		const nbt = new NBTTagCompound(),
+			positions = this.getEditableRailPositions(core);
+		if (!positions || positions.length < 2) return;
+		for (let i = 0; i < positions.length; i++) if (!positions[i]) return;
+		core.writeToNBT(nbt);
+		const setTag = (name: string, tag: unknown) =>
+			(
+				nbt as unknown as {
+					func_74782_a(name: string, tag: unknown): void;
+				}
+			).func_74782_a(name, tag);
+		// A block replacement and its custom NBT packet can reach the client in
+		// either order. Include both normal-rail and switch-rail position formats
+		// so the previous TileEntity class can safely consume the packet too.
+		nbt.setByte("Size", positions.length);
+		for (let i = 0; i < positions.length; i++)
+			setTag(`RP${i}`, positions[i].writeToNBT());
+		setTag("StartRP", positions[0].writeToNBT());
+		setTag("EndRP", positions[1].writeToNBT());
+		NGTCore.NETWORK_WRAPPER.sendToAll(new PacketNBT(core, nbt, true));
+	}
 	static getLoadedRailCores(
 		world: net.minecraft.world.World,
 		centerX: number,
@@ -172,10 +195,17 @@ export class SRBXApiCompat {
 		const add = (tile: unknown) => {
 			if (!(tile instanceof TileEntityLargeRailCore)) return;
 			const pos = this.getRailCorePos(tile),
-				key = `${pos[0]},${pos[1]},${pos[2]}`;
+				currentTile = this.getTileEntity(world, pos[0], pos[1], pos[2]),
+				current =
+					currentTile instanceof TileEntityLargeRailBase
+						? currentTile.getRailCore()
+						: null;
+			if (!current) return;
+			const currentPos = this.getRailCorePos(current),
+				key = `${currentPos[0]},${currentPos[1]},${currentPos[2]}`;
 			if (seen[key]) return;
 			seen[key] = true;
-			cores.push(tile);
+			cores.push(current);
 		};
 		const provider = world.getChunkProvider(),
 			minChunkX = Math.floor((centerX - radius) / 16),
@@ -1145,7 +1175,7 @@ export class SRBXApiCompat {
 		for (let i = 0; i < subRails.size(); i++)
 			core.addSubRail(this.cloneRailProperty(subRails.get(i)));
 		this.markCoreDirty(core);
-		NGTUtil.sendPacketToClient(core);
+		this.sendRailCorePacket(core);
 		return true;
 	}
 
@@ -1593,7 +1623,7 @@ export class SRBXApiCompat {
 		normalCore.fixRTMRailMapVersion = railMap.fixRTMRailMapVersion;
 		normalCore.createRailMap();
 		this.markCoreDirty(normalCore);
-		NGTUtil.sendPacketToClient(normalCore);
+		this.sendRailCorePacket(normalCore);
 		world.markBlockForUpdate(start.blockX, start.blockY, start.blockZ);
 		return normalCore;
 	}
@@ -1676,7 +1706,7 @@ export class SRBXApiCompat {
 		for (let i = 0; i < subRails.size(); i++)
 			newCore.addSubRail(subRails.get(i));
 		this.markCoreDirty(newCore);
-		NGTUtil.sendPacketToClient(newCore);
+		this.sendRailCorePacket(newCore);
 		return "ok_normal";
 	}
 
@@ -1803,7 +1833,7 @@ export class SRBXApiCompat {
 			for (let i = 0; i < subRails.size(); i++)
 				newCore.addSubRail(subRails.get(i));
 			this.markCoreDirty(newCore);
-			NGTUtil.sendPacketToClient(newCore);
+			this.sendRailCorePacket(newCore);
 		} catch (error) {
 			NGTLog.debug(
 				`[SuperRailBuilderX RailPosition] sectioned rail state restore exception: ${error}`,
@@ -2518,7 +2548,7 @@ export class SRBXApiCompat {
 		core.fixRTMRailMapVersion = source.fixRTMRailMapVersion;
 		core.createRailMap();
 		this.markCoreDirty(core);
-		NGTUtil.sendPacketToClient(core);
+		this.sendRailCorePacket(core);
 		world.markBlockForUpdate(start.blockX, start.blockY, start.blockZ);
 		NGTLog.debug(
 			`[SuperRailBuilderX builder1] destructive normal rail created: replacedBlocks=${replaced}`,
@@ -2641,7 +2671,7 @@ export class SRBXApiCompat {
 			tile.fixRTMRailMapVersion = source.fixRTMRailMapVersion;
 			tile.createRailMap();
 			this.markCoreDirty(tile);
-			NGTUtil.sendPacketToClient(tile);
+			this.sendRailCorePacket(tile);
 			world.markBlockForUpdate(
 				sectionStart.blockX,
 				sectionStart.blockY,
@@ -3613,7 +3643,7 @@ export class SRBXApiCompat {
 			target.createRailMap();
 			target.shouldRerenderRail = true;
 			this.markCoreDirty(target);
-			NGTUtil.sendPacketToClient(target);
+			this.sendRailCorePacket(target);
 			world.markBlockForUpdate(
 				target.xCoord,
 				target.yCoord,
@@ -3976,7 +4006,7 @@ export class SRBXApiCompat {
 			RailMapBasic.fixRTMRailMapVersionCurrent;
 		tile.createRailMap();
 		this.markCoreDirty(tile);
-		NGTUtil.sendPacketToClient(tile);
+		this.sendRailCorePacket(tile);
 		world.markBlockForUpdate(root.blockX, root.blockY, root.blockZ);
 		return tile;
 	}
@@ -4100,7 +4130,7 @@ export class SRBXApiCompat {
 				this.cloneRailProperty(record.subRails.get(i)),
 			);
 		this.markCoreDirty(switchCore);
-		NGTUtil.sendPacketToClient(switchCore);
+		this.sendRailCorePacket(switchCore);
 		const created = {
 			core: this.getRailCorePos(switchCore),
 			key: this.getRailPositionCandidateKey(switchCore),
@@ -4439,11 +4469,15 @@ export class SRBXApiCompat {
 			recordChanges: boolean,
 		) => {
 			const key = this.getRailPositionCandidateKey(core);
+			let recordExternalChanges = recordChanges;
+			for (let i = 0; i < record.created.length; i++)
+				if (record.created[i].key === key)
+					recordExternalChanges = false;
 			const cores = this.zeroRailCants(
 				world,
 				core,
 				indices,
-				recordChanges ? record.cants : undefined,
+				recordExternalChanges ? record.cants : undefined,
 			);
 			for (let i = 0; i < cores.length; i++)
 				refreshed.push({ core: cores[i], key });

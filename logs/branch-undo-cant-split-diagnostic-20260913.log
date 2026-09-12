@@ -1,0 +1,15 @@
+[03:44:53] [Server thread/INFO]: [SuperRailBuilderX branch] action=undo, result=undo_ok
+[03:44:53] [Client thread/ERROR]: java.lang.ArrayIndexOutOfBoundsException: 0
+	at jp.ngt.rtm.rail.TileEntityLargeRailSwitchCore.readRailData(TileEntityLargeRailSwitchCore.java:52)
+	at jp.ngt.rtm.rail.TileEntityLargeRailCore.readFromNBT(TileEntityLargeRailCore.java:71)
+	at jp.ngt.ngtlib.network.PacketNBT.onGetPacket(PacketNBT.java:100)
+
+[03:45:21] [Server thread/INFO]: [SuperRailBuilderX splitter] split succeeded: ratio=0.2727272727272727
+[03:45:21] [Server thread/INFO]: [SuperRailBuilderX branch] action=create, result=ok
+[03:45:21] [Server thread/INFO]: [SuperRailBuilderX branch] action=undo, result=undo_rail_changed
+
+[03:48:32] [Server thread/INFO]: [SuperRailBuilderX splitter] split succeeded: ratio=0.6857142857142857
+[03:48:32] [Server thread/INFO]: [SuperRailBuilderX cant] action=apply, result=split_endpoint_not_found
+[03:48:47] [Server thread/INFO]: [SuperRailBuilderX splitter] split succeeded: ratio=0.6642857142857143
+[03:48:48] [Server thread/INFO]: [SuperRailBuilderX cant] action=apply, result=split_endpoint_not_found
+[03:48:49] [Server thread/INFO]: [SuperRailBuilderX cant] action=undo, result=undo_rail_changed
