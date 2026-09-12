@@ -323,86 +323,66 @@ function findCandidates(
 		outOfRangePositions: 0,
 		errors: 0,
 	};
-	const centerX = Math.floor(looking.posX);
-	const centerY = Math.floor(looking.posY);
-	const centerZ = Math.floor(looking.posZ);
-	for (let x = centerX - 2; x <= centerX + 2; x++) {
-		for (let y = centerY - 2; y <= centerY + 2; y++) {
-			for (let z = centerZ - 2; z <= centerZ + 2; z++) {
-				let phase = "getTileEntity";
-				try {
-					const tile = SRBXApiCompat.getTileEntity(world, x, y, z);
-					if (!(tile instanceof TileEntityLargeRailBase)) continue;
-					diagnostics.railTiles++;
-					phase = "getRailCore";
-					const referencedCore = tile.getRailCore(),
-						core = referencedCore
-							? currentRailCore(entity, referencedCore)
-							: null;
-					if (!core) {
-						diagnostics.missingCores++;
-						continue;
-					}
-					phase = "getRailCorePos";
-					const corePos = SRBXApiCompat.getRailCorePos(core);
-					phase = "getRailPositionCandidateKey";
-					const coreKey =
-						SRBXApiCompat.getRailPositionCandidateKey(core);
-					if (seen[coreKey]) continue;
-					seen[coreKey] = true;
-					diagnostics.uniqueCores++;
-					phase = "getRailPositionUnsupportedReason";
-					const unsupportedReason =
-						SRBXApiCompat.getRailPositionUnsupportedReason(core);
-					if (unsupportedReason !== "") {
-						diagnostics.unsupportedCores++;
-						if (unsupportedReason.indexOf("sectioned(") === 0)
-							diagnostics.sectionedCores++;
-						if (unsupportedReason === "switch")
-							diagnostics.switchCores++;
-						if (logDiagnostics)
-							logUnsupportedCore(corePos, unsupportedReason);
-						continue;
-					}
-					phase = "getEditableRailPositions";
-					const positions =
-						SRBXApiCompat.getEditableRailPositions(core);
-					if (!positions || positions.length === 0) {
-						diagnostics.invalidPositions++;
-						continue;
-					}
-					for (let index = 0; index < positions.length; index++) {
-						phase = `readRailPosition[${index}]`;
-						const rp = positions[index] as RailPosition;
-						if (!rp) {
-							diagnostics.invalidPositions++;
-							continue;
-						}
-						const dx = rp.posX - looking.posX;
-						const dy = rp.posY - looking.posY;
-						const dz = rp.posZ - looking.posZ;
-						if (
-							Math.sqrt(dx * dx + dy * dy + dz * dz) >
-							SEARCH_RADIUS
-						) {
-							diagnostics.outOfRangePositions++;
-							continue;
-						}
-						candidates.push({
-							core,
-							railKey: coreKey,
-							coreX: corePos[0],
-							coreY: corePos[1],
-							coreZ: corePos[2],
-							index,
-							position: [rp.posX, rp.posY, rp.posZ],
-						});
-					}
-				} catch (error) {
-					diagnostics.errors++;
-					logCandidateErrorOnce(phase, x, y, z, error);
-				}
+	const loadedCores = SRBXApiCompat.getLoadedRailCores(world);
+	for (let loadedIndex = 0; loadedIndex < loadedCores.length; loadedIndex++) {
+		const loadedCore = loadedCores[loadedIndex];
+		let phase = "getTileEntity";
+		try {
+			diagnostics.railTiles++;
+			const core = loadedCore;
+			phase = "getRailCorePos";
+			const corePos = SRBXApiCompat.getRailCorePos(core);
+			phase = "getRailPositionCandidateKey";
+			const coreKey = SRBXApiCompat.getRailPositionCandidateKey(core);
+			if (seen[coreKey]) continue;
+			seen[coreKey] = true;
+			diagnostics.uniqueCores++;
+			phase = "getRailPositionUnsupportedReason";
+			const unsupportedReason =
+				SRBXApiCompat.getRailPositionUnsupportedReason(core);
+			if (unsupportedReason !== "") {
+				diagnostics.unsupportedCores++;
+				if (unsupportedReason.indexOf("sectioned(") === 0)
+					diagnostics.sectionedCores++;
+				if (unsupportedReason === "switch") diagnostics.switchCores++;
+				if (logDiagnostics)
+					logUnsupportedCore(corePos, unsupportedReason);
+				continue;
 			}
+			phase = "getEditableRailPositions";
+			const positions = SRBXApiCompat.getEditableRailPositions(core);
+			if (!positions || positions.length === 0) {
+				diagnostics.invalidPositions++;
+				continue;
+			}
+			for (let index = 0; index < positions.length; index++) {
+				phase = `readRailPosition[${index}]`;
+				const rp = positions[index] as RailPosition;
+				if (!rp) {
+					diagnostics.invalidPositions++;
+					continue;
+				}
+				const dx = rp.posX - looking.posX;
+				const dy = rp.posY - looking.posY;
+				const dz = rp.posZ - looking.posZ;
+				if (Math.sqrt(dx * dx + dy * dy + dz * dz) > SEARCH_RADIUS) {
+					diagnostics.outOfRangePositions++;
+					continue;
+				}
+				candidates.push({
+					core,
+					railKey: coreKey,
+					coreX: corePos[0],
+					coreY: corePos[1],
+					coreZ: corePos[2],
+					index,
+					position: [rp.posX, rp.posY, rp.posZ],
+				});
+			}
+		} catch (error) {
+			diagnostics.errors++;
+			const pos = SRBXApiCompat.getRailCorePos(loadedCore);
+			logCandidateErrorOnce(phase, pos[0], pos[1], pos[2], error);
 		}
 	}
 	lastCandidateScanDiagnostics = diagnostics;
@@ -505,51 +485,33 @@ function findHoverRail(
 	const seen: { [key: string]: boolean } = {};
 	let best: SelectedRail | null = null;
 	let bestDistance = 2.25;
-	for (let dx = -HOVER_BLOCK_RADIUS; dx <= HOVER_BLOCK_RADIUS; dx++) {
-		for (let dy = -1; dy <= 1; dy++) {
-			for (let dz = -HOVER_BLOCK_RADIUS; dz <= HOVER_BLOCK_RADIUS; dz++) {
-				const tile = SRBXApiCompat.getTileEntity(
-					world,
-					Math.floor(looking.posX) + dx,
-					Math.floor(looking.posY) + dy,
-					Math.floor(looking.posZ) + dz,
-				);
-				if (!(tile instanceof TileEntityLargeRailBase)) continue;
-				const referencedCore = tile.getRailCore(),
-					core = referencedCore
-						? currentRailCore(entity, referencedCore)
-						: null;
-				if (!core) continue;
-				const railKey = SRBXApiCompat.getRailPositionCandidateKey(core);
-				if (seen[railKey]) continue;
-				seen[railKey] = true;
-				if (SRBXApiCompat.getRailPositionUnsupportedReason(core) !== "")
-					continue;
-				const map = SRBXApiCompat.getLogicalRailMap(core);
-				const positions = SRBXApiCompat.getEditableRailPositions(core);
-				if (!map || !positions || positions.length !== 2) continue;
-				const split = Math.max(
-					8,
-					Math.min(256, Math.ceil(map.getLength() * 4)),
-				);
-				const index = map.getNearlestPoint(
-					split,
-					looking.posX,
-					looking.posZ,
-				);
-				const position = railPoint(map, split, index);
-				const distance =
-					Math.pow(position[0] - looking.posX, 2) +
-					Math.pow(position[1] - looking.posY, 2) +
-					Math.pow(position[2] - looking.posZ, 2);
-				if (distance >= bestDistance) continue;
-				bestDistance = distance;
-				best = {
-					core: SRBXApiCompat.getRailCorePos(core),
-					railKey,
-				};
-			}
-		}
+	const loadedCores = SRBXApiCompat.getLoadedRailCores(world);
+	for (let loadedIndex = 0; loadedIndex < loadedCores.length; loadedIndex++) {
+		const core = loadedCores[loadedIndex];
+		const railKey = SRBXApiCompat.getRailPositionCandidateKey(core);
+		if (seen[railKey]) continue;
+		seen[railKey] = true;
+		if (SRBXApiCompat.getRailPositionUnsupportedReason(core) !== "")
+			continue;
+		const map = SRBXApiCompat.getLogicalRailMap(core);
+		const positions = SRBXApiCompat.getEditableRailPositions(core);
+		if (!map || !positions || positions.length !== 2) continue;
+		const split = Math.max(
+			8,
+			Math.min(256, Math.ceil(map.getLength() * 4)),
+		);
+		const index = map.getNearlestPoint(split, looking.posX, looking.posZ);
+		const position = railPoint(map, split, index);
+		const distance =
+			Math.pow(position[0] - looking.posX, 2) +
+			Math.pow(position[1] - looking.posY, 2) +
+			Math.pow(position[2] - looking.posZ, 2);
+		if (distance >= bestDistance) continue;
+		bestDistance = distance;
+		best = {
+			core: SRBXApiCompat.getRailCorePos(core),
+			railKey,
+		};
 	}
 	return best;
 }

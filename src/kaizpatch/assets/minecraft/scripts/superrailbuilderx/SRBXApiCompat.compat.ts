@@ -156,6 +156,20 @@ declare const Packages: {
 };
 
 export class SRBXApiCompat {
+	static getLoadedRailCores(world: net.minecraft.world.World) {
+		const loaded = (
+				world as unknown as {
+					loadedTileEntityList: java.util.List<unknown>;
+				}
+			).loadedTileEntityList,
+			cores: TileEntityLargeRailCore[] = [];
+		if (!loaded) return cores;
+		for (let i = 0; i < loaded.size(); i++) {
+			const tile = loaded.get(i);
+			if (tile instanceof TileEntityLargeRailCore) cores.push(tile);
+		}
+		return cores;
+	}
 	private static splitUndoRecords: { [token: string]: SplitUndoRecord } = {};
 	private static lastSplitClientUpdate: SplitClientUpdate | null = null;
 	private static lastRailPositionMoveCores: Array<[number, number, number]> =
@@ -3777,6 +3791,9 @@ export class SRBXApiCompat {
 				entry.positions[1].cantCenter = target.angle;
 				continue;
 			}
+			const referenceYaw = isFinite(target.yaw as number)
+				? (target.yaw as number)
+				: this.getHorizontalAnchorYaw(rp!);
 			rp!.cantEdge = target.angle;
 			const connected = this.findConnectedCantEndpoints(world, core, [
 				rp!,
@@ -3789,8 +3806,15 @@ export class SRBXApiCompat {
 					return { status: "rail_occupied" };
 				const neighborEntry = getPending(neighbor.core);
 				if (!neighborEntry) return { status: "invalid_rail" };
+				const neighborYaw = this.getHorizontalAnchorYaw(
+						neighborEntry.positions[neighbor.index],
+					),
+					difference = Math.abs(
+						((((neighborYaw - referenceYaw) % 360) + 540) % 360) -
+							180,
+					);
 				neighborEntry.positions[neighbor.index].cantEdge =
-					-target.angle;
+					difference > 90 ? -target.angle : target.angle;
 			}
 		}
 		const keys = Object.keys(pending);
@@ -3917,7 +3941,7 @@ export class SRBXApiCompat {
 			root.blockZ,
 			RTMRail.largeRailSwitchCore0,
 			0,
-			2,
+			0,
 		);
 		const tile = world.getTileEntity(root.blockX, root.blockY, root.blockZ);
 		if (!(tile instanceof TileEntityLargeRailSwitchCore)) return null;
@@ -4363,7 +4387,9 @@ export class SRBXApiCompat {
 			core: this.getRailCorePos(switchCore),
 			key: this.getRailPositionCandidateKey(switchCore),
 		};
-		record.created.push(created);
+		// Undo removes entries from the end. Keep the switch first so connected
+		// normal rails are removed before breakLogicalRail() is called on it.
+		record.created.unshift(created);
 		const postConnected = this.findConnectedCantEndpoints(
 			world,
 			switchCore,

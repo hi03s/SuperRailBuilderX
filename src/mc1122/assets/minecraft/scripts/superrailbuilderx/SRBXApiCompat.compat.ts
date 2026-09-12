@@ -4,6 +4,20 @@ import { EntityPlayer } from "net.minecraft.entity.player";
 import { BlockPos } from "net.minecraft.util.math";
 
 export class SRBXApiCompat {
+	static getLoadedRailCores(world: net.minecraft.world.World) {
+		const loaded = (
+				world as unknown as {
+					loadedTileEntityList: java.util.List<unknown>;
+				}
+			).loadedTileEntityList,
+			cores: TileEntityLargeRailCore[] = [];
+		if (!loaded) return cores;
+		for (let i = 0; i < loaded.size(); i++) {
+			const tile = loaded.get(i);
+			if (tile instanceof TileEntityLargeRailCore) cores.push(tile);
+		}
+		return cores;
+	}
 	static getRider(entity: unknown) {
 		const passengers = (
 			entity as jp.ngt.rtm.entity.vehicle.EntityVehicle

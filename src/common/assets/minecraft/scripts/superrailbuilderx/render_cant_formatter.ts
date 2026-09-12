@@ -92,188 +92,165 @@ function candidate(
 ): Candidate | null {
 	const looking = NGTOBuilderUtilClient.getLookingPos(partialTicks);
 	if (!looking) return null;
-	const world = SRBXApiCompat.getWorld(entity),
-		player = MCWrapperClient.getPlayer(),
-		viewYaw = SRBXMath.normalizeDegrees(-player.rotationYaw);
+	const world = SRBXApiCompat.getWorld(entity);
 	const seen: { [k: string]: boolean } = {};
 	let best: Candidate | null = null,
 		bestD = 4;
-	for (
-		let x = Math.floor(looking.posX) - 2;
-		x <= Math.floor(looking.posX) + 2;
-		x++
-	)
-		for (
-			let y = Math.floor(looking.posY) - 2;
-			y <= Math.floor(looking.posY) + 2;
-			y++
+	const endpointCandidates: Candidate[] = [],
+		loadedCores = SRBXApiCompat.getLoadedRailCores(world);
+	for (let loadedIndex = 0; loadedIndex < loadedCores.length; loadedIndex++) {
+		const core = loadedCores[loadedIndex];
+		if (
+			!core ||
+			SRBXApiCompat.getRailPositionUnsupportedReason(core) !== ""
 		)
-			for (
-				let z = Math.floor(looking.posZ) - 2;
-				z <= Math.floor(looking.posZ) + 2;
-				z++
-			) {
-				const tile = SRBXApiCompat.getTileEntity(world, x, y, z);
-				if (!(tile instanceof TileEntityLargeRailBase)) continue;
-				const core = tile.getRailCore();
-				if (
-					!core ||
-					SRBXApiCompat.getRailPositionUnsupportedReason(core) !== ""
-				)
-					continue;
-				const railKey = SRBXApiCompat.getRailPositionCandidateKey(core);
-				if (seen[railKey]) continue;
-				seen[railKey] = true;
-				const map = SRBXApiCompat.getLogicalRailMap(core);
-				if (!map) continue;
-				const rps = SRBXApiCompat.getEditableRailPositions(core),
-					length = map.getLength(),
-					split = Math.max(2, Math.floor(length * 2)),
-					corePos = SRBXApiCompat.getRailCorePos(core),
-					g = GAUGES[state(entity).gaugeIndex],
-					near = map.getNearlestPoint(
-						split,
-						looking.posX,
-						looking.posZ,
-					),
-					ratio = near / split,
-					nearPosition = point(map, Math.round(ratio * 1000)),
-					railDistance =
-						Math.pow(nearPosition[0] - looking.posX, 2) +
-						Math.pow(nearPosition[1] - looking.posY, 2) +
-						Math.pow(nearPosition[2] - looking.posZ, 2),
-					startDistance = length * ratio,
-					endDistance = length * (1 - ratio),
-					centerDistance = Math.abs(length * (ratio - 0.5));
-				if (railDistance >= bestD) continue;
-				let mode: "edge" | "center" | "split" = "split",
-					targetIndex = near,
-					targetRatio = ratio,
-					targetPosition = nearPosition,
-					targetEnd = -1;
-				if (
-					startDistance <= 10 &&
-					startDistance <= endDistance &&
-					startDistance <= centerDistance
-				) {
-					mode = "edge";
-					targetIndex = 0;
-					targetRatio = 0;
-					targetPosition = [rps[0].posX, rps[0].posY, rps[0].posZ];
-					targetEnd = 0;
-				} else if (endDistance <= 10 && endDistance <= centerDistance) {
-					mode = "edge";
-					targetIndex = split;
-					targetRatio = 1;
-					targetPosition = [rps[1].posX, rps[1].posY, rps[1].posZ];
-					targetEnd = 1;
-				} else if (centerDistance <= 10) {
-					mode = "center";
-					targetIndex = Math.floor(split / 2);
-					targetRatio = 0.5;
-					targetPosition = point(map, 500);
-				}
-				const consider = (
-					index: number,
-					ratio: number,
-					position: [number, number, number],
-					directionPoint?: [number, number, number],
-				) => {
-					let d = railDistance;
-					if (directionPoint) {
-						const inwardYaw = SRBXMath.horizontalYaw(
-								position,
-								directionPoint,
+			continue;
+		const railKey = SRBXApiCompat.getRailPositionCandidateKey(core);
+		if (seen[railKey]) continue;
+		seen[railKey] = true;
+		const map = SRBXApiCompat.getLogicalRailMap(core);
+		if (!map) continue;
+		const rps = SRBXApiCompat.getEditableRailPositions(core),
+			length = map.getLength(),
+			split = Math.max(2, Math.floor(length * 2)),
+			corePos = SRBXApiCompat.getRailCorePos(core),
+			g = GAUGES[state(entity).gaugeIndex],
+			near = map.getNearlestPoint(split, looking.posX, looking.posZ),
+			ratio = near / split,
+			nearPosition = point(map, Math.round(ratio * 1000)),
+			railDistance =
+				Math.pow(nearPosition[0] - looking.posX, 2) +
+				Math.pow(nearPosition[1] - looking.posY, 2) +
+				Math.pow(nearPosition[2] - looking.posZ, 2),
+			startDistance = length * ratio,
+			endDistance = length * (1 - ratio),
+			centerDistance = Math.abs(length * (ratio - 0.5));
+		if (railDistance >= 4) continue;
+		let mode: "edge" | "center" | "split" = "split",
+			targetIndex = near,
+			targetRatio = ratio,
+			targetPosition = nearPosition,
+			targetEnd = -1;
+		if (
+			startDistance <= 10 &&
+			startDistance <= endDistance &&
+			startDistance <= centerDistance
+		) {
+			mode = "edge";
+			targetIndex = 0;
+			targetRatio = 0;
+			targetPosition = [rps[0].posX, rps[0].posY, rps[0].posZ];
+			targetEnd = 0;
+		} else if (endDistance <= 10 && endDistance <= centerDistance) {
+			mode = "edge";
+			targetIndex = split;
+			targetRatio = 1;
+			targetPosition = [rps[1].posX, rps[1].posY, rps[1].posZ];
+			targetEnd = 1;
+		} else if (centerDistance <= 10) {
+			mode = "center";
+			targetIndex = Math.floor(split / 2);
+			targetRatio = 0.5;
+			targetPosition = point(map, 500);
+		}
+		const consider = (
+			index: number,
+			ratio: number,
+			position: [number, number, number],
+			directionPoint?: [number, number, number],
+		) => {
+			void directionPoint;
+			const d =
+				Math.pow(position[0] - looking.posX, 2) +
+				Math.pow(position[1] - looking.posY, 2) +
+				Math.pow(position[2] - looking.posZ, 2);
+			const sample = Math.max(1, Math.floor(split * 0.02)),
+				aIndex = Math.max(0, index - sample),
+				bIndex = Math.min(split, index + sample),
+				a = RTMApiCompat.getRailYaw(map, split, aIndex),
+				b = RTMApiCompat.getRailYaw(map, split, bIndex),
+				delta = SRBXMath.relativeDegrees(b, a),
+				arc = Math.max(0.001, (length * (bIndex - aIndex)) / split),
+				radius =
+					Math.abs(delta) < 0.0001
+						? Infinity
+						: Math.abs(arc / ((delta * Math.PI) / 180)),
+				height = isFinite(radius)
+					? Math.min(
+							g.maxCant,
+							Math.max(
+								0,
+								Math.round(
+									(g.gauge *
+										state(entity).speed *
+										state(entity).speed) /
+										(127 * radius),
+								),
 							),
-							yawDifference = Math.abs(
-								SRBXMath.relativeDegrees(inwardYaw, viewYaw),
-							);
-						d +=
-							0.01 *
-								(Math.pow(directionPoint[0] - looking.posX, 2) +
-									Math.pow(
-										directionPoint[1] - looking.posY,
-										2,
-									) +
-									Math.pow(
-										directionPoint[2] - looking.posZ,
-										2,
-									)) +
-							(yawDifference * yawDifference) / 32400;
-					}
-					if (d >= bestD) return;
-					const sample = Math.max(1, Math.floor(split * 0.02)),
-						aIndex = Math.max(0, index - sample),
-						bIndex = Math.min(split, index + sample),
-						a = RTMApiCompat.getRailYaw(map, split, aIndex),
-						b = RTMApiCompat.getRailYaw(map, split, bIndex),
-						delta = SRBXMath.relativeDegrees(b, a),
-						arc = Math.max(
-							0.001,
-							(length * (bIndex - aIndex)) / split,
-						),
-						radius =
-							Math.abs(delta) < 0.0001
-								? Infinity
-								: Math.abs(arc / ((delta * Math.PI) / 180)),
-						height = isFinite(radius)
-							? Math.min(
-									g.maxCant,
-									Math.max(
-										0,
-										Math.round(
-											(g.gauge *
-												state(entity).speed *
-												state(entity).speed) /
-												(127 * radius),
-										),
-									),
-								)
-							: 0,
-						physicalAngle =
-							((Math.asin(height / g.gauge) * 180) / Math.PI) *
-							(delta >= 0 ? -1 : 1),
-						angle =
-							mode === "edge" && index === split
-								? -physicalAngle
-								: physicalAngle;
-					bestD = d;
-					best = {
-						core: corePos,
-						railKey,
-						index: mode === "edge" ? targetEnd : -1,
-						position,
-						angle,
-						height,
-						radius,
-						mode,
-						ratio,
-						yaw: RTMApiCompat.getRailYaw(map, split, index),
-					};
-				};
-				const directionSample = Math.max(
-					1,
-					Math.min(
-						999,
-						Math.round(
-							(Math.min(10, length * 0.25) * 1000) / length,
-						),
+						)
+					: 0,
+				physicalAngle =
+					((Math.asin(height / g.gauge) * 180) / Math.PI) *
+					(delta >= 0 ? -1 : 1),
+				angle =
+					mode === "edge" && index === split
+						? -physicalAngle
+						: physicalAngle;
+			const candidate: Candidate = {
+				core: corePos,
+				railKey,
+				index: mode === "edge" ? targetEnd : -1,
+				position,
+				angle,
+				height,
+				radius,
+				mode,
+				ratio,
+				yaw:
+					mode === "edge"
+						? SRBXApiCompat.getHorizontalAnchorYaw(rps[targetEnd])
+						: RTMApiCompat.getRailYaw(map, split, index),
+			};
+			if (mode === "edge") endpointCandidates.push(candidate);
+			if (d >= bestD) return;
+			bestD = d;
+			best = candidate;
+		};
+		const directionSample = Math.max(
+			1,
+			Math.min(
+				999,
+				Math.round((Math.min(10, length * 0.25) * 1000) / length),
+			),
+		);
+		consider(
+			targetIndex,
+			targetRatio,
+			targetPosition,
+			targetEnd < 0
+				? undefined
+				: point(
+						map,
+						targetEnd === 0
+							? directionSample
+							: 1000 - directionSample,
 					),
-				);
-				consider(
-					targetIndex,
-					targetRatio,
-					targetPosition,
-					targetEnd < 0
-						? undefined
-						: point(
-								map,
-								targetEnd === 0
-									? directionSample
-									: 1000 - directionSample,
-							),
-				);
-			}
+		);
+	}
+	if (best && best.mode === "edge") {
+		let endpointBest = best;
+		for (let i = 0; i < endpointCandidates.length; i++) {
+			const candidate = endpointCandidates[i];
+			if (
+				Math.abs(candidate.position[0] - best.position[0]) <= 0.001 &&
+				Math.abs(candidate.position[1] - best.position[1]) <= 0.001 &&
+				Math.abs(candidate.position[2] - best.position[2]) <= 0.001 &&
+				candidate.height > endpointBest.height
+			)
+				endpointBest = candidate;
+		}
+		return endpointBest;
+	}
 	return best;
 }
 function renderAt(

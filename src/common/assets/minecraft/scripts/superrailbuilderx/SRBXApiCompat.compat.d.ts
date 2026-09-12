@@ -80,6 +80,7 @@ export class SRBXApiCompat {
 		y: number,
 		z: number,
 	): TileEntity | null;
+	static getLoadedRailCores(world: World): TileEntityLargeRailCore[];
 	static dismountPlayer(entity: unknown): void;
 	static startRiding(entity: unknown, targetEntity: unknown): void;
 	static doFollowing(entity: unknown, hostPlayer: unknown): void;
