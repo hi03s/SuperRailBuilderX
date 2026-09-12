@@ -323,7 +323,12 @@ function findCandidates(
 		outOfRangePositions: 0,
 		errors: 0,
 	};
-	const loadedCores = SRBXApiCompat.getLoadedRailCores(world);
+	const loadedCores = SRBXApiCompat.getLoadedRailCores(
+		world,
+		looking.posX,
+		looking.posZ,
+		48,
+	);
 	for (let loadedIndex = 0; loadedIndex < loadedCores.length; loadedIndex++) {
 		const loadedCore = loadedCores[loadedIndex];
 		let phase = "getTileEntity";
@@ -485,7 +490,12 @@ function findHoverRail(
 	const seen: { [key: string]: boolean } = {};
 	let best: SelectedRail | null = null;
 	let bestDistance = 2.25;
-	const loadedCores = SRBXApiCompat.getLoadedRailCores(world);
+	const loadedCores = SRBXApiCompat.getLoadedRailCores(
+		world,
+		looking.posX,
+		looking.posZ,
+		48,
+	);
 	for (let loadedIndex = 0; loadedIndex < loadedCores.length; loadedIndex++) {
 		const core = loadedCores[loadedIndex];
 		const railKey = SRBXApiCompat.getRailPositionCandidateKey(core);

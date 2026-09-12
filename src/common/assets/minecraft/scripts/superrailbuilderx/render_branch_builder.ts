@@ -690,6 +690,7 @@ function renderEndpointHoverHighlights(
 	pt: number,
 	target: SplitTarget,
 	selected: boolean,
+	showAlternatives: boolean,
 ): void {
 	const world = SRBXApiCompat.getWorld(e),
 		seen: { [key: string]: boolean } = {};
@@ -719,10 +720,13 @@ function renderEndpointHoverHighlights(
 				if (!core) continue;
 				const key = SRBXApiCompat.getRailPositionCandidateKey(core);
 				if (seen[key]) continue;
+				if (selected && !showAlternatives && key !== target.railKey)
+					continue;
 				const positions = SRBXApiCompat.getEditableRailPositions(core);
 				let connected = false;
 				for (let i = 0; i < positions.length; i++)
 					if (
+						positions[i] &&
 						Math.abs(positions[i].posX - target.position[0]) <=
 							0.001 &&
 						Math.abs(positions[i].posY - target.position[1]) <=
@@ -889,8 +893,8 @@ function render(e: EntityVehicle, pass: number, pt: number): void {
 	const s = getState(e),
 		split = s.split || findSplit(e, pt);
 	if (split) {
-		if (split.endpoint)
-			renderEndpointHoverHighlights(e, pt, split, !!s.split);
+		if (split.endpoint && !s.awaiting)
+			renderEndpointHoverHighlights(e, pt, split, !!s.split, !s.end);
 		const tile = SRBXApiCompat.getTileEntity(
 			world,
 			split.core[0],

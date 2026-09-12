@@ -97,7 +97,12 @@ function candidate(
 	let best: Candidate | null = null,
 		bestD = 4;
 	const endpointCandidates: Candidate[] = [],
-		loadedCores = SRBXApiCompat.getLoadedRailCores(world);
+		loadedCores = SRBXApiCompat.getLoadedRailCores(
+			world,
+			looking.posX,
+			looking.posZ,
+			48,
+		);
 	for (let loadedIndex = 0; loadedIndex < loadedCores.length; loadedIndex++) {
 		const core = loadedCores[loadedIndex];
 		if (
