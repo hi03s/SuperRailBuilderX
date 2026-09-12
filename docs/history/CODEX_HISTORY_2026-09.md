@@ -772,7 +772,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 検証済み: `pnpm format`、`pnpm format:check`、`pnpm gen`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、`git diff --check`。
 - 未検証: Minecraft実機での分岐Undo時の切断/エラー解消、カント付き任意点分割、カント複数回Undo、レール移動・カント整形の適用/Undo後ハイライト。
 - 実装コミット: `f6e700b`
-- 同期: 引継ぎ更新後に`origin/main`へ同期予定。
+- 同期: 実装`f6e700b`・引継ぎ更新`c590893`を`origin/main`へ同期済み。
 
 ### 記録テンプレート
 
