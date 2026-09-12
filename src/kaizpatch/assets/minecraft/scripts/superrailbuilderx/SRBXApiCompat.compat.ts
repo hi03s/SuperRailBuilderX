@@ -3040,7 +3040,14 @@ export class SRBXApiCompat {
 				core.fixRTMRailMapVersion,
 			);
 		}
-		return core.getRailMap(null);
+		const positions = this.getEditableRailPositions(core);
+		if (!positions || positions.length !== 2) return null;
+		const currentMap = core.getRailMap(null),
+			mapVersion =
+				currentMap instanceof RailMapBasic
+					? currentMap.fixRTMRailMapVersion
+					: RailMapBasic.fixRTMRailMapVersionCurrent;
+		return new RailMapBasic(positions[0], positions[1], mapVersion);
 	}
 
 	private static cloneRailProperty(property: RailProperty): RailProperty {

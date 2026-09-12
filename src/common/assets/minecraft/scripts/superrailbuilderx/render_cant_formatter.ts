@@ -92,7 +92,9 @@ function candidate(
 ): Candidate | null {
 	const looking = NGTOBuilderUtilClient.getLookingPos(partialTicks);
 	if (!looking) return null;
-	const world = SRBXApiCompat.getWorld(entity);
+	const world = SRBXApiCompat.getWorld(entity),
+		player = MCWrapperClient.getPlayer(),
+		viewYaw = SRBXMath.normalizeDegrees(-player.rotationYaw);
 	const seen: { [k: string]: boolean } = {};
 	let best: Candidate | null = null,
 		bestD = 4;
@@ -128,24 +130,77 @@ function candidate(
 					length = map.getLength(),
 					split = Math.max(2, Math.floor(length * 2)),
 					corePos = SRBXApiCompat.getRailCorePos(core),
-					g = GAUGES[state(entity).gaugeIndex];
+					g = GAUGES[state(entity).gaugeIndex],
+					near = map.getNearlestPoint(
+						split,
+						looking.posX,
+						looking.posZ,
+					),
+					ratio = near / split,
+					nearPosition = point(map, Math.round(ratio * 1000)),
+					railDistance =
+						Math.pow(nearPosition[0] - looking.posX, 2) +
+						Math.pow(nearPosition[1] - looking.posY, 2) +
+						Math.pow(nearPosition[2] - looking.posZ, 2),
+					startDistance = length * ratio,
+					endDistance = length * (1 - ratio),
+					centerDistance = Math.abs(length * (ratio - 0.5));
+				if (railDistance >= bestD) continue;
+				let mode: "edge" | "center" | "split" = "split",
+					targetIndex = near,
+					targetRatio = ratio,
+					targetPosition = nearPosition,
+					targetEnd = -1;
+				if (
+					startDistance <= 10 &&
+					startDistance <= endDistance &&
+					startDistance <= centerDistance
+				) {
+					mode = "edge";
+					targetIndex = 0;
+					targetRatio = 0;
+					targetPosition = [rps[0].posX, rps[0].posY, rps[0].posZ];
+					targetEnd = 0;
+				} else if (endDistance <= 10 && endDistance <= centerDistance) {
+					mode = "edge";
+					targetIndex = split;
+					targetRatio = 1;
+					targetPosition = [rps[1].posX, rps[1].posY, rps[1].posZ];
+					targetEnd = 1;
+				} else if (centerDistance <= 10) {
+					mode = "center";
+					targetIndex = Math.floor(split / 2);
+					targetRatio = 0.5;
+					targetPosition = point(map, 500);
+				}
 				const consider = (
-					mode: "edge" | "center" | "split",
 					index: number,
 					ratio: number,
 					position: [number, number, number],
 					directionPoint?: [number, number, number],
 				) => {
-					let d =
-						Math.pow(position[0] - looking.posX, 2) +
-						Math.pow(position[1] - looking.posY, 2) +
-						Math.pow(position[2] - looking.posZ, 2);
-					if (directionPoint)
+					let d = railDistance;
+					if (directionPoint) {
+						const inwardYaw = SRBXMath.horizontalYaw(
+								position,
+								directionPoint,
+							),
+							yawDifference = Math.abs(
+								SRBXMath.relativeDegrees(inwardYaw, viewYaw),
+							);
 						d +=
-							0.1 *
-							(Math.pow(directionPoint[0] - looking.posX, 2) +
-								Math.pow(directionPoint[1] - looking.posY, 2) +
-								Math.pow(directionPoint[2] - looking.posZ, 2));
+							0.01 *
+								(Math.pow(directionPoint[0] - looking.posX, 2) +
+									Math.pow(
+										directionPoint[1] - looking.posY,
+										2,
+									) +
+									Math.pow(
+										directionPoint[2] - looking.posZ,
+										2,
+									)) +
+							(yawDifference * yawDifference) / 32400;
+					}
 					if (d >= bestD) return;
 					const sample = Math.max(1, Math.floor(split * 0.02)),
 						aIndex = Math.max(0, index - sample),
@@ -186,7 +241,7 @@ function candidate(
 					best = {
 						core: corePos,
 						railKey,
-						index: mode === "edge" ? (index === 0 ? 0 : 1) : -1,
+						index: mode === "edge" ? targetEnd : -1,
 						position,
 						angle,
 						height,
@@ -196,52 +251,28 @@ function candidate(
 						yaw: RTMApiCompat.getRailYaw(map, split, index),
 					};
 				};
-				for (let index = 0; index < 2; index++) {
-					const rp = rps[index] as RailPosition,
-						mapIndex = index === 0 ? 0 : split,
-						directionSample = Math.max(
-							1,
-							Math.round(
-								(Math.min(2, length * 0.05) * 1000) / length,
-							),
-						);
-					consider(
-						"edge",
-						mapIndex,
-						index,
-						[rp.posX, rp.posY, rp.posZ],
-						point(
-							map,
-							index === 0
-								? directionSample
-								: 1000 - directionSample,
+				const directionSample = Math.max(
+					1,
+					Math.min(
+						999,
+						Math.round(
+							(Math.min(10, length * 0.25) * 1000) / length,
 						),
-					);
-				}
-				const centerIndex = Math.floor(split / 2),
-					center = point(
-						map,
-						Math.round((centerIndex * 1000) / split),
-					);
-				consider("center", centerIndex, 0.5, center);
-				const near = map.getNearlestPoint(
-						split,
-						looking.posX,
-						looking.posZ,
 					),
-					ratio = near / split,
-					distanceFromEnds = Math.min(
-						length * ratio,
-						length * (1 - ratio),
-					),
-					distanceFromCenter = Math.abs(length * (ratio - 0.5));
-				if (distanceFromEnds >= 10 && distanceFromCenter >= 10)
-					consider(
-						"split",
-						near,
-						ratio,
-						point(map, Math.round(ratio * 1000)),
-					);
+				);
+				consider(
+					targetIndex,
+					targetRatio,
+					targetPosition,
+					targetEnd < 0
+						? undefined
+						: point(
+								map,
+								targetEnd === 0
+									? directionSample
+									: 1000 - directionSample,
+							),
+				);
 			}
 	return best;
 }
@@ -272,6 +303,9 @@ function panel(
 		dz = o[2] - p[2],
 		h = Math.sqrt(dx * dx + dz * dz);
 	GL11.glPushMatrix();
+	GL11.glEnable(GL11.GL_BLEND);
+	GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+	GL11.glColor4f(1, 1, 1, 1);
 	GL11.glTranslatef(p[0] - o[0], p[1] - o[1] + 0.5, p[2] - o[2]);
 	GL11.glRotatef((Math.atan2(dx, dz) * 180) / Math.PI + 180, 0, 1, 0);
 	GL11.glRotatef((Math.atan2(dy, h) * 180) / Math.PI, 1, 0, 0);
@@ -283,6 +317,7 @@ function panel(
 		if (i === text.length - 1 && unit) unit.render(renderer);
 		GL11.glPopMatrix();
 	}
+	GL11.glDisable(GL11.GL_BLEND);
 	GL11.glPopMatrix();
 }
 function send(entity: EntityVehicle, s: State, request: CantFormatterRequest) {
@@ -444,6 +479,9 @@ function input(
 	if (right && !s.awaiting) {
 		const c = candidate(entity, pt);
 		if (c) {
+			NGTLog.debug(
+				`[SuperRailBuilderX cant] selected: railKey=${c.railKey}, mode=${c.mode}, ratio=${c.ratio}, radius=${c.radius}, height=${c.height}, angle=${c.angle}, yaw=${c.yaw}`,
+			);
 			const k = `${c.railKey}:${c.mode}:${Math.round((c.ratio || 0) * 1000000)}`;
 			let found = -1;
 			for (let i = 0; i < s.selected.length; i++)
@@ -480,10 +518,10 @@ function renderRailHighlight(
 	GL11.glPopMatrix();
 }
 
-function renderAffectedRails(
+function collectAffectedRails(
 	entity: EntityVehicle,
-	pt: number,
 	target: Candidate,
+	result: { [key: string]: RailMap },
 ): void {
 	const world = SRBXApiCompat.getWorld(entity),
 		seen: { [key: string]: boolean } = {};
@@ -518,12 +556,7 @@ function renderAffectedRails(
 							affected = true;
 				if (!affected) continue;
 				seen[key] = true;
-				renderRailHighlight(
-					entity,
-					pt,
-					map,
-					target.mode === "split" ? "ffff00" : "00ffff",
-				);
+				result[key] = map;
 			}
 }
 
@@ -543,10 +576,27 @@ function render(entity: EntityVehicle, pass: number, pt: number): void {
 	if (!host || host !== player) return;
 	SRBXApiCompat.doFollowing(entity, host);
 	const s = state(entity),
-		hover = candidate(entity, pt);
+		hover = candidate(entity, pt),
+		affected: { [key: string]: RailMap } = {};
+	for (let i = 0; i < s.selected.length; i++)
+		collectAffectedRails(entity, s.selected[i], affected);
+	const affectedKeys = Object.keys(affected);
+	for (let i = 0; i < affectedKeys.length; i++)
+		renderRailHighlight(entity, pt, affected[affectedKeys[i]], "00ffff");
+	if (hover && hover.mode === "split" && !affected[hover.railKey]) {
+		const tile = SRBXApiCompat.getTileEntity(
+			world,
+			hover.core[0],
+			hover.core[1],
+			hover.core[2],
+		);
+		const core =
+			tile instanceof TileEntityLargeRailBase ? tile.getRailCore() : null;
+		const map = core ? SRBXApiCompat.getLogicalRailMap(core) : null;
+		if (map) renderRailHighlight(entity, pt, map, "ffff00");
+	}
 	if (hover) renderAt(entity, pt, hover.position, hoverCursor);
 	for (let i = 0; i < s.selected.length; i++) {
-		renderAffectedRails(entity, pt, s.selected[i]);
 		renderAt(entity, pt, s.selected[i].position, selectedCursor);
 		panel(
 			entity,

@@ -83,8 +83,6 @@ type EditorState = {
 	awaitingResult: boolean;
 	pendingAction: "move" | "undo" | null;
 	snapEnabled: boolean;
-	ignoredRailKeys: { [key: string]: boolean };
-	pendingRefreshes: Array<{ core: RailCorePos; expiresAt: number }>;
 };
 
 type CandidateScanDiagnostics = {
@@ -181,8 +179,6 @@ function getState(entity: EntityVehicle): EditorState {
 			awaitingResult: false,
 			pendingAction: null,
 			snapEnabled: false,
-			ignoredRailKeys: {},
-			pendingRefreshes: [],
 		};
 		states.put(entity, state);
 	}
@@ -339,7 +335,10 @@ function findCandidates(
 					if (!(tile instanceof TileEntityLargeRailBase)) continue;
 					diagnostics.railTiles++;
 					phase = "getRailCore";
-					const core = tile.getRailCore();
+					const referencedCore = tile.getRailCore(),
+						core = referencedCore
+							? currentRailCore(entity, referencedCore)
+							: null;
 					if (!core) {
 						diagnostics.missingCores++;
 						continue;
@@ -461,7 +460,6 @@ function resolveRail(
 	entity: EntityVehicle,
 	target: SelectedRail,
 ): ResolvedRail | null {
-	if (getState(entity).ignoredRailKeys[target.railKey]) return null;
 	const world = SRBXApiCompat.getWorld(entity);
 	const tile = SRBXApiCompat.getTileEntity(
 		world,
@@ -482,6 +480,21 @@ function resolveRail(
 	return { target, map, positions };
 }
 
+function currentRailCore(
+	entity: EntityVehicle,
+	core: TileEntityLargeRailCore,
+): TileEntityLargeRailCore | null {
+	try {
+		const world = SRBXApiCompat.getWorld(entity),
+			pos = SRBXApiCompat.getRailCorePos(core),
+			tile = SRBXApiCompat.getTileEntity(world, pos[0], pos[1], pos[2]);
+		if (!(tile instanceof TileEntityLargeRailBase)) return null;
+		return tile.getRailCore();
+	} catch (_error) {
+		return null;
+	}
+}
+
 function findHoverRail(
 	entity: EntityVehicle,
 	partialTicks: number,
@@ -497,17 +510,19 @@ function findHoverRail(
 			for (let dz = -HOVER_BLOCK_RADIUS; dz <= HOVER_BLOCK_RADIUS; dz++) {
 				const tile = SRBXApiCompat.getTileEntity(
 					world,
-					looking.posX + dx,
-					looking.posY + dy,
-					looking.posZ + dz,
+					Math.floor(looking.posX) + dx,
+					Math.floor(looking.posY) + dy,
+					Math.floor(looking.posZ) + dz,
 				);
 				if (!(tile instanceof TileEntityLargeRailBase)) continue;
-				const core = tile.getRailCore();
+				const referencedCore = tile.getRailCore(),
+					core = referencedCore
+						? currentRailCore(entity, referencedCore)
+						: null;
 				if (!core) continue;
 				const railKey = SRBXApiCompat.getRailPositionCandidateKey(core);
 				if (seen[railKey]) continue;
 				seen[railKey] = true;
-				if (getState(entity).ignoredRailKeys[railKey]) continue;
 				if (SRBXApiCompat.getRailPositionUnsupportedReason(core) !== "")
 					continue;
 				const map = SRBXApiCompat.getLogicalRailMap(core);
@@ -1069,36 +1084,6 @@ function renderRailHighlight(
 	GL11.glPopMatrix();
 }
 
-function refreshPendingRailMaps(
-	entity: EntityVehicle,
-	state: EditorState,
-): void {
-	if (state.pendingRefreshes.length === 0) return;
-	const world = SRBXApiCompat.getWorld(entity),
-		now = Date.now(),
-		remaining: Array<{ core: RailCorePos; expiresAt: number }> = [];
-	for (let i = 0; i < state.pendingRefreshes.length; i++) {
-		const refresh = state.pendingRefreshes[i],
-			tile = SRBXApiCompat.getTileEntity(
-				world,
-				refresh.core[0],
-				refresh.core[1],
-				refresh.core[2],
-			);
-		if (tile instanceof TileEntityLargeRailBase) {
-			const core = tile.getRailCore();
-			if (core) {
-				delete state.ignoredRailKeys[
-					SRBXApiCompat.getRailPositionCandidateKey(core)
-				];
-				SRBXApiCompat.refreshRailCoreClient(core);
-			}
-		}
-		if (now < refresh.expiresAt) remaining.push(refresh);
-	}
-	state.pendingRefreshes = remaining;
-}
-
 function handleInput(
 	host: EntityPlayer,
 	entity: EntityVehicle,
@@ -1127,7 +1112,10 @@ function handleInput(
 		NGTLog.sendChatMessage(sender, keys.getDescription("snap"));
 		NGTLog.sendChatMessage(sender, keys.getDescription("apply"));
 		NGTLog.sendChatMessage(sender, keys.getDescription("undo"));
-		NGTLog.sendChatMessage(sender, "[Ctrl押下中] レールの追加選択を無効化");
+		NGTLog.sendChatMessage(
+			sender,
+			"[Ctrl+右クリック] 選択を固定して移動先を確定",
+		);
 		NGTLog.sendChatMessage(sender, keys.getDescription("exit"));
 	}
 	if (keys.down("exit")) dataMap.setBoolean("isEndEdit", true, 1);
@@ -1158,7 +1146,11 @@ function handleInput(
 			}
 		}
 	}
-	if (rightClick && state.stage === 0) {
+	if (
+		rightClick &&
+		state.stage === 0 &&
+		!Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)
+	) {
 		const endpoint = nearestCandidate(
 			findCandidates(entity, partialTicks, true),
 			partialTicks,
@@ -1194,19 +1186,10 @@ function handleInput(
 			);
 			if (state.destination) state.stage = 2;
 		} else if (state.selectedRails.length > 0) {
-			const rail = findHoverRail(entity, partialTicks);
+			const ctrl = Keyboard.isKeyDown(Keyboard.KEY_LCONTROL),
+				rail = ctrl ? null : findHoverRail(entity, partialTicks);
 			if (rail) {
-				let alreadySelected = false;
-				for (let i = 0; i < state.selectedRails.length; i++)
-					if (sameRail(state.selectedRails[i], rail)) {
-						alreadySelected = true;
-						break;
-					}
-				const selection =
-					Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) &&
-					!alreadySelected
-						? "blocked"
-						: toggleRailSelection(entity, state, rail);
+				const selection = toggleRailSelection(entity, state, rail);
 				if (selection === "not_connected")
 					NGTLog.sendChatMessage(
 						sender,
@@ -1294,12 +1277,7 @@ function handleInput(
 			if (!core) continue;
 			const key = SRBXApiCompat.getRailPositionCandidateKey(core);
 			refreshed[key] = true;
-			delete state.ignoredRailKeys[key];
 			SRBXApiCompat.refreshRailCoreClient(core);
-			state.pendingRefreshes.push({
-				core: [pos[0], pos[1], pos[2]],
-				expiresAt: Date.now() + 1500,
-			});
 		}
 		const removed =
 			NGTOBuilderUtil.getJsonData<
@@ -1307,7 +1285,6 @@ function handleInput(
 			>(dataMap, "railPositionRemovedRails") || [];
 		for (let i = 0; i < removed.length; i++)
 			if (!refreshed[removed[i].key]) {
-				state.ignoredRailKeys[removed[i].key] = true;
 				SRBXApiCompat.removeRailClientGhost(
 					world,
 					removed[i].core,
@@ -1385,7 +1362,6 @@ function render(
 	if (!host || host !== player) return;
 	SRBXApiCompat.doFollowing(entity, host);
 	const state = getState(entity);
-	refreshPendingRailMaps(entity, state);
 	const candidates =
 		!state.awaitingResult && state.stage === 0
 			? findCandidates(entity, partialTicks)
