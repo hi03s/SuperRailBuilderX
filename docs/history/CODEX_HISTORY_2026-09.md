@@ -728,6 +728,8 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - カントは通常RailPositionを更新し、共有端点の接続相手へ反対符号を適用する。分岐接続部のカント0化もUndo対象に含めた。削除レールのクライアントゴースト除去をAE用に追加した。
 - 検証済み: `pnpm format:check`、`pnpm gen`、`pnpm build`（4ターゲット）、AE生成JavaScriptへの全compatメソッド出力、AE生成物にKaizPatchX Section API参照がないこと、`git diff --check`。
 - 未検証: Minecraft実機でのAE通常レール分割・Undo、中央/端点分岐の切替・走行・Undo、カント共有端点反映・Undo、各失敗時ロールバック。
+- 実装コミット: `b507824`
+- 同期: `origin/feature/appleextended-compat`へ同期済み。
 
 ### 記録テンプレート
 

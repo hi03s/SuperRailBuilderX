@@ -125,6 +125,7 @@
 
 ## 直近の完了
 
+- 2026-09-12 ローカルCodex: AE通常レール向けの分割・中央/端点分岐・カント整形と各Undoを実装。詳細は`docs/appleextended-target.md`、月別履歴、コミット`b507824`を参照（`origin/feature/appleextended-compat`へ同期済み）。
 - 2026-09-12 ローカルCodex: KaizPatchX/AE生成API差分を整理し、AEでは通常レールを生成する一時compatとUndoを追加。詳細は`docs/appleextended-target.md`、月別履歴、コミット`6289a96`を参照（`origin/feature/appleextended-compat`へ同期済み）。
 - 2026-09-10 ローカルCodex: AppleExtended `ca255fd`のJitPack公開対応を確認し、AEターゲットをmainへ再統合。4ターゲットの生成・ビルド成功。詳細は月別履歴とマージコミット`de3c3cb`を参照（`origin/main`へ同期済み）。
 - 2026-09-09 ローカルCodex: カントの曲率符号と共有端点両側反映、分岐生成の端点起点を元レール全線形を保持する単純分岐へ修正。詳細は月別履歴とコミット`b2bf9db`を参照（`origin/main`へ同期済み）。
