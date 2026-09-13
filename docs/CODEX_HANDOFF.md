@@ -10,6 +10,7 @@
 - NGTOBuilder2由来のツールキットは `src/common/assets/minecraft/scripts/lib_hi03toolkit_1_0` に置き、参照専用とする。SuperRailBuilderX固有処理は `superrailbuilderx` ディレクトリと `SRBXApiCompat` に実装する。
 - 正式版`SuperRailBuilderX_RailMover`は通常・自動分割レールとも元状態を退避し、builder1と同じ衝突判定・道床生成規則で再生成する。論理RailMapの複数選択・一括平行移動・一括Undoと、KaizPatchX分岐レールの端点移動に対応し、ホバーは現在のコアとRailPositionから再構築する。
 - `SuperRailBuilderX_builder1`を実装済み。JSON識別名はbuilder1を維持し、文書・ヘルプでは`レール生成A`と表記する。自由点・通常/分岐レール端点接続、曲線半径固定、勾配・縦曲線、複数レール一括Undo、道床・コア保護を備える。
+- builder1限定の試験実装として使用中GUIを追加済み。16×16タイルの上端・右端バー、右上のツール枠とbuilder1アイコン、中央上部の`レール生成A`を表示する。
 - `SuperRailBuilderX_RailSplitter`を実装済み。論理RailMap強調、レールパーツ描画位置と同じ約0.5 m間隔の候補、予定長表示、手持ちモデルによる2本生成、分割前状態へ戻すUndoを備える。分割後の両区間を3 m超に制限し、分割不可レールは赤表示する。
 - `SuperRailBuilderX_DoubleTrackCopy`を実装済み。通常レールの複数選択、カーソル距離に応じた指定間隔の反復複製、水平平行線形、0.5 m端点接続、手持ち/複製元モデル、一括Undoを備える。
 - `SuperRailBuilderX_CantFormatter`を実装済み。端点・中央への10 mスナップ、任意点分割、未選択分割候補の黄色表示、選択済み変更対象の水色表示、共有端点の連続適用、複数回の適用を遡るUndoに対応する。
@@ -59,10 +60,11 @@
 
 ## 次に行うこと
 
-1. AppleExtendedで分岐レール描画compatibility patchのBootstrapログとoffsetあり/なし描画を確認する。
-2. 優先確認事項のレール移動、カント整形、分岐生成をバックアップ済みワールドで再確認する。
-3. AE環境で通常レール端点移動・永続化・描画・走行・Undoを確認する。
-4. 既存の「優先確認事項」も確認し、不具合時は機能名・操作順・時刻と`logs/latest.log`を共有する。
+1. KaizPatchXでbuilder1使用中GUIを表示し、GUIスケール・画面サイズ別に配置とアイコン描画を確認する。
+2. AppleExtendedで分岐レール描画compatibility patchのBootstrapログとoffsetあり/なし描画を確認する。
+3. 優先確認事項のレール移動、カント整形、分岐生成をバックアップ済みワールドで再確認する。
+4. AE環境で通常レール端点移動・永続化・描画・走行・Undoを確認する。
+5. 既存の「優先確認事項」も確認し、不具合時は機能名・操作順・時刻と`logs/latest.log`を共有する。
 
 ## 双方向連絡
 
@@ -126,7 +128,7 @@
 
 ## 直近の完了
 
-- 2026-09-13 ローカルCodex: 分岐描画patchを`main`へfast-forward統合し、KaizPatchX実機確認済み・AppleExtended確認待ちとして修正ブランチを保持。包含確認済みの`feature/appleextended`はローカル・リモートから削除。詳細は月別履歴とコミット`08756a7`を参照。
+- 2026-09-14 ローカルCodex: builder1へ16×16タイル式の使用中GUIを試験実装。上端・右端バー、右上のツール枠とアイコン、中央上部の`レール生成A`を追加した。詳細は月別履歴とコミット`d7483ae`を参照（引継ぎ更新とともに`origin/feature/builder1-gui`へ同期済み）。
 
 - 2026-09-13 ローカルCodex: レール移動/分岐Undoの論理レール再解決、現行セクションコアからのハイライト、カント任意点分割、KaizPatchX分岐端点移動を修正。詳細は月別履歴とコミット`41a13ad`を参照（引継ぎ更新`bd939ec`とともに`origin/main`へ同期済み）。
 

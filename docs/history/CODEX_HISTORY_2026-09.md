@@ -838,6 +838,17 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 実装コミット: `41a13ad`
 - 同期: 実装`41a13ad`・引継ぎ更新`bd939ec`を`origin/main`へ同期済み。
 
+### 2026-09-14 ローカルCodex — builder1使用中GUI試験実装
+
+- `ModelVehicle_SuperRailBuilderX_builder1.json`へ`guiScriptPath`と`guiTexture`を追加し、builder1使用中だけRTMのGUIスクリプトが呼ばれるようにした。
+- `_base.png`を512×512の16×16タイルシートとして扱い、`(0,0)`を画面上端、`(0,1)`を画面右端へ端数も含めて反復描画する。右上には`(1,0)`・`(2,0)`・`(1,1)`・`(2,1)`の4タイルを配置した。
+- 右上枠の中央では16×16の`icon_builder1.png`を別途バインドし、画面中央上部にはヘルプと同じ`レール生成A`を表示する。RTMのGUI描画が512×512固定UVを使うため、16×16アイコンはテクスチャ行列で全域へ補正した。
+- GUIテクスチャは指定パス`textures/superrailbuilderx/gui/_base.png`へ配置した。`lib_hi03toolkit_1_0`は変更していない。
+- 検証済み: `pnpm gen`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、`pnpm format:check`、生成JSのGUI/SRG呼出と配布先テクスチャ確認、`git diff --check`。
+- 未検証: Minecraft実機でのGUIスケール・画面サイズ別の配置、バーと枠の継ぎ目、builder1アイコンと日本語表示。
+- 実装コミット: `d7483ae`
+- 同期: 引継ぎ更新とともに`origin/feature/builder1-gui`へ同期済み。
+
 ### 記録テンプレート
 
 ```text
