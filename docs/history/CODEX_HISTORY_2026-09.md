@@ -847,7 +847,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 検証済み: `pnpm gen`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、`pnpm format:check`、生成JSのGUI/SRG呼出と配布先テクスチャ確認、`git diff --check`。
 - 未検証: Minecraft実機でのGUIスケール・画面サイズ別の配置、バーと枠の継ぎ目、builder1アイコンと日本語表示。
 - 実装コミット: `d7483ae`
-- 同期: `origin/feature/builder1-gui`へのpushは、リモートが承認済み転送先と確認できないという安全審査で拒否されたため未同期。
+- 同期: ユーザーの明示許可後、引継ぎ更新とともに`origin/feature/builder1-gui`へ同期済み。
 
 ### 記録テンプレート
 
