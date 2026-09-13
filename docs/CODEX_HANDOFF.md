@@ -20,18 +20,18 @@
 - `v*`タグpush時に型定義生成・multi-targetビルド・ZIP生成を行い、`release-notes.md`を本文とするDraft Releaseを作成するGitHub Actionsを整備済み。公開はGitHub上で手動実施する。
 - レール生成・自由点移動の構造は `docs/rail-generation-and-free-positioning.md`、各ツールの仕様と検証方法は下記「関連資料」を参照する。
 - `AGENTS.md`へ、親モデルを途中変更するのではなく、限定作業だけを軽量・バランス型サブエージェントへ委譲するモデル運用規則を追加済み。
-- KaizPatchX / AppleExtended向けの分岐レール描画runtime compatibility patchを実装済み。builder1の`init()`からモデル構築完了を非同期に待ち、全Rail ScriptEngineの`renderRailDynamic2`へX/Z offset一回分を除くwrapperを適用する。通常RTMはno-op。
+- KaizPatchX / AppleExtended向けの分岐レール描画runtime compatibility patchを実装済み。builder1の`init()`からモデル構築完了を非同期に待ち、全Rail ScriptEngineの分岐可動部だけからX/Z offset一回分を除く。通常RTMはno-op。
 
 ## 作業中
 
-- ローカルCodex: KaizPatchX実機結果を受け、分岐描画compatibility patchが正常な中央～終端側まで移動させる回帰を修正中。補正を分岐可動部の`renderRailMapDynamic`呼び出しだけへ限定する。
+- なし。
 
 ## 優先確認事項
 
 ### 分岐レール描画compatibility patch
 
 - KaizPatchX / AppleExtendedで起動時ログの`[SRBX rail patch] completed`を確認し、`failed=0`であることを確認する。
-- 通常レール、offsetなし分岐、offsetあり分岐を表示し、offsetあり分岐の根元～中央がRailMapへ一致し、他2ケースの描画が変化しないことを確認する。
+- 通常レール、offsetなし分岐、offsetあり分岐を表示し、offsetあり分岐の根元～中央と中央～終端がともにRailMapへ一致し、他2ケースの描画が変化しないことを確認する。
 - `exclude.json`へ実在するrenderer script pathを一時指定し`skipped: excluded`になること、AppleExtendedではモデルパックreload後に新しいEngineへ再適用されることを確認する。
 
 ### 共通の走行遷移
@@ -129,7 +129,7 @@
 
 - 2026-09-13 ローカルCodex: KaizPatchX / AppleExtendedの全Rail ScriptEngineへ、分岐X/Z offset二重加算を補正するruntime patch機構を追加。詳細は月別履歴とコミット`48bc82e`を参照（`origin/fix/rail-render-offset-compat-patch`へ同期）。
 
-- 2026-09-13 ローカルCodex: KaizPatchX調査cloneと生ログをGit除外し、ローカル指示書を`docs/instructions/`へ集約して同フォルダも除外した。
+- 2026-09-13 ローカルCodex: KaizPatchX実機で判明した中央～終端側の描画回帰を修正し、offset補正を分岐可動部だけへ限定。詳細は月別履歴とコミット`bfa6fc0`を参照（同ブランチへ同期）。
 
 詳細な作業履歴は `docs/history/CODEX_HISTORY_2026-09.md` に保存しています。過去の原因や判断経緯が必要な場合だけ、対象機能名・エラー名・コミットSHAで検索してください。
 

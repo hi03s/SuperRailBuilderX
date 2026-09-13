@@ -16,7 +16,7 @@ Enter時にレールを持っていればそのモデルを分岐へ使い、持
 
 分岐レール、自動分割状態が不正なレール、在線中のレール、勾配または縦曲線を持つレールは選択・生成できない。全長6 m以下は中央分割できないが、端点起点には使用できる。接続先として選ぶ既設レールも水平な通常レールに限る。サーバーは対象キー、分割比、端点、水平性、在線状態を再検証する。ワールド変更はKaizPatchX限定。
 
-KaizPatchX / AppleExtended同梱の`LibRenderRail.js`は、自由配置された分岐根元の水平オフセットを外側の描画変換と`renderRailMapDynamic`内で二重加算する。このためRailMapと台車追従が正しくても、分岐の根元から中央までだけ描画がずれる。SRBXはレールパック自体を変更せず、builder1の`init()`を起点にモデル構築完了を待ち、各レール描画ScriptEngineの`renderRailDynamic2`へruntime compatibility patchを一度だけ適用する。通常RTM 1.7.10 / 1.12.2ではこのpatchを起動しない。
+KaizPatchX / AppleExtended同梱の`LibRenderRail.js`は、自由配置された分岐根元の水平オフセットを外側の描画変換と`renderRailMapDynamic`内で二重加算する。このためRailMapと台車追従が正しくても、分岐の根元から中央までだけ描画がずれる。SRBXはレールパック自体を変更せず、builder1の`init()`を起点にモデル構築完了を待ち、各レール描画ScriptEngineの`renderRailDynamic2`へruntime compatibility patchを一度だけ適用する。補正は分岐可動部を描く`renderRailMapDynamic`の実行中だけに限定し、中央から終端側の`renderRailMapStatic`には適用しない。通常RTM 1.7.10 / 1.12.2ではこのpatchを起動しない。
 
 ## 実機確認
 
@@ -28,4 +28,4 @@ KaizPatchX / AppleExtended同梱の`LibRenderRail.js`は、自由配置された
 6. 分岐の切替、両経路の走行、道床所有、描画更新が正常である。
 7. 生成後にベース・分岐化後も接する全接続端・生成物のカントが0となり、`Ctrl+Z`で生成物と既設レールのカントが元へ戻る。
 8. 勾配・縦曲線・既存分岐・在線中・短すぎる中央候補が選択または適用を拒否される。
-9. KaizPatchX / AppleExtendedでオフセットあり分岐の根元から中央までがRailMapと一致し、オフセットなし分岐・通常レールの描画が変化しない。ログの`[SRBX rail patch] completed`で適用件数と失敗件数を確認する。
+9. KaizPatchX / AppleExtendedでオフセットあり分岐の根元～中央と中央～終端を別々に確認して両方がRailMapと一致し、オフセットなし分岐・通常レールの描画も変化しない。ログの`[SRBX rail patch] completed`で適用件数と失敗件数を確認する。

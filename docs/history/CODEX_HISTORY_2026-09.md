@@ -805,6 +805,16 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 実装コミット: `48bc82e`
 - 同期: 実装と引継ぎ更新を`origin/fix/rail-render-offset-compat-patch`へ同期。
 
+### 2026-09-13 ローカルCodex — 分岐描画patchの非分岐側回帰修正
+
+- KaizPatchX実機確認で、本来ずれていた根元～中央の分岐可動部は修正された一方、元は正常だった中央～終端の非分岐部がoffsetと逆方向へずれることを確認した。
+- 初期wrapperが`renderRailDynamic2`全体の引数からoffsetを除いていたため、内部でoffsetが二重になる`renderRailMapDynamic`だけでなく、正しい外側変換を必要とする`renderRailMapStatic`側にも補正が掛かったことが原因。
+- `renderRailDynamic2`実行中だけ`renderRailMapDynamic`を一時wrapperへ差し替え、その呼び出しをGL上で`-offsetX/-offsetZ`移動する方式へ変更した。元関数とGL行列はそれぞれ`finally`で復元し、中央～終端側は元の外側変換を維持する。
+- 検証済み: Node `vm` PoCでoffsetあり分岐の分岐側/非分岐側、offsetなし、非分岐、二重patch防止、GL行列復元、`pnpm format:check`、`pnpm build`（全ターゲット）、`git diff --check`。
+- 未検証: 修正版でのKaizPatchX実機再確認、AppleExtended実機確認。
+- 修正コミット: `bfa6fc0`
+- 同期: 引継ぎ更新とともに`origin/fix/rail-render-offset-compat-patch`へ同期。
+
 ### 記録テンプレート
 
 ```text
