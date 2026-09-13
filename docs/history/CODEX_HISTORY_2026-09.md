@@ -871,6 +871,16 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 修正コミット: `1f9ae9d`
 - 同期: 引継ぎ更新とともに`origin/feature/builder1-gui`へ同期済み。
 
+### 2026-09-14 ローカルCodex — builder1 GUIのテクスチャ合成修正
+
+- 深度修正後の実機確認でレールがGUIより上に出る問題は解消したが、GUIはテクスチャ部分だけ背景が抜けたように見え、文字も表示されなかった。
+- アルファ形状に沿った最前面深度は書けているため画像の読込み自体は成功しており、RTMモデル描画から残るactive texture unitまたはlightmap texture environmentがRGBへ合成されていることを原因候補と判断した。
+- GUI描画前にactive texture unitを`GL_TEXTURE0`へ固定し、`GL_TEXTURE1`のライトマップを一時無効化する。ユニット0のtexture environmentを`GL_MODULATE`へ戻し、終了時は両ユニットの属性と元のactive unitを復元する。
+- 検証済み: `pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、`pnpm format:check`、生成JSのGL13・texture environment呼出、`git diff --check`。
+- 未検証: Minecraft実機でのGUIテクスチャと文字のRGB表示。透明形状だけ残る場合は、追加のtexture combine stateまたは描画先フレームバッファ状態を調査する。
+- 修正コミット: `ec1c9b8`
+- 同期: 引継ぎ更新とともに`origin/feature/builder1-gui`へ同期済み。
+
 ### 記録テンプレート
 
 ```text
