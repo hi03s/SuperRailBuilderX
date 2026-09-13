@@ -792,6 +792,18 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - ローカル指示書`Implementing an Automated Release Action.md`を`docs/instructions/`へ移動し、指示書フォルダ全体をGit管理外とした。
 - 検証済み: `git check-ignore`、移動元・移動先の存在確認、`git diff --check`。
 
+### 2026-09-13 ローカルCodex — 分岐レール描画runtime compatibility patch
+
+- KaizPatchX / AppleExtendedの`LibRenderRail.js`を確認し、自由配置した分岐根元のX/Zオフセットが`renderRailDynamic2`の外側変換と内部RailMap相対移動で二重加算される一方、Yは内部で高さ差として相殺され外側変換だけが必要なことを確認した。
+- builder1の`init()`だけを起点とし、専用Bootstrap・全レール走査/適用・patch source・target別Platform Adapter・除外JSONを`scripts/srbx_patch/`へ分離した。元`renderRailDynamic2`を保持するwrapperをScriptEngineへ`eval()`し、分岐時の呼出座標からRailPositionのX/Z offsetを1回分だけ差し引く。
+- KaizPatchXは`RTM ModelPack Load`スレッド終了と全Rail ModelSetのmodel/renderer取得を、AppleExtendedは`ModelPackManager.modelConstructed`と同じmodel/renderer取得をreadiness条件にした。待機は専用daemon thread上で100 ms間隔・最大10分とし、patch自体は各Minecraft client threadへscheduleする。
+- `renderRailDynamic2`なし・scriptなし・除外対象は正常skipし、Engine内フラグ`__SRBX_RAIL_RENDER_PATCHED__`で二重適用を防ぐ。一件の失敗で走査全体を止めず、debugログへ対象と集計を残す。通常RTM 1.7.10 / 1.12.2 adapterはno-opとした。
+- 除外JSONは`{"packs":[],"scripts":[]}`形式。両環境でrenderer script pathは取得できるが、モデルパックを一意かつ安全に表す公開情報は確認できなかったため、初期実装の`packs`判定は予約フィールドであり、実際の除外は`scriptPath`完全一致を利用する。
+- AppleExtendedのreloadはModelSet/ScriptEngineを再生成し、builder1の新しいEngineでも`init()`が実行されるため同じBootstrapが再適用される見込み。KaizPatchX側には対応対象版で安全に利用できるreloadイベントを確認できず、起動時適用のみとした。
+- 検証済み: patch sourceのNode `vm` PoC（offsetあり/なし分岐、非分岐不変、二重patch防止）、`pnpm format:check`、`pnpm gen`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、生成物のtarget dispatch・client thread schedule・no-op確認、`git diff --check`。
+- 未検証: Minecraft実機でのKaizPatchX / AppleExtendedのBootstrapログ、全レール走査、offsetあり/なし分岐と通常レール描画、scriptなし/関数なし/除外対象。AppleExtended reload後の再適用も実機未確認。
+- 実装コミット: コミット後に追記する。
+
 ### 記録テンプレート
 
 ```text

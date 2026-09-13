@@ -24,6 +24,7 @@ import {
 } from "@target/assets/minecraft/scripts/superrailbuilderx/SRBXApiCompat";
 import { SRBXMath, SRBXVec3 } from "./SRBXMath";
 import { Builder1Request } from "./server_builder1";
+import { SRBXPatchBootstrap } from "../srbx_patch/bootstrap";
 
 declare const renderer: VehiclePartsRenderer;
 
@@ -83,6 +84,7 @@ const loggedScanErrors: { [key: string]: boolean } = {};
 function init(par1: ModelSetVehicle, par2: ModelObject): void {
 	void par1;
 	void par2;
+	SRBXPatchBootstrap.start();
 	keys = new InputManager();
 	keys.setOptionKey(Keyboard.KEY_LCONTROL);
 	keys.register("help", Keyboard.KEY_H, false, "ヘルプを表示");

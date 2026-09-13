@@ -12,7 +12,8 @@
 		"zip": "rtmx zip",
 		"clean": "node -e \"['dist','generated','artifacts'].forEach(d=>require('fs').rmSync(d,{recursive:true,force:true}))\"",
 		"format": "prettier --write \"src/**/*.ts\"",
-		"format:check": "prettier --check \"src/**/*.ts\""
+		"format:check": "prettier --check \"src/**/*.ts\"",
+		"test:rail-patch": "node tests/srbx_patch/patch_source.test.cjs"
 	},
 	"dependencies": {
 		"rtm-ts": "0.12.0"

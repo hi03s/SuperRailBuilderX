@@ -23,7 +23,7 @@
 
 ## 作業中
 
-- なし。
+- ローカルCodex: `fix/rail-render-offset-compat-patch` で、KaizPatchX / AppleExtended向け分岐レール描画オフセット二重加算のruntime compatibility patchを調査・実装中。`docs/instructions/Implementation of a patch for rail-drawing script compatibility.md` に従い、PoC成立性を先に確認する。
 
 ## 優先確認事項
 
