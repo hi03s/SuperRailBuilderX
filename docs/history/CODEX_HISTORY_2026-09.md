@@ -815,6 +815,16 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 修正コミット: `bfa6fc0`
 - 同期: 引継ぎ更新とともに`origin/fix/rail-render-offset-compat-patch`へ同期。
 
+### 2026-09-13 ローカルCodex — 分岐描画patchのmain統合とブランチ整理
+
+- 修正版をKaizPatchX実機で再確認し、offsetあり分岐の根元～中央と中央～終端を含め、描画に問題がないとの開発者確認を受けた。
+- `origin/main`が`origin/fix/rail-render-offset-compat-patch`の基点であることを確認し、`main`を`08756a7`へfast-forwardしてpushした。AppleExtended実機確認が残るため修正ブランチは削除せず保持した。
+- `origin/feature/appleextended`が`origin/main`に完全包含されていることを確認後、`feature/appleextended`をローカル・リモートから削除した。別ブランチ`feature/appleextended-compat`は対象外のため変更していない。
+- 検証済み: 統合前の`pnpm test:rail-patch`、`pnpm format:check`、`pnpm build`（全ターゲット）、`git diff --check`、Git commit包含関係。
+- 未検証: AppleExtended実機での描画patchとreload後の再適用。
+- 統合コミット: `08756a7`
+- 同期: `origin/main`へ同期済み。
+
 ### 記録テンプレート
 
 ```text

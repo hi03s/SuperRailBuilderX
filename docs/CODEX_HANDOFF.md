@@ -20,7 +20,7 @@
 - `v*`タグpush時に型定義生成・multi-targetビルド・ZIP生成を行い、`release-notes.md`を本文とするDraft Releaseを作成するGitHub Actionsを整備済み。公開はGitHub上で手動実施する。
 - レール生成・自由点移動の構造は `docs/rail-generation-and-free-positioning.md`、各ツールの仕様と検証方法は下記「関連資料」を参照する。
 - `AGENTS.md`へ、親モデルを途中変更するのではなく、限定作業だけを軽量・バランス型サブエージェントへ委譲するモデル運用規則を追加済み。
-- KaizPatchX / AppleExtended向けの分岐レール描画runtime compatibility patchを実装済み。builder1の`init()`からモデル構築完了を非同期に待ち、全Rail ScriptEngineの分岐可動部だけからX/Z offset一回分を除く。通常RTMはno-op。
+- KaizPatchX / AppleExtended向けの分岐レール描画runtime compatibility patchを`main`へ統合済み。KaizPatchXの描画は実機確認済みで、AppleExtended確認待ちのため`fix/rail-render-offset-compat-patch`は保持する。通常RTMはno-op。
 
 ## 作業中
 
@@ -30,8 +30,8 @@
 
 ### 分岐レール描画compatibility patch
 
-- KaizPatchX / AppleExtendedで起動時ログの`[SRBX rail patch] completed`を確認し、`failed=0`であることを確認する。
-- 通常レール、offsetなし分岐、offsetあり分岐を表示し、offsetあり分岐の根元～中央と中央～終端がともにRailMapへ一致し、他2ケースの描画が変化しないことを確認する。
+- AppleExtendedで起動時ログの`[SRBX rail patch] completed`を確認し、`failed=0`であることを確認する。
+- AppleExtendedで通常レール、offsetなし分岐、offsetあり分岐を表示し、offsetあり分岐の根元～中央と中央～終端がともにRailMapへ一致し、他2ケースの描画が変化しないことを確認する。
 - `exclude.json`へ実在するrenderer script pathを一時指定し`skipped: excluded`になること、AppleExtendedではモデルパックreload後に新しいEngineへ再適用されることを確認する。
 
 ### 共通の走行遷移
@@ -60,7 +60,7 @@
 
 ## 次に行うこと
 
-1. KaizPatchX / AppleExtendedで分岐レール描画compatibility patchのBootstrapログとoffsetあり/なし描画を確認する。
+1. AppleExtendedで分岐レール描画compatibility patchのBootstrapログとoffsetあり/なし描画を確認する。
 2. 優先確認事項のレール移動、カント整形、分岐生成をバックアップ済みワールドで再確認する。
 3. AE環境で通常レール端点移動・永続化・描画・走行・Undoを確認する。
 4. 既存の「優先確認事項」も確認し、不具合時は機能名・操作順・時刻と`logs/latest.log`を共有する。
@@ -127,7 +127,7 @@
 
 ## 直近の完了
 
-- 2026-09-13 ローカルCodex: KaizPatchX / AppleExtendedの全Rail ScriptEngineへ、分岐X/Z offset二重加算を補正するruntime patch機構を追加。詳細は月別履歴とコミット`48bc82e`を参照（`origin/fix/rail-render-offset-compat-patch`へ同期）。
+- 2026-09-13 ローカルCodex: 分岐描画patchを`main`へfast-forward統合し、KaizPatchX実機確認済み・AppleExtended確認待ちとして修正ブランチを保持。包含確認済みの`feature/appleextended`はローカル・リモートから削除。詳細は月別履歴とコミット`08756a7`を参照。
 
 - 2026-09-13 ローカルCodex: KaizPatchX実機で判明した中央～終端側の描画回帰を修正し、offset補正を分岐可動部だけへ限定。詳細は月別履歴とコミット`bfa6fc0`を参照（同ブランチへ同期）。
 
