@@ -1,13 +1,18 @@
 /**
  * Keep the original renderer script intact and remove only the duplicated
- * horizontal RailPosition offset from renderRailDynamic2's outer transform.
- * The RailMap used by switch rendering already contains that X/Z offset.
+ * horizontal RailPosition offset while it draws a branching switch point.
+ * The non-branching half uses renderRailMapStatic and must retain the outer
+ * transform applied by renderRailDynamic2.
  */
 export const RAIL_RENDER_PATCH_SOURCE = `
 if (typeof __SRBX_RAIL_RENDER_PATCHED__ === "undefined") {
     var __srbx_original_renderRailDynamic2 = renderRailDynamic2;
     renderRailDynamic2 = function(tileEntity, par2, par4, par6) {
-        if (tileEntity == null || tileEntity.getSwitch() == null) {
+        if (
+            tileEntity == null ||
+            tileEntity.getSwitch() == null ||
+            typeof renderRailMapDynamic !== "function"
+        ) {
             return __srbx_original_renderRailDynamic2.apply(this, arguments);
         }
 
@@ -21,14 +26,26 @@ if (typeof __SRBX_RAIL_RENDER_PATCHED__ === "undefined") {
         var offsetZ = Number(rp.offsetZ);
         if (!isFinite(offsetX)) offsetX = 0.0;
         if (!isFinite(offsetZ)) offsetZ = 0.0;
+        if (offsetX === 0.0 && offsetZ === 0.0) {
+            return __srbx_original_renderRailDynamic2.apply(this, arguments);
+        }
 
-        return __srbx_original_renderRailDynamic2.call(
-            this,
-            tileEntity,
-            par2 - offsetX,
-            par4,
-            par6 - offsetZ
-        );
+        var __srbx_active_renderRailMapDynamic = renderRailMapDynamic;
+        renderRailMapDynamic = function() {
+            GL11.glPushMatrix();
+            GL11.glTranslatef(-offsetX, 0.0, -offsetZ);
+            try {
+                return __srbx_active_renderRailMapDynamic.apply(this, arguments);
+            } finally {
+                GL11.glPopMatrix();
+            }
+        };
+
+        try {
+            return __srbx_original_renderRailDynamic2.apply(this, arguments);
+        } finally {
+            renderRailMapDynamic = __srbx_active_renderRailMapDynamic;
+        }
     };
     var __SRBX_RAIL_RENDER_PATCHED__ = true;
 }

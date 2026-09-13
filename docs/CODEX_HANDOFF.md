@@ -24,7 +24,7 @@
 
 ## 作業中
 
-- なし。
+- ローカルCodex: KaizPatchX実機結果を受け、分岐描画compatibility patchが正常な中央～終端側まで移動させる回帰を修正中。補正を分岐可動部の`renderRailMapDynamic`呼び出しだけへ限定する。
 
 ## 優先確認事項
 
