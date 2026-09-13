@@ -120,7 +120,7 @@
 
 ## 直近の完了
 
-- 2026-09-13 ローカルCodex: `feature/appleextended-compat`へ最新mainを統合し、AE上流`9df86c2`の自動分割・論理レールAPIへ対応。詳細は`docs/appleextended-target.md`、月別履歴、コミット`0f16794`・`c8970d6`を参照（push結果はこの作業の引継ぎコミットに記録）。
+- 2026-09-13 ローカルCodex: `feature/appleextended-compat`へ最新mainを統合し、AE上流`9df86c2`の自動分割・論理レールAPIへ対応。詳細は`docs/appleextended-target.md`、月別履歴、コミット`0f16794`・`c8970d6`を参照（`origin/feature/appleextended-compat`へ同期済み）。
 
 - 2026-09-13 ローカルCodex: `v*`タグ専用の正式リリースworkflow、初期リリースノート、手動公開・誤タグ・再実行手順を追加。詳細は月別履歴とコミット`fa57990`を参照（`origin/main`へ同期済み）。
 

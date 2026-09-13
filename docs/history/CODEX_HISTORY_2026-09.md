@@ -814,7 +814,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 検証済み: `pnpm gen`、`pnpm format:check`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、`git diff --check`。
 - 未検証: Minecraft実機でのチャンク境界をまたぐ生成・分割・分岐・走行・Undo、全Sectionへのカント反映・Undo。
 - 実装コミット: `c8970d6`
-- 同期: 引継ぎ更新コミットとともに`origin/feature/appleextended-compat`へpush予定。
+- 同期: 実装`c8970d6`・引継ぎ更新`14262dc`を`origin/feature/appleextended-compat`へ同期済み。
 
 ### 記録テンプレート
 
