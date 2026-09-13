@@ -20,12 +20,19 @@
 - `v*`タグpush時に型定義生成・multi-targetビルド・ZIP生成を行い、`release-notes.md`を本文とするDraft Releaseを作成するGitHub Actionsを整備済み。公開はGitHub上で手動実施する。
 - レール生成・自由点移動の構造は `docs/rail-generation-and-free-positioning.md`、各ツールの仕様と検証方法は下記「関連資料」を参照する。
 - `AGENTS.md`へ、親モデルを途中変更するのではなく、限定作業だけを軽量・バランス型サブエージェントへ委譲するモデル運用規則を追加済み。
+- KaizPatchX / AppleExtended向けの分岐レール描画runtime compatibility patchを実装済み。builder1の`init()`からモデル構築完了を非同期に待ち、全Rail ScriptEngineの`renderRailDynamic2`へX/Z offset一回分を除くwrapperを適用する。通常RTMはno-op。
 
 ## 作業中
 
-- ローカルCodex: `fix/rail-render-offset-compat-patch` で、KaizPatchX / AppleExtended向け分岐レール描画オフセット二重加算のruntime compatibility patchを調査・実装中。`docs/instructions/Implementation of a patch for rail-drawing script compatibility.md` に従い、PoC成立性を先に確認する。
+- なし。
 
 ## 優先確認事項
+
+### 分岐レール描画compatibility patch
+
+- KaizPatchX / AppleExtendedで起動時ログの`[SRBX rail patch] completed`を確認し、`failed=0`であることを確認する。
+- 通常レール、offsetなし分岐、offsetあり分岐を表示し、offsetあり分岐の根元～中央がRailMapへ一致し、他2ケースの描画が変化しないことを確認する。
+- `exclude.json`へ実在するrenderer script pathを一時指定し`skipped: excluded`になること、AppleExtendedではモデルパックreload後に新しいEngineへ再適用されることを確認する。
 
 ### 共通の走行遷移
 
@@ -53,9 +60,10 @@
 
 ## 次に行うこと
 
-1. 優先確認事項のレール移動、カント整形、分岐生成をバックアップ済みワールドで再確認する。
-2. AE環境で通常レール端点移動・永続化・描画・走行・Undoを確認する。
-3. 既存の「優先確認事項」も確認し、不具合時は機能名・操作順・時刻と`logs/latest.log`を共有する。
+1. KaizPatchX / AppleExtendedで分岐レール描画compatibility patchのBootstrapログとoffsetあり/なし描画を確認する。
+2. 優先確認事項のレール移動、カント整形、分岐生成をバックアップ済みワールドで再確認する。
+3. AE環境で通常レール端点移動・永続化・描画・走行・Undoを確認する。
+4. 既存の「優先確認事項」も確認し、不具合時は機能名・操作順・時刻と`logs/latest.log`を共有する。
 
 ## 双方向連絡
 
@@ -119,17 +127,9 @@
 
 ## 直近の完了
 
+- 2026-09-13 ローカルCodex: KaizPatchX / AppleExtendedの全Rail ScriptEngineへ、分岐X/Z offset二重加算を補正するruntime patch機構を追加。詳細は月別履歴とコミット`48bc82e`を参照（`origin/fix/rail-render-offset-compat-patch`へ同期）。
+
 - 2026-09-13 ローカルCodex: KaizPatchX調査cloneと生ログをGit除外し、ローカル指示書を`docs/instructions/`へ集約して同フォルダも除外した。
-
-- 2026-09-13 ローカルCodex: `v*`タグ専用の正式リリースworkflow、初期リリースノート、手動公開・誤タグ・再実行手順を追加。詳細は月別履歴とコミット`fa57990`を参照（`origin/main`へ同期済み）。
-
-- 2026-09-13 ローカルCodex: 分岐Undo時の旧TileEntity向けNBT競合と内部半レールの誤ったカント復元、カント付き任意点の高さ照合、複数回Undo、撤去済みコア由来の旧ハイライトを修正。詳細は月別履歴とコミット`f6e700b`を参照（引継ぎ更新`c590893`とともに`origin/main`へ同期済み）。
-
-- 2026-09-13 ローカルCodex: KaizPatchXで空だったロード済みTE一覧をチャンク内コア列挙で補い、レール移動・カント選択を復旧。分岐生成待機中のnull RailPosition参照を防ぎ、分岐先確定後は非ベース側強調を消すよう修正。詳細は月別履歴とコミット`b78ab58`を参照（`origin/main`へ同期済み）。
-
-- 2026-09-13 ローカルCodex: レール移動・カント候補をロード済みコアから毎フレーム再構築し、カント共有端点を曲線優先・方向基準で適用、分岐共有端点を選択後のカーソル方向で切替。分岐コアの初期化前同期とUndo順も修正。詳細は月別履歴とコミット`34cb8a0`を参照（`origin/main`へ同期済み）。
-
-- 2026-09-13 ローカルCodex: レール移動のホバー取得とCtrl操作、カント整形のスナップ/強調/透明表示、分岐生成の共有端点判定を再構築。優先確認事項を実機未確認項目だけに整理した。詳細は月別履歴とコミット`fc0a02e`を参照（`origin/main`へ同期済み）。
 
 詳細な作業履歴は `docs/history/CODEX_HISTORY_2026-09.md` に保存しています。過去の原因や判断経緯が必要な場合だけ、対象機能名・エラー名・コミットSHAで検索してください。
 

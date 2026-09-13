@@ -802,7 +802,8 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - AppleExtendedのreloadはModelSet/ScriptEngineを再生成し、builder1の新しいEngineでも`init()`が実行されるため同じBootstrapが再適用される見込み。KaizPatchX側には対応対象版で安全に利用できるreloadイベントを確認できず、起動時適用のみとした。
 - 検証済み: patch sourceのNode `vm` PoC（offsetあり/なし分岐、非分岐不変、二重patch防止）、`pnpm format:check`、`pnpm gen`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、生成物のtarget dispatch・client thread schedule・no-op確認、`git diff --check`。
 - 未検証: Minecraft実機でのKaizPatchX / AppleExtendedのBootstrapログ、全レール走査、offsetあり/なし分岐と通常レール描画、scriptなし/関数なし/除外対象。AppleExtended reload後の再適用も実機未確認。
-- 実装コミット: コミット後に追記する。
+- 実装コミット: `48bc82e`
+- 同期: 実装と引継ぎ更新を`origin/fix/rail-render-offset-compat-patch`へ同期。
 
 ### 記録テンプレート
 
