@@ -786,6 +786,12 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 実装コミット: `fa57990`
 - 同期: `origin/main`へ同期済み。
 
+### 2026-09-13 ローカルCodex — ローカル調査資料のGit除外
+
+- `.tmp-kaizpatchx-source/`と`logs/latest.log`を`.gitignore`へ追加した。
+- ローカル指示書`Implementing an Automated Release Action.md`を`docs/instructions/`へ移動し、指示書フォルダ全体をGit管理外とした。
+- 検証済み: `git check-ignore`、移動元・移動先の存在確認、`git diff --check`。
+
 ### 記録テンプレート
 
 ```text
