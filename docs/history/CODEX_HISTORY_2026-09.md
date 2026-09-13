@@ -774,6 +774,18 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 実装コミット: `f6e700b`
 - 同期: 実装`f6e700b`・引継ぎ更新`c590893`を`origin/main`へ同期済み。
 
+### 2026-09-13 ローカルCodex — 正式リリース用Draft Release自動化
+
+- `v*`タグpushだけで起動する`.github/workflows/release.yml`を追加した。GitHub-hosted Ubuntu上でpnpm 10.33.2、Node.js 22.17.0、Temurin 17を用意し、固定lockfileで依存関係を取得する。
+- `generated/`はGit管理外であり、各tsconfigがその型定義を参照するため、クリーンrunnerでは`rtmx generate`が必須と判断した。リポジトリのWindows固有`gradle-java-home`をrunnerへ持ち込まないよう、workflowではsetup-javaの`JAVA_HOME`を生成処理へ明示する。
+- 型定義生成後に`rtmx build`と`rtmx zip`を実行する。`artifacts/`直下のZIPが1個でない場合は失敗させ、実際のZIP名からpack名を取得してタグ名付きへ変更する。
+- `release-notes.md`を初期化し、同ファイルを本文として`github.token`でDraft Releaseを作成する。再実行時は既存Draftの本文・同名Assetを更新し、公開済みReleaseは変更せず失敗させる。
+- `docs/releasing.md`へ手動Publishまでの正式手順、誤タグの削除・修正方法、workflow再実行時の挙動を記載した。
+- 検証済み: `pnpm install --frozen-lockfile`、`pnpm gen`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、`pnpm exec rtmx zip`（`SuperRailBuilderX-alpha-0.1.0.zip`、71ファイル）、対象Prettier、`git diff --check`、workflow内Bash 2ブロックの`bash -n`。
+- 未検証: 実際の`v*`タグpushによるGitHub-hosted runnerでの依存取得・Gradle生成・Draft Release作成。検証するとDraft Releaseを作成するため、次回の正式リリースタグで確認する。
+- 実装コミット: `fa57990`
+- 同期: `origin/main`へ同期済み。
+
 ### 記録テンプレート
 
 ```text

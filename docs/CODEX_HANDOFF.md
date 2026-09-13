@@ -17,6 +17,7 @@
 - AppleExtended実験対応をmainへ統合済み。通常レール端点移動・同期・Undoだけを有効化し、道床再生成を必要とする機能は安全に無効化する。
 - builder1のチャンク境界交差・候補表示・Iキー地上高合わせ、複線コピーの生成、分割パネル・縦勾配・カント、レール移動の基本操作・接続・回り込み防止・三線軌条の相互走行は実機確認済み。
 - `alpha-0.1.0`の配布設定、README、統合操作ガイド、同梱readme.txt・LICENSEを整備済み。配布ZIPは`SuperRailBuilderX-alpha-0.1.0.zip`として生成できる。
+- `v*`タグpush時に型定義生成・multi-targetビルド・ZIP生成を行い、`release-notes.md`を本文とするDraft Releaseを作成するGitHub Actionsを整備済み。公開はGitHub上で手動実施する。
 - レール生成・自由点移動の構造は `docs/rail-generation-and-free-positioning.md`、各ツールの仕様と検証方法は下記「関連資料」を参照する。
 - `AGENTS.md`へ、親モデルを途中変更するのではなく、限定作業だけを軽量・バランス型サブエージェントへ委譲するモデル運用規則を追加済み。
 
@@ -118,6 +119,8 @@
 
 ## 直近の完了
 
+- 2026-09-13 ローカルCodex: `v*`タグ専用の正式リリースworkflow、初期リリースノート、手動公開・誤タグ・再実行手順を追加。詳細は月別履歴とコミット`fa57990`を参照（`origin/main`へ同期済み）。
+
 - 2026-09-13 ローカルCodex: 分岐Undo時の旧TileEntity向けNBT競合と内部半レールの誤ったカント復元、カント付き任意点の高さ照合、複数回Undo、撤去済みコア由来の旧ハイライトを修正。詳細は月別履歴とコミット`f6e700b`を参照（引継ぎ更新`c590893`とともに`origin/main`へ同期済み）。
 
 - 2026-09-13 ローカルCodex: KaizPatchXで空だったロード済みTE一覧をチャンク内コア列挙で補い、レール移動・カント選択を復旧。分岐生成待機中のnull RailPosition参照を防ぎ、分岐先確定後は非ベース側強調を消すよう修正。詳細は月別履歴とコミット`b78ab58`を参照（`origin/main`へ同期済み）。
@@ -140,4 +143,5 @@
 | RailPosition自由化     | `docs/rail-position-free-positioning.md`       |
 | レール生成・道床・同期 | `docs/rail-generation-and-free-positioning.md` |
 | multi-target設定       | `rtmx.json`                                    |
+| 正式リリース手順       | `docs/releasing.md`                            |
 | 過去の作業記録         | `docs/history/CODEX_HISTORY_2026-09.md`        |
