@@ -6,7 +6,7 @@
 
 ## 現在の状態
 
-- rtm-ts 0.12.0、`kaizpatch`・`mc1710`・`appleextended`・`mc1122`のmulti-target環境を構築済み。AEは`ca255fd`基準の実験対応で、全ターゲットの生成・ビルドを確認済み。
+- rtm-ts 0.12.0、`kaizpatch`・`mc1710`・`appleextended`・`mc1122`のmulti-target環境を構築済み。AEは上流`9df86c2`基準で、全ターゲットの生成・ビルドを確認済み。
 - NGTOBuilder2由来のツールキットは `src/common/assets/minecraft/scripts/lib_hi03toolkit_1_0` に置き、参照専用とする。SuperRailBuilderX固有処理は `superrailbuilderx` ディレクトリと `SRBXApiCompat` に実装する。
 - 正式版`SuperRailBuilderX_RailMover`は通常・自動分割レールとも元状態を退避し、builder1と同じ衝突判定・道床生成規則で再生成する。論理RailMapの複数選択・一括平行移動・一括Undoに対応し、ホバーは現在のコアとRailPositionから再構築する。
 - `SuperRailBuilderX_builder1`を実装済み。JSON識別名はbuilder1を維持し、文書・ヘルプでは`レール生成A`と表記する。自由点・通常/分岐レール端点接続、曲線半径固定、勾配・縦曲線、複数レール一括Undo、道床・コア保護を備える。
@@ -14,7 +14,7 @@
 - `SuperRailBuilderX_DoubleTrackCopy`を実装済み。通常レールの複数選択、カーソル距離に応じた指定間隔の反復複製、水平平行線形、0.5 m端点接続、手持ち/複製元モデル、一括Undoを備える。
 - `SuperRailBuilderX_CantFormatter`を実装済み。端点・中央への10 mスナップ、任意点分割、未選択分割候補の黄色表示、選択済み変更対象の水色表示、共有端点の連続適用、複数回の適用を遡るUndoに対応する。
 - `SuperRailBuilderX_BranchBuilder`を実装済み。中央の約0.5 m候補、接続/未接続の正確な端点を根元とする単純分岐、共有端点両側の強調と分岐先カーソル方向によるベース選択、接続部カント0化とUndoに対応する。
-- AppleExtended実験対応をmainへ統合済み。通常レール端点移動、レール生成A、複線コピー、レール分割、分岐生成、カント整形と各UndoをAE専用compatで有効化した。AEで生成する区間レールは常に通常レールとし、自動分割レール自体の操作は無効化する。
+- AppleExtended対応ブランチへ最新mainを統合し、AE上流`9df86c2`の自動分割・論理レールAPIへ対応した。生成、複線コピー、分割、分岐、カント整形とUndoは通常・自動分割レールを扱う。AEにSection group移設APIがないため、自動分割レールの端点・平行移動だけは無効化する。
 - builder1のチャンク境界交差・候補表示・Iキー地上高合わせ、複線コピーの生成、分割パネル・縦勾配・カント、レール移動の基本操作・接続・回り込み防止・三線軌条の相互走行は実機確認済み。
 - `alpha-0.1.0`の配布設定、README、統合操作ガイド、同梱readme.txt・LICENSEを整備済み。配布ZIPは`SuperRailBuilderX-alpha-0.1.0.zip`として生成できる。
 - `v*`タグpush時に型定義生成・multi-targetビルド・ZIP生成を行い、`release-notes.md`を本文とするDraft Releaseを作成するGitHub Actionsを整備済み。公開はGitHub上で手動実施する。
@@ -22,8 +22,6 @@
 - `AGENTS.md`へ、親モデルを途中変更するのではなく、限定作業だけを軽量・バランス型サブエージェントへ委譲するモデル運用規則を追加済み。
 
 ## 作業中
-
-- ローカルCodex: `feature/appleextended-compat`へ最新`origin/main`を統合し、AppleExtended上流最新`9df86c2`のAPI差分を調査して対応する。
 
 ## 優先確認事項
 
@@ -50,13 +48,14 @@
 ### AppleExtended
 
 - バックアップ済みワールドで通常レールの小さい端点オフセット、再ログイン後の永続化、描画、走行、Ctrl+Zを確認する。大移動は道床範囲外になるため未対応。
-- レール生成Aと複線コピーで通常レールの生成・接続・モデル継承・Undoを確認する。AEに自動分割が実装されるまでは生成物を通常レールに固定する。
-- 通常レールの分割・Undo、中央/端点分岐・切替・両経路走行・Undo、共有端点のカント反映・Undoを確認する。失敗時は操作時刻と`[SuperRailBuilderX`を含むログを共有する。
+- レール生成Aと複線コピーでチャンク境界をまたぐ自動分割レールの生成・接続・モデル継承・走行・Undoを確認する。
+- 自動分割レールの分割・Undo、中央/端点分岐・切替・両経路走行・Undo、全Sectionへのカント反映・Undoを確認する。失敗時は操作時刻と`[SuperRailBuilderX`を含むログを共有する。
+- 自動分割レールの端点・平行移動はAE側にSection group移設APIが追加されるまで未対応。通常レールの小さい端点移動だけを確認する。
 
 ## 次に行うこと
 
 1. 優先確認事項のレール移動、カント整形、分岐生成をバックアップ済みワールドで再確認する。
-2. AE環境で通常レール端点移動、レール生成A、複線コピー、分割、中央/端点分岐、カント整形と各Undoを確認する。
+2. AE環境で通常レール端点移動と、自動分割レールの生成A、複線コピー、分割、中央/端点分岐、カント整形、走行、各Undoを確認する。
 3. 既存の「優先確認事項」も確認し、不具合時は機能名・操作順・時刻と`logs/latest.log`を共有する。
 
 ## 双方向連絡
@@ -120,6 +119,8 @@
     - 次はバックアップ済みワールドで`docs/rail-splitter.md`の実機確認を行う。
 
 ## 直近の完了
+
+- 2026-09-13 ローカルCodex: `feature/appleextended-compat`へ最新mainを統合し、AE上流`9df86c2`の自動分割・論理レールAPIへ対応。詳細は`docs/appleextended-target.md`、月別履歴、コミット`0f16794`・`c8970d6`を参照（push結果はこの作業の引継ぎコミットに記録）。
 
 - 2026-09-13 ローカルCodex: `v*`タグ専用の正式リリースworkflow、初期リリースノート、手動公開・誤タグ・再実行手順を追加。詳細は月別履歴とコミット`fa57990`を参照（`origin/main`へ同期済み）。
 

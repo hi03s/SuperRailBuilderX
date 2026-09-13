@@ -805,6 +805,17 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 実装コミット: `fa57990`
 - 同期: `origin/main`へ同期済み。
 
+### 2026-09-13 ローカルCodex — 最新AppleExtended論理レールAPI対応
+
+- `feature/appleextended-compat`へ最新`origin/main`を統合した（merge commit `0f16794`）。
+- AppleExtended上流HEAD `9df86c205d1b181cccaa4b68d7d09906f193e102`を調査し、依存を同commitへ更新した。`ca255fd`以降に自動分割、Section core、論理RailPosition・group core一覧、論理占有判定・削除、通常レール移設APIが追加されている。
+- AE生成時は`ResourceStateRail.autoSplit`を尊重し、共有コードが`forceNormal`を指定した場合だけ複製したpropertyで無効化する。識別・端点取得・占有判定・削除を論理レール単位へ変更した。
+- 分割・分岐は論理RailMapから再生成するため通常・自動分割レールに対応した。カント整形は全Section coreの論理端点NBTを書き換えて同期する。AEの`relocateRail`はSection overrideがないため、自動分割レール移設は安全のため未対応のままとした。
+- 検証済み: `pnpm gen`、`pnpm format:check`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、`git diff --check`。
+- 未検証: Minecraft実機でのチャンク境界をまたぐ生成・分割・分岐・走行・Undo、全Sectionへのカント反映・Undo。
+- 実装コミット: `c8970d6`
+- 同期: 引継ぎ更新コミットとともに`origin/feature/appleextended-compat`へpush予定。
+
 ### 記録テンプレート
 
 ```text
