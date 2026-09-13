@@ -849,6 +849,18 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 実装コミット: `d7483ae`
 - 同期: ユーザーの明示許可後、引継ぎ更新とともに`origin/feature/builder1-gui`へ同期済み。
 
+### 2026-09-14 ローカルCodex — builder1 GUIの描画スクリプト移行
+
+- SuperRailBuilderXはツール乗車直後にプレイヤーを降車させ、ツール側をプレイヤーへ追従させるため、モデルのGUIスクリプトは乗車した瞬間しか呼ばれないことが判明した。
+- `guiScriptPath`・`guiTexture`と`gui_builder1.ts`を撤去し、ローカルプレイヤー所有のbuilder1を描画する`currentMatId=0`・`pass=0`の1回だけ、`render_builder1.ts`から2Dオーバーレイを描画する方式へ変更した。
+- MinecraftのGUIスケールとUnicode偶数倍率補正を再現して論理画面サイズを求め、投影・モデルビュー・テクスチャ行列とGL属性を退避する。描画後や例外時は`finally`で全状態を復元し、既存の3Dプレビューへ影響を残さない。
+- 512×512の`gui_base.png`と16×16の`icon_builder1.png`は、Minecraft標準`Gui`の256×256固定UVに合わせてテクスチャ行列を補正する。画面を開いている間は既存入力処理と同様にオーバーレイを表示しない。
+- 制約: 通常HUDイベントではなくワールド内の車両描画時に描くため、後から実行される天候・半透明・手持ち描画などに上書きされる可能性がある。実機で継続表示と描画順を確認する。
+- 検証済み: `pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、`pnpm format:check`、生成JSの共通SRG呼出、GUIスクリプト生成物の撤去、配布先`gui_base.png`、`git diff --check`。
+- 未検証: Minecraft実機での降車後の継続表示、GUIスケール・画面サイズ別配置、天候・半透明・手持ち描画との前後関係。
+- 実装コミット: `a8d4b03`
+- 同期: 引継ぎ更新とともに`origin/feature/builder1-gui`へ同期済み。
+
 ### 記録テンプレート
 
 ```text
