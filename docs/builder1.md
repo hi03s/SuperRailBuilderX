@@ -88,7 +88,7 @@ builder1はクリエイティブ敷設に近い試験方針として、生成経
 
 ## 描画
 
-- 使用中GUIは`gui/_base.png`を16×16タイルとして扱い、`(0,0)`を画面上端、`(0,1)`を画面右端へ敷き詰める。右上には`(1,0)`・`(2,0)`・`(1,1)`・`(2,1)`の4タイルでツール枠を作り、中央へ`icon_builder1.png`、画面中央上部へヘルプと同じ`レール生成A`を表示する。現段階ではbuilder1だけの試験実装とする。
+- 使用中GUIは`gui_base.png`を16×16タイルとして扱い、`(0,0)`を画面上端、`(0,1)`を画面右端へ敷き詰める。右上には`(1,0)`・`(2,0)`・`(1,1)`・`(2,1)`の4タイルでツール枠を作り、中央へ`icon_builder1.png`、画面中央上部へヘルプと同じ`レール生成A`を表示する。現段階ではbuilder1だけの試験実装とする。
 - 未確定位置には `selectCursor` を表示する。`selectCursorMarker`はスナップのON/OFFにかかわらず、実際の視線衝突位置から予測したマーカーブロック候補へ表示する。自由点が辺・端・角にある場合は、方向によって変わる候補をすべて表示する。
 - 確定位置には `selectedCursor` と、生成予定RailPositionの `direction` に対応する `marker0`〜`marker7` を表示する。
 - `selectCursor` / `selectedCursor` は精密端点へ表示し、`selectCursorMarker` / `snapCursorMarker` / `marker0`〜`marker7` は通常のマーカーブロック設置位置へ表示する。既設端部ではSRB3準拠の接続ブロック中央に`snapCursorMarker`を使う。
