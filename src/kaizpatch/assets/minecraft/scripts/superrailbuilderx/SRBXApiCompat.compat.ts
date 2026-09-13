@@ -1,5 +1,6 @@
 import { NGTLog } from "jp.ngt.ngtlib.io";
-import { NGTUtil } from "jp.ngt.ngtlib.util";
+import { NGTCore } from "jp.ngt.ngtlib";
+import { PacketNBT } from "jp.ngt.ngtlib.network";
 import { RTMItem, RTMRail } from "jp.ngt.rtm";
 import {
 	BlockLargeRailBase,
@@ -99,6 +100,9 @@ type CantTarget = {
 	index: number;
 	position: [number, number, number];
 	angle: number;
+	mode?: "edge" | "center" | "split";
+	ratio?: number;
+	yaw?: number;
 };
 
 type CantUndoRecord = Array<{
@@ -153,6 +157,73 @@ declare const Packages: {
 };
 
 export class SRBXApiCompat {
+	private static sendRailCorePacket(core: TileEntityLargeRailCore): void {
+		const nbt = new NBTTagCompound(),
+			positions = this.getEditableRailPositions(core);
+		if (!positions || positions.length < 2) return;
+		for (let i = 0; i < positions.length; i++) if (!positions[i]) return;
+		core.writeToNBT(nbt);
+		const setTag = (name: string, tag: unknown) =>
+			(
+				nbt as unknown as {
+					func_74782_a(name: string, tag: unknown): void;
+				}
+			).func_74782_a(name, tag);
+		// A block replacement and its custom NBT packet can reach the client in
+		// either order. Include both normal-rail and switch-rail position formats
+		// so the previous TileEntity class can safely consume the packet too.
+		nbt.setByte("Size", positions.length);
+		for (let i = 0; i < positions.length; i++)
+			setTag(`RP${i}`, positions[i].writeToNBT());
+		setTag("StartRP", positions[0].writeToNBT());
+		setTag("EndRP", positions[1].writeToNBT());
+		NGTCore.NETWORK_WRAPPER.sendToAll(new PacketNBT(core, nbt, true));
+	}
+	static getLoadedRailCores(
+		world: net.minecraft.world.World,
+		centerX: number,
+		centerZ: number,
+		radius: number,
+	) {
+		const loaded = (
+				world as unknown as {
+					loadedTileEntityList: java.util.List<unknown>;
+				}
+			).loadedTileEntityList,
+			cores: TileEntityLargeRailCore[] = [],
+			seen: { [key: string]: boolean } = {};
+		const add = (tile: unknown) => {
+			if (!(tile instanceof TileEntityLargeRailCore)) return;
+			const pos = this.getRailCorePos(tile),
+				currentTile = this.getTileEntity(world, pos[0], pos[1], pos[2]),
+				current =
+					currentTile instanceof TileEntityLargeRailBase
+						? currentTile.getRailCore()
+						: null;
+			if (!current) return;
+			const currentPos = this.getRailCorePos(current),
+				key = `${currentPos[0]},${currentPos[1]},${currentPos[2]}`;
+			if (seen[key]) return;
+			seen[key] = true;
+			cores.push(current);
+		};
+		const provider = world.getChunkProvider(),
+			minChunkX = Math.floor((centerX - radius) / 16),
+			maxChunkX = Math.floor((centerX + radius) / 16),
+			minChunkZ = Math.floor((centerZ - radius) / 16),
+			maxChunkZ = Math.floor((centerZ + radius) / 16);
+		for (let chunkX = minChunkX; chunkX <= maxChunkX; chunkX++)
+			for (let chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++) {
+				if (!provider.chunkExists(chunkX, chunkZ)) continue;
+				const values = provider
+						.provideChunk(chunkX, chunkZ)
+						.chunkTileEntityMap.values(),
+					iterator = values.iterator();
+				while (iterator.hasNext()) add(iterator.next());
+			}
+		if (loaded) for (let i = 0; i < loaded.size(); i++) add(loaded.get(i));
+		return cores;
+	}
 	private static splitUndoRecords: { [token: string]: SplitUndoRecord } = {};
 	private static lastSplitClientUpdate: SplitClientUpdate | null = null;
 	private static lastRailPositionMoveCores: Array<[number, number, number]> =
@@ -1104,7 +1175,7 @@ export class SRBXApiCompat {
 		for (let i = 0; i < subRails.size(); i++)
 			core.addSubRail(this.cloneRailProperty(subRails.get(i)));
 		this.markCoreDirty(core);
-		NGTUtil.sendPacketToClient(core);
+		this.sendRailCorePacket(core);
 		return true;
 	}
 
@@ -1552,7 +1623,7 @@ export class SRBXApiCompat {
 		normalCore.fixRTMRailMapVersion = railMap.fixRTMRailMapVersion;
 		normalCore.createRailMap();
 		this.markCoreDirty(normalCore);
-		NGTUtil.sendPacketToClient(normalCore);
+		this.sendRailCorePacket(normalCore);
 		world.markBlockForUpdate(start.blockX, start.blockY, start.blockZ);
 		return normalCore;
 	}
@@ -1635,7 +1706,7 @@ export class SRBXApiCompat {
 		for (let i = 0; i < subRails.size(); i++)
 			newCore.addSubRail(subRails.get(i));
 		this.markCoreDirty(newCore);
-		NGTUtil.sendPacketToClient(newCore);
+		this.sendRailCorePacket(newCore);
 		return "ok_normal";
 	}
 
@@ -1762,7 +1833,7 @@ export class SRBXApiCompat {
 			for (let i = 0; i < subRails.size(); i++)
 				newCore.addSubRail(subRails.get(i));
 			this.markCoreDirty(newCore);
-			NGTUtil.sendPacketToClient(newCore);
+			this.sendRailCorePacket(newCore);
 		} catch (error) {
 			NGTLog.debug(
 				`[SuperRailBuilderX RailPosition] sectioned rail state restore exception: ${error}`,
@@ -2477,7 +2548,7 @@ export class SRBXApiCompat {
 		core.fixRTMRailMapVersion = source.fixRTMRailMapVersion;
 		core.createRailMap();
 		this.markCoreDirty(core);
-		NGTUtil.sendPacketToClient(core);
+		this.sendRailCorePacket(core);
 		world.markBlockForUpdate(start.blockX, start.blockY, start.blockZ);
 		NGTLog.debug(
 			`[SuperRailBuilderX builder1] destructive normal rail created: replacedBlocks=${replaced}`,
@@ -2600,7 +2671,7 @@ export class SRBXApiCompat {
 			tile.fixRTMRailMapVersion = source.fixRTMRailMapVersion;
 			tile.createRailMap();
 			this.markCoreDirty(tile);
-			NGTUtil.sendPacketToClient(tile);
+			this.sendRailCorePacket(tile);
 			world.markBlockForUpdate(
 				sectionStart.blockX,
 				sectionStart.blockY,
@@ -3037,7 +3108,14 @@ export class SRBXApiCompat {
 				core.fixRTMRailMapVersion,
 			);
 		}
-		return core.getRailMap(null);
+		const positions = this.getEditableRailPositions(core);
+		if (!positions || positions.length !== 2) return null;
+		const currentMap = core.getRailMap(null),
+			mapVersion =
+				currentMap instanceof RailMapBasic
+					? currentMap.fixRTMRailMapVersion
+					: RailMapBasic.fixRTMRailMapVersionCurrent;
+		return new RailMapBasic(positions[0], positions[1], mapVersion);
 	}
 
 	private static cloneRailProperty(property: RailProperty): RailProperty {
@@ -3565,7 +3643,7 @@ export class SRBXApiCompat {
 			target.createRailMap();
 			target.shouldRerenderRail = true;
 			this.markCoreDirty(target);
-			NGTUtil.sendPacketToClient(target);
+			this.sendRailCorePacket(target);
 			world.markBlockForUpdate(
 				target.xCoord,
 				target.yCoord,
@@ -3747,18 +3825,32 @@ export class SRBXApiCompat {
 				return { status: "rail_occupied" };
 			const entry = getPending(core);
 			if (!entry) return { status: "invalid_rail" };
-			if (target.index < 0 || target.index >= entry.positions.length)
-				return { status: "invalid_endpoint" };
-			const rp = entry.positions[target.index];
+			const isCenter = target.mode === "center";
 			if (
-				Math.abs(rp.posX - target.position[0]) > 0.001 ||
-				Math.abs(rp.posY - target.position[1]) > 0.001 ||
-				Math.abs(rp.posZ - target.position[2]) > 0.001
+				!isCenter &&
+				(target.index < 0 || target.index >= entry.positions.length)
+			)
+				return { status: "invalid_endpoint" };
+			const rp = isCenter ? null : entry.positions[target.index];
+			if (
+				!isCenter &&
+				(!rp ||
+					Math.abs(rp.posX - target.position[0]) > 0.001 ||
+					Math.abs(rp.posY - target.position[1]) > 0.001 ||
+					Math.abs(rp.posZ - target.position[2]) > 0.001)
 			)
 				return { status: "rail_changed" };
-			rp.cantEdge = target.angle;
+			if (isCenter) {
+				entry.positions[0].cantCenter = target.angle;
+				entry.positions[1].cantCenter = target.angle;
+				continue;
+			}
+			const referenceYaw = isFinite(target.yaw as number)
+				? (target.yaw as number)
+				: this.getHorizontalAnchorYaw(rp!);
+			rp!.cantEdge = target.angle;
 			const connected = this.findConnectedCantEndpoints(world, core, [
-				rp,
+				rp!,
 			]);
 			for (let j = 0; j < connected.length; j++) {
 				const neighbor = connected[j];
@@ -3768,17 +3860,35 @@ export class SRBXApiCompat {
 					return { status: "rail_occupied" };
 				const neighborEntry = getPending(neighbor.core);
 				if (!neighborEntry) return { status: "invalid_rail" };
+				const neighborYaw = this.getHorizontalAnchorYaw(
+						neighborEntry.positions[neighbor.index],
+					),
+					difference = Math.abs(
+						((((neighborYaw - referenceYaw) % 360) + 540) % 360) -
+							180,
+					);
 				neighborEntry.positions[neighbor.index].cantEdge =
-					-target.angle;
+					difference > 90 ? -target.angle : target.angle;
 			}
 		}
 		const keys = Object.keys(pending);
 		for (let i = 0; i < keys.length; i++) {
 			const entry = pending[keys[i]];
-			const center =
-				(entry.positions[0].cantEdge - entry.positions[1].cantEdge) / 2;
-			entry.positions[0].cantCenter = center;
-			entry.positions[1].cantCenter = center;
+			let hasCenterTarget = false;
+			for (let j = 0; j < targets.length; j++)
+				if (
+					targets[j].railKey === keys[i] &&
+					targets[j].mode === "center"
+				)
+					hasCenterTarget = true;
+			if (!hasCenterTarget) {
+				const center =
+					(entry.positions[0].cantEdge -
+						entry.positions[1].cantEdge) /
+					2;
+				entry.positions[0].cantCenter = center;
+				entry.positions[1].cantCenter = center;
+			}
 			this.lastCantClientUpdate = this.lastCantClientUpdate.concat(
 				this.updateCantRail(world, entry.core, entry.positions),
 			);
@@ -3885,7 +3995,7 @@ export class SRBXApiCompat {
 			root.blockZ,
 			RTMRail.largeRailSwitchCore0,
 			0,
-			2,
+			0,
 		);
 		const tile = world.getTileEntity(root.blockX, root.blockY, root.blockZ);
 		if (!(tile instanceof TileEntityLargeRailSwitchCore)) return null;
@@ -3896,7 +4006,7 @@ export class SRBXApiCompat {
 			RailMapBasic.fixRTMRailMapVersionCurrent;
 		tile.createRailMap();
 		this.markCoreDirty(tile);
-		NGTUtil.sendPacketToClient(tile);
+		this.sendRailCorePacket(tile);
 		world.markBlockForUpdate(root.blockX, root.blockY, root.blockZ);
 		return tile;
 	}
@@ -4020,12 +4130,29 @@ export class SRBXApiCompat {
 				this.cloneRailProperty(record.subRails.get(i)),
 			);
 		this.markCoreDirty(switchCore);
-		NGTUtil.sendPacketToClient(switchCore);
+		this.sendRailCorePacket(switchCore);
 		const created = {
 			core: this.getRailCorePos(switchCore),
 			key: this.getRailPositionCandidateKey(switchCore),
 		};
 		record.created.push(created);
+		const postConnected = this.findConnectedCantEndpoints(
+			world,
+			switchCore,
+			switchPositions,
+		);
+		for (let i = 0; i < postConnected.length; i++) {
+			const candidate = postConnected[i],
+				id = `${this.getRailPositionCandidateKey(candidate.core)}:${candidate.index}`;
+			let duplicate = false;
+			for (let j = 0; j < connectedEndpoints.length; j++)
+				if (
+					`${this.getRailPositionCandidateKey(connectedEndpoints[j].core)}:${connectedEndpoints[j].index}` ===
+					id
+				)
+					duplicate = true;
+			if (!duplicate) connectedEndpoints.push(candidate);
+		}
 		record.cants = [];
 		let refreshed: SplitCreatedRail[] = [created];
 		const appendRefresh = (
@@ -4314,7 +4441,26 @@ export class SRBXApiCompat {
 			core: this.getRailCorePos(switchCore),
 			key: this.getRailPositionCandidateKey(switchCore),
 		};
-		record.created.push(created);
+		// Undo removes entries from the end. Keep the switch first so connected
+		// normal rails are removed before breakLogicalRail() is called on it.
+		record.created.unshift(created);
+		const postConnected = this.findConnectedCantEndpoints(
+			world,
+			switchCore,
+			switchPositions,
+		);
+		for (let i = 0; i < postConnected.length; i++) {
+			const candidate = postConnected[i],
+				id = `${this.getRailPositionCandidateKey(candidate.core)}:${candidate.index}`;
+			let duplicate = false;
+			for (let j = 0; j < connectedEndpoints.length; j++)
+				if (
+					`${this.getRailPositionCandidateKey(connectedEndpoints[j].core)}:${connectedEndpoints[j].index}` ===
+					id
+				)
+					duplicate = true;
+			if (!duplicate) connectedEndpoints.push(candidate);
+		}
 		record.cants = [];
 		let refreshed = record.created.slice();
 		const zeroAndRefresh = (
@@ -4323,11 +4469,15 @@ export class SRBXApiCompat {
 			recordChanges: boolean,
 		) => {
 			const key = this.getRailPositionCandidateKey(core);
+			let recordExternalChanges = recordChanges;
+			for (let i = 0; i < record.created.length; i++)
+				if (record.created[i].key === key)
+					recordExternalChanges = false;
 			const cores = this.zeroRailCants(
 				world,
 				core,
 				indices,
-				recordChanges ? record.cants : undefined,
+				recordExternalChanges ? record.cants : undefined,
 			);
 			for (let i = 0; i < cores.length; i++)
 				refreshed.push({ core: cores[i], key });

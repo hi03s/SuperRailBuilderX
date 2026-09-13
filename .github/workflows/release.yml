@@ -1,0 +1,103 @@
+name: Build draft release
+
+on:
+    push:
+        tags:
+            - "v*"
+
+permissions:
+    contents: write
+
+concurrency:
+    group: release-${{ github.ref }}
+    cancel-in-progress: false
+
+jobs:
+    release:
+        name: Build and create draft release
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Check out tagged commit
+              uses: actions/checkout@v4
+
+            - name: Set up pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10.33.2
+                  run_install: false
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22.17.0
+                  cache: pnpm
+
+            - name: Set up Java
+              uses: actions/setup-java@v4
+              with:
+                  distribution: temurin
+                  java-version: "17"
+                  cache: gradle
+
+            - name: Verify release notes
+              shell: bash
+              run: test -f release-notes.md
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            # generated/ is intentionally ignored. A clean runner must recreate the
+            # Minecraft/RTM typings before rtmx can compile this multi-target project.
+            - name: Generate rtm-ts typings
+              shell: bash
+              run: npm_config_gradle_java_home="$JAVA_HOME" pnpm exec rtmx generate
+
+            - name: Build model pack
+              run: pnpm exec rtmx build
+
+            - name: Create distribution ZIP
+              run: pnpm exec rtmx zip
+
+            - name: Select and rename release asset
+              id: asset
+              shell: bash
+              run: |
+                  mapfile -d '' zip_files < <(find artifacts -maxdepth 1 -type f -name '*.zip' -print0)
+                  if [[ ${#zip_files[@]} -ne 1 ]]; then
+                    echo "Expected exactly one ZIP in artifacts/, found ${#zip_files[@]}." >&2
+                    exit 1
+                  fi
+
+                  source_zip="${zip_files[0]}"
+                  pack_name="$(basename "$source_zip" .zip)"
+                  safe_tag="${GITHUB_REF_NAME//\//-}"
+                  release_zip="artifacts/${pack_name}-${safe_tag}.zip"
+                  mv "$source_zip" "$release_zip"
+                  echo "path=$release_zip" >> "$GITHUB_OUTPUT"
+
+            - name: Create or update draft release
+              shell: bash
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  RELEASE_ASSET: ${{ steps.asset.outputs.path }}
+              run: |
+                  if is_draft="$(gh release view "$GITHUB_REF_NAME" --json isDraft --jq '.isDraft' 2>/tmp/release-view-error)"; then
+                    if [[ "$is_draft" != "true" ]]; then
+                      echo "A non-draft release already exists for $GITHUB_REF_NAME; refusing to modify it." >&2
+                      exit 1
+                    fi
+
+                    gh release edit "$GITHUB_REF_NAME" \
+                      --title "$GITHUB_REF_NAME" \
+                      --notes-file release-notes.md \
+                      --draft
+                    gh release upload "$GITHUB_REF_NAME" "$RELEASE_ASSET" --clobber
+                  else
+                    cat /tmp/release-view-error >&2
+                    gh release create "$GITHUB_REF_NAME" "$RELEASE_ASSET" \
+                      --title "$GITHUB_REF_NAME" \
+                      --notes-file release-notes.md \
+                      --draft \
+                      --verify-tag
+                  fi

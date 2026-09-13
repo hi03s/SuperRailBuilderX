@@ -1,9 +1,59 @@
-import { TileEntityLargeRailCore } from "jp.ngt.rtm.rail";
+import {
+	TileEntityLargeRailBase,
+	TileEntityLargeRailCore,
+} from "jp.ngt.rtm.rail";
 import { RailPosition } from "jp.ngt.rtm.rail.util";
 import { EntityPlayer } from "net.minecraft.entity.player";
 import { BlockPos } from "net.minecraft.util.math";
 
 export class SRBXApiCompat {
+	static getLoadedRailCores(
+		world: net.minecraft.world.World,
+		centerX: number,
+		centerZ: number,
+		radius: number,
+	) {
+		const loaded = (
+				world as unknown as {
+					loadedTileEntityList: java.util.List<unknown>;
+				}
+			).loadedTileEntityList,
+			cores: TileEntityLargeRailCore[] = [],
+			seen: { [key: string]: boolean } = {};
+		const add = (tile: unknown) => {
+			if (!(tile instanceof TileEntityLargeRailCore)) return;
+			const pos = this.getRailCorePos(tile),
+				currentTile = this.getTileEntity(world, pos[0], pos[1], pos[2]),
+				current =
+					currentTile instanceof TileEntityLargeRailBase
+						? currentTile.getRailCore()
+						: null;
+			if (!current) return;
+			const currentPos = this.getRailCorePos(current),
+				key = `${currentPos[0]},${currentPos[1]},${currentPos[2]}`;
+			if (seen[key]) return;
+			seen[key] = true;
+			cores.push(current);
+		};
+		const provider = world.getChunkProvider();
+		for (
+			let chunkX = Math.floor((centerX - radius) / 16);
+			chunkX <= Math.floor((centerX + radius) / 16);
+			chunkX++
+		)
+			for (
+				let chunkZ = Math.floor((centerZ - radius) / 16);
+				chunkZ <= Math.floor((centerZ + radius) / 16);
+				chunkZ++
+			) {
+				const chunk = provider.getLoadedChunk(chunkX, chunkZ);
+				if (!chunk) continue;
+				const iterator = chunk.getTileEntityMap().values().iterator();
+				while (iterator.hasNext()) add(iterator.next());
+			}
+		if (loaded) for (let i = 0; i < loaded.size(); i++) add(loaded.get(i));
+		return cores;
+	}
 	static getRider(entity: unknown) {
 		const passengers = (
 			entity as jp.ngt.rtm.entity.vehicle.EntityVehicle

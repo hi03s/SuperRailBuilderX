@@ -730,6 +730,80 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 未検証: Minecraft実機でのAE通常レール分割・Undo、中央/端点分岐の切替・走行・Undo、カント共有端点反映・Undo、各失敗時ロールバック。
 - 実装コミット: `b507824`
 - 同期: `origin/feature/appleextended-compat`へ同期済み。
+### 2026-09-13 ローカルCodex — レール移動・カント整形・分岐生成の実機指摘対応
+
+- `logs/latest.log`ではレール移動の単体/複数適用とUndo、カントの共有端点適用とUndo、分岐生成の中央/端点生成とUndoが成功しており、対象処理の例外はなかった。生ログは追加せず、判断に必要な成功行だけを`logs/rail-tools-retest-20260913.log`へ匿名化して保存した。
+- レール移動は適用・Undoで通知された物理コアを1.5秒間再取得し、サーバー更新とクライアントパケットの順序差で非選択接続レールのホバーが旧RailMapへ戻る問題を抑止した。Ctrl押下中は未選択レールの追加を止め、選択済みレールの解除は維持した。
+- カント整形は正確な端点に加えて`Cant Center`の中央、端部・中央から線路長10 m以上離れた任意点を選択可能にした。端点/中央の変更対象を水色、分割対象を黄色で強調し、任意点は既存分割処理で2本にして共有端点へ適用する。Undoはカントを先に戻してから分割を戻す一括記録とした。
+- 曲率を選択点近傍の接線差から算出し、共有端点では短い内側サンプルとの距離を候補順位へ加えて、カーソルを向けた側のレール半径を採用するようにした。中央指定は両RailPositionの`cantCenter`へ直接保存する。
+- 分岐生成は最初の端点候補探索を整数ブロック基準の5×5×5へ広げ、未接続端点を拾えるようにした。共有端点は内側サンプルとの距離でカーソル側のベースを選ぶ。分岐作成後にも接続先を再探索し、ベースのカントを0にした結果新しく接する既設端点も0へ揃えてUndo記録へ含める。
+- 開発者提供のカント整形・分岐生成用本体、ボタン、アイコンPNGを各モデルJSONへ適用し、編集元`button_template.xcf`も更新した。
+- 検証済み: 対象Prettier、JSON解析、PNG読込/寸法、`git diff --check`、`pnpm gen`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）。全体の`pnpm format:check`は今回の差分外であるAE compatの既存整形差分だけで不成功。
+- 実機確認済み（開発者報告）: レール移動の選択レールUndo・接続レール限定選択、カントの共有端点両側反映、分岐の端点選択・分割位置・拒否条件。
+- 未検証: 今回追加したレール移動の再同期/Ctrl抑止、カントの中央/任意点分割・強調・曲線側判定、分岐の未接続/共有端点判定・分岐化後接続カント解除。初期化されていない自動分割コアは確認方法がないため省略。
+- 実装コミット: `3495277`
+- 同期: `origin/main`へ同期済み。
+
+### 2026-09-13 ローカルCodex — ホバー構造・カント強調・共有端点判定の再修正
+
+- 開発者確認により、専用テクスチャ、レール生成Aの表示と分岐端点選択、分岐生成の分割位置は正常と確定した。`logs/latest.log`でもレール移動・Undo、カント適用・Undo、端点分岐・Undoが成功し、対象例外はなかった。生ログは追加せず、必要な成功行だけ`logs/rail-tools-retest-20260913-2.log`へ匿名化した。
+- レール移動の1.5秒再描画キューと撤去キーの長期キャッシュを廃止した。道床が古いコアを参照していても、そのコア座標に現在存在するTileEntityを引き直し、KaizPatchXでは現在のRailPositionから新しい`RailMapBasic`を毎回構築して候補・強調へ使う。
+- レール移動中はCtrl押下で追加・解除を両方抑止する。平行移動の移動先選択段階ではCtrlを押すとホバー中レールを選択操作として扱わず、レール上でも移動先を確定できる。
+- カント整形は視線に最も近いレール位置を基準に、端点・中央から線路長10 m以内なら最寄りの該当点へスナップし、それ以外だけを分割候補にした。未選択の分割候補のみ黄色、選択済み点が変更する論理レールは重複排除して水色で描画し、水色と重なる黄色を省略する。
+- カント数値パネルへアルファブレンドと白色を明示した。共有端点候補はレール上の近さに加えて、プレイヤー視線Yawと端点からレール内側へ向かうYawの差で選ぶ。選択結果のキー・モード・比率・半径・高さ・角度・Yawを`[SuperRailBuilderX cant] selected:`へ出力する。
+- 分岐生成の共有端点も同じ視線Yaw判定へ変更した。端点ホバー時は接続する全レールを一度ずつ描画し、選択予定のベースを水色、他方を黄色にする。右クリック時のベースキーと視線Yawを診断出力する。
+- `docs/CODEX_HANDOFF.md`の優先確認事項から、確認済みのテクスチャ・レール生成A・分岐位置、確認を省略した未初期化コア、ローカル検証項目を削除した。レール移動・カント整形・分岐生成を別見出しにし、今後ユーザーが実機確認する項目だけを残した。
+- 検証済み: 対象Prettier、`git diff --check`、`pnpm gen`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）。`pnpm gen`はサンドボックス内のrtm-tsキャッシュ書込だけEPERMとなり、同一コマンドを許可済み環境で再実行して成功した。
+- 未検証: Minecraft実機での現在RailMapによるホバー復旧とCtrl移動先確定、カントのスナップ/色/透明/共有端点半径、分岐の共有端点両側表示と視線方向によるベース切替。
+- 実装コミット: `fc0a02e`
+- 同期: `origin/main`へ同期済み。
+
+### 2026-09-13 ローカルCodex — 常時コア取得・共有端点方向・分岐同期修正
+
+- `logs/latest.log`から、カント共有端点の選択元による半径・符号差、分岐生成直後の`TileEntityLargeRailSwitchCore.readRailData`空配列例外、続くUndo失敗を確認した。必要行のみ匿名化して`logs/rail-tools-retest-20260913-3.log`へ保存した。
+- レール移動とカント整形の候補探索を、周辺道床の`getRailCore()`参照ではなく、ロード済みの実レールコア一覧から毎フレーム取得する方式へ変更した。KaizPatchXでは引き続き現在のRailPositionから理論RailMapを再構築する。
+- カント共有端点はカーソル側のレールではなく、同一点候補中でカント高が最大の曲線を計算基準とした。接続先の`cantEdge`符号は両RailPositionの水平アンカー方向差で決める。
+- 分岐生成は共有端点選択前の両レールを黄色表示し、選択後は分岐先カーソル方向と各レール内向き方向の差からベースを切り替え、水色表示する。
+- 分岐コア設置時の初期化前ブロック更新を止め、RailPosition設定後だけ同期するようにした。中央分岐Undoは通常レールを先に除去してから分岐コアを除去する順へ変更した。
+- 検証済み: `pnpm gen`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、`pnpm format:check`、`git diff --check`。
+- 未検証: Minecraft実機でのレール移動ホバー、カント端点/中央方向、分岐端点切替・生成直後同期・Undo。
+- 実装コミット: `34cb8a0`
+- 同期: 実装`34cb8a0`・引継ぎ更新`2d13246`を`origin/main`へ同期済み。
+
+### 2026-09-13 ローカルCodex — レール候補取得復旧・分岐描画クラッシュ修正
+
+- `logs/latest.log`でレール移動の候補走査が`railTiles=0`となっていること、クラッシュレポートで分岐生成成功直後の描画がnullのRailPositionの`posX`を参照したことを特定した。必要行だけを匿名化して`logs/branch-selection-crash-20260913.log`へ保存した。
+- KaizPatchXでは見えているレールがあっても`World.loadedTileEntityList`が空だったため、視点周辺のロード済みチャンクが持つTileEntityマップから現行レールコアを毎回列挙するよう変更した。mc1710・mc1122/AEにも各APIに合わせた実装を追加し、TE一覧は範囲外の長いレール向け補助としてチャンク側の後に統合する。
+- 分岐端点ハイライトでnull RailPositionを除外し、生成要求の結果待ち中は置換途中のコアを走査しないようにした。
+- 分岐先端点の確定後は選択されたベースレールだけを水色表示し、変更しない側の黄色表示を停止するようにした。
+- 検証済み: `pnpm gen`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、`pnpm format:check`、`git diff --check`。
+- 未検証: Minecraft実機でのレール移動・カント選択、分岐生成直後のクラッシュ解消、確定後ハイライト。
+- 実装コミット: `b78ab58`
+- 同期: 実装`b78ab58`・引継ぎ更新`b70e88c`を`origin/main`へ同期済み。
+
+### 2026-09-13 ローカルCodex — 分岐Undo・カント分割・現行コア参照修正
+
+- `logs/latest.log`から、分岐Undo成功直後に旧分岐TileEntityが通常レール用`PacketNBT`を受けて`TileEntityLargeRailSwitchCore.readRailData`で配列範囲外となる切断、中央分岐Undoの`undo_rail_changed`、カント付きレール分割後の`split_endpoint_not_found`を特定した。必要行のみ`logs/branch-undo-cant-split-diagnostic-20260913.log`へ保存した。
+- KaizPatchXのレール更新NBTへ通常レール形式の`StartRP`/`EndRP`と分岐形式の`Size`/`RPn`を併記し、ブロック置換と独自パケットの到着順が逆でも旧TileEntityが安全に読み取れるようにした。
+- 中央分岐で生成した残存半レールを外部接続レールのカントUndo記録から除外し、元レール復元後に別キーとして照合していた`undo_rail_changed`を防止した。
+- カント分割点のY照合は、クライアントRailMap高さに含まれるカント由来の持ち上がりを許容するよう修正した。カントUndo記録をスタック化し、2回以上の適用を新しい順に戻せるようにした。
+- 各ターゲットのロード済みコア列挙では、チャンクやTileEntity一覧の要素をそのまま返さず、コア座標から現在ワールドにあるTileEntityを引き直すようにした。レール移動・カント整形のホバーが撤去済みコアの旧RailMapを描く経路を除去した。
+- 検証済み: `pnpm format`、`pnpm format:check`、`pnpm gen`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、`git diff --check`。
+- 未検証: Minecraft実機での分岐Undo時の切断/エラー解消、カント付き任意点分割、カント複数回Undo、レール移動・カント整形の適用/Undo後ハイライト。
+- 実装コミット: `f6e700b`
+- 同期: 実装`f6e700b`・引継ぎ更新`c590893`を`origin/main`へ同期済み。
+
+### 2026-09-13 ローカルCodex — 正式リリース用Draft Release自動化
+
+- `v*`タグpushだけで起動する`.github/workflows/release.yml`を追加した。GitHub-hosted Ubuntu上でpnpm 10.33.2、Node.js 22.17.0、Temurin 17を用意し、固定lockfileで依存関係を取得する。
+- `generated/`はGit管理外であり、各tsconfigがその型定義を参照するため、クリーンrunnerでは`rtmx generate`が必須と判断した。リポジトリのWindows固有`gradle-java-home`をrunnerへ持ち込まないよう、workflowではsetup-javaの`JAVA_HOME`を生成処理へ明示する。
+- 型定義生成後に`rtmx build`と`rtmx zip`を実行する。`artifacts/`直下のZIPが1個でない場合は失敗させ、実際のZIP名からpack名を取得してタグ名付きへ変更する。
+- `release-notes.md`を初期化し、同ファイルを本文として`github.token`でDraft Releaseを作成する。再実行時は既存Draftの本文・同名Assetを更新し、公開済みReleaseは変更せず失敗させる。
+- `docs/releasing.md`へ手動Publishまでの正式手順、誤タグの削除・修正方法、workflow再実行時の挙動を記載した。
+- 検証済み: `pnpm install --frozen-lockfile`、`pnpm gen`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、`pnpm exec rtmx zip`（`SuperRailBuilderX-alpha-0.1.0.zip`、71ファイル）、対象Prettier、`git diff --check`、workflow内Bash 2ブロックの`bash -n`。
+- 未検証: 実際の`v*`タグpushによるGitHub-hosted runnerでの依存取得・Gradle生成・Draft Release作成。検証するとDraft Releaseを作成するため、次回の正式リリースタグで確認する。
+- 実装コミット: `fa57990`
+- 同期: `origin/main`へ同期済み。
 
 ### 記録テンプレート
 

@@ -1,0 +1,13 @@
+[02:50:45] [Client thread/INFO]: [SuperRailBuilderX cant] selected: railKey=<curve-a>, mode=edge, ratio=0, radius=218.55801380725515, height=105, angle=-5.647431312812319, yaw=16.056516647338867
+[02:50:47] [Client thread/INFO]: [SuperRailBuilderX cant] selected: railKey=<straight-b>, mode=edge, ratio=0, radius=62734.99024997343, height=1, angle=-0.05369802052556605, yaw=-163.9434814453125
+[02:51:14] [Client thread/INFO]: [SuperRailBuilderX cant] selected: railKey=<curve-c>, mode=center, ratio=0.5, radius=1742.2287455489209, height=48, angle=2.578374764934672, yaw=14.149933815002441
+[02:51:35] [Client thread/INFO]: [SuperRailBuilderX cant] selected: railKey=<connected-d>, mode=edge, ratio=0, radius=1788.6875464766406, height=47, angle=2.5246234618853456, yaw=12.216797828674316
+[02:51:40] [Client thread/INFO]: [SuperRailBuilderX cant] selected: railKey=<connected-c>, mode=edge, ratio=1, radius=1731.3568814593116, height=49, angle=-2.6321283388451473, yaw=12.216797828674316
+[02:53:39] [Client thread/INFO]: [SuperRailBuilderX branch] base selected: railKey=<shared-a>, ratio=0, endpoint=true, railYaw=196.05995178222656, viewYaw=181.83602905273438
+[02:53:45] [Client thread/INFO]: [SuperRailBuilderX branch] base selected: railKey=<shared-b>, ratio=0, endpoint=true, railYaw=27.047409057617188, viewYaw=44.88602066040039
+[02:54:03] [Server thread/INFO]: [SuperRailBuilderX branch] action=create, result=ok
+[02:54:04] [Client thread/ERROR]: java.lang.ArrayIndexOutOfBoundsException: 0
+	at jp.ngt.rtm.rail.TileEntityLargeRailSwitchCore.readRailData(TileEntityLargeRailSwitchCore.java:52)
+[02:54:04] [Server thread/INFO]: [SuperRailBuilderX branch] action=undo, result=undo_rail_not_found
+[02:58:41] [Server thread/INFO]: [SuperRailBuilderX branch] action=create, result=ok
+[02:58:43] [Server thread/INFO]: [SuperRailBuilderX branch] action=undo, result=undo_rail_not_found

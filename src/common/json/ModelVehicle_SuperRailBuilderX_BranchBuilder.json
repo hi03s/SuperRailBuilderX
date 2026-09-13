@@ -3,13 +3,13 @@
 	"model": {
 		"modelFile": "superrailbuilderx/builder1.mqo",
 		"textures": [
-			["mat1", "textures/superrailbuilderx/builder1.png", "AlphaBlend"],
-			["mat2", "textures/superrailbuilderx/builder1.png", "AlphaBlend"]
+			["mat1", "textures/superrailbuilderx/branch_builder.png", "AlphaBlend"],
+			["mat2", "textures/superrailbuilderx/branch_builder.png", "AlphaBlend"]
 		],
 		"rendererPath": "scripts/superrailbuilderx/render_branch_builder.js"
 	},
-	"buttonTexture": "textures/superrailbuilderx/button_builder1.png",
-	"customIconTexture": "textures/superrailbuilderx/icon_builder1.png",
+	"buttonTexture": "textures/superrailbuilderx/button_branch_builder.png",
+	"customIconTexture": "textures/superrailbuilderx/icon_branch_builder.png",
 	"serverScriptPath": "scripts/superrailbuilderx/server_branch_builder.js",
 	"playerPos": [[0, 0, 0]],
 	"vehicleType": "Car",

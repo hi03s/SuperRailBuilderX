@@ -34,6 +34,8 @@ type SplitTarget = {
 	yaw: number;
 	length: number;
 	endpoint: SRBXBuilderPoint | null;
+	inwardYaw?: number;
+	endpointOptions?: SplitTarget[];
 };
 type BranchClientUpdate = {
 	removed: Array<{ core: [number, number, number]; key: string }>;
@@ -121,14 +123,15 @@ function findSplit(e: EntityVehicle, pt: number): SplitTarget | null {
 		seen: { [k: string]: boolean } = {};
 	let best: SplitTarget | null = null,
 		dist = 2.25;
-	for (let dx = -1; dx <= 1; dx++)
-		for (let dy = -1; dy <= 1; dy++)
-			for (let dz = -1; dz <= 1; dz++) {
+	const endpointTargets: SplitTarget[] = [];
+	for (let dx = -2; dx <= 2; dx++)
+		for (let dy = -2; dy <= 2; dy++)
+			for (let dz = -2; dz <= 2; dz++) {
 				const tile = SRBXApiCompat.getTileEntity(
 					world,
-					looking.posX + dx,
-					looking.posY + dy,
-					looking.posZ + dz,
+					Math.floor(looking.posX) + dx,
+					Math.floor(looking.posY) + dy,
+					Math.floor(looking.posZ) + dz,
 				);
 				if (!(tile instanceof TileEntityLargeRailBase)) continue;
 				const core = tile.getRailCore();
@@ -166,14 +169,13 @@ function findSplit(e: EntityVehicle, pt: number): SplitTarget | null {
 					index: number,
 					pos: SRBXVec3,
 					endpoint: SRBXBuilderPoint | null,
+					directionPoint?: SRBXVec3,
 				) => {
 					const d =
 						Math.pow(pos[0] - looking.posX, 2) +
 						Math.pow(pos[1] - looking.posY, 2) +
 						Math.pow(pos[2] - looking.posZ, 2);
-					if (d >= dist) return;
-					dist = d;
-					best = {
+					const target: SplitTarget = {
 						core: corePos,
 						railKey: key,
 						ratio: index / split,
@@ -187,7 +189,14 @@ function findSplit(e: EntityVehicle, pt: number): SplitTarget | null {
 								),
 						length: map.getLength(),
 						endpoint,
+						inwardYaw: directionPoint
+							? SRBXMath.horizontalYaw(pos, directionPoint)
+							: undefined,
 					};
+					if (endpoint) endpointTargets.push(target);
+					if (d >= dist) return;
+					dist = d;
+					best = target;
 				};
 				if (map.getLength() > 6 && min <= max) {
 					const index = Math.max(
@@ -233,9 +242,40 @@ function findSplit(e: EntityVehicle, pt: number): SplitTarget | null {
 						index === 0 ? 0 : split,
 						endpoint.position,
 						endpoint,
+						railPoint(map, split, index === 0 ? 1 : split - 1),
 					);
 				}
 			}
+	if (best && best.endpoint) {
+		best.endpointOptions = endpointTargets.filter(
+			(target) =>
+				Math.abs(target.position[0] - best!.position[0]) <= 0.001 &&
+				Math.abs(target.position[1] - best!.position[1]) <= 0.001 &&
+				Math.abs(target.position[2] - best!.position[2]) <= 0.001,
+		);
+	}
+	return best;
+}
+
+function chooseEndpointBase(
+	target: SplitTarget,
+	end: SRBXBuilderPoint,
+): SplitTarget {
+	const options = target.endpointOptions;
+	if (!options || options.length < 2) return target;
+	const extensionYaw = SRBXMath.horizontalYaw(target.position, end.position);
+	let best = options[0],
+		difference = Number.MAX_VALUE;
+	for (let i = 0; i < options.length; i++) {
+		const d = Math.abs(
+			SRBXMath.relativeDegrees(options[i].inwardYaw || 0, extensionYaw),
+		);
+		if (d < difference) {
+			difference = d;
+			best = options[i];
+		}
+	}
+	best.endpointOptions = options;
 	return best;
 }
 function findEndpoint(e: EntityVehicle, pt: number): SRBXBuilderPoint | null {
@@ -631,6 +671,83 @@ function handleResult(sender: ICommandSender, e: EntityVehicle, s: State) {
 	s.pending = null;
 	d.setString("branchBuilderResult", "", 1);
 }
+
+function renderRailHighlight(
+	e: EntityVehicle,
+	pt: number,
+	map: RailMap,
+	color: string,
+): void {
+	const origin = NGTOBuilderUtilClient.getInterpolatedPos(e, pt);
+	GL11.glPushMatrix();
+	GL11.glTranslatef(-origin[0], -origin[1], -origin[2]);
+	NGTOBuilderUtilClient.renderRailMapHighlight(e, map, color, 0.6);
+	GL11.glPopMatrix();
+}
+
+function renderEndpointHoverHighlights(
+	e: EntityVehicle,
+	pt: number,
+	target: SplitTarget,
+	selected: boolean,
+	showAlternatives: boolean,
+): void {
+	const world = SRBXApiCompat.getWorld(e),
+		seen: { [key: string]: boolean } = {};
+	for (let dx = -2; dx <= 2; dx++)
+		for (let dy = -2; dy <= 2; dy++)
+			for (let dz = -2; dz <= 2; dz++) {
+				const tile = SRBXApiCompat.getTileEntity(
+					world,
+					Math.floor(target.position[0]) + dx,
+					Math.floor(target.position[1]) + dy,
+					Math.floor(target.position[2]) + dz,
+				);
+				if (!(tile instanceof TileEntityLargeRailBase)) continue;
+				const referenced = tile.getRailCore();
+				if (!referenced) continue;
+				const corePos = SRBXApiCompat.getRailCorePos(referenced),
+					coreTile = SRBXApiCompat.getTileEntity(
+						world,
+						corePos[0],
+						corePos[1],
+						corePos[2],
+					),
+					core =
+						coreTile instanceof TileEntityLargeRailBase
+							? coreTile.getRailCore()
+							: null;
+				if (!core) continue;
+				const key = SRBXApiCompat.getRailPositionCandidateKey(core);
+				if (seen[key]) continue;
+				if (selected && !showAlternatives && key !== target.railKey)
+					continue;
+				const positions = SRBXApiCompat.getEditableRailPositions(core);
+				let connected = false;
+				for (let i = 0; i < positions.length; i++)
+					if (
+						positions[i] &&
+						Math.abs(positions[i].posX - target.position[0]) <=
+							0.001 &&
+						Math.abs(positions[i].posY - target.position[1]) <=
+							0.001 &&
+						Math.abs(positions[i].posZ - target.position[2]) <=
+							0.001
+					)
+						connected = true;
+				if (!connected) continue;
+				const map = SRBXApiCompat.getLogicalRailMap(core);
+				if (!map) continue;
+				seen[key] = true;
+				renderRailHighlight(
+					e,
+					pt,
+					map,
+					selected && key === target.railKey ? "00ffff" : "ffff00",
+				);
+			}
+}
+
 function help(sender: ICommandSender) {
 	NGTLog.sendChatMessage(sender, "--- SuperRailBuilderX 分岐生成 ---");
 	NGTLog.sendChatMessage(
@@ -723,8 +840,21 @@ function input(
 		else s.split = null;
 	}
 	if (right && !s.awaiting) {
-		if (!s.split) s.split = findSplit(e, pt);
-		else if (!s.end) s.end = hoverEnd(e, pt, s);
+		if (!s.split) {
+			s.split = findSplit(e, pt);
+			if (s.split)
+				NGTLog.debug(
+					`[SuperRailBuilderX branch] split selected: railKey=${s.split.railKey}, ratio=${s.split.ratio}, endpoint=${s.split.endpoint !== null}, endpointOptions=${s.split.endpointOptions ? s.split.endpointOptions.length : 0}`,
+				);
+		} else if (!s.end) {
+			s.end = hoverEnd(e, pt, s);
+			if (s.end) {
+				s.split = chooseEndpointBase(s.split, s.end);
+				NGTLog.debug(
+					`[SuperRailBuilderX branch] base resolved: railKey=${s.split.railKey}, extensionYaw=${SRBXMath.horizontalYaw(s.split.position, s.end.position)}, inwardYaw=${s.split.inwardYaw}`,
+				);
+			}
+		}
 	}
 	if (keys.pressed("build") && !s.awaiting && s.split && s.end) {
 		const p = plan(s, s.end),
@@ -763,6 +893,8 @@ function render(e: EntityVehicle, pass: number, pt: number): void {
 	const s = getState(e),
 		split = s.split || findSplit(e, pt);
 	if (split) {
+		if (split.endpoint && !s.awaiting)
+			renderEndpointHoverHighlights(e, pt, split, !!s.split, !s.end);
 		const tile = SRBXApiCompat.getTileEntity(
 			world,
 			split.core[0],
@@ -772,7 +904,7 @@ function render(e: EntityVehicle, pass: number, pt: number): void {
 		if (tile instanceof TileEntityLargeRailBase) {
 			const core = tile.getRailCore(),
 				map = core ? SRBXApiCompat.getLogicalRailMap(core) : null;
-			if (map) {
+			if (map && !split.endpoint) {
 				const o = NGTOBuilderUtilClient.getInterpolatedPos(e, pt);
 				GL11.glPushMatrix();
 				GL11.glTranslatef(-o[0], -o[1], -o[2]);
@@ -790,6 +922,7 @@ function render(e: EntityVehicle, pass: number, pt: number): void {
 	if (s.split) {
 		const end = s.end || hoverEnd(e, pt, s);
 		if (end) {
+			s.split = chooseEndpointBase(s.split, end);
 			const p = plan(s, end);
 			renderAt(e, pt, end.position, s.end ? selectedCursor : hoverCursor);
 			renderAt(e, pt, end.markerPosition, markers[end.direction & 7]);

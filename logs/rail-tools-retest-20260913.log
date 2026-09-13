@@ -1,0 +1,12 @@
+# logs/latest.logから、今回の実機結果の判断に必要な行だけを匿名化して抜粋。
+[00:33:07] [Server thread/INFO]: [SuperRailBuilderX/RailMover] parallel multi undo recorded: plans=1, operations=3
+[00:33:07] [Server thread/INFO]: [SuperRailBuilderX RailPosition] request completed: action=move, mode=parallel_multi, result=ok
+[00:33:23] [Server thread/INFO]: [SuperRailBuilderX RailPosition] request completed: action=undo, mode=undo, result=undo_ok
+[00:35:57] [Server thread/INFO]: [SuperRailBuilderX/RailMover] parallel multi undo recorded: plans=3, operations=4
+[00:36:01] [Server thread/INFO]: [SuperRailBuilderX RailPosition] request completed: action=undo, mode=undo, result=undo_ok
+[00:42:55] [Server thread/INFO]: [SuperRailBuilderX cant] action=apply, result=ok
+[00:43:54] [Server thread/INFO]: [SuperRailBuilderX cant] action=undo, result=undo_ok
+[00:54:12] [Server thread/INFO]: [SuperRailBuilderX branch] action=create, result=ok
+[00:54:26] [Server thread/INFO]: [SuperRailBuilderX branch] action=undo, result=undo_ok
+[00:54:48] [Server thread/INFO]: [SuperRailBuilderX branch] action=create, result=ok
+[00:55:55] [Server thread/INFO]: [SuperRailBuilderX branch] action=undo, result=undo_ok

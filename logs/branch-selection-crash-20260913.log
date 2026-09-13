@@ -1,0 +1,6 @@
+[03:29:55] [Client thread/INFO]: [SuperRailBuilderX RailPosition] candidate scan: look=<redacted>, candidates=0, railTiles=0, uniqueCores=0, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=0, errors=0
+[03:30:13] [Client thread/INFO]: [SuperRailBuilderX branch] split selected: railKey=<section-a>, ratio=0, endpoint=true, endpointOptions=2
+[03:30:15] [Client thread/INFO]: [SuperRailBuilderX branch] base resolved: railKey=<section-a>, extensionYaw=182.25058792643108, inwardYaw=192.42014017870343
+[03:30:17] [Server thread/INFO]: [SuperRailBuilderX branch] action=create, result=ok
+[03:30:19] [Client thread/FATAL]: net.minecraft.util.ReportedException: Rendering entity in world
+Caused by: javax.script.ScriptException: TypeError: Cannot get property "posX" of null in scripts/superrailbuilderx/render_branch_builder.js
