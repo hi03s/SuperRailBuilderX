@@ -87,7 +87,7 @@
 				"channel": "stable",
 				"mappingsVersion": "39",
 				"mods": [
-					"com.github.ringo-1234:AppleExtended:ca255fd65758ef4d587f80e3e23ad5eaa6b81e45"
+					"com.github.ringo-1234:AppleExtended:9df86c205d1b181cccaa4b68d7d09906f193e102"
 				],
 				"packages": [
 					"net.minecraft",

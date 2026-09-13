@@ -5,7 +5,9 @@ import {
 } from "jp.ngt.rtm.rail";
 import { ResourceStateRail } from "jp.ngt.rtm.modelpack.state";
 import { RailPosition } from "jp.ngt.rtm.rail.util";
+import { TileEntityLargeRailSectionCore } from "jp.apple.rail";
 import { EntityPlayer } from "net.minecraft.entity.player";
+import { NBTTagCompound } from "net.minecraft.nbt";
 import { BlockPos } from "net.minecraft.util.math";
 import { World } from "net.minecraft.world";
 import { UUID } from "java.util";
@@ -72,12 +74,39 @@ export class AppleExtendedRailToolsCompat {
 		core: TileEntityLargeRailCore,
 		positions: RailPosition[],
 	): RailCorePos[] {
-		const target = core.getRailPositions();
+		const target = AppleExtendedRailCompat.getLogicalPositions(core);
 		if (!target || target.length !== positions.length) return [];
 		for (let i = 0; i < positions.length; i++) {
 			target[i].cantEdge = positions[i].cantEdge;
 			target[i].cantCenter = positions[i].cantCenter;
 			target[i].cantRandom = positions[i].cantRandom;
+		}
+		if (AppleExtendedRailCompat.isSectionCore(core)) {
+			const updated: RailCorePos[] = [];
+			const group = core.getRailGroupCorePositions();
+			const world = core.getWorld();
+			for (let i = 0; i < group.size(); i++) {
+				const pos = group.get(i);
+				const member = AppleExtendedRailCompat.getCore(world, [
+					pos[0],
+					pos[1],
+					pos[2],
+				]);
+				if (!(member instanceof TileEntityLargeRailSectionCore))
+					continue;
+				const nbt = new NBTTagCompound();
+				member.writeSectionData(nbt);
+				const section = nbt.getCompoundTag("RailSection");
+				section.setTag("LogicalStartRP", target[0].writeToNBT());
+				section.setTag("LogicalEndRP", target[1].writeToNBT());
+				member.readSectionData(nbt);
+				member.createRailMap();
+				member.shouldRerenderRail = true;
+				member.markDirty();
+				member.sendPacket();
+				updated.push(this.corePos(member));
+			}
+			return updated;
 		}
 		core.setRailPositions(target);
 		core.createRailMap();
@@ -99,7 +128,7 @@ export class AppleExtendedRailToolsCompat {
 		if (!(tile instanceof TileEntityLargeRailBase)) return result;
 		const core = tile.getRailCore();
 		if (!core || core === sourceCore) return result;
-		const positions = core.getRailPositions();
+		const positions = AppleExtendedRailCompat.getLogicalPositions(core);
 		if (!positions) return result;
 		for (let i = 0; i < positions.length; i++)
 			if (
@@ -124,7 +153,9 @@ export class AppleExtendedRailToolsCompat {
 		const getPending = (core: TileEntityLargeRailCore) => {
 			const key = AppleExtendedRailCompat.coreKey(core);
 			if (!pending[key]) {
-				const positions = this.copyPositions(core.getRailPositions());
+				const positions = this.copyPositions(
+					AppleExtendedRailCompat.getLogicalPositions(core),
+				);
 				if (positions.length !== 2) return null;
 				records.push({
 					core: this.corePos(core),
@@ -148,7 +179,8 @@ export class AppleExtendedRailToolsCompat {
 				return { status: "unsupported_rail" };
 			if (AppleExtendedRailCompat.coreKey(core) !== target.railKey)
 				return { status: "rail_changed" };
-			if (core.isTrainOnRail()) return { status: "rail_occupied" };
+			if (core.isLogicalRailOccupied())
+				return { status: "rail_occupied" };
 			const entry = getPending(core);
 			if (
 				!entry ||
@@ -166,7 +198,7 @@ export class AppleExtendedRailToolsCompat {
 			rp.cantEdge = target.angle;
 			const connected = this.connectedEndpoints(world, core, rp);
 			for (let j = 0; j < connected.length; j++) {
-				if (connected[j].core.isTrainOnRail())
+				if (connected[j].core.isLogicalRailOccupied())
 					return { status: "rail_occupied" };
 				const neighbor = getPending(connected[j].core);
 				if (!neighbor) return { status: "invalid_rail" };
@@ -203,7 +235,7 @@ export class AppleExtendedRailToolsCompat {
 				AppleExtendedRailCompat.coreKey(core) !== records[i].railKey
 			)
 				return "undo_rail_changed";
-			if (core.isTrainOnRail()) return "rail_occupied";
+			if (core.isLogicalRailOccupied()) return "rail_occupied";
 			this.lastCantUpdate = this.lastCantUpdate.concat(
 				this.updateCants(core, records[i].positions),
 			);
@@ -346,7 +378,7 @@ export class AppleExtendedRailToolsCompat {
 			if (
 				!core ||
 				AppleExtendedRailCompat.coreKey(core) !== records[i].railKey ||
-				core.isTrainOnRail()
+				core.isLogicalRailOccupied()
 			)
 				return false;
 			this.updateCants(core, records[i].positions);
@@ -370,9 +402,9 @@ export class AppleExtendedRailToolsCompat {
 			return { status: "switch_unsupported" };
 		if (AppleExtendedRailCompat.coreKey(core) !== expectedKey)
 			return { status: "rail_changed" };
-		if (core.isTrainOnRail()) return { status: "rail_occupied" };
-		const railMap = core.getRailMap(null);
-		const positions = core.getRailPositions();
+		if (core.isLogicalRailOccupied()) return { status: "rail_occupied" };
+		const railMap = AppleExtendedRailCompat.getLogicalRailMap(core);
+		const positions = AppleExtendedRailCompat.getLogicalPositions(core);
 		if (!railMap || !positions || positions.length !== 2)
 			return { status: "invalid_rail" };
 		const length = railMap.getLength();
@@ -571,7 +603,7 @@ export class AppleExtendedRailToolsCompat {
 	}
 
 	private static isFlat(core: TileEntityLargeRailCore): boolean {
-		const map = core.getRailMap(null);
+		const map = AppleExtendedRailCompat.getLogicalRailMap(core);
 		return (
 			!!map &&
 			Math.abs(map.getRailPitch(1000, 0)) <= 0.001 &&
@@ -608,7 +640,9 @@ export class AppleExtendedRailToolsCompat {
 		for (let i = 0; i < records.length; i++)
 			if (records[i].railKey === key) record = records[i];
 		if (!record) {
-			const original = this.copyPositions(core.getRailPositions());
+			const original = this.copyPositions(
+				AppleExtendedRailCompat.getLogicalPositions(core),
+			);
 			if (original.length !== 2) return;
 			record = {
 				core: this.corePos(core),
@@ -617,7 +651,9 @@ export class AppleExtendedRailToolsCompat {
 			};
 			records.push(record);
 		}
-		const updated = this.copyPositions(core.getRailPositions());
+		const updated = this.copyPositions(
+			AppleExtendedRailCompat.getLogicalPositions(core),
+		);
 		if (index < 0 || index >= updated.length) return;
 		updated[index].cantEdge = 0;
 		updated[index].cantRandom = 0;
@@ -682,8 +718,10 @@ export class AppleExtendedRailToolsCompat {
 			!this.isFlat(sourceCore)
 		)
 			return { status: "sloped_or_changed_rail" };
-		if (sourceCore.isTrainOnRail()) return { status: "rail_occupied" };
-		const sourcePositions = sourceCore.getRailPositions();
+		if (sourceCore.isLogicalRailOccupied())
+			return { status: "rail_occupied" };
+		const sourcePositions =
+			AppleExtendedRailCompat.getLogicalPositions(sourceCore);
 		if (!sourcePositions || sourcePositions.length !== 2)
 			return { status: "invalid_source_rail" };
 		const endpoint = request.ratio === 0 || request.ratio === 1;
@@ -701,7 +739,7 @@ export class AppleExtendedRailToolsCompat {
 				request.branchStart.index !== (request.ratio === 0 ? 0 : 1))
 		)
 			return { status: "invalid_branch_start" };
-		const sourceMap = sourceCore.getRailMap(null);
+		const sourceMap = AppleExtendedRailCompat.getLogicalRailMap(sourceCore);
 		if (!sourceMap) return { status: "invalid_source_rail" };
 		const sampleIndex = Math.round(request.ratio * 1000000);
 		const sampled = endpoint
@@ -838,7 +876,9 @@ export class AppleExtendedRailToolsCompat {
 			delete this.splitUndoRecords[split.undoToken];
 			return { status: "branch_split_failed" };
 		}
-		const half = this.copyPositions(selectedCore.getRailPositions());
+		const half = this.copyPositions(
+			AppleExtendedRailCompat.getLogicalPositions(selectedCore),
+		);
 		let rootIndex = 0;
 		if (
 			Math.pow(half[1].posX - splitPosition[0], 2) +

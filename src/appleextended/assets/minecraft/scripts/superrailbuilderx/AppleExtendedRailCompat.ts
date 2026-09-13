@@ -11,6 +11,7 @@ import { EntityPlayer } from "net.minecraft.entity.player";
 import { BlockPos } from "net.minecraft.util.math";
 import { World } from "net.minecraft.world";
 import { ArrayList } from "java.util";
+import { TileEntityLargeRailSectionCore } from "jp.apple.rail";
 
 type RailCorePos = [number, number, number];
 
@@ -55,6 +56,11 @@ export class AppleExtendedRailCompat {
 	}
 
 	static coreKey(core: TileEntityLargeRailCore): string {
+		if (
+			core instanceof TileEntityLargeRailSectionCore &&
+			core.isRailSection()
+		)
+			return `section:${core.getRailGroupId().toString()}`;
 		const pos = core.getPos();
 		return `core:${pos.getX()},${pos.getY()},${pos.getZ()}`;
 	}
@@ -145,7 +151,7 @@ export class AppleExtendedRailCompat {
 		if (!(tile instanceof TileEntityLargeRailBase)) return null;
 		const core = tile.getRailCore();
 		if (!core) return null;
-		const positions = core.getRailPositions();
+		const positions = this.getLogicalPositions(core);
 		if (!positions || point.index < 0 || point.index >= positions.length)
 			return null;
 		const source = positions[point.index];
@@ -206,6 +212,33 @@ export class AppleExtendedRailCompat {
 		return tile.getRailCore();
 	}
 
+	static isSectionCore(
+		core: TileEntityLargeRailCore,
+	): core is TileEntityLargeRailSectionCore {
+		return (
+			core instanceof TileEntityLargeRailSectionCore &&
+			core.isRailSection()
+		);
+	}
+
+	static getLogicalPositions(
+		core: TileEntityLargeRailCore,
+	): JavaObjectArray<RailPosition> {
+		return core.getLogicalRailPositions();
+	}
+
+	static getLogicalRailMap(
+		core: TileEntityLargeRailCore,
+	): RailMapBasic | null {
+		const positions = this.getLogicalPositions(core);
+		if (!positions || positions.length !== 2) return null;
+		return new RailMapBasic(
+			positions[0],
+			positions[1],
+			RailMapBasic.fixRTMRailMapVersionCurrent,
+		);
+	}
+
 	static createFromPositions(
 		world: World,
 		player: EntityPlayer,
@@ -255,7 +288,7 @@ export class AppleExtendedRailCompat {
 		if (!(tile instanceof TileEntityLargeRailBase)) return null;
 		const core = tile.getRailCore();
 		if (!core || this.coreKey(core) !== source.railKey) return null;
-		const positions = core.getRailPositions();
+		const positions = this.getLogicalPositions(core);
 		if (!positions || positions.length !== 2) return null;
 		const expected = [source.startPosition, source.endPosition];
 		for (let i = 0; i < 2; i++)
@@ -277,6 +310,7 @@ export class AppleExtendedRailCompat {
 		sourceRail?: AppleExtendedSourceRail,
 		preferFallbackProperty = false,
 		propertySourcePoint?: AppleExtendedBuilderPoint,
+		forceNormal = false,
 	): { status: string; undoCore?: RailCorePos; undoKey?: string } {
 		const startStatus = this.validatePoint(start);
 		if (startStatus !== "ok") return { status: startStatus };
@@ -323,11 +357,14 @@ export class AppleExtendedRailCompat {
 				: this.createFreePoint(end);
 		if (!startRP || !endRP) return { status: "rail_endpoint_changed" };
 
+		const createdProperty = ItemRail.getDefaultProperty();
+		createdProperty.readFromNBT(property.writeToNBT());
+		if (forceNormal) createdProperty.autoSplit = false;
 		const created = this.createFromPositions(
 			world,
 			player,
 			[startRP, endRP],
-			property,
+			createdProperty,
 		);
 		if (!created) return { status: "create_failed" };
 		return {
@@ -350,10 +387,8 @@ export class AppleExtendedRailCompat {
 		const core = tile.getRailCore();
 		if (!core) return "undo_rail_not_found";
 		if (this.coreKey(core) !== expectedKey) return "undo_rail_changed";
-		if (core.isTrainOnRail()) return "rail_occupied";
-		const map = core.getRailMap(null);
-		if (!map) return "undo_rail_not_found";
-		map.breakRail(world, core.getResourceState(), core);
+		if (core.isLogicalRailOccupied()) return "rail_occupied";
+		core.breakLogicalRail();
 		return "ok";
 	}
 }

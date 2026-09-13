@@ -1,4 +1,6 @@
 import { RailPosition } from "jp.ngt.rtm.rail.util";
+import { TileEntityLargeRailCore } from "jp.ngt.rtm.rail";
+import { TileEntityLargeRailSectionCore } from "jp.apple.rail";
 
 /**
  * Compile-only smoke sample for AppleExtended's free RailPosition API.
@@ -12,4 +14,15 @@ export function verifyAppleExtendedRailPositionApi(
 ): [number, number, number] {
 	position.setPosition(x, y, z);
 	return [position.offsetX, position.offsetY, position.offsetZ];
+}
+
+/** Compile-only check for the logical-rail API added after the initial target. */
+export function verifyAppleExtendedLogicalRailApi(
+	core: TileEntityLargeRailCore,
+): number {
+	const positions = core.getLogicalRailPositions();
+	core.isLogicalRailOccupied();
+	if (core instanceof TileEntityLargeRailSectionCore && core.isRailSection())
+		core.getRailGroupCorePositions();
+	return positions.length;
 }

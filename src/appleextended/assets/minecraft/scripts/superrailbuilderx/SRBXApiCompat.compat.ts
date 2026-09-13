@@ -10,7 +10,7 @@ import {
 } from "./AppleExtendedRailCompat";
 import { AppleExtendedRailToolsCompat } from "./AppleExtendedRailToolsCompat";
 
-/** AppleExtended ca255fd provides persistent free coordinates on normal RailPosition. */
+/** AppleExtended 9df86c2 exposes logical-rail APIs and automatic section rails. */
 export class SRBXApiCompat {
 	private static lastRailPositionMoveCores: Array<[number, number, number]> =
 		[];
@@ -23,14 +23,13 @@ export class SRBXApiCompat {
 	}
 
 	static getRailPositionCandidateKey(core: TileEntityLargeRailCore): string {
-		const pos = this.getRailCorePos(core);
-		return `core:${pos[0]},${pos[1]},${pos[2]}`;
+		return AppleExtendedRailCompat.coreKey(core);
 	}
 
 	static getEditableRailPositions(
 		core: TileEntityLargeRailCore,
 	): JavaObjectArray<RailPosition> {
-		return core.getRailPositions();
+		return AppleExtendedRailCompat.getLogicalPositions(core);
 	}
 
 	static canMoveRailPosition(core: TileEntityLargeRailCore): boolean {
@@ -42,7 +41,9 @@ export class SRBXApiCompat {
 	): string {
 		if (!core) return "missing_core";
 		if (core instanceof TileEntityLargeRailSwitchCore) return "switch";
-		const positions = core.getRailPositions();
+		if (AppleExtendedRailCompat.isSectionCore(core))
+			return "sectioned_relocation_unavailable";
+		const positions = AppleExtendedRailCompat.getLogicalPositions(core);
 		return positions && positions.length === 2 ? "" : "invalid_positions";
 	}
 
@@ -53,7 +54,8 @@ export class SRBXApiCompat {
 		y: number,
 		z: number,
 	): void {
-		const positions = core.getRailPositions();
+		if (AppleExtendedRailCompat.isSectionCore(core)) return;
+		const positions = AppleExtendedRailCompat.getLogicalPositions(core);
 		if (!positions || index < 0 || index >= positions.length) return;
 		positions[index].setPosition(x, y, z);
 		core.setRailPositions(positions);
@@ -78,8 +80,7 @@ export class SRBXApiCompat {
 		const core = AppleExtendedRailCompat.getCore(world, corePosition);
 		if (!core || this.getRailPositionCandidateKey(core) !== expectedKey)
 			return;
-		const map = core.getRailMap(null);
-		if (map) map.breakRail(world, core.getResourceState(), core);
+		core.breakLogicalRail();
 	}
 
 	static consumeLastRailPositionMoveCores(): Array<[number, number, number]> {
@@ -99,8 +100,8 @@ export class SRBXApiCompat {
 		z: number,
 	): string {
 		if (!this.canMoveRailPosition(core)) return "unsupported";
-		if (core.isTrainOnRail()) return "occupied";
-		const positions = core.getRailPositions();
+		if (core.isLogicalRailOccupied()) return "occupied";
+		const positions = AppleExtendedRailCompat.getLogicalPositions(core);
 		if (!positions || index < 0 || index >= positions.length)
 			return "not_found";
 		const current = positions[index];
@@ -137,12 +138,9 @@ export class SRBXApiCompat {
 			z,
 		);
 		if (validation !== "ok") return validation;
-		const positions = core.getRailPositions();
+		const positions = AppleExtendedRailCompat.getLogicalPositions(core);
 		positions[index].setPosition(x, y, z);
-		core.setRailPositions(positions);
-		core.createRailMap();
-		core.markDirty();
-		core.sendPacket();
+		core.relocateRail(positions);
 		this.lastRailPositionMoveCores.push(this.getRailCorePos(core));
 		return "ok";
 	}
@@ -206,7 +204,6 @@ export class SRBXApiCompat {
 		replaceProtectedCoreRoadbedAt?: [number, number, number],
 	) {
 		void additionalProtectedRailKeys;
-		void forceNormal;
 		void overwriteForeignRoadbeds;
 		void replaceProtectedCoreRoadbedAt;
 		return AppleExtendedRailCompat.createNormalRail(
@@ -218,6 +215,7 @@ export class SRBXApiCompat {
 			sourceRail,
 			preferFallbackProperty,
 			propertySourcePoint,
+			!!forceNormal,
 		);
 	}
 
