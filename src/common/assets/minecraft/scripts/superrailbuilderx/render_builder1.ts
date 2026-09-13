@@ -1091,11 +1091,16 @@ function renderToolGui(): void {
 	GL11.glMatrixMode(GL11.GL_MODELVIEW);
 	GL11.glPushMatrix();
 	GL11.glLoadIdentity();
-	GL11.glTranslatef(0, 0, -2000);
+	GL11.glTranslatef(0, 0, -1001);
 	try {
 		GL11.glDisable(GL11.GL_LIGHTING);
-		GL11.glDisable(GL11.GL_DEPTH_TEST);
-		GL11.glDepthMask(false);
+		GL11.glDisable(GL11.GL_CULL_FACE);
+		GL11.glEnable(GL11.GL_ALPHA_TEST);
+		GL11.glAlphaFunc(GL11.GL_GREATER, 0.01);
+		GL11.glEnable(GL11.GL_DEPTH_TEST);
+		GL11.glDepthFunc(GL11.GL_ALWAYS);
+		GL11.glDepthMask(true);
+		GL11.glColorMask(true, true, true, true);
 		GL11.glEnable(GL11.GL_TEXTURE_2D);
 		GL11.glEnable(GL11.GL_BLEND);
 		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
