@@ -345,7 +345,7 @@ function findCandidates(
 			phase = "getRailPositionUnsupportedReason";
 			const unsupportedReason =
 				SRBXApiCompat.getRailPositionUnsupportedReason(core);
-			if (unsupportedReason !== "") {
+			if (unsupportedReason !== "" && unsupportedReason !== "switch") {
 				diagnostics.unsupportedCores++;
 				if (unsupportedReason.indexOf("sectioned(") === 0)
 					diagnostics.sectionedCores++;
@@ -616,6 +616,7 @@ function connectedEndpointMoves(
 						result.push({
 							target: {
 								core: corePos,
+								railKey,
 								index,
 								original: [rp.posX, rp.posY, rp.posZ],
 							},
@@ -1191,6 +1192,7 @@ function handleInput(
 				mode: "endpoint",
 				targets: state.selected.candidates.map((candidate) => ({
 					core: [candidate.coreX, candidate.coreY, candidate.coreZ],
+					railKey: candidate.railKey,
 					index: candidate.index,
 					original: candidate.position,
 				})),

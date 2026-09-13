@@ -35,7 +35,8 @@ export class SRBXApiCompat {
 		core: TileEntityLargeRailCore,
 	): string {
 		if (!core) return "missing_core";
-		if (core instanceof TileEntityLargeRailSwitchCore) return "switch";
+		if (core instanceof TileEntityLargeRailSwitchCore)
+			return "switch_unsupported";
 		const positions = core.getRailPositions();
 		return positions && positions.length === 2 ? "" : "invalid_positions";
 	}

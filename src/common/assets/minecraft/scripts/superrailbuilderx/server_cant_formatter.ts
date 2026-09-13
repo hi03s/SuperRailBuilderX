@@ -58,6 +58,8 @@ function resolveSplitEndpoint(
 	update: ClientUpdate,
 ): SRBXCantTarget | null {
 	const world = SRBXApiCompat.getWorld(entity);
+	let best: SRBXCantTarget | null = null,
+		bestDistance = 0.75 * 0.75;
 	for (let i = 0; i < update.refreshed.length; i++) {
 		const pos = update.refreshed[i],
 			tile = SRBXApiCompat.getTileEntity(world, pos[0], pos[1], pos[2]);
@@ -73,14 +75,10 @@ function resolveSplitEndpoint(
 		if (!positions || positions.length !== 2 || !map) continue;
 		for (let index = 0; index < positions.length; index++) {
 			const rp = positions[index];
-			if (
-				Math.abs(rp.posX - target.position[0]) > 0.001 ||
-				// RailMap#getRailHeight includes the visual cant lift, while the
-				// split RailPosition is placed on the center line.
-				Math.abs(rp.posY - target.position[1]) > 0.25 ||
-				Math.abs(rp.posZ - target.position[2]) > 0.001
-			)
-				continue;
+			const dx = rp.posX - target.position[0],
+				dz = rp.posZ - target.position[2],
+				distance = dx * dx + dz * dz;
+			if (distance > bestDistance) continue;
 			const endpointYaw = SRBXApiCompat.getHorizontalAnchorYaw(rp),
 				delta =
 					target.yaw === undefined
@@ -88,17 +86,18 @@ function resolveSplitEndpoint(
 						: Math.abs(
 								((endpointYaw - target.yaw + 540) % 360) - 180,
 							);
-			return {
+			bestDistance = distance;
+			best = {
 				core: SRBXApiCompat.getRailCorePos(core),
 				railKey: SRBXApiCompat.getRailPositionCandidateKey(core),
 				index,
-				position: target.position,
+				position: [rp.posX, rp.posY, rp.posZ],
 				angle: delta > 90 ? -target.angle : target.angle,
 				mode: "edge",
 			};
 		}
 	}
-	return null;
+	return best;
 }
 
 function rollbackSplits(
