@@ -9,7 +9,10 @@ import {
 } from "jp.ngt.rtm.rail";
 import { RailPosition } from "jp.ngt.rtm.rail.util";
 import { ICommandSender } from "net.minecraft.command";
+import { Minecraft } from "net.minecraft.client";
+import { Gui } from "net.minecraft.client.gui";
 import { EntityPlayer } from "net.minecraft.entity.player";
+import { ResourceLocation } from "net.minecraft.util";
 import { System } from "java.lang";
 import { WeakHashMap } from "java.util";
 import { Keyboard, Mouse } from "org.lwjgl.input";
@@ -36,6 +39,20 @@ const DEFAULT_VERTICAL_CURVE_RADIUS = 1000;
 const VERTICAL_CURVE_RADIUS_STEP = 1000;
 const KEY_REPEAT_DELAY_MS = 350;
 const KEY_REPEAT_INTERVAL_MS = 75;
+const GUI_TILE_SIZE = 16;
+const GUI_TOOL_FRAME_SIZE = GUI_TILE_SIZE * 2;
+const GUI_TEXTURE_SIZE = 512;
+const GUI_DRAW_TEXTURE_SIZE = 256;
+const GUI_TOOL_NAME = "レール生成A";
+const GUI_BASE_TEXTURE = new ResourceLocation(
+	"minecraft",
+	"textures/superrailbuilderx/gui_base.png",
+);
+const GUI_TOOL_ICON = new ResourceLocation(
+	"minecraft",
+	"textures/superrailbuilderx/icon_builder1.png",
+);
+const toolGui = new Gui();
 
 type BuilderState = {
 	selected: SRBXBuilderPoint[];
@@ -956,6 +973,149 @@ function showHelp(sender: ICommandSender): void {
 	NGTLog.sendChatMessage(sender, keys.getDescription("exit"));
 }
 
+function getScaledGuiSize(mc: Minecraft): [number, number] {
+	let scale = 1;
+	let requestedScale = mc.gameSettings.guiScale;
+	if (requestedScale === 0) requestedScale = 1000;
+	while (
+		scale < requestedScale &&
+		mc.displayWidth / (scale + 1) >= 320 &&
+		mc.displayHeight / (scale + 1) >= 240
+	)
+		scale++;
+	if (mc.fontRenderer.getUnicodeFlag() && scale % 2 !== 0 && scale !== 1)
+		scale--;
+	return [
+		Math.ceil(mc.displayWidth / scale),
+		Math.ceil(mc.displayHeight / scale),
+	];
+}
+
+function drawGuiTile(
+	x: number,
+	y: number,
+	tileX: number,
+	tileY: number,
+	width: number = GUI_TILE_SIZE,
+	height: number = GUI_TILE_SIZE,
+): void {
+	toolGui.drawTexturedModalRect(
+		x,
+		y,
+		tileX * GUI_TILE_SIZE,
+		tileY * GUI_TILE_SIZE,
+		width,
+		height,
+	);
+}
+
+function drawToolGuiBase(width: number, height: number): void {
+	NGTUtilClient.bindTexture(GUI_BASE_TEXTURE);
+	GL11.glMatrixMode(GL11.GL_TEXTURE);
+	GL11.glPushMatrix();
+	try {
+		GL11.glLoadIdentity();
+		GL11.glScalef(
+			GUI_DRAW_TEXTURE_SIZE / GUI_TEXTURE_SIZE,
+			GUI_DRAW_TEXTURE_SIZE / GUI_TEXTURE_SIZE,
+			1,
+		);
+		GL11.glMatrixMode(GL11.GL_MODELVIEW);
+		for (let x = 0; x < width; x += GUI_TILE_SIZE)
+			drawGuiTile(x, 0, 0, 0, Math.min(GUI_TILE_SIZE, width - x));
+		const rightX = Math.max(0, width - GUI_TILE_SIZE);
+		for (let y = 0; y < height; y += GUI_TILE_SIZE)
+			drawGuiTile(
+				rightX,
+				y,
+				0,
+				1,
+				Math.min(GUI_TILE_SIZE, width),
+				Math.min(GUI_TILE_SIZE, height - y),
+			);
+		const frameX = Math.max(0, width - GUI_TOOL_FRAME_SIZE);
+		drawGuiTile(frameX, 0, 1, 0);
+		drawGuiTile(frameX + GUI_TILE_SIZE, 0, 2, 0);
+		drawGuiTile(frameX, GUI_TILE_SIZE, 1, 1);
+		drawGuiTile(frameX + GUI_TILE_SIZE, GUI_TILE_SIZE, 2, 1);
+	} finally {
+		GL11.glMatrixMode(GL11.GL_TEXTURE);
+		GL11.glPopMatrix();
+		GL11.glMatrixMode(GL11.GL_MODELVIEW);
+	}
+}
+
+function drawToolGuiIcon(width: number): void {
+	NGTUtilClient.bindTexture(GUI_TOOL_ICON);
+	GL11.glMatrixMode(GL11.GL_TEXTURE);
+	GL11.glPushMatrix();
+	try {
+		GL11.glLoadIdentity();
+		GL11.glScalef(
+			GUI_DRAW_TEXTURE_SIZE / GUI_TILE_SIZE,
+			GUI_DRAW_TEXTURE_SIZE / GUI_TILE_SIZE,
+			1,
+		);
+		GL11.glMatrixMode(GL11.GL_MODELVIEW);
+		toolGui.drawTexturedModalRect(
+			Math.max(0, width - GUI_TOOL_FRAME_SIZE) + GUI_TILE_SIZE / 2,
+			GUI_TILE_SIZE / 2,
+			0,
+			0,
+			GUI_TILE_SIZE,
+			GUI_TILE_SIZE,
+		);
+	} finally {
+		GL11.glMatrixMode(GL11.GL_TEXTURE);
+		GL11.glPopMatrix();
+		GL11.glMatrixMode(GL11.GL_MODELVIEW);
+	}
+}
+
+function renderToolGui(): void {
+	const mc = NGTUtilClient.getMinecraft();
+	const size = getScaledGuiSize(mc);
+	const width = size[0];
+	const height = size[1];
+	GL11.glPushAttrib(
+		GL11.GL_ENABLE_BIT |
+			GL11.GL_COLOR_BUFFER_BIT |
+			GL11.GL_DEPTH_BUFFER_BIT |
+			GL11.GL_TEXTURE_BIT |
+			GL11.GL_TRANSFORM_BIT,
+	);
+	GL11.glMatrixMode(GL11.GL_PROJECTION);
+	GL11.glPushMatrix();
+	GL11.glLoadIdentity();
+	GL11.glOrtho(0, width, height, 0, 1000, 3000);
+	GL11.glMatrixMode(GL11.GL_MODELVIEW);
+	GL11.glPushMatrix();
+	GL11.glLoadIdentity();
+	GL11.glTranslatef(0, 0, -2000);
+	try {
+		GL11.glDisable(GL11.GL_LIGHTING);
+		GL11.glDisable(GL11.GL_DEPTH_TEST);
+		GL11.glDepthMask(false);
+		GL11.glEnable(GL11.GL_TEXTURE_2D);
+		GL11.glEnable(GL11.GL_BLEND);
+		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+		GL11.glColor4f(1, 1, 1, 1);
+		drawToolGuiBase(width, height);
+		drawToolGuiIcon(width);
+		const font = mc.fontRenderer;
+		const textX = Math.floor(
+			(width - font.getStringWidth(GUI_TOOL_NAME)) / 2,
+		);
+		font.drawString(GUI_TOOL_NAME, textX, 4, 0x202020);
+	} finally {
+		GL11.glMatrixMode(GL11.GL_MODELVIEW);
+		GL11.glPopMatrix();
+		GL11.glMatrixMode(GL11.GL_PROJECTION);
+		GL11.glPopMatrix();
+		GL11.glPopAttrib();
+	}
+}
+
 function resultMessage(result: string): string {
 	if (result === "hold_rail_item") return "レールを手に持ってください";
 	if (result === "rail_endpoint_changed")
@@ -1415,7 +1575,7 @@ function render(
 	if (left !== prevLeft) dataMap.setBoolean("prevIsLeftClick", left, 0);
 	if (right !== prevRight) dataMap.setBoolean("prevIsRightClick", right, 0);
 	if (renderer.currentMatId === 0 && pass === 0) keys.update();
-	if (!isOpenGUI && renderer.currentMatId === 0 && pass === 0)
+	if (!isOpenGUI && renderer.currentMatId === 0 && pass === 0) {
 		handleInput(
 			host,
 			entity,
@@ -1423,4 +1583,6 @@ function render(
 			!prevRight && right,
 			!prevLeft && left,
 		);
+		renderToolGui();
+	}
 }
