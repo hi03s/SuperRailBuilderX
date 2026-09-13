@@ -16,7 +16,7 @@ import { ResourceLocation } from "net.minecraft.util";
 import { System } from "java.lang";
 import { WeakHashMap } from "java.util";
 import { Keyboard, Mouse } from "org.lwjgl.input";
-import { GL11 } from "org.lwjgl.opengl";
+import { GL11, GL13 } from "org.lwjgl.opengl";
 import { ErrorLogger } from "../lib_hi03toolkit_1_0/lib_ErrorLogger";
 import { InputManager } from "../lib_hi03toolkit_1_0/lib_InputManager";
 import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
@@ -1077,6 +1077,11 @@ function renderToolGui(): void {
 	const size = getScaledGuiSize(mc);
 	const width = size[0];
 	const height = size[1];
+	const previousActiveTexture = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
+	GL13.glActiveTexture(GL13.GL_TEXTURE1);
+	GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_TEXTURE_BIT);
+	GL11.glDisable(GL11.GL_TEXTURE_2D);
+	GL13.glActiveTexture(GL13.GL_TEXTURE0);
 	GL11.glPushAttrib(
 		GL11.GL_ENABLE_BIT |
 			GL11.GL_COLOR_BUFFER_BIT |
@@ -1102,6 +1107,11 @@ function renderToolGui(): void {
 		GL11.glDepthMask(true);
 		GL11.glColorMask(true, true, true, true);
 		GL11.glEnable(GL11.GL_TEXTURE_2D);
+		GL11.glTexEnvi(
+			GL11.GL_TEXTURE_ENV,
+			GL11.GL_TEXTURE_ENV_MODE,
+			GL11.GL_MODULATE,
+		);
 		GL11.glEnable(GL11.GL_BLEND);
 		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		GL11.glColor4f(1, 1, 1, 1);
@@ -1117,7 +1127,11 @@ function renderToolGui(): void {
 		GL11.glPopMatrix();
 		GL11.glMatrixMode(GL11.GL_PROJECTION);
 		GL11.glPopMatrix();
+		GL13.glActiveTexture(GL13.GL_TEXTURE0);
 		GL11.glPopAttrib();
+		GL13.glActiveTexture(GL13.GL_TEXTURE1);
+		GL11.glPopAttrib();
+		GL13.glActiveTexture(previousActiveTexture);
 	}
 }
 
