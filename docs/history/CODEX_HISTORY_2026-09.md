@@ -836,7 +836,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 検証済み: 対象Prettier、`pnpm format:check`、`pnpm gen`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、`git diff --check`。
 - 未検証: Minecraft実機での旧形状ハイライト解消、カント任意点分割、レール移動/分岐生成Undo、分岐レール端点移動・接続・走行・Undo。
 - 実装コミット: `41a13ad`
-- 同期: 引継ぎ更新後に`origin/main`へ同期予定。
+- 同期: 実装`41a13ad`・引継ぎ更新`bd939ec`を`origin/main`へ同期済み。
 
 ### 記録テンプレート
 
