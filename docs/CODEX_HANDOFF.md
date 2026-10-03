@@ -24,7 +24,7 @@
 
 ## 作業中
 
-- ローカルCodex: 接続端部移動の配置判定を修正、検証済み。コミット/push中。
+- なし。
 
 ## 優先確認事項
 
@@ -128,7 +128,7 @@
 
 ## 直近の完了
 
-- 2026-10-04 ローカルCodex: 接続端部移動の誤った競合判定を生成計画へ統一。両側移動/逆順Undo/配置先保護の回帰テスト、全4ターゲット警告0件ZIP成功。実機待ち。詳細はdocs/history/CODEX_HISTORY_2026-10.md。
+- 2026-10-04 ローカルCodex: 接続端部移動の競合判定を生成計画へ統一。両側移動/逆順Undo/配置先保護の回帰テストと全4ターゲット警告0件ZIP成功、実機待ち。`a9df8bb`を`origin/feature/appleextended-compat`へpush・同期済み。詳細はdocs/history/CODEX_HISTORY_2026-10.md。
 
 - 2026-10-03 ローカルCodex: 接続/中央カント・分岐Undo・複線安全再試行・Sectionゴースト/失敗時同期を修正。警告0件ZIP・10回帰スイート・変更整形成功、実機待ち。`8b83fc2`を`origin/feature/appleextended-compat`へpush・同期済み。詳細はdocs/history/CODEX_HISTORY_2026-10.md。
 
