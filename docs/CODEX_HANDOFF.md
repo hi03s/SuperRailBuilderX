@@ -6,7 +6,7 @@
 
 ## 現在の状態
 
-- rtm-ts 0.12.0、`kaizpatch`・`mc1710`・`appleextended`・`mc1122`のmulti-target環境を構築済み。AEは正式版`v2.5.3`基準。公式dev JAR由来の型で全ターゲットのビルド成功。rtm-tsは未改造で、JitPack経由の型生成は取得障害により未確認。
+- rtm-ts 0.12.0、`kaizpatch`・`mc1710`・`appleextended`・`mc1122`のmulti-target環境を構築済み。AEは正式版`v2.5.3`基準。JitPack取得が復旧し、未改造rtm-tsの標準手順で全4ターゲットの型生成・ビルド成功。
 - NGTOBuilder2由来のツールキットは `src/common/assets/minecraft/scripts/lib_hi03toolkit_1_0` に置き、参照専用とする。SuperRailBuilderX固有処理は `superrailbuilderx` ディレクトリと `SRBXApiCompat` に実装する。
 - 正式版`SuperRailBuilderX_RailMover`は通常・自動分割レールとも元状態を退避し、builder1と同じ衝突判定・道床生成規則で再生成する。論理RailMapの複数選択・一括平行移動・一括Undoと、KaizPatchX分岐レールの端点移動に対応し、ホバーは現在のコアとRailPositionから再構築する。
 - `SuperRailBuilderX_builder1`を実装済み。JSON識別名はbuilder1を維持し、文書・ヘルプでは`レール生成A`と表記する。自由点・通常/分岐レール端点接続、曲線半径固定、勾配・縦曲線、複数レール一括Undo、道床・コア保護を備える。
@@ -23,8 +23,6 @@
 - KaizPatchX / AppleExtended向けの分岐レール描画runtime compatibility patchを`main`へ統合済み。KaizPatchXの描画は実機確認済みで、AppleExtended確認待ちのため`fix/rail-render-offset-compat-patch`は保持する。通常RTMはno-op。
 
 ## 作業中
-
-
 
 ## 優先確認事項
 
@@ -54,8 +52,6 @@
 - 端点・中央の分岐生成後にUndoしてもワールドから切断されず、エラーなく元レールへ戻ることを確認する。
 
 ### AppleExtended
-
-- JitPackからv2.5.3を取得できず、開発者から制作者へ報告予定。復旧後に未改造rtm-tsで`pnpm gen`と`pnpm build`を確認する。
 
 - バックアップ済みワールドで通常レールの小さい端点オフセット、再ログイン後の永続化、描画、走行、Ctrl+Zを確認する。大移動は道床範囲外になるため未対応。
 - レール生成Aと複線コピーでチャンク境界をまたぐ自動分割レールの生成・接続・モデル継承・走行・Undoを確認する。
@@ -130,7 +126,9 @@
 
 ## 直近の完了
 
-- 2026-10-03 ローカルCodex: AE v2.5.3対応とorigin/main統合（4335698・cdca589）。rtm-tsパッチは撤回し、未改造のrtm-tsで全4ターゲットのビルド・描画patchテスト成功。JitPack型生成と実機確認は未完了。詳細は`docs/history/CODEX_HISTORY_2026-10.md`。撤回・検証記録`87d1947`まで`origin/feature/appleextended-compat`へpush・同期済み。
+- 2026-10-03 ローカルCodex: JitPack復旧後、未改造rtm-tsでAE v2.5.3取得・全4ターゲットの`pnpm gen`・`pnpm build`と描画patchテストが成功。詳細は`docs/history/CODEX_HISTORY_2026-10.md`。
+
+- 2026-10-03 ローカルCodex: AE v2.5.3対応とorigin/main統合（4335698・cdca589）。rtm-tsパッチは撤回し、未改造のrtm-tsで全4ターゲットのビルド・描画patchテスト成功。当初のJitPack取得障害は上記の再検証で解消。実機確認は未完了。詳細は`docs/history/CODEX_HISTORY_2026-10.md`。撤回・検証記録`87d1947`まで`origin/feature/appleextended-compat`へpush・同期済み。
 - 2026-09-13のAE対応・描画patch・レール移動/Undo修正などは`docs/history/CODEX_HISTORY_2026-09.md`を参照。
 
 ## 関連資料

@@ -59,9 +59,7 @@ pnpm gen
 pnpm build
 ```
 
-AEターゲットのMCP mappingsは`stable/39`を使用し、依存は`com.github.Kirtmuna:AppleExtended:v2.5.3`とする。rtm-ts 0.12.0は改造・パッチせず使用する。2026-10-03時点ではJitPackからの正式タグ取得がタイムアウトし、新規環境での`pnpm gen`完了は未確認。取得障害は開発者からAE制作者へ報告予定。
-
-この作業では公式dev JARから一時的に生成した型定義を使い、main統合後のビルドを確認した。型定義・JARはGitへ追加しない。JitPack復旧後に標準の`pnpm gen`と`pnpm build`を再確認する。
+AEターゲットのMCP mappingsは`stable/39`を使用し、依存は`com.github.Kirtmuna:AppleExtended:v2.5.3`とする。rtm-ts 0.12.0は改造・パッチせず使用する。2026-10-03にJitPack取得が復旧し、標準の`pnpm gen`と`pnpm build`が全4ターゲットで成功した。描画patchの`pnpm test:rail-patch`も成功。型定義・JARはGitへ追加しない。Minecraft実機検証は別途必要。
 
 ## AE側に追加されれば削除できる補完
 
