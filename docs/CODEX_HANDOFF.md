@@ -24,7 +24,7 @@
 
 ## 作業中
 
-- ローカルCodex: 00:46～00:47再テストの物理Sectionコア代替配置・クライアントghost掃除を実装済み。最終検証/同期中。
+- なし。
 
 ## 優先確認事項
 
@@ -128,7 +128,7 @@
 
 ## 直近の完了
 
-- 2026-10-04 ローカルCodex: 両端コア候補塞がりを物理Section代替配置で補完し、旧tile/GL解放とAEだけの遅延packet再確認を追加。実機再検証待ち。詳細はdocs/history/CODEX_HISTORY_2026-10.md。
+- 2026-10-04 ローカルCodex: 物理Section代替配置と旧tile/GL解放・AEだけの遅延packet掃除を追加。警告0件ZIP・12回帰スイート・変更整形成功、実機待ち。`1090f35`を`origin/feature/appleextended-compat`へpush・同期済み。詳細はdocs/history/CODEX_HISTORY_2026-10.md。
 
 ## 関連資料
 

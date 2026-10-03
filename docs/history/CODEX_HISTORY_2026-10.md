@@ -116,3 +116,4 @@
 - needsRailClientGhostRetry compat hookを追加し、AEのsection keyのみ再確認を許可。KaizPatchX/mc1710/mc1122はfalseで従来cleanupの頻度/動作を維持。共通rendererだけに期限付きqueueを追加。rtm-ts/参照toolkitは未変更。
 - 実行済み: pnpm zip（全4ターゲット・警告0・88ファイル）、test:appleextended（9スイート: 両端保護でもSection内代替配置・論理RP/ratio維持・SRG-only NBT・全配置事前検証・初期化失敗時非破壊cleanup/packet抑止、chunk/loadedずれ・stale GL解放・後着旧packet・new group保護・server no-opを含む）、test:input、test:rail-patch、test:runtime-dispatch、変更TS/テスト/package.jsonのPrettier、git diff --check。全体format:checkは既知の未変更差分があり再実行しない。
 - 未実施: Minecraft/AE/KaizPatchX実機。バックアップワールドで失敗した端点移動→Undo、接続2本・一括移動、再入場せずghost消失、再ログイン/走行・モデル/カント保持を確認。失敗時は操作順/時刻とlogs/latest.log、新診断section owners relocated/section owner relocation blocked/client ghost cleanupを提出。実機でのghost原因特定は診断による再確認が必要。ユーザーgui_base.xcfと生ログは追加しない。
+- 修正コミット`1090f35`を`origin/feature/appleextended-compat`へpush、HEAD/origin差分0/0を確認。
