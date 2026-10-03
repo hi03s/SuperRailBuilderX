@@ -126,7 +126,7 @@
 
 ## 直近の完了
 
-- 2026-10-03 ローカルCodex: JitPack復旧後、未改造rtm-tsでAE v2.5.3取得・全4ターゲットの`pnpm gen`・`pnpm build`と描画patchテストが成功。詳細は`docs/history/CODEX_HISTORY_2026-10.md`。
+- 2026-10-03 ローカルCodex: JitPack復旧後、未改造rtm-tsでAE v2.5.3取得・全4ターゲットの`pnpm gen`・`pnpm build`と描画patchテストが成功。詳細は`docs/history/CODEX_HISTORY_2026-10.md`。検証記録`56182c4`を`origin/feature/appleextended-compat`へ同期済み。
 
 - 2026-10-03 ローカルCodex: AE v2.5.3対応とorigin/main統合（4335698・cdca589）。rtm-tsパッチは撤回し、未改造のrtm-tsで全4ターゲットのビルド・描画patchテスト成功。当初のJitPack取得障害は上記の再検証で解消。実機確認は未完了。詳細は`docs/history/CODEX_HISTORY_2026-10.md`。撤回・検証記録`87d1947`まで`origin/feature/appleextended-compat`へpush・同期済み。
 - 2026-09-13のAE対応・描画patch・レール移動/Undo修正などは`docs/history/CODEX_HISTORY_2026-09.md`を参照。
