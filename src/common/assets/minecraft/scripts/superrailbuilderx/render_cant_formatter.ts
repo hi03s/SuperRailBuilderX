@@ -10,7 +10,7 @@ import { EntityPlayer } from "net.minecraft.entity.player";
 import { WeakHashMap } from "java.util";
 import { Keyboard, Mouse } from "org.lwjgl.input";
 import { GL11 } from "org.lwjgl.opengl";
-import { InputManager } from "../lib_hi03toolkit_1_0/lib_InputManager";
+import { SRBXInputManager as InputManager } from "./SRBXInputManager";
 import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
 import { NGTOBuilderUtilClient } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtilClient";
 import { RTMApiCompat } from "@target/assets/minecraft/scripts/lib_hi03toolkit_1_0/lib_RTMApiCompat";
@@ -478,11 +478,7 @@ function input(
 	}
 	if (keys.pressed("apply") && !s.awaiting && s.selected.length)
 		send(entity, s, { action: "apply", targets: s.selected });
-	if (
-		keys.pressed("undo") &&
-		!s.awaiting &&
-		d.getBoolean("cantFormatterCanUndo")
-	)
+	if (keys.pressed("undo") && !s.awaiting)
 		send(entity, s, { action: "undo" });
 	result(sender, entity, s);
 }

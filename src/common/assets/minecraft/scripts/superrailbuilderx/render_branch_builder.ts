@@ -10,7 +10,7 @@ import { EntityPlayer } from "net.minecraft.entity.player";
 import { WeakHashMap } from "java.util";
 import { Keyboard, Mouse } from "org.lwjgl.input";
 import { GL11 } from "org.lwjgl.opengl";
-import { InputManager } from "../lib_hi03toolkit_1_0/lib_InputManager";
+import { SRBXInputManager as InputManager } from "./SRBXInputManager";
 import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
 import { NGTOBuilderUtilClient } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtilClient";
 import { RTMApiCompat } from "@target/assets/minecraft/scripts/lib_hi03toolkit_1_0/lib_RTMApiCompat";
@@ -867,12 +867,7 @@ function input(
 			};
 		send(e, s, { action: "create", plan: request });
 	}
-	if (
-		keys.pressed("undo") &&
-		!s.awaiting &&
-		d.getBoolean("branchBuilderCanUndo")
-	)
-		send(e, s, { action: "undo" });
+	if (keys.pressed("undo") && !s.awaiting) send(e, s, { action: "undo" });
 	handleResult(sender, e, s);
 }
 function render(e: EntityVehicle, pass: number, pt: number): void {

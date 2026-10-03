@@ -138,6 +138,78 @@ for (const pair of [
 		null,
 	);
 }
+// AE selects the second endpoint at equal block height, regardless of posY.
+for (const heights of [
+	[4, 4],
+	[4.9, 4.1],
+	[4.1, 4.9],
+]) {
+	const endpoints = positions.map((position, index) => ({
+		...position,
+		posY: heights[index],
+	}));
+	let createdAt = null;
+	context.Packages.jp.ngt.rtm.rail.BlockMarker.createRail = (
+		_world,
+		x,
+		y,
+		z,
+		list,
+	) => {
+		const a = list.get(0),
+			b = list.get(1);
+		const owner = a.blockY >= b.blockY ? b : a;
+		createdAt = [owner.blockX, owner.blockY, owner.blockZ];
+		return false;
+	};
+	helper.getCore = (_world, position) =>
+		createdAt &&
+		position.every((value, index) => value === createdAt[index])
+			? core
+			: null;
+	assert.strictEqual(
+		helper.createFromPositions({}, player, endpoints, {}).key,
+		"created",
+	);
+}
+// A real failure must not yield an Undo record.
+context.Packages.jp.ngt.rtm.rail.BlockMarker.createRail = () => false;
+helper.getCore = () => null;
+assert.strictEqual(helper.createFromPositions({}, player, positions, {}), null);
+// Multi-rail Undo must not delete the first member if a later one changed.
+load("superrailbuilderx/AppleExtendedRailToolsCompat.js");
+const railTools = context.AppleExtendedRailToolsCompat;
+let removedCount = 0;
+helper.undoNormalRail = () => {
+	removedCount++;
+	return "ok";
+};
+helper.validateUndoNormalRail = (_world, _pos, key) =>
+	key === "changed" ? "undo_rail_changed" : "ok";
+railTools.splitUndoRecords.regression = {
+	created: [
+		{ core: [0, 0, 0], key: "ok" },
+		{ core: [1, 0, 0], key: "changed" },
+	],
+};
+assert.strictEqual(
+	railTools.undoSplitBuilderRail({}, player, "regression"),
+	"undo_rail_changed",
+);
+assert.strictEqual(removedCount, 0);
+assert(railTools.splitUndoRecords.regression);
+railTools.cantUndoRecords.regression = [
+	{ core: [0, 0, 0], railKey: "ok" },
+	{ core: [1, 0, 0], railKey: "changed" },
+];
+helper.getCore = () => {
+	throw new Error("cant must not be mutated before full validation");
+};
+assert.strictEqual(
+	railTools.undoRailCants({}, "regression"),
+	"undo_rail_changed",
+);
+assert(railTools.cantUndoRecords.regression);
 loadCompat("srbx_patch", "platform.");
 const platform = Object.values(context.RTMX_COMPAT_TARGETS.appleextended).find(
 	(value) => value.SRBXPatchPlatform,

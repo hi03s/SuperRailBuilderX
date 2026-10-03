@@ -171,6 +171,7 @@ export class SRBXApiCompat {
 		x: number,
 		y: number,
 		z: number,
+		player?: EntityPlayer,
 	): string;
 	static createBuilderRail(
 		world: World,

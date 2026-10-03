@@ -21,8 +21,8 @@ AE v2.5.3には、初期基準`ca255fd`以降に次が追加された。従来�
 | 自由端点 | `setPosition`とoffset NBTあり | AE APIを使用 |
 | 自動分割・論理レール | AE本体に実装済み | AE APIへ委譲 |
 | 論理レール削除・占有判定 | AE本体に実装済み | AE APIへ委譲 |
-| 通常レール移設 | `relocateRail`あり | AE APIへ委譲 |
-| 分割レール移設 | group全体を移設する公開APIなし | 破損防止のため無効化 |
+| 通常レール移設 | `relocateRail`あり | 元状態を退避して論理レールを撤去・再生成 |
+| 分割レール移設 | group全体を移設する公開APIなし | 全memberの存在・占有を検証し、group全体を撤去・再生成 |
 | 任意位置分割・分岐生成 | SRBX相当の高水準APIなし | AE compatで論理端点から撤去・再生成 |
 | カント整形 | RailPositionのカント値あり | AE compatで論理端点を更新し、Section group全体へ同期 |
 | レール設定型 | `ResourceStateRail` | compat境界で扱う |
@@ -32,6 +32,7 @@ AE v2.5.3には、初期基準`ca255fd`以降に次が追加された。従来�
 
 - `AppleExtendedRailCompat.ts`: 論理レール識別、端点解決、モデル状態の複製、AE標準生成、論理レールUndoを担当する。
 - `AppleExtendedRailToolsCompat.ts`: 任意位置分割、中央・端点分岐、カント整形と各Undoを担当する。
+- `AppleExtendedRailMoveCompat.ts`: 通常・自動分割レールの端点/全体移動、元状態退避、失敗時復元と更新コア通知を担当する。
 - `SRBXApiCompat.compat.ts`: 共通ツールとAE APIの境界を担当する。
 
 分割・分岐は変更前の論理RailPosition、モデル、信号、サブレールを退避し、途中失敗時とUndo時に再生成する。生成先は最新AEの自動分割機構へ委譲する。カント整形はSection coreの物理端点を直接上書きせず、全group coreの`RailSection` NBTに同じ論理端点を書き戻してRailMapを再構築する。
@@ -42,7 +43,7 @@ AE v2.5.3の標準include読込はJava正規表現の置換文字列を保護せ
 
 対応範囲:
 
-- 通常レールの端点移動、クライアント同期、Undo
+- 通常・自動分割レールの端点/全体移動、クライアント同期、Undo（実機再検証待ち）
 - レール生成A、複線コピー、自動分割生成、Undo
 - 通常・自動分割レールの分割、中央/端点分岐、カント整形とUndo
 - `Loader.isModLoaded("applelib")`による`mc1122`より優先した実行時選択
@@ -50,7 +51,11 @@ AE v2.5.3の標準include読込はJava正規表現の置換文字列を保護せ
 
 未対応:
 
-- 自動分割レールの端点移動と複数レール平行移動。AEの`relocateRail`はSection group向けにoverrideされていないため、通常コアだけに使用する。
+- 分岐レール自体の移動。通常・自動分割レールの移動ではSectionの物理`relocateRail`を使わず、論理レール全体を再生成する。変更前に端点・キー・占有・group memberを確認し、失敗時は元の端点・モデル・信号・サブレールを復元する。
+
+2026-10-03の再テストで、生成コアの確認位置がAEと一致しない問題を修正した。AEは2端点の`blockY`が等しい場合に2番目をコア所有端点に選ぶ。生成・分割・複製・復元はこの同じ規則でコアとUndoキーを取得する。Sectionの選択は論理端点を使用し、builderAの分岐端点選択用の理由コードも共通APIに合わせる。
+
+Undo入力は左右Ctrlに対応するSRBX固有ラッパーを使い、サーバーのUndo記録を最終判定にする。分割・カントUndoは全対象の変更・占有を先に検証する。再テストログにUndo要求がなかったため、今回の入力修正で解消するかは実機確認が必要。
 
 Minecraft実機では、生成・分割・分岐後にチャンク境界をまたぐSectionが一つの論理レールとして選択・走行・Undoできること、カント適用が全Sectionへ反映されることを確認する。
 

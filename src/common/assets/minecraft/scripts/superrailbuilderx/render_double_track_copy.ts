@@ -11,7 +11,7 @@ import { System } from "java.lang";
 import { WeakHashMap } from "java.util";
 import { Keyboard, Mouse } from "org.lwjgl.input";
 import { GL11 } from "org.lwjgl.opengl";
-import { InputManager } from "../lib_hi03toolkit_1_0/lib_InputManager";
+import { SRBXInputManager as InputManager } from "./SRBXInputManager";
 import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
 import { NGTOBuilderUtilClient } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtilClient";
 import { RTMApiCompat } from "@target/assets/minecraft/scripts/lib_hi03toolkit_1_0/lib_RTMApiCompat";
@@ -900,11 +900,7 @@ function handleInput(
 			);
 		}
 	}
-	if (
-		!state.awaitingResult &&
-		keys.pressed("undo") &&
-		dataMap.getBoolean("doubleTrackCopyCanUndo")
-	) {
+	if (!state.awaitingResult && keys.pressed("undo")) {
 		sendRequest(entity, state, { action: "undo" });
 		NGTLog.sendChatMessage(sender, "[SuperRailBuilderX] Undo...");
 	}

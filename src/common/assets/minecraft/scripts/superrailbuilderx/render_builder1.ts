@@ -15,7 +15,7 @@ import { WeakHashMap } from "java.util";
 import { Keyboard, Mouse } from "org.lwjgl.input";
 import { GL11 } from "org.lwjgl.opengl";
 import { ErrorLogger } from "../lib_hi03toolkit_1_0/lib_ErrorLogger";
-import { InputManager } from "../lib_hi03toolkit_1_0/lib_InputManager";
+import { SRBXInputManager as InputManager } from "./SRBXInputManager";
 import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
 import { NGTOBuilderUtilClient } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtilClient";
 import {
@@ -1334,11 +1334,7 @@ function handleInput(
 		});
 		NGTLog.sendChatMessage(sender, "[SuperRailBuilderX] レール生成中...");
 	}
-	if (
-		keys.pressed("undo") &&
-		!state.awaitingResult &&
-		dataMap.getBoolean("builder1CanUndo")
-	) {
+	if (keys.pressed("undo") && !state.awaitingResult) {
 		sendRequest(entity, state, { action: "undo" });
 		NGTLog.sendChatMessage(sender, "[SuperRailBuilderX] Undo...");
 	}

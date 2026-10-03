@@ -15,7 +15,8 @@
 		"format:check": "prettier --check \"src/**/*.ts\"",
 		"test:rail-patch": "node tests/srbx_patch/patch_source.test.cjs",
 		"test:runtime-dispatch": "node tests/srbx_patch/runtime_dispatch.test.cjs",
-		"test:appleextended": "node tests/srbx_patch/appleextended_compat.test.cjs"
+		"test:appleextended": "node tests/srbx_patch/appleextended_compat.test.cjs && node tests/srbx_patch/appleextended_selection.test.cjs && node tests/srbx_patch/appleextended_move.test.cjs",
+		"test:input": "node tests/srbx_patch/input_manager.test.cjs"
 	},
 	"dependencies": {
 		"rtm-ts": "0.12.0"

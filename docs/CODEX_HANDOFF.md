@@ -14,7 +14,7 @@
 - `SuperRailBuilderX_DoubleTrackCopy`を実装済み。通常レールの複数選択、カーソル距離に応じた指定間隔の反復複製、水平平行線形、0.5 m端点接続、手持ち/複製元モデル、一括Undoを備える。
 - `SuperRailBuilderX_CantFormatter`を実装済み。端点・中央への10 mスナップ、任意点分割、未選択分割候補の黄色表示、選択済み変更対象の水色表示、共有端点の連続適用、複数回の適用を遡るUndoに対応する。
 - `SuperRailBuilderX_BranchBuilder`を実装済み。中央の約0.5 m候補、接続/未接続の正確な端点を根元とする単純分岐、共有端点両側の強調と分岐先カーソル方向によるベース選択、接続部カント0化とUndoに対応する。
-- AppleExtended対応ブランチへ最新mainを統合し、AE正式版`v2.5.3`の自動分割・論理レールAPIへ対応した。生成、複線コピー、分割、分岐、カント整形とUndoは通常・自動分割レールを扱う。AEにSection group移設APIがないため、自動分割レールの端点・平行移動だけは無効化する。
+- AppleExtended対応ブランチへ最新mainを統合し、AE正式版`v2.5.3`へ対応。生成コア確認・論理端点選択・Undo入力を修正し、通常/自動分割レールの端点・全体移動は元状態退避とgroup全体再生成で補完する。実機再検証待ち。
 - builder1のチャンク境界交差・候補表示・Iキー地上高合わせ、複線コピーの生成、分割パネル・縦勾配・カント、レール移動の基本操作・接続・回り込み防止・三線軌条の相互走行は実機確認済み。
 - `alpha-0.1.0`の配布設定、README、統合操作ガイド、同梱readme.txt・LICENSEを整備済み。配布ZIPは`SuperRailBuilderX-alpha-0.1.0.zip`として生成できる。
 - `v*`タグpush時に型定義生成・multi-targetビルド・ZIP生成を行い、`release-notes.md`を本文とするDraft Releaseを作成するGitHub Actionsを整備済み。公開はGitHub上で手動実施する。
@@ -23,6 +23,7 @@
 - KaizPatchX / AppleExtended向けの分岐レール描画runtime compatibility patchを`main`へ統合済み。KaizPatchXの描画は実機確認済みで、AppleExtended確認待ちのため`fix/rail-render-offset-compat-patch`は保持する。通常RTMはno-op。
 
 ## 作業中
+
 
 ## 優先確認事項
 
@@ -53,12 +54,12 @@
 
 ### AppleExtended
 
-- AEのAPI戻り値に起因する生成失敗表示、物理Section単位ホバー、null RailMap描画クラッシュ、bootstrapのタスク登録を修正。修正版で生成・Undo・論理レール全体の分割ホバーと`[SRBX rail patch] completed`を再確認する。
+- 19:12～19:15の実機ログで生成/分割失敗とSection選択拒否を確認し、生成コア所有端点をAEと一致させ、選択理由コードを修正。Undo要求はログに無く原因未確定のため、左右Ctrl対応とクライアント可否フラグのゲートを除去。新規生成→Ctrl+Z、分割→Ctrl+Z、分岐/カント選択・適用→Ctrl+Zを再確認する。
 
-- バックアップ済みワールドで通常レールの小さい端点オフセット、再ログイン後の永続化、描画、走行、Ctrl+Zを確認する。大移動は道床範囲外になるため未対応。
+- バックアップ済みワールドで通常/自動分割レールの端点・全体移動、失敗時復元、Ctrl+Z、再ログイン後の永続化・描画・走行を確認する。
 - レール生成Aと複線コピーでチャンク境界をまたぐ自動分割レールの生成・接続・モデル継承・走行・Undoを確認する。
 - 自動分割レールの分割・Undo、中央/端点分岐・切替・両経路走行・Undo、全Sectionへのカント反映・Undoを確認する。失敗時は操作時刻と`[SuperRailBuilderX`を含むログを共有する。
-- 自動分割レールの端点・平行移動はAE側にSection group移設APIが追加されるまで未対応。通常レールの小さい端点移動だけを確認する。
+- AE移動はSection単体の`relocateRail`を使わない。group欠損/未ロード・占有・変更検証とモデル/信号/サブレール復元を備える。分岐レール自体の移動は未対応。失敗時は`[SuperRailBuilderX AE move]`を含む`logs/latest.log`を共有する。
 
 ## 次に行うこと
 

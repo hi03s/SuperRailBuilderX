@@ -64,3 +64,14 @@
 - 未検証: 実機の通常/自動分割生成とUndo、分割ホバー全体表示・分割とUndo、ワールド終了時の描画、[SRBX rail patch] completed（failed=0）。生成済みでも失敗表示だった旧テストのレールは自動削除・復元しない。
 - 再確認手順: バックアップ済みワールドでartifacts/SuperRailBuilderX-alpha-0.1.0.zipへ交換し、上記を確認。問題が残る場合は操作時刻とlogs/latest.logの[SuperRailBuilderX AE]・[SuperRailBuilderX builder1]・[SRBX rail patch]・例外前後をlogsへ格納して共有してもらう。
 - 修正コミット25609e2をorigin/feature/appleextended-compatへpush・同期済み。
+
+## 2026-10-03 ローカルCodex: AE生成・選択・Undoと論理レール移動修正
+
+- 開発者の19:12～19:15のlatest.logをSRBXログで絞り込み、必要部分を`logs/appleextended-tool-selection-generation-20261003.log`へ抜粋。生ログとユーザーのgui_base.xcfは追加しない。描画patchはpatched=167/failed=0だった。
+- 生成・分割・複線コピーの成功確認がAEの実際のコア所有端点と不一致。AEはblockY同値で2番目を選ぶため、その規則でコア/Undoキーを取得するよう修正。
+- builderA/分岐/カント/移動が共用する選択理由でSectionを拒否していた。論理端点で選択を許可し、switch理由を共通仕様へ統一。実装範囲を移動まで広げたのは、関連調査でAEの全体移動がmc1122のunsupported stubへ落ちることが判明したため。
+- 移動は通常/Sectionの論理レール全体を再生成する固有helperで実装。変更前のキー/端点/占有/全group member存在/所有端点を検証、モデル/信号/サブレールを保持し、失敗時は元状態へ復元。Section単体のrelocateRailは使わない。分岐レール自体の移動は未対応。
+- Undo要求がログに無く入力原因は未確定。共有toolkitを変更せずSRBX固有InputManagerで左右Ctrlを許可し、クライアントCanUndoフラグのゲートを除去してサーバーに最終判定させる。分割/カントUndoは全対象を破壊・更新前に検証する。
+- 実行済み: pnpm zip（全4ターゲット、警告0）、test:appleextended（生成所有端点/論理選択/移動成功・復元成功/復元失敗/欠損group/占有・変更拒否/Undo全対象事前検証）、test:input（左右Ctrl・押下瞬間）、test:rail-patch、test:runtime-dispatch、変更TSのPrettier確認、git diff --check。
+- pnpm format:checkは今回未変更の既存9ファイルの整形差分で失敗。今回変更TSは整形確認成功。rtm-tsと参照toolkitは変更していない。
+- 未実施: Minecraft/AE/KaizPatchX実機再検証。バックアップ済みワールドで各ツールの選択→適用→左右Ctrl+Z、移動失敗復元、走行・再ログインを確認。失敗時は機能・操作順・時刻とlogs/latest.logを提出し、AE move診断を含め調べる。以前の失敗生成でUndo記録がないレールは新しいUndo入力だけで復元できない。

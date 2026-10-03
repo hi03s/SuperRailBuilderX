@@ -258,7 +258,14 @@ export class AppleExtendedRailCompat {
 			ordered.reverse();
 		const list = new ArrayList<RailPosition>();
 		for (let i = 0; i < ordered.length; i++) list.add(ordered[i]);
-		const root = list.get(0);
+		// Match AE's actual core owner, including the equal-block-height case.
+		// The public API chooses the second endpoint when blockY is equal.
+		const root =
+			ordered.length === 2
+				? ordered[0].blockY >= ordered[1].blockY
+					? ordered[1]
+					: ordered[0]
+				: list.get(0);
 		const before = this.getCore(world, [
 			root.blockX,
 			root.blockY,
@@ -397,6 +404,22 @@ export class AppleExtendedRailCompat {
 		corePos: RailCorePos,
 		expectedKey: string,
 	): string {
+		const validation = this.validateUndoNormalRail(
+			world,
+			corePos,
+			expectedKey,
+		);
+		if (validation !== "ok") return validation;
+		const core = this.getCore(world, corePos);
+		core.breakLogicalRail();
+		return "ok";
+	}
+
+	static validateUndoNormalRail(
+		world: World,
+		corePos: RailCorePos,
+		expectedKey: string,
+	): string {
 		const tile = world.getTileEntity(
 			new BlockPos(corePos[0], corePos[1], corePos[2]),
 		);
@@ -406,7 +429,6 @@ export class AppleExtendedRailCompat {
 		if (!core) return "undo_rail_not_found";
 		if (this.coreKey(core) !== expectedKey) return "undo_rail_changed";
 		if (core.isLogicalRailOccupied()) return "rail_occupied";
-		core.breakLogicalRail();
 		return "ok";
 	}
 }

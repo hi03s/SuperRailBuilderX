@@ -9,12 +9,10 @@ import {
 	AppleExtendedSourceRail,
 } from "./AppleExtendedRailCompat";
 import { AppleExtendedRailToolsCompat } from "./AppleExtendedRailToolsCompat";
+import { AppleExtendedRailMoveCompat } from "./AppleExtendedRailMoveCompat";
 
 /** AppleExtended v2.5.3 exposes logical-rail APIs and automatic section rails. */
 export class SRBXApiCompat {
-	private static lastRailPositionMoveCores: Array<[number, number, number]> =
-		[];
-
 	static getRailCorePos(
 		core: TileEntityLargeRailCore,
 	): [number, number, number] {
@@ -44,12 +42,16 @@ export class SRBXApiCompat {
 		core: TileEntityLargeRailCore,
 	): string {
 		if (!core) return "missing_core";
-		if (core instanceof TileEntityLargeRailSwitchCore)
-			return "switch_unsupported";
-		if (AppleExtendedRailCompat.isSectionCore(core))
-			return "sectioned_relocation_unavailable";
+		if (core instanceof TileEntityLargeRailSwitchCore) return "switch";
 		const positions = AppleExtendedRailCompat.getLogicalPositions(core);
-		return positions && positions.length === 2 ? "" : "invalid_positions";
+		// Shared selectors read logical endpoints for creation, cant and branches.
+		// Relocation restrictions belong to canMoveRailPosition and validation.
+		return positions &&
+			positions.length === 2 &&
+			positions[0] &&
+			positions[1]
+			? ""
+			: "invalid_positions";
 	}
 
 	static refreshRailPositionClient(
@@ -89,9 +91,7 @@ export class SRBXApiCompat {
 	}
 
 	static consumeLastRailPositionMoveCores(): Array<[number, number, number]> {
-		const result = this.lastRailPositionMoveCores;
-		this.lastRailPositionMoveCores = [];
-		return result;
+		return AppleExtendedRailMoveCompat.consumeUpdated();
 	}
 
 	static validateRailPositionMove(
@@ -105,6 +105,14 @@ export class SRBXApiCompat {
 		z: number,
 	): string {
 		if (!this.canMoveRailPosition(core)) return "unsupported";
+		if (
+			!isFinite(originalX) ||
+			!isFinite(originalY) ||
+			!isFinite(originalZ) ||
+			!isFinite(index) ||
+			Math.floor(index) !== index
+		)
+			return "invalid";
 		if (core.isLogicalRailOccupied()) return "occupied";
 		const positions = AppleExtendedRailCompat.getLogicalPositions(core);
 		if (!positions || index < 0 || index >= positions.length)
@@ -130,8 +138,9 @@ export class SRBXApiCompat {
 		x: number,
 		y: number,
 		z: number,
+		player?: net.minecraft.entity.player.EntityPlayer,
 	): string {
-		this.lastRailPositionMoveCores = [];
+		AppleExtendedRailMoveCompat.consumeUpdated();
 		const validation = this.validateRailPositionMove(
 			core,
 			index,
@@ -144,10 +153,40 @@ export class SRBXApiCompat {
 		);
 		if (validation !== "ok") return validation;
 		const positions = AppleExtendedRailCompat.getLogicalPositions(core);
-		positions[index].setPosition(x, y, z);
-		core.relocateRail(positions);
-		this.lastRailPositionMoveCores.push(this.getRailCorePos(core));
-		return "ok";
+		const start = AppleExtendedRailMoveCompat.point(positions[0]);
+		const end = AppleExtendedRailMoveCompat.point(positions[1]);
+		const moved = index === 0 ? start : end;
+		moved.position = [x, y, z];
+		delete moved.ownerBlock;
+		return AppleExtendedRailMoveCompat.move(
+			core,
+			this.getRailPositionCandidateKey(core),
+			[positions[0].posX, positions[0].posY, positions[0].posZ],
+			[positions[1].posX, positions[1].posY, positions[1].posZ],
+			start,
+			end,
+			player,
+		);
+	}
+
+	static moveBuilderRail(
+		core: TileEntityLargeRailCore,
+		expectedKey: string,
+		originalStart: [number, number, number],
+		originalEnd: [number, number, number],
+		start: AppleExtendedBuilderPoint,
+		end: AppleExtendedBuilderPoint,
+		player?: net.minecraft.entity.player.EntityPlayer,
+	): string {
+		return AppleExtendedRailMoveCompat.move(
+			core,
+			expectedKey,
+			originalStart,
+			originalEnd,
+			start,
+			end,
+			player,
+		);
 	}
 
 	static validateRailPositionMoveAsNormal(
@@ -181,6 +220,7 @@ export class SRBXApiCompat {
 		x: number,
 		y: number,
 		z: number,
+		player?: net.minecraft.entity.player.EntityPlayer,
 	): string {
 		return this.moveRailPosition(
 			core,
@@ -191,6 +231,7 @@ export class SRBXApiCompat {
 			x,
 			y,
 			z,
+			player,
 		);
 	}
 

@@ -225,6 +225,15 @@ export class AppleExtendedRailToolsCompat {
 		this.lastCantUpdate = [];
 		const records = this.cantUndoRecords[token];
 		if (!records) return "nothing_to_undo";
+		// Reject a changed/occupied member before changing any saved cant.
+		for (let i = 0; i < records.length; i++) {
+			const validation = AppleExtendedRailCompat.validateUndoNormalRail(
+				world,
+				records[i].core,
+				records[i].railKey,
+			);
+			if (validation !== "ok") return validation;
+		}
 		for (let i = 0; i < records.length; i++) {
 			const core = AppleExtendedRailCompat.getCore(
 				world,
@@ -566,6 +575,15 @@ export class AppleExtendedRailToolsCompat {
 		const record = this.splitUndoRecords[token];
 		if (!record) return "nothing_to_undo";
 		const removed: CreatedRail[] = [];
+		// Validate the entire replacement set before removing either half.
+		for (let i = 0; i < record.created.length; i++) {
+			const validation = AppleExtendedRailCompat.validateUndoNormalRail(
+				world,
+				record.created[i].core,
+				record.created[i].key,
+			);
+			if (validation !== "ok") return validation;
+		}
 		for (let i = record.created.length - 1; i >= 0; i--) {
 			const result = AppleExtendedRailCompat.undoNormalRail(
 				world,
