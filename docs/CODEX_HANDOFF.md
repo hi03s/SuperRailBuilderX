@@ -128,7 +128,7 @@
 
 ## 直近の完了
 
-- 2026-10-03 ローカルCodex: AE生成unsupportedの原因はMod ID誤判定。実際の`applelib`へ修正し、AE/KaizPatchX/通常RTMのdispatchテストと警告0件のZIP生成成功。詳細は`docs/history/CODEX_HISTORY_2026-10.md`。
+- 2026-10-03 ローカルCodex: AE生成unsupportedの原因はMod ID誤判定。実際の`applelib`へ修正し、AE/KaizPatchX/通常RTMのdispatchテストと警告0件のZIP生成成功。修正`49126a6`を`origin/feature/appleextended-compat`へ同期済み。詳細は`docs/history/CODEX_HISTORY_2026-10.md`。
 
 - 2026-10-03 ローカルCodex: 描画patchのanyを構造型へ変更し、`pnpm zip`の警告65件を0件へ解消。評価されるパッチコードは完全一致、両include方式の回帰テスト成功。修正`dcb52b4`を`origin/feature/appleextended-compat`へ同期済み。詳細は`docs/history/CODEX_HISTORY_2026-10.md`。
 
