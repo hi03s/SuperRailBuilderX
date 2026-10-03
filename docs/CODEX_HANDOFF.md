@@ -28,7 +28,7 @@
 
 ### 分岐レール描画compatibility patch
 
-- AppleExtendedで起動時ログの`[SRBX rail patch] completed`を確認し、`failed=0`であることを確認する。
+- 修正版ZIPでAEのモデル構築が成功し、`[SRBX rail patch] source prepared: function serialization`と`completed`（`failed=0`）を確認する。KaizPatchXでもoffsetあり/なし分岐の描画を再確認する。
 - AppleExtendedで通常レール、offsetなし分岐、offsetあり分岐を表示し、offsetあり分岐の根元～中央と中央～終端がともにRailMapへ一致し、他2ケースの描画が変化しないことを確認する。
 - `exclude.json`へ実在するrenderer script pathを一時指定し`skipped: excluded`になること、AppleExtendedではモデルパックreload後に新しいEngineへ再適用されることを確認する。
 
@@ -125,6 +125,8 @@
     - 次はバックアップ済みワールドで`docs/rail-splitter.md`の実機確認を行う。
 
 ## 直近の完了
+
+- 2026-10-03 ローカルCodex: AEのinclude展開による描画patch文字列破損を修正。KaizPatchX/AE両方式の配布JS構文・描画補正テストと全ターゲットビルド成功。実機は再確認待ち。詳細は`docs/history/CODEX_HISTORY_2026-10.md`。
 
 - 2026-10-03 ローカルCodex: JitPack復旧後、未改造rtm-tsでAE v2.5.3取得・全4ターゲットの`pnpm gen`・`pnpm build`と描画patchテストが成功。詳細は`docs/history/CODEX_HISTORY_2026-10.md`。検証記録`56182c4`を`origin/feature/appleextended-compat`へ同期済み。
 

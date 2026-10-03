@@ -6,3 +6,4 @@ artifacts/
 /.tmp-kaizpatchx-source/
 /logs/latest.log
 /docs/instructions/
+/logs/crash-*.txt
