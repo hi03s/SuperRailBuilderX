@@ -24,7 +24,7 @@
 
 ## 作業中
 
-- ローカルCodex: 接続カント・複線生成再試行・Sectionゴースト・移動失敗時同期を実装済み。最終検証・コミット/push中。
+- なし。
 
 ## 優先確認事項
 
@@ -128,7 +128,7 @@
 
 ## 直近の完了
 
-- 2026-10-03 ローカルCodex: 接続/中央カント、分岐Undo、複線安全再試行、残存Sectionゴーストと失敗時Undo同期を修正。実機再検証待ち。詳細はdocs/history/CODEX_HISTORY_2026-10.md。
+- 2026-10-03 ローカルCodex: 接続/中央カント・分岐Undo・複線安全再試行・Sectionゴースト/失敗時同期を修正。警告0件ZIP・10回帰スイート・変更整形成功、実機待ち。`8b83fc2`を`origin/feature/appleextended-compat`へpush・同期済み。詳細はdocs/history/CODEX_HISTORY_2026-10.md。
 
 ## 関連資料
 

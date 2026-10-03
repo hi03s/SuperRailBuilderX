@@ -4,162 +4,79 @@
 [20:08:11] [Client thread/INFO] [NGT]: [SuperRailBuilderX cant] selected: railKey=section:26af02f5-e5cb-4df8-8a0f-5b8f563d0687, mode=edge, ratio=0, radius=1999.0385613837134, height=42, angle=-2.2558993445703304, yaw=3.2102737426757812
 [20:08:15] [Client thread/INFO] [NGT]: [SuperRailBuilderX cant] selected: railKey=section:26af02f5-e5cb-4df8-8a0f-5b8f563d0687, mode=edge, ratio=1, radius=111.37597336347271, height=105, angle=5.647431312812319, yaw=185.00013732910156
 [20:08:16] [Server thread/INFO] [NGT]: [SuperRailBuilderX cant] action=apply, result=ok
-[20:08:16] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��a[SuperRailBuilderX] �J���g��K�p���܂���
 [20:08:24] [Server thread/INFO] [NGT]: [SuperRailBuilderX cant] action=undo, result=undo_ok
-[20:08:24] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��a[SuperRailBuilderX] �J���g�����ɖ߂��܂���
 [20:08:30] [Client thread/INFO] [NGT]: [SuperRailBuilderX cant] selected: railKey=section:26af02f5-e5cb-4df8-8a0f-5b8f563d0687, mode=edge, ratio=0, radius=1999.0385613837134, height=42, angle=-2.2558993445703304, yaw=3.2102737426757812
 [20:08:31] [Server thread/INFO] [NGT]: [SuperRailBuilderX cant] action=apply, result=ok
-[20:08:31] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��a[SuperRailBuilderX] �J���g��K�p���܂���
 [20:08:42] [Client thread/INFO] [NGT]: [SuperRailBuilderX cant] selected: railKey=section:8d05f5aa-1443-45c9-bdb9-4add9b1962e1, mode=center, ratio=0.5, radius=1289.9603297561735, height=65, angle=-3.4925332651264838, yaw=2.401944160461426
 [20:08:43] [Server thread/INFO] [NGT]: [SuperRailBuilderX cant] action=apply, result=invalid_endpoint
-[20:08:43] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��c[SuperRailBuilderX] �������s: invalid_endpoint
 [20:08:48] [Client thread/INFO] [NGT]: [SuperRailBuilderX cant] selected: railKey=section:8d05f5aa-1443-45c9-bdb9-4add9b1962e1, mode=edge, ratio=0, radius=420.30084321887193, height=105, angle=-5.647431312812319, yaw=0.6456623077392578
 [20:08:49] [Server thread/INFO] [NGT]: [SuperRailBuilderX cant] action=apply, result=ok
-[20:08:49] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��a[SuperRailBuilderX] �J���g��K�p���܂���
 [20:08:55] [Client thread/INFO] [NGT]: [SuperRailBuilderX cant] selected: railKey=section:26af02f5-e5cb-4df8-8a0f-5b8f563d0687, mode=edge, ratio=0, radius=1999.0385613837134, height=42, angle=-2.2558993445703304, yaw=3.2102737426757812
 [20:08:56] [Server thread/INFO] [NGT]: [SuperRailBuilderX cant] action=apply, result=ok
-[20:08:56] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��a[SuperRailBuilderX] �J���g��K�p���܂���
 [20:08:59] [Client thread/INFO] [NGT]: [SuperRailBuilderX cant] selected: railKey=section:f7b59d31-41f9-45b0-91f9-96dac3d6200b, mode=edge, ratio=1, radius=1999.6240322707995, height=42, angle=-2.2558993445703304, yaw=3.2102737426757812
 [20:08:59] [Server thread/INFO] [NGT]: [SuperRailBuilderX cant] action=apply, result=ok
-[20:08:59] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��a[SuperRailBuilderX] �J���g��K�p���܂���
 [20:09:07] [Client thread/INFO] [NGT]: [SuperRailBuilderX cant] selected: railKey=section:9d44834e-3624-4907-aa5c-5958e6ebc9e3, mode=center, ratio=0.5, radius=1304.9782681991394, height=64, angle=3.4387368695054206, yaw=-177.5744171142578
 [20:09:08] [Client thread/INFO] [NGT]: [SuperRailBuilderX cant] selected: railKey=section:f7b59d31-41f9-45b0-91f9-96dac3d6200b, mode=edge, ratio=1, radius=1999.6240322707995, height=42, angle=-2.2558993445703304, yaw=3.2102737426757812
 [20:09:10] [Client thread/INFO] [NGT]: [SuperRailBuilderX cant] selected: railKey=section:9d44834e-3624-4907-aa5c-5958e6ebc9e3, mode=edge, ratio=1, radius=418.1321972184048, height=105, angle=-5.647431312812319, yaw=0.6456623077392578
 [20:09:11] [Server thread/INFO] [NGT]: [SuperRailBuilderX cant] action=apply, result=invalid_endpoint
-[20:09:11] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��c[SuperRailBuilderX] �������s: invalid_endpoint
-[20:09:34] [Client thread/INFO] [NGT]: [SuperRailBuilderX branch] split selected: railKey=section:9c654ab9-186d-4ffd-b6b9-f9923bda65f7, ratio=1, endpoint=true, endpointOptions=1
-[20:09:37] [Client thread/INFO] [NGT]: [SuperRailBuilderX branch] base resolved: railKey=section:9c654ab9-186d-4ffd-b6b9-f9923bda65f7, extensionYaw=188.58846014635557, inwardYaw=196.31471140299058
 [20:09:38] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] switch initialized: root=1326,4,-1468, positions=3, version=1
 [20:09:38] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=true, sectioned=false, positions=3
 [20:09:38] [Server thread/INFO] [NGT]: [SuperRailBuilderX branch] action=create, result=ok
-[20:09:38] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��a[SuperRailBuilderX] ���򃌁[���𐶐����܂���
 [20:09:41] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
 [20:09:41] [Server thread/INFO] [NGT]: [SuperRailBuilderX branch] action=undo, result=undo_cant_restore_failed
-[20:09:41] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��c[SuperRailBuilderX] �������s: undo_cant_restore_failed
 [20:09:45] [Server thread/INFO] [NGT]: [SuperRailBuilderX branch] action=undo, result=undo_rail_changed
-[20:09:45] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��c[SuperRailBuilderX] �������s: undo_rail_changed
 [20:09:46] [Server thread/INFO] [NGT]: [SuperRailBuilderX branch] action=undo, result=undo_rail_changed
-[20:09:46] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��c[SuperRailBuilderX] �������s: undo_rail_changed
 [20:09:46] [Server thread/INFO] [NGT]: [SuperRailBuilderX branch] action=undo, result=undo_rail_changed
-[20:09:46] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��c[SuperRailBuilderX] �������s: undo_rail_changed
 [20:09:47] [Server thread/INFO] [NGT]: [SuperRailBuilderX branch] action=undo, result=undo_rail_changed
-[20:09:47] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��c[SuperRailBuilderX] �������s: undo_rail_changed
-[20:10:04] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��a[SuperRailBuilderX] �����ʒu���m�肵�܂����BEnter�Ő������܂�
-[20:10:05] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] [SuperRailBuilderX] �����𐶐���...
 [20:10:05] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation not confirmed: apiResult=false, positions=2, root=1344,4,-1454, existingCore=false
 [20:10:05] [Server thread/INFO] [NGT]: [SuperRailBuilderX double-track-copy] creation failed: plan=1/4, sourceKey=section:5b4b6586-ff88-4469-a68d-dfccca4207a9, sourceCore=1346,4,-1476, start=1342.598,4.063,-1475.568, end=1344.515,4.063,-1453.651, created=0, result=create_failed
 [20:10:05] [Server thread/INFO] [NGT]: [SuperRailBuilderX double-track-copy] request completed: action=create, result=create_failed
-[20:10:05] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��c[SuperRailBuilderX] �������s: create_failed
-[20:10:08] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] [SuperRailBuilderX] �����Ԋu: 4.0 m
-[20:11:49] [Client thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] candidate scan: look=1330.272,4.000,-1473.904, candidates=0, railTiles=25, uniqueCores=10, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=20, errors=0
-[20:11:49] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��e[SuperRailBuilderX] �ړ��\�ȃ��[����������܂���
-[20:11:52] [Client thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] candidate scan: look=1318.484,4.063,-1495.250, candidates=2, railTiles=27, uniqueCores=10, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=18, errors=0
-[20:11:53] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] [SuperRailBuilderX] �ړ��E�Đ�����...
-[20:11:53] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] applying connected endpoint: targets=2
 [20:11:53] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
 [20:11:53] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:7cc47965-d57a-43a7-b167-ca5f5e306828, newKey=section:a11bbbba-ccff-48be-87f4-632e4215cb98, cores=3
 [20:11:53] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
 [20:11:53] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:2d46e54d-37af-4863-8226-dbb5c4daf695, newKey=section:b0e4d961-1abd-437a-a4a5-859e3ecf8962, cores=3
-[20:11:53] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] endpoint undo recorded: operations=2
 [20:11:53] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=move, mode=endpoint, result=ok
-[20:11:53] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��a[SuperRailBuilderX] �ړ��E�Đ������܂���
-[20:12:00] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] [SuperRailBuilderX] Undo...
 [20:12:00] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
 [20:12:00] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:b0e4d961-1abd-437a-a4a5-859e3ecf8962, newKey=section:6b6ad835-ef5f-4551-af9e-2cdf6efcb422, cores=3
 [20:12:00] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=undo, mode=undo, result=undo_0:rail_overlap
-[20:12:01] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��c[SuperRailBuilderX] �K�p���s: undo_0:rail_overlap
-[20:12:09] [Client thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] candidate scan: look=1324.502,4.000,-1482.944, candidates=0, railTiles=27, uniqueCores=13, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=26, errors=0
-[20:12:11] [Client thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] candidate scan: look=1324.340,4.000,-1481.897, candidates=0, railTiles=27, uniqueCores=13, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=26, errors=0
-[20:12:11] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] [SuperRailBuilderX] �ړ��E�Đ�����...
 [20:12:11] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=move, mode=parallel_multi, result=parallel_0:rail_not_found
-[20:12:11] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��c[SuperRailBuilderX] �K�p���s: parallel_0:rail_not_found
-[20:13:00] [Client thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] candidate scan: look=1320.461,4.063,-1496.260, candidates=1, railTiles=26, uniqueCores=10, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=19, errors=0
-[20:13:09] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] [SuperRailBuilderX] 0.1m�X�i�b�v: ON
-[20:13:13] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] [SuperRailBuilderX] �ړ��E�Đ�����...
-[20:13:13] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] applying connected endpoint: targets=1
 [20:13:13] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] connected endpoint apply failed: target=0, applied=0, result=rail_overlap
 [20:13:13] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=move, mode=endpoint, result=target_0:rail_overlap
-[20:13:13] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��c[SuperRailBuilderX] �K�p���s: target_0:rail_overlap
-[20:13:15] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] [SuperRailBuilderX] �ړ��E�Đ�����...
-[20:13:15] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] applying connected endpoint: targets=1
 [20:13:15] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
 [20:13:15] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:a11bbbba-ccff-48be-87f4-632e4215cb98, newKey=section:4b1ead8c-d13e-4c1d-8f63-7a7f50a1d226, cores=4
-[20:13:15] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] endpoint undo recorded: operations=1
 [20:13:15] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=move, mode=endpoint, result=ok
-[20:13:15] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��a[SuperRailBuilderX] �ړ��E�Đ������܂���
-[20:13:19] [Client thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] candidate scan: look=1313.955,4.063,-1509.048, candidates=0, railTiles=26, uniqueCores=12, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=24, errors=0
-[20:13:20] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] [SuperRailBuilderX] �ړ��E�Đ�����...
 [20:13:21] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation not confirmed: apiResult=false, positions=2, root=1319,4,-1498, existingCore=false
 [20:13:21] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
 [20:13:21] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] rebuild failed, original logical rail restored
 [20:13:21] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=move, mode=parallel_multi, result=parallel_0:move_failed_rolled_back
-[20:13:21] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��c[SuperRailBuilderX] �K�p���s: parallel_0:move_failed_rolled_back
-[20:13:24] [Client thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] candidate scan: look=1314.257,4.063,-1509.164, candidates=0, railTiles=26, uniqueCores=12, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=24, errors=0
-[20:13:25] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] [SuperRailBuilderX] �ړ��E�Đ�����...
 [20:13:25] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
 [20:13:25] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:0e3b3aa9-2f38-44af-88e5-ae02309128c9, newKey=section:42aa790f-7d06-4319-bd7c-6f0acc4c47d9, cores=3
-[20:13:25] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] parallel undo recorded: operations=1
-[20:13:25] [Server thread/INFO] [NGT]: [SuperRailBuilderX/RailMover] parallel multi undo recorded: plans=1, operations=1
 [20:13:25] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=move, mode=parallel_multi, result=ok
-[20:13:25] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��a[SuperRailBuilderX] �ړ��E�Đ������܂���
-[20:13:26] [Client thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] candidate scan: look=1319.429,4.063,-1511.083, candidates=0, railTiles=25, uniqueCores=12, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=24, errors=0
-[20:13:28] [Client thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] candidate scan: look=1318.754,4.063,-1511.707, candidates=0, railTiles=25, uniqueCores=12, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=24, errors=0
-[20:13:29] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] [SuperRailBuilderX] �ړ��E�Đ�����...
 [20:13:29] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
 [20:13:29] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:42aa790f-7d06-4319-bd7c-6f0acc4c47d9, newKey=section:918f58f4-24a6-47fd-88bf-6d07f0c4959e, cores=3
-[20:13:29] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] parallel undo recorded: operations=1
-[20:13:29] [Server thread/INFO] [NGT]: [SuperRailBuilderX/RailMover] parallel multi undo recorded: plans=1, operations=1
 [20:13:29] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=move, mode=parallel_multi, result=ok
-[20:13:29] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��a[SuperRailBuilderX] �ړ��E�Đ������܂���
-[20:13:36] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] [SuperRailBuilderX] Undo...
 [20:13:36] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
 [20:13:36] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:918f58f4-24a6-47fd-88bf-6d07f0c4959e, newKey=section:6a02ed72-0bb5-4ae7-a541-a9b8fc4d763c, cores=3
 [20:13:36] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=undo, mode=undo, result=undo_ok
-[20:13:36] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��a[SuperRailBuilderX] �ړ��O�̏�Ԃ֖߂��܂���
-[20:13:40] [Client thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] candidate scan: look=1321.747,4.063,-1501.804, candidates=0, railTiles=26, uniqueCores=10, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=20, errors=0
-[20:13:41] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] [SuperRailBuilderX] �ړ��E�Đ�����...
 [20:13:41] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
 [20:13:41] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:6a02ed72-0bb5-4ae7-a541-a9b8fc4d763c, newKey=section:d96be8be-bf9a-4055-b212-f99751114045, cores=3
-[20:13:41] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] parallel undo recorded: operations=1
-[20:13:41] [Server thread/INFO] [NGT]: [SuperRailBuilderX/RailMover] parallel multi undo recorded: plans=1, operations=1
 [20:13:41] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=move, mode=parallel_multi, result=ok
-[20:13:42] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��a[SuperRailBuilderX] �ړ��E�Đ������܂���
-[20:13:43] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] [SuperRailBuilderX] Undo...
 [20:13:43] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
 [20:13:43] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:d96be8be-bf9a-4055-b212-f99751114045, newKey=section:2e49069c-c835-4324-b0da-9ff3b86ca7f3, cores=3
 [20:13:43] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=undo, mode=undo, result=undo_ok
-[20:13:43] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��a[SuperRailBuilderX] �ړ��O�̏�Ԃ֖߂��܂���
-[20:13:44] [Client thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] candidate scan: look=1321.225,4.063,-1503.961, candidates=0, railTiles=26, uniqueCores=10, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=20, errors=0
-[20:13:45] [Client thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] candidate scan: look=1320.955,4.063,-1503.396, candidates=0, railTiles=26, uniqueCores=10, missingCores=0, unsupportedCores=0, sectionedCores=0, switchCores=0, invalidPositions=0, outOfRangePositions=20, errors=0
-[20:13:46] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] [SuperRailBuilderX] �ړ��E�Đ�����...
 [20:13:46] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
 [20:13:46] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:2e49069c-c835-4324-b0da-9ff3b86ca7f3, newKey=section:8c5b6906-006f-4c6e-b055-2a8cf9bf0399, cores=3
-[20:13:46] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] parallel undo recorded: operations=1
-[20:13:46] [Server thread/INFO] [NGT]: [SuperRailBuilderX/RailMover] parallel multi undo recorded: plans=1, operations=1
 [20:13:46] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=move, mode=parallel_multi, result=ok
-[20:13:46] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��a[SuperRailBuilderX] �ړ��E�Đ������܂���
-[20:13:47] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] [SuperRailBuilderX] Undo...
 [20:13:47] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
 [20:13:47] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:8c5b6906-006f-4c6e-b055-2a8cf9bf0399, newKey=section:a6b7f108-fefc-4cfe-8dcd-d284e046e601, cores=3
 [20:13:47] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=undo, mode=undo, result=undo_ok
-[20:13:47] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��a[SuperRailBuilderX] �ړ��O�̏�Ԃ֖߂��܂���
-[20:13:57] [Client thread/INFO] [NGT]: [SuperRailBuilderX branch] split selected: railKey=section:8d05f5aa-1443-45c9-bdb9-4add9b1962e1, ratio=1, endpoint=true, endpointOptions=2
-[20:14:05] [Client thread/INFO] [NGT]: [SuperRailBuilderX branch] split selected: railKey=section:6b6ad835-ef5f-4551-af9e-2cdf6efcb422, ratio=0.7068965517241379, endpoint=false, endpointOptions=0
-[20:14:06] [Client thread/INFO] [NGT]: [SuperRailBuilderX branch] base resolved: railKey=section:6b6ad835-ef5f-4551-af9e-2cdf6efcb422, extensionYaw=214.3085409932038, inwardYaw=undefined
 [20:14:06] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
 [20:14:06] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
 [20:14:06] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] switch initialized: root=1324,4,-1476, positions=3, version=1
 [20:14:06] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=true, sectioned=false, positions=3
 [20:14:06] [Server thread/INFO] [NGT]: [SuperRailBuilderX branch] action=create, result=ok
-[20:14:06] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��a[SuperRailBuilderX] ���򃌁[���𐶐����܂���
-[20:14:10] [Client thread/INFO] [NGT]: [SuperRailBuilderX branch] split selected: railKey=section:f32a19d2-ce7c-42b3-9df7-4d7cbba6ffef, ratio=1, endpoint=true, endpointOptions=1
-[20:14:12] [Client thread/INFO] [NGT]: [SuperRailBuilderX branch] split selected: railKey=section:f32a19d2-ce7c-42b3-9df7-4d7cbba6ffef, ratio=0, endpoint=true, endpointOptions=1
-[20:14:16] [Client thread/INFO] [NGT]: [SuperRailBuilderX branch] split selected: railKey=section:a6b7f108-fefc-4cfe-8dcd-d284e046e601, ratio=0, endpoint=true, endpointOptions=1
-[20:14:17] [Client thread/INFO] [NGT]: [SuperRailBuilderX branch] base resolved: railKey=section:a6b7f108-fefc-4cfe-8dcd-d284e046e601, extensionYaw=202.85007384384116, inwardYaw=196.20089152850116
 [20:14:18] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] switch initialized: root=1322,4,-1499, positions=3, version=1
 [20:14:18] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=true, sectioned=false, positions=3
 [20:14:18] [Server thread/INFO] [NGT]: [SuperRailBuilderX branch] action=create, result=ok
-[20:14:18] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��a[SuperRailBuilderX] ���򃌁[���𐶐����܂���
 [20:14:19] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
 [20:14:19] [Server thread/INFO] [NGT]: [SuperRailBuilderX branch] action=undo, result=undo_ok
-[20:14:19] [Client thread/INFO] [net.minecraft.client.gui.GuiNewChat]: [CHAT] ��a[SuperRailBuilderX] ���򐶐��O�֖߂��܂���

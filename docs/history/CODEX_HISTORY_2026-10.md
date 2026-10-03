@@ -96,3 +96,4 @@
 - 旧代表コアが新groupへ置換されると旧位置だけを見たghost除去が早期returnする。クライアント限定でロード済み現存Sectionを旧論理キーにより探索し、置換された新group/無効な旧tile参照を削除しない。world.loadedTileEntityListは型を通じfield_147482_gへ変換する。
 - 移動失敗時のrollbackも新group identityになる。共通moverで更新コアがある失敗の旧キー除去を通知し、Undo記録を復元後のキーへ更新、クライアントの古い選択を解除する。他ターゲットでワールド変更前に拒否し更新コアなしのケースには影響しない。rail_overlap保護は解除していない。
 - 実行済み: pnpm zip（全4ターゲット・警告0・87ファイル）、test:appleextended（7スイート: 接続同向/逆向・論理重複除外・中央・全Section NBT伝播・部分生成時非破壊拒否・通常再試行・置換代表位置ゴースト・サーバー除去抑止・rollback同期/Undo再試行を含む）、test:input、test:rail-patch、test:runtime-dispatch、変更TS/テスト/package.jsonのPrettier確認、git diff --check。生成JSのfield_147482_g/func_175625_s変換を確認。全体format:checkは未変更の既知9ファイル差分があり再実行しない。Minecraft/AE/KaizPatchX実機は未実施。バックアップ済みAEワールドで接続カント両側/中央→Undo、複線複数コピー→Undo、接続2本移動→Undo、一部失敗後の再選択・再Undo・ゴースト・再ログイン/走行を確認する。失敗時は操作順/時刻とlogs/latest.logを格納する。rtm-tsと参照toolkitは未変更。
+- コミット `8b83fc2` を `origin/feature/appleextended-compat` へpush済み。HEADとoriginの差分0/0を確認。ユーザーの未追跡gui_base.xcfを保持。
