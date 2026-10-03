@@ -6,12 +6,15 @@ import {
 } from "jp.ngt.rtm.rail";
 import { ItemRail } from "jp.ngt.rtm.item";
 import { ResourceStateRail } from "jp.ngt.rtm.modelpack.state";
-import { RailMapBasic, RailPosition } from "jp.ngt.rtm.rail.util";
+import { RailMap, RailMapBasic, RailPosition } from "jp.ngt.rtm.rail.util";
 import { EntityPlayer } from "net.minecraft.entity.player";
 import { BlockPos } from "net.minecraft.util.math";
 import { World } from "net.minecraft.world";
 import { ArrayList } from "java.util";
 import { TileEntityLargeRailSectionCore } from "jp.apple.rail";
+import { RailChunkSectioner, RailMapSection } from "jp.apple.rail.util";
+import { AppleExtendedSwitchCompat } from "./AppleExtendedSwitchCompat";
+import { AppleExtendedRailProtection } from "./AppleExtendedRailProtection";
 import { NGTLog } from "jp.ngt.ngtlib.io";
 
 type RailCorePos = [number, number, number];
@@ -256,32 +259,136 @@ export class AppleExtendedRailCompat {
 		const ordered = positions.slice();
 		if (ordered.length === 2 && ordered[0].posY > ordered[1].posY)
 			ordered.reverse();
-		const list = new ArrayList<RailPosition>();
-		for (let i = 0; i < ordered.length; i++) list.add(ordered[i]);
 		// Match AE's actual core owner, including the equal-block-height case.
 		// The public API chooses the second endpoint when blockY is equal.
-		const root =
+		let root =
 			ordered.length === 2
 				? ordered[0].blockY >= ordered[1].blockY
 					? ordered[1]
 					: ordered[0]
-				: list.get(0);
+				: ordered[0];
+		let creationProperty = property;
+		if (ordered.length === 2 && property.autoSplit) {
+			const end = root === ordered[0] ? ordered[1] : ordered[0];
+			const sections = RailChunkSectioner.split(
+				new RailMapBasic(
+					root,
+					end,
+					RailMapBasic.fixRTMRailMapVersionCurrent,
+				),
+			);
+			if (sections.size() > 1) {
+				let collision = false;
+				const owners: { [key: string]: boolean } = {};
+				for (let i = 0; i < sections.size(); i++) {
+					const owner = sections.get(i).getStartRP();
+					const key = `${owner.blockX},${owner.blockY},${owner.blockZ}`;
+					if (owners[key] || this.corePlacementBlocked(world, owner))
+						collision = true;
+					owners[key] = true;
+				}
+				if (collision) {
+					creationProperty = ItemRail.getDefaultProperty();
+					creationProperty.readFromNBT(property.writeToNBT());
+					creationProperty.autoSplit = false;
+					NGTLog.debug(
+						"[SuperRailBuilderX AE] section owner collision: using normal rail to protect existing logical rails",
+					);
+				} else {
+					// Sectioner may round an offset logical endpoint to a different owner.
+					root = sections.get(0).getStartRP();
+				}
+			}
+		}
+		if (this.corePlacementBlocked(world, root)) {
+			const other =
+				ordered.length === 2 && ordered[0].blockY === ordered[1].blockY
+					? root === ordered[0]
+						? ordered[1]
+						: ordered[0]
+					: null;
+			if (other && !this.corePlacementBlocked(world, other)) {
+				creationProperty = ItemRail.getDefaultProperty();
+				creationProperty.readFromNBT(property.writeToNBT());
+				creationProperty.autoSplit = false;
+				ordered.reverse();
+				root = other;
+			} else {
+				NGTLog.debug(
+					`[SuperRailBuilderX AE] creation blocked: protected rail owner at ${root.blockX},${root.blockY},${root.blockZ}`,
+				);
+				return null;
+			}
+		}
+		const list = new ArrayList<RailPosition>();
+		for (let i = 0; i < ordered.length; i++) list.add(ordered[i]);
 		const before = this.getCore(world, [
 			root.blockX,
 			root.blockY,
 			root.blockZ,
 		]);
 		// AE v2.5.3 discards the internal result and always returns false.
-		const apiResult = BlockMarker.createRail(
+		let apiResult = false;
+		const placementMaps: RailMap[] = [];
+		if (ordered.length === 2) {
+			const start =
+				ordered[0].blockY >= ordered[1].blockY
+					? ordered[1]
+					: ordered[0];
+			const end = start === ordered[0] ? ordered[1] : ordered[0];
+			const map = new RailMapBasic(
+				start,
+				end,
+				RailMapBasic.fixRTMRailMapVersionCurrent,
+			);
+			placementMaps.push(map);
+			if (creationProperty.autoSplit) {
+				const sections = RailChunkSectioner.split(map);
+				if (sections.size() > 1)
+					for (let i = 0; i < sections.size(); i++) {
+						const section = sections.get(i);
+						placementMaps.push(
+							new RailMapSection(
+								map,
+								section.getStartRP(),
+								section.getEndRP(),
+								section.getStartRatio(),
+								section.getEndRatio(),
+							),
+						);
+					}
+			}
+		}
+		const protectedRoadbeds = AppleExtendedRailProtection.capture(
 			world,
-			root.blockX,
-			root.blockY,
-			root.blockZ,
-			list,
-			property,
-			true,
-			player.capabilities.isCreativeMode,
+			placementMaps,
+			creationProperty,
 		);
+		try {
+			apiResult =
+				ordered.length > 2
+					? AppleExtendedSwitchCompat.create(
+							world,
+							player,
+							ordered,
+							creationProperty,
+						)
+					: BlockMarker.createRail(
+							world,
+							root.blockX,
+							root.blockY,
+							root.blockZ,
+							list,
+							creationProperty,
+							true,
+							player.capabilities.isCreativeMode,
+						);
+		} catch (error) {
+			NGTLog.debug(`[SuperRailBuilderX AE] creation exception: ${error}`);
+			return null;
+		} finally {
+			AppleExtendedRailProtection.restore(world, protectedRoadbeds);
+		}
 		const core = this.getCore(world, [
 			root.blockX,
 			root.blockY,
@@ -301,6 +408,17 @@ export class AppleExtendedRailCompat {
 			core: [pos.getX(), pos.getY(), pos.getZ()],
 			key: this.coreKey(core),
 		};
+	}
+
+	private static corePlacementBlocked(
+		world: World,
+		owner: RailPosition,
+	): boolean {
+		const tile = world.getTileEntity(
+			new BlockPos(owner.blockX, owner.blockY, owner.blockZ),
+		);
+		// Replacing even a foreign roadbed calls breakBlock -> breakLogicalRail.
+		return tile instanceof TileEntityLargeRailBase && !!tile.getRailCore();
 	}
 
 	private static propertyFromSource(

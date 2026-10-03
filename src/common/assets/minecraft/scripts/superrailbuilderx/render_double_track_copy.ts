@@ -717,6 +717,7 @@ function handleResult(
 			"§a[SuperRailBuilderX] 複線を生成しました",
 		);
 	} else if (result === "undo_ok" && pendingAction === "undo") {
+		dataMap.setBoolean("doubleTrackCopyCanUndo", false, 0);
 		const removed =
 			NGTOBuilderUtil.getJsonData<
 				Array<{ core: RailCorePos; key: string }>
@@ -900,7 +901,11 @@ function handleInput(
 			);
 		}
 	}
-	if (!state.awaitingResult && keys.pressed("undo")) {
+	if (
+		!state.awaitingResult &&
+		keys.pressed("undo") &&
+		dataMap.getBoolean("doubleTrackCopyCanUndo")
+	) {
 		sendRequest(entity, state, { action: "undo" });
 		NGTLog.sendChatMessage(sender, "[SuperRailBuilderX] Undo...");
 	}

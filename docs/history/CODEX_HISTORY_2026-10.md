@@ -75,3 +75,14 @@
 - 実行済み: pnpm zip（全4ターゲット、警告0）、test:appleextended（生成所有端点/論理選択/移動成功・復元成功/復元失敗/欠損group/占有・変更拒否/Undo全対象事前検証）、test:input（左右Ctrl・押下瞬間）、test:rail-patch、test:runtime-dispatch、変更TSのPrettier確認、git diff --check。
 - pnpm format:checkは今回未変更の既存9ファイルの整形差分で失敗。今回変更TSは整形確認成功。rtm-tsと参照toolkitは変更していない。
 - 未実施: Minecraft/AE/KaizPatchX実機再検証。バックアップ済みワールドで各ツールの選択→適用→左右Ctrl+Z、移動失敗復元、走行・再ログインを確認。失敗時は機能・操作順・時刻とlogs/latest.logを提出し、AE move診断を含め調べる。以前の失敗生成でUndo記録がないレールは新しいUndo入力だけで復元できない。
+
+## 2026-10-03 ローカルCodex: AE既設道床保護・カント/分岐・空Undo修正
+
+- 19:37～19:42 latest.logを必要範囲へ絞り、生成・分割/移動Undo成功、空Undo、複線一部失敗、カントsetTag TypeError、分岐BlockMarker:296 NPEを確認。`logs/appleextended-roadbed-cant-branch-retest-20261003.log`へ抜粋し、生ログは追加しない。
+- 未選択接続レール消失のため調査を広げ、AE公式v2.5.3ソース/dev JARでBlockLargeRailBase.breakBlockが元コア.breakLogicalRailを呼ぶことを確認。Section所有位置に他レールの道床があると新コアへの置換が他レールを削除する。全Section所有位置を事前検査し、競合時はモデルを複製して通常生成へフォールバック。通常所有位置も保護し、同高の空いている反対端点を使える場合だけ変更し、両端とも競合なら生成前拒否。
+- AE標準配置は同一baseブロックでもsetStartPointを変更するため、既設道床所有先を退避・finally復元する共通保護helperを追加。分割/Undo/移動/複線/分岐でも共通生成経由で保護する。複線の成功確認は論理RPではなくRailChunkSectionerの実際の最初の所有位置を使う。
+- カントsetTagの第2引数にNBTBaseを指定し、生成JSのfunc_74782_a変換を確認。単なるNBTTagCompound変数注釈/引数castでは変換されず、新しいSRGのみのテストが検出した。
+- 分岐はfinal switchType代入が無効となりRailMakerが種別判定不能、public marker APIのnull playerへ到達していた。SwitchType NBTから再生成し、線形/配置/既設道床所有位置を事前検証して公開APIで生成。protected fixRTMRailMapVersionとRP/Stateを正規NBTで初期化し、直接フィールド代入をしない。
+- 空Undo要求は前回除去した可否フラグのゲートを全6ツールへ戻し、単回Undo成功時にクライアントもfalseへ更新。カント複数Undoの残履歴はサーバー判定のまま。左右Ctrl対応を維持する。
+- 実行済み: pnpm zip（全4ターゲット、警告0、87ファイル）、test:appleextended（既設道床競合/実Section所有位置/両端保護時非破壊拒否/成功と例外時の道床所有復元、SRG-only NBT、final/protected Javaフィールド、分岐事前拒否/生成、既存選択/移動/復元/Undo検証）、test:input、test:rail-patch、test:runtime-dispatch、変更TSのPrettier確認とgit diff --check。全体整形は前回確認済みの未変更9ファイル差分が残るため再実行しない。
+- 未実施: Minecraft/AE/KaizPatchX実機再検証。バックアップワールドで接続レール分割→Undoと未選択レール保護、複線複数生成、カント適用→複数Undo、中央/端点分岐→Undo、空履歴Ctrl+Z無反応を確認。旧版で既に消失したレールをこのコード変更だけで復元することはできない。失敗時は操作順・時刻とlogs/latest.logを共有する。rtm-ts・参照toolkitは未変更。

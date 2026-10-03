@@ -24,7 +24,6 @@
 
 ## 作業中
 
-
 ## 優先確認事項
 
 ### 分岐レール描画compatibility patch
@@ -54,11 +53,11 @@
 
 ### AppleExtended
 
-- 19:12～19:15の実機ログで生成/分割失敗とSection選択拒否を確認し、生成コア所有端点をAEと一致させ、選択理由コードを修正。Undo要求はログに無く原因未確定のため、左右Ctrl対応とクライアント可否フラグのゲートを除去。新規生成→Ctrl+Z、分割→Ctrl+Z、分岐/カント選択・適用→Ctrl+Zを再確認する。
+- 19:37～19:42再テストで生成・分割/移動Undo成功を確認。空Undoを可否フラグで抑止し、複線は実Sectionコア位置を確認する。既設道床/コアを新コアへ置換せず、共有道床所有先を維持する修正を追加。接続レールの分割・Undo後に未選択レールが残ることを再確認する。
 
 - バックアップ済みワールドで通常/自動分割レールの端点・全体移動、失敗時復元、Ctrl+Z、再ログイン後の永続化・描画・走行を確認する。
 - レール生成Aと複線コピーでチャンク境界をまたぐ自動分割レールの生成・接続・モデル継承・走行・Undoを確認する。
-- 自動分割レールの分割・Undo、中央/端点分岐・切替・両経路走行・Undo、全Sectionへのカント反映・Undoを確認する。失敗時は操作時刻と`[SuperRailBuilderX`を含むログを共有する。
+- カントNBTのsetTag未変換と分岐のfinal switchType代入/null player例外を修正。全Sectionのカント適用・複数Undo、中央/端点分岐・走行・Undoを再確認する。安全なコア位置がない場合は生成前に拒否する。失敗時は時刻と`[SuperRailBuilderX`を含む`logs/latest.log`を共有する。
 - AE移動はSection単体の`relocateRail`を使わない。group欠損/未ロード・占有・変更検証とモデル/信号/サブレール復元を備える。分岐レール自体の移動は未対応。失敗時は`[SuperRailBuilderX AE move]`を含む`logs/latest.log`を共有する。
 
 ## 次に行うこと
@@ -133,9 +132,6 @@
 
 - 2026-10-03 ローカルCodex: AE生成APIの常時falseをコア確認で補い、論理RailMap overrideとnullガード、bootstrapのSRG変換を修正。型生成・警告0件ZIP・3回帰テスト成功。修正`25609e2`を`origin/feature/appleextended-compat`へ同期済み。詳細は`docs/history/CODEX_HISTORY_2026-10.md`。
 
-- 2026-10-03 ローカルCodex: AE生成unsupportedの原因はMod ID誤判定。実際の`applelib`へ修正し、AE/KaizPatchX/通常RTMのdispatchテストと警告0件のZIP生成成功。修正`49126a6`を`origin/feature/appleextended-compat`へ同期済み。詳細は`docs/history/CODEX_HISTORY_2026-10.md`。
-
-- 2026-10-03 ローカルCodex: AE v2.5.3対応とorigin/main統合（4335698・cdca589）。rtm-tsパッチは撤回し、未改造のrtm-tsで全4ターゲットのビルド・描画patchテスト成功。当初のJitPack取得障害は上記の再検証で解消。実機確認は未完了。詳細は`docs/history/CODEX_HISTORY_2026-10.md`。撤回・検証記録`87d1947`まで`origin/feature/appleextended-compat`へpush・同期済み。
 ## 関連資料
 
 | 対象                   | ファイル                                       |

@@ -7,7 +7,7 @@ import { ResourceStateRail } from "jp.ngt.rtm.modelpack.state";
 import { RailPosition } from "jp.ngt.rtm.rail.util";
 import { TileEntityLargeRailSectionCore } from "jp.apple.rail";
 import { EntityPlayer } from "net.minecraft.entity.player";
-import { NBTTagCompound } from "net.minecraft.nbt";
+import { NBTBase, NBTTagCompound } from "net.minecraft.nbt";
 import { BlockPos } from "net.minecraft.util.math";
 import { World } from "net.minecraft.world";
 import { UUID } from "java.util";
@@ -96,9 +96,16 @@ export class AppleExtendedRailToolsCompat {
 					continue;
 				const nbt = new NBTTagCompound();
 				member.writeSectionData(nbt);
-				const section = nbt.getCompoundTag("RailSection");
-				section.setTag("LogicalStartRP", target[0].writeToNBT());
-				section.setTag("LogicalEndRP", target[1].writeToNBT());
+				const section: NBTTagCompound =
+					nbt.getCompoundTag("RailSection");
+				section.setTag(
+					"LogicalStartRP",
+					target[0].writeToNBT() as NBTBase,
+				);
+				section.setTag(
+					"LogicalEndRP",
+					target[1].writeToNBT() as NBTBase,
+				);
 				member.readSectionData(nbt);
 				member.createRailMap();
 				member.shouldRerenderRail = true;
@@ -612,8 +619,11 @@ export class AppleExtendedRailToolsCompat {
 		source: RailPosition,
 		switchType: number,
 	): RailPosition {
-		const result = AppleExtendedRailCompat.cloneRailPosition(source);
-		result.switchType = switchType;
+		// AE's switchType is a final Java field. Recreate it through NBT rather
+		// than assigning a field that Nashorn cannot change.
+		const nbt: NBTTagCompound = source.writeToNBT();
+		nbt.setByte("SwitchType", switchType);
+		const result = RailPosition.readFromNBT(nbt);
 		result.cantEdge = 0;
 		result.cantCenter = 0;
 		result.cantRandom = 0;

@@ -623,6 +623,7 @@ function handleResult(sender: ICommandSender, e: EntityVehicle, s: State) {
 		r = d.getString("branchBuilderResult");
 	if (!s.awaiting || !s.pending || !r || r === "waiting") return;
 	s.awaiting = false;
+	if (r === "undo_ok") d.setBoolean("branchBuilderCanUndo", false, 0);
 	const u = NGTOBuilderUtil.getJsonData<BranchClientUpdate>(
 		d,
 		"branchBuilderClientUpdate",
@@ -867,7 +868,12 @@ function input(
 			};
 		send(e, s, { action: "create", plan: request });
 	}
-	if (keys.pressed("undo") && !s.awaiting) send(e, s, { action: "undo" });
+	if (
+		keys.pressed("undo") &&
+		!s.awaiting &&
+		d.getBoolean("branchBuilderCanUndo")
+	)
+		send(e, s, { action: "undo" });
 	handleResult(sender, e, s);
 }
 function render(e: EntityVehicle, pass: number, pt: number): void {

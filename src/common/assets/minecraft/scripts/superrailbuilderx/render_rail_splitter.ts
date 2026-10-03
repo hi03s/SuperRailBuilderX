@@ -340,6 +340,7 @@ function handleResult(
 		);
 		state.selected = null;
 	} else if (result === "undo_ok" && pendingAction === "undo") {
+		dataMap.setBoolean("railSplitterCanUndo", false, 0);
 		NGTLog.sendChatMessage(
 			sender,
 			"§a[SuperRailBuilderX] 分割前の線路を復元しました",
@@ -385,7 +386,11 @@ function handleInput(
 		});
 		NGTLog.sendChatMessage(sender, "[SuperRailBuilderX] 線路を分割中...");
 	}
-	if (keys.pressed("undo") && !state.awaitingResult) {
+	if (
+		keys.pressed("undo") &&
+		!state.awaitingResult &&
+		dataMap.getBoolean("railSplitterCanUndo")
+	) {
 		sendRequest(entity, state, { action: "undo" });
 		NGTLog.sendChatMessage(sender, "[SuperRailBuilderX] Undo...");
 	}

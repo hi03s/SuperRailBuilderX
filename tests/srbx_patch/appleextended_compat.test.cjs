@@ -19,8 +19,25 @@ class RailMapBasic {
 		this.start = start;
 		this.end = end;
 	}
+	getRailBlockList() {
+		return { size: () => 0 };
+	}
+}
+class RailMapSection extends RailMapBasic {
+	constructor(_source, start, end) {
+		super(start, end);
+	}
 }
 class SectionCore {}
+class RailBase {}
+class BlockPos {
+	constructor(x, y, z) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+	}
+}
+const world = { func_175625_s: () => null };
 class Thread {
 	constructor(task) {
 		this.task = task;
@@ -44,16 +61,33 @@ const context = {
 					},
 				},
 				rtm: {
+					item: {
+						ItemRail: {
+							getDefaultProperty: () => ({ readFromNBT() {} }),
+						},
+					},
 					rail: {
+						TileEntityLargeRailBase: RailBase,
 						BlockMarker: { createRail: () => false },
 						util: { RailMapBasic },
 					},
 				},
 			},
-			apple: { rail: { TileEntityLargeRailSectionCore: SectionCore } },
+			apple: {
+				rail: {
+					TileEntityLargeRailSectionCore: SectionCore,
+					util: {
+						RailMapSection,
+						RailChunkSectioner: {
+							split: () => ({ size: () => 0 }),
+						},
+					},
+				},
+			},
 		},
 		net: {
 			minecraft: {
+				util: { math: { BlockPos } },
 				client: {
 					Minecraft: {
 						func_71410_x: () => ({
@@ -80,6 +114,7 @@ function loadCompat(dir, prefix) {
 		`${dir}/${fs.readdirSync(path.join(root, dir)).find((name) => name.startsWith(prefix) && name.endsWith(".compat.js"))}`,
 	);
 }
+load("superrailbuilderx/AppleExtendedRailProtection.js");
 load("superrailbuilderx/AppleExtendedRailCompat.js");
 loadCompat("superrailbuilderx", "SRBXApiCompat.");
 const api = Object.values(context.RTMX_COMPAT_TARGETS.appleextended)[0]
@@ -120,7 +155,7 @@ let cores = [null, core];
 helper.getCore = () => cores.shift();
 const player = { field_71075_bZ: { field_75098_d: true } };
 assert.strictEqual(
-	helper.createFromPositions({}, player, positions, {}).key,
+	helper.createFromPositions(world, player, positions, {}).key,
 	"created",
 );
 assert(
@@ -134,7 +169,7 @@ for (const pair of [
 ]) {
 	cores = pair.slice();
 	assert.strictEqual(
-		helper.createFromPositions({}, player, positions, {}),
+		helper.createFromPositions(world, player, positions, {}),
 		null,
 	);
 }
@@ -168,14 +203,128 @@ for (const heights of [
 			? core
 			: null;
 	assert.strictEqual(
-		helper.createFromPositions({}, player, endpoints, {}).key,
+		helper.createFromPositions(world, player, endpoints, {}).key,
 		"created",
 	);
 }
 // A real failure must not yield an Undo record.
 context.Packages.jp.ngt.rtm.rail.BlockMarker.createRail = () => false;
 helper.getCore = () => null;
-assert.strictEqual(helper.createFromPositions({}, player, positions, {}), null);
+assert.strictEqual(
+	helper.createFromPositions(world, player, positions, {}),
+	null,
+);
+// Offset endpoints can have a different first Section owner than logical blockZ.
+const sectionOwners = [
+	{ ...positions[1], blockZ: 81 },
+	{ ...positions[0], blockZ: 32 },
+];
+context.Packages.jp.apple.rail.util.RailChunkSectioner.split = () => ({
+	size: () => 2,
+	get: (index) => ({
+		getStartRP: () => sectionOwners[index],
+		getEndRP: () => positions[0],
+		getStartRatio: () => index / 2,
+		getEndRatio: () => (index + 1) / 2,
+	}),
+});
+const autoProperty = { autoSplit: true, writeToNBT: () => ({}) };
+let createdOwner = null;
+let receivedProperty = null;
+let apiCalls = 0;
+const foreign = new RailBase();
+foreign.getRailCore = () => core;
+context.Packages.jp.ngt.rtm.rail.BlockMarker.createRail = (
+	_world,
+	x,
+	y,
+	z,
+	list,
+	property,
+) => {
+	apiCalls++;
+	receivedProperty = property;
+	const a = list.get(0),
+		b = list.get(1);
+	createdOwner = property.autoSplit
+		? sectionOwners[0]
+		: a.blockY >= b.blockY
+			? b
+			: a;
+	return false;
+};
+helper.getCore = (_world, p) =>
+	createdOwner && p[2] === createdOwner.blockZ ? core : null;
+assert.strictEqual(
+	helper.createFromPositions(world, player, positions, autoProperty).key,
+	"created",
+);
+assert.strictEqual(createdOwner.blockZ, 81);
+createdOwner = null;
+world.func_175625_s = (pos) => (pos.z === 32 ? foreign : null);
+assert.strictEqual(
+	helper.createFromPositions(world, player, positions, autoProperty).key,
+	"created",
+);
+assert.strictEqual(
+	receivedProperty.autoSplit,
+	false,
+	"Section collision must fall back before any owner replacement",
+);
+assert.strictEqual(
+	autoProperty.autoSplit,
+	true,
+	"held model must remain unchanged",
+);
+createdOwner = null;
+world.func_175625_s = (pos) => (pos.z === 82 ? foreign : null);
+assert.strictEqual(
+	helper.createFromPositions(world, player, positions, {
+		writeToNBT: () => ({}),
+	}).key,
+	"created",
+);
+assert.strictEqual(
+	createdOwner.blockZ,
+	2,
+	"use the unoccupied opposite endpoint at equal height",
+);
+createdOwner = null;
+world.func_175625_s = () => foreign;
+const beforeCalls = apiCalls;
+assert.strictEqual(
+	helper.createFromPositions(world, player, positions, autoProperty),
+	null,
+);
+assert.strictEqual(
+	apiCalls,
+	beforeCalls,
+	"all occupied owners must reject without world mutation",
+);
+// Placement may reassign shared roadbed tiles; restore their old ownership even on failure.
+world.func_175625_s = (pos) => (pos.z === 77 ? foreign : null);
+let foreignOwner = [44, 4, 55];
+foreign.getStartPoint = () => foreignOwner;
+foreign.setStartPoint = (...owner) => {
+	foreignOwner = owner;
+};
+RailMapBasic.prototype.getRailBlockList = () => ({
+	size: () => 1,
+	get: () => [1, 4, 77],
+});
+for (const fail of [false, true]) {
+	createdOwner = null;
+	context.Packages.jp.ngt.rtm.rail.BlockMarker.createRail = () => {
+		foreignOwner = [1, 4, 82];
+		if (fail) throw new Error("placement failed");
+		createdOwner = positions[1];
+		return false;
+	};
+	const result = helper.createFromPositions(world, player, positions, {});
+	assert.strictEqual(result === null, fail);
+	assert.deepStrictEqual(foreignOwner, [44, 4, 55]);
+}
+world.func_175625_s = () => null;
 // Multi-rail Undo must not delete the first member if a later one changed.
 load("superrailbuilderx/AppleExtendedRailToolsCompat.js");
 const railTools = context.AppleExtendedRailToolsCompat;

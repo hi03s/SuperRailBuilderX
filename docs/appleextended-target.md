@@ -33,6 +33,8 @@ AE v2.5.3には、初期基準`ca255fd`以降に次が追加された。従来�
 - `AppleExtendedRailCompat.ts`: 論理レール識別、端点解決、モデル状態の複製、AE標準生成、論理レールUndoを担当する。
 - `AppleExtendedRailToolsCompat.ts`: 任意位置分割、中央・端点分岐、カント整形と各Undoを担当する。
 - `AppleExtendedRailMoveCompat.ts`: 通常・自動分割レールの端点/全体移動、元状態退避、失敗時復元と更新コア通知を担当する。
+- `AppleExtendedRailProtection.ts`: 生成前の既設道床の所有先を退避し、生成・失敗後にも所有先を維持する。既設道床を新コアへ置換するとAEの`breakBlock`が元の論理レールを削除するため、コア所有ブロックは別途保護する。
+- `AppleExtendedSwitchCompat.ts`: 分岐線形を事前検証し、公開配置・NBT APIで生成する。`BlockMarker`のnull player失敗経路とprotectedフィールドへの代入を使わない。
 - `SRBXApiCompat.compat.ts`: 共通ツールとAE APIの境界を担当する。
 
 分割・分岐は変更前の論理RailPosition、モデル、信号、サブレールを退避し、途中失敗時とUndo時に再生成する。生成先は最新AEの自動分割機構へ委譲する。カント整形はSection coreの物理端点を直接上書きせず、全group coreの`RailSection` NBTに同じ論理端点を書き戻してRailMapを再構築する。
@@ -55,7 +57,11 @@ AE v2.5.3の標準include読込はJava正規表現の置換文字列を保護せ
 
 2026-10-03の再テストで、生成コアの確認位置がAEと一致しない問題を修正した。AEは2端点の`blockY`が等しい場合に2番目をコア所有端点に選ぶ。生成・分割・複製・復元はこの同じ規則でコアとUndoキーを取得する。Sectionの選択は論理端点を使用し、builderAの分岐端点選択用の理由コードも共通APIに合わせる。
 
-Undo入力は左右Ctrlに対応するSRBX固有ラッパーを使い、サーバーのUndo記録を最終判定にする。分割・カントUndoは全対象の変更・占有を先に検証する。再テストログにUndo要求がなかったため、今回の入力修正で解消するかは実機確認が必要。
+Undo入力は左右Ctrlに対応するSRBX固有ラッパーを使い、履歴の可否フラグがfalseなら要求を送らない。単回Undoの成功時はクライアントでも即座にフラグを下げ、カントの複数履歴はサーバーの残履歴判定を維持する。サーバーのUndo記録を最終判定にし、分割・カントUndoは全対象の変更・占有を先に検証する。19:38～19:39の実機ログで分割/移動Undo成功を確認済み。
+
+19:37～19:42の再テストを受け、自動分割の生成確認は`RailChunkSectioner`が決めた実際の最初のコア位置を使う。Sectionコア所有位置が既設の道床/コアと競合する場合は、モデルを複製して通常レールへフォールバックし、通常コアの所有位置も保護する。両端とも保護対象で安全なコア位置を選べない場合は生成前に拒否し、`creation blocked`を出す。道床所有先の退避は全生成・分割・復元・移動・分岐に適用する。
+
+カントの`NBTTagCompound#setTag`は第2引数を`NBTBase`として渡し、配布JSがSRGメソッドへ変換されることを検証する。分岐の`RailPosition.switchType`はJava finalフィールドのため、`SwitchType` NBTから再生成する。分岐コアのprotectedなバージョンは正規NBTで初期化する。
 
 Minecraft実機では、生成・分割・分岐後にチャンク境界をまたぐSectionが一つの論理レールとして選択・走行・Undoできること、カント適用が全Sectionへ反映されることを確認する。
 

@@ -1,0 +1,27 @@
+# Relevant SRBX excerpts from developer's 19:37-19:42 retest; raw log remains ignored.
+[19:37:38] [SuperRailBuilderX builder1] request completed: action=create, result=ok
+[19:38:01] [SuperRailBuilderX splitter] request completed: action=split, result=ok
+[19:38:09] [SuperRailBuilderX splitter] request completed: action=undo, result=undo_ok
+[19:38:11] [SuperRailBuilderX splitter] request completed: action=undo, result=nothing_to_undo
+[19:39:06] [SuperRailBuilderX RailPosition] request completed: action=undo, mode=undo, result=undo_ok
+[19:39:06] [SuperRailBuilderX RailPosition] request completed: action=undo, mode=undo, result=nothing_to_undo
+[19:39:22] [SuperRailBuilderX AE] creation not confirmed: apiResult=false, positions=2, root=1344,4,-1454, existingCore=false
+[19:39:22] [SuperRailBuilderX double-track-copy] request completed: action=create, result=create_failed
+[19:39:26] [SuperRailBuilderX double-track-copy] request completed: action=create, result=ok
+[19:40:09] [SuperRailBuilderX cant] phase:processRequest, action:apply
+[19:40:09] [SuperRailBuilderX cant] exception:TypeError: section.setTag is not a function
+  at updateCants
+  at applyRailCants
+[19:42:11] [SuperRailBuilderX branch] phase:processRequest, action:create
+[19:42:11] [SuperRailBuilderX branch] exception:java.lang.NullPointerException
+  at jp.ngt.rtm.rail.BlockMarker.createSwitchRail(BlockMarker.java:296)
+  at jp.ngt.rtm.rail.BlockMarker.createRail(BlockMarker.java:222)
+  at jp.ngt.rtm.rail.BlockMarker.createRail(BlockMarker.java:202)
+[19:42:19] [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
+[19:42:19] [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=false, positions=2
+[19:42:19] [SuperRailBuilderX branch] phase:processRequest, action:create
+[19:42:19] [SuperRailBuilderX branch] exception:java.lang.NullPointerException
+  at jp.ngt.rtm.rail.BlockMarker.createSwitchRail(BlockMarker.java:296)
+# Developer also reported an unselected connected rail disappearing during split.
+# No direct removal diagnostic is present; AE source/JAR confirms replacing an
+# owned roadbed invokes breakBlock -> its old core.breakLogicalRail.

@@ -478,7 +478,11 @@ function input(
 	}
 	if (keys.pressed("apply") && !s.awaiting && s.selected.length)
 		send(entity, s, { action: "apply", targets: s.selected });
-	if (keys.pressed("undo") && !s.awaiting)
+	if (
+		keys.pressed("undo") &&
+		!s.awaiting &&
+		d.getBoolean("cantFormatterCanUndo")
+	)
 		send(entity, s, { action: "undo" });
 	result(sender, entity, s);
 }

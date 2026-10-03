@@ -1268,6 +1268,7 @@ function handleInput(
 		NGTOBuilderUtil.resetJsonData(dataMap, "railPositionUpdatedCores");
 		NGTOBuilderUtil.resetJsonData(dataMap, "railPositionRemovedRails");
 		if (result === "undo_ok" && state.pendingAction === "undo") {
+			dataMap.setBoolean("railMoverCanUndo", false, 0);
 			NGTLog.sendChatMessage(
 				sender,
 				"§a[SuperRailBuilderX] 移動前の状態へ戻しました",
@@ -1305,7 +1306,11 @@ function handleInput(
 		state.pendingAction = null;
 		dataMap.setString("applyResult", "", 1);
 	}
-	if (keys.pressed("undo") && !state.awaitingResult) {
+	if (
+		keys.pressed("undo") &&
+		!state.awaitingResult &&
+		dataMap.getBoolean("railMoverCanUndo")
+	) {
 		NGTOBuilderUtil.sendJsonData(dataMap, "railPositionMove", {
 			action: "undo",
 		} as RailPositionMoveRequest);

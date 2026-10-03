@@ -997,6 +997,7 @@ function handleResult(
 				"§e[SuperRailBuilderX] セクションコア交差のため通常レールとして生成しました",
 			);
 	} else if (result === "undo_ok" && state.pendingAction === "undo") {
+		dataMap.setBoolean("builder1CanUndo", false, 0);
 		state.selected = state.lastBuiltSelection
 			? state.lastBuiltSelection.map(copyPoint)
 			: [];
@@ -1334,7 +1335,11 @@ function handleInput(
 		});
 		NGTLog.sendChatMessage(sender, "[SuperRailBuilderX] レール生成中...");
 	}
-	if (keys.pressed("undo") && !state.awaitingResult) {
+	if (
+		keys.pressed("undo") &&
+		!state.awaitingResult &&
+		dataMap.getBoolean("builder1CanUndo")
+	) {
 		sendRequest(entity, state, { action: "undo" });
 		NGTLog.sendChatMessage(sender, "[SuperRailBuilderX] Undo...");
 	}
