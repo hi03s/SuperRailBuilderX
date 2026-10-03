@@ -1,8 +1,28 @@
+// Structural types describe the foreign renderer engine without importing Java
+// classes or remapping the API names inside the serialized function.
+type RailPatchPosition = { offsetX: number; offsetZ: number };
+type RailPatchTile = {
+	getSwitch(): unknown;
+	getRailPositions(): ArrayLike<RailPatchPosition> | null;
+};
+type RailPatchRenderer = (
+	tileEntity: RailPatchTile | null,
+	par2: number,
+	par4: number,
+	par6: number,
+) => unknown;
+type RailMapRenderer = (...args: unknown[]) => unknown;
+type RailPatchGL = {
+	glPushMatrix(): void;
+	glTranslatef(x: number, y: number, z: number): void;
+	glPopMatrix(): void;
+};
+
 /** Target-engine globals used only when the serialized function is evaluated. */
 declare let __SRBX_RAIL_RENDER_PATCHED__: boolean;
-declare let renderRailDynamic2: any;
-declare let renderRailMapDynamic: any;
-declare const GL11: any;
+declare let renderRailDynamic2: RailPatchRenderer;
+declare let renderRailMapDynamic: RailMapRenderer;
+declare const GL11: RailPatchGL;
 
 /**
  * AE's include loader treats script text as a Java regex replacement, stripping
@@ -14,7 +34,12 @@ export const RAIL_RENDER_PATCH_SOURCE =
 	function () {
 		if (typeof __SRBX_RAIL_RENDER_PATCHED__ === "undefined") {
 			var __srbx_original_renderRailDynamic2 = renderRailDynamic2;
-			renderRailDynamic2 = function (tileEntity, par2, par4, par6) {
+			renderRailDynamic2 = function (
+				tileEntity: RailPatchTile | null,
+				par2: number,
+				par4: number,
+				par6: number,
+			) {
 				if (
 					tileEntity == null ||
 					tileEntity.getSwitch() == null ||
