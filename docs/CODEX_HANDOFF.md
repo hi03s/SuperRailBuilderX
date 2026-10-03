@@ -16,8 +16,8 @@
 - `SuperRailBuilderX_BranchBuilder`を実装済み。中央の約0.5 m候補、接続/未接続の正確な端点を根元とする単純分岐、共有端点両側の強調と分岐先カーソル方向によるベース選択、接続部カント0化とUndoに対応する。
 - AppleExtended v2.5.3対応をmainへ統合済み。開発者から概ね不具合解消の報告を受領（2026-10-04）。通常/自動分割レールの生成・複線・分割・移動・カント・分岐・Undoを補完し、KaizPatchの既存処理を維持。
 - builder1のチャンク境界交差・候補表示・Iキー地上高合わせ、複線コピーの生成、分割パネル・縦勾配・カント、レール移動の基本操作・接続・回り込み防止・三線軌条の相互走行は実機確認済み。
-- リリースバージョンは`0.2.0`。package.json・配布名・ツール内VERSION・README/操作ガイド/同梱説明を統一し、`SuperRailBuilderX-0.2.0.zip`を生成済み。
-- `v*`タグpush時に型定義生成・multi-targetビルド・ZIP生成を行い、`release-notes.md`を本文とするDraft Releaseを作成するGitHub Actionsを整備済み。公開はGitHub上で手動実施する。
+- `v0.2.0`を2026-10-04に[正式公開](https://github.com/hi03s/SuperRailBuilderX/releases/tag/v0.2.0)。タグは`1c73128`。Actions生成ZIP（88ファイル、全4ターゲット）を検証済み。
+- `v*`タグpushで型生成・multi-targetビルド・ZIP付きDraft Releaseを作成。Java 25、生成前のGradle cacheキーはpnpm-lock.yaml/rtmx.jsonを使用。公開はDraft確認後に手動実行する。
 - レール生成・自由点移動の構造は `docs/rail-generation-and-free-positioning.md`、各ツールの仕様と検証方法は下記「関連資料」を参照する。
 - `AGENTS.md`へ、親モデルを途中変更するのではなく、限定作業だけを軽量・バランス型サブエージェントへ委譲するモデル運用規則を追加済み。
 - KaizPatchX / AppleExtended向けの分岐レール描画runtime compatibility patchを`main`へ統合済み。KaizPatchXの描画は実機確認済みで、AppleExtended確認待ちのため`fix/rail-render-offset-compat-patch`は保持する。通常RTMはno-op。
@@ -127,7 +127,7 @@
 
 ## 直近の完了
 
-- 2026-10-04 ローカルCodex: AE対応をmainへマージ（`a769e94`）、0.2.0へ設定（`10a7955`）。`origin/main`へpush済み、差分0/0。全4ターゲットZIP（警告0）・回帰13スイート成功。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)。
+- 2026-10-04 ローカルCodex: v0.2.0公開完了。Actions設定を`9c6c14b`/`1c73128`で修正してorigin/mainへ同期済み。[成功run](https://github.com/hi03s/SuperRailBuilderX/actions/runs/37143858616)・配布ZIP/本文を確認。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 ## 関連資料
 

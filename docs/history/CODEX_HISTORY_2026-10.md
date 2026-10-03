@@ -135,3 +135,11 @@
 - 実行済み: pnpm zip（全4ターゲット、警告0、89ファイル）、test:appleextended 10スイートとtest:input/test:rail-patch/test:runtime-dispatch、変更TS/JSONのPrettier確認・git diff --check、ZIP内バージョン確認。
 - 今回未実施: Minecraft実機。開発者の概ね解消という報告を記録し、個別全ケースの確認完了とは扱わない。今回の依頼はバージョン設定とmain統合のため、v0.2.0タグ作成/Release公開は実施しない。正式配布時はdocs/releasing.mdの手順を使用する。
 - main統合a769e94・0.2.0設定10a7955をorigin/mainへpush済み、差分0/0。引継ぎ記録も同期する。
+
+## 2026-10-04 ローカルCodex: v0.2.0リリース実行
+
+- ユーザーから公開までの指示を受領。mainの検証済み0.2.0へannotated tagを作成・pushし、リリースActionsを起動。ローカルghは未導入のため既存Git認証をGitHub APIに使用（認証情報は出力/保存しない）。
+- 初回Actionsは生成前にGradleファイルがないためsetup-java cacheで失敗。cache-dependency-pathをpnpm-lock.yaml/rtmx.jsonへ指定（9c6c14b）。次はgtnhgradle 2.0.24がJVM 25必須のためJava 17で失敗し、Java 25へ変更（1c73128）。未公開タグはdocs/releasing.mdに従って修正コミットへ付け直し、公開済みタグには触れない。rtm-ts本体未変更。
+- 成功run https://github.com/hi03s/SuperRailBuilderX/actions/runs/37143858616 で型生成・ビルド・ZIP生成・Draft作成まで全ステップ成功。最終v0.2.0タグは1c73128、未公開時のみ付け直した。
+- Draft id 402638176の本文をrelease-notes.mdと照合。添付SuperRailBuilderX-0.2.0-v0.2.0.zip（226672 bytes、88ファイル）を取得し、readme=0.2.0と4ターゲット収録、SHA-256 de25d9efb8cf9e597f84f87331934fd3668338724d2232223d73c85eb369bcdfを検証。ローカルのユーザー未追跡XCFは配布へ含まれない。
+- 2026-10-04 03:30 JST、Releaseをdraft=false/make_latest=trueで公開し、タグから取得可能な正式Releaseを確認: https://github.com/hi03s/SuperRailBuilderX/releases/tag/v0.2.0 。実機再テストは今回未実施（直前の回帰13スイート成功・開発者の概ね不具合解消報告を継承）。設定修正コミットはorigin/mainへpush済み、完了記録も同期する。
