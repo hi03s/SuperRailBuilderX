@@ -41,3 +41,13 @@
 - 変更前後の配布patch_source.jsを評価し、RAIL_RENDER_PATCH_SOURCE文字列が完全一致することを確認。型宣言のみの変更で、対象Engineへ評価させるコードは変わらない。
 - 未検証: Minecraft実機での起動・描画再確認は前項の確認待ちを維持。
 - 修正コミットdcb52b4をorigin/feature/appleextended-compatへpush・同期済み。
+
+## 2026-10-03 ローカルCodex: AE生成unsupportedのMod ID判定修正
+
+- 開発者提供latest.logから、18:45:17の生成A要求が例外ではなくresult=unsupportedで終了したことを確認。[SRBX rail patch]のBootstrapログも存在しなかった。
+- AE v2.5.3の実機Mod一覧はapplelib@2.5.3。公式dev JARのAppleLib @Mod(modid="applelib")でも確認した。rtmx.jsonは存在しないappleextended IDを判定していたため、mc1122のunsupported生成APIとno-op描画patch platformへフォールバックしていた。
+- runtimeDispatchをLoader.isModLoaded('applelib')へ修正。AEをmc1122より優先し、KaizPatchX/mc1710の優先順位は維持。rtm-tsとツールキットは変更しない。
+- ビルド済みSRBXApiCompatと描画patch platformのdispatch関数に対する回帰テストを追加。実際のapplelibだけがロードされたAE、通常mc1122、通常mc1710、KaizPatchXとKaizPatchX優先を確認した。pnpm test:runtime-dispatchから実行可能。
+- 検証済み: pnpm zip（全4ターゲット、警告・エラー0件、83ファイル）、runtime dispatchテスト、pnpm test:rail-patch、対象Prettier、git diff --check。
+- 生latest.logは引き続きGit除外。必要な生成結果とMod識別をlogs/appleextended-generation-unsupported-20261003.logへ抜粋し、PC・パス・他Mod情報を除去した。
+- 未検証: 実機でAE APIによる生成成功。修正版artifacts/SuperRailBuilderX-alpha-0.1.0.zipを導入し、生成Aの通常/自動分割レール生成とUndo、[SRBX rail patch] bootstrap/completed（failed=0）を確認する。失敗時は操作時刻とlogs/latest.logの[SuperRailBuilderX builder1]・[SRBX rail patch]・例外前後をlogsへ格納して共有してもらう。

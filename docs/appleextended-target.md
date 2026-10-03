@@ -45,7 +45,7 @@ AE v2.5.3の標準include読込はJava正規表現の置換文字列を保護せ
 - 通常レールの端点移動、クライアント同期、Undo
 - レール生成A、複線コピー、自動分割生成、Undo
 - 通常・自動分割レールの分割、中央/端点分岐、カント整形とUndo
-- `Loader.isModLoaded("appleextended")`による`mc1122`より優先した実行時選択
+- `Loader.isModLoaded("applelib")`による`mc1122`より優先した実行時選択
 - その他の差分がない1.12.2処理の`compatFallbackTarget: "mc1122"`利用
 
 未対応:

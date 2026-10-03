@@ -53,6 +53,8 @@
 
 ### AppleExtended
 
+- `applelib` Mod ID判定へ修正したZIPで、生成Aの`result=unsupported`が解消することと描画patchのBootstrapログを確認する。
+
 - バックアップ済みワールドで通常レールの小さい端点オフセット、再ログイン後の永続化、描画、走行、Ctrl+Zを確認する。大移動は道床範囲外になるため未対応。
 - レール生成Aと複線コピーでチャンク境界をまたぐ自動分割レールの生成・接続・モデル継承・走行・Undoを確認する。
 - 自動分割レールの分割・Undo、中央/端点分岐・切替・両経路走行・Undo、全Sectionへのカント反映・Undoを確認する。失敗時は操作時刻と`[SuperRailBuilderX`を含むログを共有する。
@@ -126,11 +128,9 @@
 
 ## 直近の完了
 
+- 2026-10-03 ローカルCodex: AE生成unsupportedの原因はMod ID誤判定。実際の`applelib`へ修正し、AE/KaizPatchX/通常RTMのdispatchテストと警告0件のZIP生成成功。詳細は`docs/history/CODEX_HISTORY_2026-10.md`。
+
 - 2026-10-03 ローカルCodex: 描画patchのanyを構造型へ変更し、`pnpm zip`の警告65件を0件へ解消。評価されるパッチコードは完全一致、両include方式の回帰テスト成功。修正`dcb52b4`を`origin/feature/appleextended-compat`へ同期済み。詳細は`docs/history/CODEX_HISTORY_2026-10.md`。
-
-- 2026-10-03 ローカルCodex: AEのinclude展開による描画patch文字列破損を修正。KaizPatchX/AE両方式の配布JS構文・描画補正テストと全ターゲットビルド成功。実機は再確認待ち。修正`3ed8919`を`origin/feature/appleextended-compat`へ同期済み。詳細は`docs/history/CODEX_HISTORY_2026-10.md`。
-
-- 2026-10-03 ローカルCodex: JitPack復旧後、未改造rtm-tsでAE v2.5.3取得・全4ターゲットの`pnpm gen`・`pnpm build`と描画patchテストが成功。詳細は`docs/history/CODEX_HISTORY_2026-10.md`。検証記録`56182c4`を`origin/feature/appleextended-compat`へ同期済み。
 
 - 2026-10-03 ローカルCodex: AE v2.5.3対応とorigin/main統合（4335698・cdca589）。rtm-tsパッチは撤回し、未改造のrtm-tsで全4ターゲットのビルド・描画patchテスト成功。当初のJitPack取得障害は上記の再検証で解消。実機確認は未完了。詳細は`docs/history/CODEX_HISTORY_2026-10.md`。撤回・検証記録`87d1947`まで`origin/feature/appleextended-compat`へpush・同期済み。
 ## 関連資料
