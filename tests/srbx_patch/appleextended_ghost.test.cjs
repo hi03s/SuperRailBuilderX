@@ -5,6 +5,7 @@ const assert = require("assert");
 const directory =
 	"dist/assets/minecraft/__targets__/appleextended/scripts/superrailbuilderx";
 const tiles = new Map();
+const blocks = new Set();
 class RailCore {
 	constructor(pos, key) {
 		this.pos = pos;
@@ -98,13 +99,27 @@ const world = {
 	field_72995_K: true,
 	field_147482_g: { size: () => loaded.length, get: (i) => loaded[i] },
 	func_175625_s: (pos) => tiles.get(pos),
-	func_175713_t: (pos) => tiles.delete(pos),
+	func_175713_t: () => {
+		throw new Error("Tile-only removal leaves a recreatable core block");
+	},
+	func_175698_g: (pos) => {
+		tiles.delete(pos);
+		return blocks.delete(pos);
+	},
 	func_180495_p: () => ({}),
 	func_184138_a() {},
 };
-for (const tile of [replacement, old1, old2]) tiles.set(tile.pos, tile);
+for (const tile of [replacement, old1, old2]) {
+	tiles.set(tile.pos, tile);
+	blocks.add(tile.pos);
+}
 api.removeRailClientGhost(world, [0, 4, 0], "old");
 assert.strictEqual(tiles.size, 1);
+assert.deepStrictEqual(
+	[...blocks],
+	[replacement.pos],
+	"old blocks cannot recreate empty tile entities",
+);
 assert.strictEqual(tiles.get("0,4,0"), replacement);
 assert.strictEqual(old1.deleted, 1);
 assert.strictEqual(old2.deleted, 1);
@@ -123,6 +138,7 @@ assert.strictEqual(
 );
 const late = new RailCore("48,4,0", "old");
 tiles.set(late.pos, late);
+blocks.add(late.pos);
 loaded.push(late);
 api.removeRailClientGhost(world, [0, 4, 0], "old");
 assert.strictEqual(

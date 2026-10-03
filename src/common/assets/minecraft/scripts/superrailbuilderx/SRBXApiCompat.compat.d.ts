@@ -115,6 +115,7 @@ export class SRBXApiCompat {
 		y: number,
 		z: number,
 	): void;
+	static usesGeometryRailHighlight(): boolean;
 	static needsRailClientGhostRetry(expectedKey: string): boolean;
 	static removeRailClientGhost(
 		world: World,

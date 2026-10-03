@@ -55,9 +55,11 @@
 
 ### AppleExtended
 
+- レール生成Aの接続端点を180度反転するとき、AEだけcantEdgeも反転する。KaizPatchのカント処理/モデルハイライトは従来通り。正負カント・既設レール両端・新規レール開始/終了側の接続をAE/KaizPatchで確認し、操作時刻とlogs/latest.logを共有する。
+
 - 20:07～20:14再テストの接続カント片側欠落・中央invalid_endpoint・分岐Undo失敗を修正。接続探索は論理キーで自グループを除外し、ロード済み端点へ向きに応じて適用する。中央/端点・同向/逆向接続・分岐Undoを再確認する。
 - 複線のSection生成がコア未作成で失敗する内部理由は未確定。部分生成がない場合だけ通常レールで1回再試行し、既設道床/コアを保護する。10/04ログではこの再試行で複線生成成功を確認。失敗時はsection creation failedのowners/partial/creativeと前後ログを確認する。
-- AEクライアントghost掃除は旧keyの現存tile除去とinvalidateによるGL解放へ変更。破壊APIで道床を消さず、chunk/loaded一覧ずれ・stale描画参照・後着packetを100tick再確認。再確認はAEだけ、他ターゲットは従来処理を維持。移動→Undo/再移動後、再入場せず旧Sectionが消えることを確認する。
+- AEの02:37クラッシュ対策: 旧keyのコアはブロック/tileを同時に除去して未初期化tileの再作成を防ぐ。AEだけ論理線形のハイライトへ切替え、モデルのshouldRenderObject呼出しを避ける。移動→Undo/再移動後のクラッシュ・ghost・チャンク例外消失を実機再確認。
 - 接続移動/Undoの配置判定は生成計画へ統一。00:46～00:47で残った両端候補塞がりは、既存Section範囲内の空き道床へ物理コアだけ代替配置するfallbackを追加（論理端点/線形/ratioを維持）。全配置先を変更前に検証し、空きなしは非破壊で拒否。接続2本移動・一括移動・Undo/再ログイン/走行を再確認する。新診断section owners relocated/section owner relocation blockedとclient ghost cleanupを含むlogs/latest.logを共有する。
 
 ## 次に行うこと
@@ -128,7 +130,7 @@
 
 ## 直近の完了
 
-- 2026-10-04 ローカルCodex: 物理Section代替配置と旧tile/GL解放・AEだけの遅延packet掃除を追加。警告0件ZIP・12回帰スイート・変更整形成功、実機待ち。`1090f35`を`origin/feature/appleextended-compat`へpush・同期済み。詳細はdocs/history/CODEX_HISTORY_2026-10.md。
+- 2026-10-04 ローカルCodex: AE移動後クラッシュ対策と生成Aの接続カント反転を修正。全4ターゲットZIP/回帰13スイート成功、実機未確認。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 ## 関連資料
 

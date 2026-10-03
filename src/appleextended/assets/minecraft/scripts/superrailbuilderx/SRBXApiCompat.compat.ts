@@ -85,6 +85,10 @@ export class SRBXApiCompat {
 		world.notifyBlockUpdate(pos, state, state, 3);
 	}
 
+	static usesGeometryRailHighlight(): boolean {
+		return true;
+	}
+
 	static needsRailClientGhostRetry(expectedKey: string): boolean {
 		return expectedKey.indexOf("section:") === 0;
 	}
@@ -139,13 +143,11 @@ export class SRBXApiCompat {
 			const pos = core.getPos();
 			let removedHere = false;
 			// breakLogicalRail also deletes shared rail-bed blocks. A client
-			// cleanup must only remove this exact old tile, never its replacement.
+			// cleanup must remove this exact old block and tile together.
+			// Leaving the core block behind recreates an uninitialized tile.
 			if ((world.getTileEntity(pos) as unknown) === core) {
-				const state = world.getBlockState(pos);
-				world.removeTileEntity(pos);
-				world.notifyBlockUpdate(pos, state, state, 3);
-				removed++;
-				removedHere = true;
+				removedHere = world.setBlockToAir(pos);
+				if (removedHere) removed++;
 			}
 			// Detached tiles can still own GL lists in the render dispatcher.
 			if (removedHere || !this.ghostInvalidated.containsKey(core)) {

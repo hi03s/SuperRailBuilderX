@@ -121,6 +121,60 @@ loadCompat("superrailbuilderx", "SRBXApiCompat.");
 const api = Object.values(context.RTMX_COMPAT_TARGETS.appleextended)[0]
 	.SRBXApiCompat;
 const helper = context.AppleExtendedRailCompat;
+// Connecting reverses the endpoint heading; edge cant must reverse with it.
+const savedClone = helper.cloneRailPosition;
+helper.cloneRailPosition = (rp) => ({ ...rp });
+const connectionCore = new RailBase();
+connectionCore.getRailCore = () => connectionCore;
+const savedTileLookup = world.func_175625_s;
+world.func_175625_s = () => connectionCore;
+for (const edge of [-8, 0, 8])
+	for (const index of [0, 1]) {
+		const source = {
+			posX: 1.25,
+			posY: 4.5,
+			posZ: 2.75,
+			direction: 2,
+			anchorYaw: 90,
+			anchorPitch: 3,
+			cantEdge: edge,
+			cantCenter: 5,
+			getNeighborBlockPos: () => ({
+				func_177958_n: () => 2,
+				func_177956_o: () => 4,
+				func_177952_p: () => 2,
+			}),
+			setPosition(x, y, z) {
+				this.posX = x;
+				this.posY = y;
+				this.posZ = z;
+			},
+		};
+		connectionCore.getLogicalRailPositions = () => [source, source];
+		const result = helper.resolveBuilderPoint(world, {
+			kind: "rail",
+			core: [1, 4, 2],
+			index,
+			position: [1.25, 4.5, 2.75],
+		});
+		assert.strictEqual(result.cantEdge, -edge);
+		assert.strictEqual(result.cantCenter, 5);
+		assert.strictEqual(result.anchorYaw, 270);
+		assert.strictEqual(
+			source.cantEdge,
+			edge,
+			"source rail stays unchanged",
+		);
+		// getRailRoll uses start.cantEdge and -end.cantEdge in AE 2.5.3.
+		for (const newEnd of [false, true]) {
+			const oldRoll = index === 0 ? edge : -edge;
+			const newRoll = newEnd ? -result.cantEdge : result.cantEdge;
+			const reverseTravel = index === (newEnd ? 1 : 0);
+			assert.strictEqual(newRoll, reverseTravel ? -oldRoll : oldRoll);
+		}
+	}
+world.func_175625_s = savedTileLookup;
+helper.cloneRailPosition = savedClone;
 const positions = [
 	{ blockX: 1, blockY: 4, blockZ: 2, posY: 4 },
 	{ blockX: 1, blockY: 4, blockZ: 82, posY: 4 },

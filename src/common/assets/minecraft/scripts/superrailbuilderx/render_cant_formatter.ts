@@ -1,3 +1,4 @@
+import { SRBXRailHighlight } from "./SRBXRailHighlight";
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { MCWrapperClient, NGTUtilClient } from "jp.ngt.ngtlib.util";
 import { EntityVehicle } from "jp.ngt.rtm.entity.vehicle";
@@ -496,7 +497,7 @@ function renderRailHighlight(
 	const origin = NGTOBuilderUtilClient.getInterpolatedPos(entity, pt);
 	GL11.glPushMatrix();
 	GL11.glTranslatef(-origin[0], -origin[1], -origin[2]);
-	NGTOBuilderUtilClient.renderRailMapHighlight(entity, map, color, 0.65);
+	SRBXRailHighlight.render(entity, map, color, 0.65);
 	GL11.glPopMatrix();
 }
 

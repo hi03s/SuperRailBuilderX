@@ -177,6 +177,8 @@ export class AppleExtendedRailCompat {
 		result.direction = (source.direction + 4) & 7;
 		result.anchorYaw = this.normalizeDegrees(source.anchorYaw + 180);
 		result.anchorPitch = -source.anchorPitch;
+		// AE cantEdge is measured in the endpoint heading, reversed above.
+		result.cantEdge = -source.cantEdge;
 		result.setPosition(source.posX, source.posY, source.posZ);
 		return result;
 	}

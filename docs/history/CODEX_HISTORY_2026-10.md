@@ -117,3 +117,12 @@
 - 実行済み: pnpm zip（全4ターゲット・警告0・88ファイル）、test:appleextended（9スイート: 両端保護でもSection内代替配置・論理RP/ratio維持・SRG-only NBT・全配置事前検証・初期化失敗時非破壊cleanup/packet抑止、chunk/loadedずれ・stale GL解放・後着旧packet・new group保護・server no-opを含む）、test:input、test:rail-patch、test:runtime-dispatch、変更TS/テスト/package.jsonのPrettier、git diff --check。全体format:checkは既知の未変更差分があり再実行しない。
 - 未実施: Minecraft/AE/KaizPatchX実機。バックアップワールドで失敗した端点移動→Undo、接続2本・一括移動、再入場せずghost消失、再ログイン/走行・モデル/カント保持を確認。失敗時は操作順/時刻とlogs/latest.log、新診断section owners relocated/section owner relocation blocked/client ghost cleanupを提出。実機でのghost原因特定は診断による再確認が必要。ユーザーgui_base.xcfと生ログは追加しない。
 - 修正コミット`1090f35`を`origin/feature/appleextended-compat`へpush、HEAD/origin差分0/0を確認。
+
+## 2026-10-04 ローカルCodex: 移動後クラッシュ・生成A接続カント反転
+
+- latest.logの02:37:07移動/02:37:10 Undoはサーバーresult=ok/undo_ok。その直後にChunk.func_186033_a NPEとRailPartsRendererBase.shouldRenderObject NPEでRailMover描画クラッシュ。必要箇所をlogs/appleextended-move-chunk-highlight-crash-20261004.logへ抜粋。Undo自体のサーバー失敗はこの操作では記録されていない。
+- 前回のtile-only ghost掃除はコアブロックを残して未初期化tileを再作成可能にしていた。旧key/同一参照の確認を維持し、AEクライアントでsetBlockToAirに変更。公式v2.5.3 BlockRail.breakBlockはisRemoteで論理全体削除を抑止するため、他グループの道床へ連鎖しない。チャンク例外との因果は実機再確認が必要。
+- v2.5.3 JARのshouldRenderObjectはモデルスクリプト戻り値をBoolean.booleanValueに変換するためnullでNPE。AEの論理mapと物理Section所有先の違いもあるため、参照toolkitを編集せずSRBXRailHighlightで論理線形を直接描画。移動/分割/複線/カント/分岐の同じ呼出しを統一。AEでは色付き線の強調表示になり、GL属性/begin/endは例外時も復元。KaizPatch/他2ターゲットはcompat=falseで従来のモデルハイライトへ委譲。
+- AE RailMapBasic.getRailRollは開始cantEdge/終了-cantEdgeを使う。生成Aの接続RPでyaw/directionを反転するときcantEdgeも反転し、既設RPは変更しない。cantCenter/KaizPatchの接続変換/rtm-tsは変更しない。開始/終了の既設端点と新規開始/終了側、正負/0カントの物理roll連続性を回帰検証。
+- 実行済み: pnpm zip（全4ターゲット・警告0・89ファイル）、test:appleextended 10スイート、test:input/test:rail-patch/test:runtime-dispatch、変更ファイルPrettier、git diff --check。ghostテストはtile-only除去禁止と旧ブロック除去/新コア保護を追加。highlightテストはAE callback不使用・論理全長・GL復元・診断抑制・従来renderer委譲を検証。
+- 未実施: AE/KaizPatchのMinecraft実機。移動→Undo→再移動、ghost/チャンク例外、正負カントの端点接続を再確認し、操作時刻とlogs/latest.logを提出。KaizPatchの端点接続と従来ハイライトも確認する。
