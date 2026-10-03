@@ -1,0 +1,19 @@
+# AE v2.5.3 retest, 2026-10-03 (minimal sanitized excerpt)
+[18:55:11] [NGT]: [SRBX rail patch] bootstrap started
+[18:55:38] [NGT]: [SRBX rail patch] bootstrap unavailable: TypeError: Packages.net.minecraft.client.Minecraft.func_71410_x().addScheduledTask is not a function
+[18:55:48] [NGT]: [SuperRailBuilderX builder1] vertical profile plan: type=default, logicalRails=1, radius=default
+[18:55:48] [NGT]: [SuperRailBuilderX builder1] request completed: action=create, result=create_failed
+[18:56:58] net.minecraft.util.ReportedException: Rendering entity in world
+Caused by: java.lang.RuntimeException: On render script : SuperRailBuilderX_RailSplitter
+Caused by: java.lang.RuntimeException: Script exec error : render in file: minecraft:scripts/superrailbuilderx/render_rail_splitter.js
+Caused by: javax.script.ScriptException: TypeError: Cannot get property "length" of null in <eval> at line number 14429
+  at RTMX_loadCompatTarget_mc1122_scripts_superrailbuilderx_SRBXApiCompat_1js5ute.SRBXApiCompat.getLogicalRailMap(<eval>:14429)
+  at findHoverTarget(<eval>:14602)
+  at render(<eval>:14806)
+
+Analysis: AE BlockMarker.createRail discards its internal return value and returns
+false after generation. SRBX therefore reported create_failed even for placed rails.
+AE compat lacked getLogicalRailMap and inherited the mc1122 physical-map path,
+causing section-only hover and a null-array crash during teardown/uninitialized TE.
+Bootstrap used an unremapped addScheduledTask name because its overload argument
+was any. Explicit Callable type emits func_152343_a.

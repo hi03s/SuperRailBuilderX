@@ -341,9 +341,9 @@ export class SRBXApiCompat {
 	}
 
 	static getLogicalRailMap(core: TileEntityLargeRailCore) {
-		return core.getAllRailMaps().length === 1
-			? core.getRailMap(null)
-			: null;
+		if (!core) return null;
+		const maps = core.getAllRailMaps();
+		return maps && maps.length === 1 ? core.getRailMap(null) : null;
 	}
 
 	static splitBuilderRail(

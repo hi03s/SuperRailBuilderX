@@ -12,6 +12,7 @@ import { BlockPos } from "net.minecraft.util.math";
 import { World } from "net.minecraft.world";
 import { ArrayList } from "java.util";
 import { TileEntityLargeRailSectionCore } from "jp.apple.rail";
+import { NGTLog } from "jp.ngt.ngtlib.io";
 
 type RailCorePos = [number, number, number];
 
@@ -224,14 +225,20 @@ export class AppleExtendedRailCompat {
 	static getLogicalPositions(
 		core: TileEntityLargeRailCore,
 	): JavaObjectArray<RailPosition> {
-		return core.getLogicalRailPositions();
+		return core ? core.getLogicalRailPositions() : null;
 	}
 
 	static getLogicalRailMap(
 		core: TileEntityLargeRailCore,
 	): RailMapBasic | null {
 		const positions = this.getLogicalPositions(core);
-		if (!positions || positions.length !== 2) return null;
+		if (
+			!positions ||
+			positions.length !== 2 ||
+			!positions[0] ||
+			!positions[1]
+		)
+			return null;
 		return new RailMapBasic(
 			positions[0],
 			positions[1],
@@ -252,25 +259,36 @@ export class AppleExtendedRailCompat {
 		const list = new ArrayList<RailPosition>();
 		for (let i = 0; i < ordered.length; i++) list.add(ordered[i]);
 		const root = list.get(0);
-		if (
-			!BlockMarker.createRail(
-				world,
-				root.blockX,
-				root.blockY,
-				root.blockZ,
-				list,
-				property,
-				true,
-				player.capabilities.isCreativeMode,
-			)
-		)
-			return null;
+		const before = this.getCore(world, [
+			root.blockX,
+			root.blockY,
+			root.blockZ,
+		]);
+		// AE v2.5.3 discards the internal result and always returns false.
+		const apiResult = BlockMarker.createRail(
+			world,
+			root.blockX,
+			root.blockY,
+			root.blockZ,
+			list,
+			property,
+			true,
+			player.capabilities.isCreativeMode,
+		);
 		const core = this.getCore(world, [
 			root.blockX,
 			root.blockY,
 			root.blockZ,
 		]);
-		if (!core) return null;
+		if (!core || core === before) {
+			NGTLog.debug(
+				`[SuperRailBuilderX AE] creation not confirmed: apiResult=${apiResult}, positions=${ordered.length}, root=${root.blockX},${root.blockY},${root.blockZ}, existingCore=${before !== null}`,
+			);
+			return null;
+		}
+		NGTLog.debug(
+			`[SuperRailBuilderX AE] creation confirmed: apiResult=${apiResult}, sectioned=${this.isSectionCore(core)}, positions=${ordered.length}`,
+		);
 		const pos = core.getPos();
 		return {
 			core: [pos.getX(), pos.getY(), pos.getZ()],

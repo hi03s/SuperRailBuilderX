@@ -32,6 +32,10 @@ export class SRBXApiCompat {
 		return AppleExtendedRailCompat.getLogicalPositions(core);
 	}
 
+	static getLogicalRailMap(core: TileEntityLargeRailCore) {
+		return core ? AppleExtendedRailCompat.getLogicalRailMap(core) : null;
+	}
+
 	static canMoveRailPosition(core: TileEntityLargeRailCore): boolean {
 		return this.getRailPositionUnsupportedReason(core) === "";
 	}

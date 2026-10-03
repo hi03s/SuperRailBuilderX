@@ -52,3 +52,14 @@
 - 生latest.logは引き続きGit除外。必要な生成結果とMod識別をlogs/appleextended-generation-unsupported-20261003.logへ抜粋し、PC・パス・他Mod情報を除去した。
 - 未検証: 実機でAE APIによる生成成功。修正版artifacts/SuperRailBuilderX-alpha-0.1.0.zipを導入し、生成Aの通常/自動分割レール生成とUndo、[SRBX rail patch] bootstrap/completed（failed=0）を確認する。失敗時は操作時刻とlogs/latest.logの[SuperRailBuilderX builder1]・[SRBX rail patch]・例外前後をlogsへ格納して共有してもらう。
 - 修正コミット49126a6をorigin/feature/appleextended-compatへpush・同期済み。
+
+## 2026-10-03 ローカルCodex: AE生成結果・論理ホバー・nullクラッシュ・bootstrap修正
+
+- latest.logの対象ログと例外に絞り、生成Aはcreate_failed、分割描画はmc1122側getLogicalRailMapでnull.length、bootstrapはaddScheduledTask is not a functionと特定。生ログはGitへ追加せず必要部分をlogs/appleextended-generation-hover-retest-20261003.logへ保存した。
+- AE v2.5.3公式BlockMarker.javaを確認。公開createRailは内部生成結果を捨てて末尾で常にfalseを返す。SRBXはこれを失敗と扱っていた。生成前後のコアを比較し、新規コアが確認できた場合だけ成功・Undo登録する方式へ変更。未生成や同じ既存コアは失敗のままとし、[SuperRailBuilderX AE] creation confirmed/not confirmedとapiResultを診断出力する。
+- AE SRBXApiCompatにgetLogicalRailMap overrideがなく、mc1122の個別物理RailMapへフォールバックしていた。AEの論理端点からのRailMapへ委譲するoverrideを追加。nullコア・配列・端点ではnullを返す。mc1122の既存処理にもgetAllRailMapsのnullガードを追加した。KaizPatchXの実装は変更していない。
+- 描画patchのタスク登録はany引数でオーバーロードを特定できずMCP名が残っていた。既存のjava.util.concurrent.Callable型を明示し、Minecraft.func_152343_aとして出力されることを確認。Runnableのスキャン追加はThreadの既存呼出に影響するため採用せず、元のスキャン範囲を維持した。rtm-ts・ツールキットは未変更。
+- 配布JavaScriptの回帰テストpnpm test:appleextendedを追加。false戻り値＋新規コアを成功とし、未生成・既存コアのままは失敗、各Sectionから論理端点の全体Map取得、null端点ガード、SRG名でのタスク登録を確認。
+- 検証済み: pnpm gen、pnpm zip（全4ターゲット、警告・エラー0件、83ファイル）、pnpm test:appleextended、pnpm test:runtime-dispatch、pnpm test:rail-patch、対象Prettier、git diff --check。
+- 未検証: 実機の通常/自動分割生成とUndo、分割ホバー全体表示・分割とUndo、ワールド終了時の描画、[SRBX rail patch] completed（failed=0）。生成済みでも失敗表示だった旧テストのレールは自動削除・復元しない。
+- 再確認手順: バックアップ済みワールドでartifacts/SuperRailBuilderX-alpha-0.1.0.zipへ交換し、上記を確認。問題が残る場合は操作時刻とlogs/latest.logの[SuperRailBuilderX AE]・[SuperRailBuilderX builder1]・[SRBX rail patch]・例外前後をlogsへ格納して共有してもらう。
