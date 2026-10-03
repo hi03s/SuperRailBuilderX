@@ -14,9 +14,9 @@
 - `SuperRailBuilderX_DoubleTrackCopy`を実装済み。通常レールの複数選択、カーソル距離に応じた指定間隔の反復複製、水平平行線形、0.5 m端点接続、手持ち/複製元モデル、一括Undoを備える。
 - `SuperRailBuilderX_CantFormatter`を実装済み。端点・中央への10 mスナップ、任意点分割、未選択分割候補の黄色表示、選択済み変更対象の水色表示、共有端点の連続適用、複数回の適用を遡るUndoに対応する。
 - `SuperRailBuilderX_BranchBuilder`を実装済み。中央の約0.5 m候補、接続/未接続の正確な端点を根元とする単純分岐、共有端点両側の強調と分岐先カーソル方向によるベース選択、接続部カント0化とUndoに対応する。
-- AppleExtended対応ブランチへ最新mainを統合し、AE正式版`v2.5.3`へ対応。生成コア確認・論理端点選択・Undo入力を修正し、通常/自動分割レールの端点・全体移動は元状態退避とgroup全体再生成で補完する。実機再検証待ち。
+- AppleExtended v2.5.3対応をmainへ統合済み。開発者から概ね不具合解消の報告を受領（2026-10-04）。通常/自動分割レールの生成・複線・分割・移動・カント・分岐・Undoを補完し、KaizPatchの既存処理を維持。
 - builder1のチャンク境界交差・候補表示・Iキー地上高合わせ、複線コピーの生成、分割パネル・縦勾配・カント、レール移動の基本操作・接続・回り込み防止・三線軌条の相互走行は実機確認済み。
-- `alpha-0.1.0`の配布設定、README、統合操作ガイド、同梱readme.txt・LICENSEを整備済み。配布ZIPは`SuperRailBuilderX-alpha-0.1.0.zip`として生成できる。
+- リリースバージョンは`0.2.0`。package.json・配布名・ツール内VERSION・README/操作ガイド/同梱説明を統一し、`SuperRailBuilderX-0.2.0.zip`を生成済み。
 - `v*`タグpush時に型定義生成・multi-targetビルド・ZIP生成を行い、`release-notes.md`を本文とするDraft Releaseを作成するGitHub Actionsを整備済み。公開はGitHub上で手動実施する。
 - レール生成・自由点移動の構造は `docs/rail-generation-and-free-positioning.md`、各ツールの仕様と検証方法は下記「関連資料」を参照する。
 - `AGENTS.md`へ、親モデルを途中変更するのではなく、限定作業だけを軽量・バランス型サブエージェントへ委譲するモデル運用規則を追加済み。
@@ -55,12 +55,9 @@
 
 ### AppleExtended
 
-- レール生成Aの接続端点を180度反転するとき、AEだけcantEdgeも反転する。KaizPatchのカント処理/モデルハイライトは従来通り。正負カント・既設レール両端・新規レール開始/終了側の接続をAE/KaizPatchで確認し、操作時刻とlogs/latest.logを共有する。
-
-- 20:07～20:14再テストの接続カント片側欠落・中央invalid_endpoint・分岐Undo失敗を修正。接続探索は論理キーで自グループを除外し、ロード済み端点へ向きに応じて適用する。中央/端点・同向/逆向接続・分岐Undoを再確認する。
-- 複線のSection生成がコア未作成で失敗する内部理由は未確定。部分生成がない場合だけ通常レールで1回再試行し、既設道床/コアを保護する。10/04ログではこの再試行で複線生成成功を確認。失敗時はsection creation failedのowners/partial/creativeと前後ログを確認する。
-- AEの02:37クラッシュ対策: 旧keyのコアはブロック/tileを同時に除去して未初期化tileの再作成を防ぐ。AEだけ論理線形のハイライトへ切替え、モデルのshouldRenderObject呼出しを避ける。移動→Undo/再移動後のクラッシュ・ghost・チャンク例外消失を実機再確認。
-- 接続移動/Undoの配置判定は生成計画へ統一。00:46～00:47で残った両端候補塞がりは、既存Section範囲内の空き道床へ物理コアだけ代替配置するfallbackを追加（論理端点/線形/ratioを維持）。全配置先を変更前に検証し、空きなしは非破壊で拒否。接続2本移動・一括移動・Undo/再ログイン/走行を再確認する。新診断section owners relocated/section owner relocation blockedとclient ghost cleanupを含むlogs/latest.logを共有する。
+- 開発者から概ね不具合解消の報告を受領しmainへ統合。個別の全ケース確認済みとは扱わず、今後の再発時は操作順・時刻とlogs/latest.logを確認する。
+- AEだけ接続cantEdge反転・論理線形ハイライト・旧コアのブロック/tile一括掃除を適用。KaizPatch回帰、AE接続移動/Undo/走行は今後も継続確認する。
+- Section生成にコア配置競合があれば保護道床への代替配置、部分生成なしなら通常生成へfallback。失敗診断はsection creation failed/section owner relocation blockedを参照する。
 
 ## 次に行うこと
 
@@ -130,7 +127,7 @@
 
 ## 直近の完了
 
-- 2026-10-04 ローカルCodex: AE移動後クラッシュ対策と生成Aの接続カント反転を修正。全4ターゲットZIP/回帰13スイート成功、実機未確認。修正`4bf5aaf`を`origin/feature/appleextended-compat`へpush済み（差分0/0）。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)。
+- 2026-10-04 ローカルCodex: AE対応をmainへマージ（`a769e94`）、0.2.0へ設定。全4ターゲットZIP（警告0）・回帰13スイート成功。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 ## 関連資料
 

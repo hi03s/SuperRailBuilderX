@@ -127,3 +127,10 @@
 - 実行済み: pnpm zip（全4ターゲット・警告0・89ファイル）、test:appleextended 10スイート、test:input/test:rail-patch/test:runtime-dispatch、変更ファイルPrettier、git diff --check。ghostテストはtile-only除去禁止と旧ブロック除去/新コア保護を追加。highlightテストはAE callback不使用・論理全長・GL復元・診断抑制・従来renderer委譲を検証。
 - 未実施: AE/KaizPatchのMinecraft実機。移動→Undo→再移動、ghost/チャンク例外、正負カントの端点接続を再確認し、操作時刻とlogs/latest.logを提出。KaizPatchの端点接続と従来ハイライトも確認する。
 - 修正コミット`4bf5aaf`を`origin/feature/appleextended-compat`へpush済み。引継ぎ帳へ同期結果を反映。
+
+## 2026-10-04 ローカルCodex: main統合・0.2.0設定
+
+- 開発者から概ね不具合解消の報告とmain統合・0.2.0設定の依頼を受領。origin/mainとの差分を取得し、feature/appleextended-compatをmainへno-ffマージ（a769e94）、競合なし。ユーザー未追跡gui_base.xcfを保持。
+- package.json=0.2.0、rtmx配布名SuperRailBuilderX-0.2.0、7箇所のツールVERSION、README/usage/同梱readmeの表記を更新。古いAE実験対象/端点移動のみという説明を現行対応に修正。release-notes.mdへv2.5.3の生成・論理Section編集・Undo・接続カント/クラッシュ修正を記載。rtm-ts/参照toolkit未変更。
+- 実行済み: pnpm zip（全4ターゲット、警告0、89ファイル）、test:appleextended 10スイートとtest:input/test:rail-patch/test:runtime-dispatch、変更TS/JSONのPrettier確認・git diff --check、ZIP内バージョン確認。
+- 今回未実施: Minecraft実機。開発者の概ね解消という報告を記録し、個別全ケースの確認完了とは扱わない。今回の依頼はバージョン設定とmain統合のため、v0.2.0タグ作成/Release公開は実施しない。正式配布時はdocs/releasing.mdの手順を使用する。

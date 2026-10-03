@@ -1,18 +1,16 @@
 # SuperRailBuilderX
 
-**Release: alpha-0.1.0**
+**Release: 0.2.0**
 
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.7.10-62b47a)](https://www.minecraft.net/)
 [![KaizPatchX](https://img.shields.io/badge/KaizPatchX-1.10.3%2B-57b57b)](https://github.com/Kai-Z-JP/KaizPatchX)
-[![AppleExtended](https://img.shields.io/badge/AppleExtended-v2.5.3_experimental-c96f4a)](https://github.com/Kirtmuna/AppleExtended/releases/tag/v2.5.3)
-[![Release](https://img.shields.io/badge/release-alpha--0.1.0-orange)](https://github.com/hi03s/SuperRailBuilderX/releases)
+[![AppleExtended](https://img.shields.io/badge/AppleExtended-v2.5.3-c96f4a)](https://github.com/Kirtmuna/AppleExtended/releases/tag/v2.5.3)
+[![Release](https://img.shields.io/badge/release-0.2.0-blue)](https://github.com/hi03s/SuperRailBuilderX/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 ## 概要
 
 SuperRailBuilderXは、KaizPatchX向けのレール制作支援ツール集です。レールの新規敷設、複線コピー、既設線の分割、端点・線形の移動、カント整形、分岐生成を自動車モデルとして収録しています。地面へ設置して右クリックすると使用できます。
-
-本バージョンは開発途中のアルファ版です。
 
 ## 重要な注意事項
 
@@ -27,14 +25,15 @@ SuperRailBuilderXは、KaizPatchX向けのレール制作支援ツール集で�
 
 - Minecraft 1.7.10
 - RealTrainModとKaizPatchX 1.10.3以降
+- またはMinecraft 1.12.2とAppleExtended v2.5.3
 
-レール生成・移動などの主要機能はKaizPatchX専用です。通常RTM 1.7.10およびMinecraft 1.12.2向けの共通コードもビルドされますが、非対応機能はワールドを変更せず安全に停止します。
+主要機能はKaizPatchXとAppleExtended v2.5.3に対応しています。通常RTM 1.7.10およびMinecraft 1.12.2向けの共通コードもビルドされますが、非対応機能はワールドを変更せず安全に停止します。
 
-AppleExtended `ca255fd`向け対応は実験段階です。通常レールの端点移動とUndoだけを有効化し、道床再生成を必要とする機能は安全のため無効化しています。詳細は[AppleExtended target](docs/appleextended-target.md)を参照してください。
+AppleExtended v2.5.3では、通常・自動分割レールの生成、複線コピー、分割、移動、カント整形、分岐生成とUndoに対応しています。詳細は[AppleExtended target](docs/appleextended-target.md)を参照してください。
 
 ## 導入方法
 
-1. RealTrainModとKaizPatchXを導入します。
+1. RealTrainModとKaizPatchX、またはAppleExtended v2.5.3を導入します。
 2. [Releases](https://github.com/hi03s/SuperRailBuilderX/releases)から配布パックをダウンロードします。
 3. ダウンロードしたパックをMinecraftの`mods`フォルダーへ入れます。
 4. 起動後、自動車モデル選択画面から`SuperRailBuilderX_builder1`（機能名: レール生成A）または`SuperRailBuilderX`で始まるツールを選びます。

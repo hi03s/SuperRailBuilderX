@@ -12,7 +12,7 @@ import {
 	SRBXCantTarget,
 } from "@target/assets/minecraft/scripts/superrailbuilderx/SRBXApiCompat";
 
-const VERSION = "alpha-0.1.0";
+const VERSION = "0.2.0";
 export type CantFormatterRequest =
 	{ action: "apply"; targets: SRBXCantTarget[] } | { action: "undo" };
 const hosts: WeakHashMap<Entity, EntityPlayer> = new WeakHashMap();
