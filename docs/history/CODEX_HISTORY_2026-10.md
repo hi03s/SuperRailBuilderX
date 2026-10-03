@@ -134,3 +134,4 @@
 - package.json=0.2.0、rtmx配布名SuperRailBuilderX-0.2.0、7箇所のツールVERSION、README/usage/同梱readmeの表記を更新。古いAE実験対象/端点移動のみという説明を現行対応に修正。release-notes.mdへv2.5.3の生成・論理Section編集・Undo・接続カント/クラッシュ修正を記載。rtm-ts/参照toolkit未変更。
 - 実行済み: pnpm zip（全4ターゲット、警告0、89ファイル）、test:appleextended 10スイートとtest:input/test:rail-patch/test:runtime-dispatch、変更TS/JSONのPrettier確認・git diff --check、ZIP内バージョン確認。
 - 今回未実施: Minecraft実機。開発者の概ね解消という報告を記録し、個別全ケースの確認完了とは扱わない。今回の依頼はバージョン設定とmain統合のため、v0.2.0タグ作成/Release公開は実施しない。正式配布時はdocs/releasing.mdの手順を使用する。
+- main統合a769e94・0.2.0設定10a7955をorigin/mainへpush済み、差分0/0。引継ぎ記録も同期する。
