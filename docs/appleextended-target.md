@@ -59,9 +59,9 @@ pnpm gen
 pnpm build
 ```
 
-AEターゲットのMCP mappingsは`stable/39`を使用する。公式リリースの`AppleExtended-forge1.12.2-2.5.3-dev.jar`を使用する（リポジトリはKirtmunaへ移転）。JitPackで正式タグの取得がタイムアウトしたため、`pnpm gen`の前処理で公式dev JARと上流指定のGroovy 2.4.15をダウンロードし、SHA-256を確認する。取得済みJARは`.cache/appleextended/`へ保存し、Gitへ追加しない。
+AEターゲットのMCP mappingsは`stable/39`を使用し、依存は`com.github.Kirtmuna:AppleExtended:v2.5.3`とする。rtm-ts 0.12.0は改造・パッチせず使用する。2026-10-03時点ではJitPackからの正式タグ取得がタイムアウトし、新規環境での`pnpm gen`完了は未確認。取得障害は開発者からAE制作者へ報告予定。
 
-rtm-ts 0.12.0には追加JAR指定がないため、`patches/rtm-ts@0.12.0.patch`で`scan.extraJars`を追加する。AE dev JARを標準1.12.2依存より先にスキャンクラスパスへ置き、MCP名のまま型生成する。`pnpm install`でパッチが適用される。初回は`rtmx generate`を直接呼ばず`pnpm gen`を使う。生成用の標準RTM依存は配布物には同梱されない。
+この作業では公式dev JARから一時的に生成した型定義を使い、main統合後のビルドを確認した。型定義・JARはGitへ追加しない。JitPack復旧後に標準の`pnpm gen`と`pnpm build`を再確認する。
 
 ## AE側に追加されれば削除できる補完
 

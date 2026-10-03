@@ -88,15 +88,7 @@
 				"forgeVersion": "14.23.5.2860",
 				"channel": "stable",
 				"mappingsVersion": "39",
-				"mods": [
-					"curse.maven:ngtlib-288989:4641592",
-					"curse.maven:realtrainmod-288988:4641603",
-					"curse.maven:mc-terrain-editor-289840:4641597"
-				],
-				"extraJars": [
-					".cache/appleextended/AppleExtended-forge1.12.2-2.5.3-dev.jar",
-					".cache/appleextended/groovy-all-2.4.15.jar"
-				],
+				"mods": ["com.github.Kirtmuna:AppleExtended:v2.5.3"],
 				"packages": [
 					"net.minecraft",
 					"net.minecraftforge",

@@ -4,7 +4,7 @@
 	"private": true,
 	"license": "MIT",
 	"scripts": {
-		"pregen": "node scripts/prepare-appleextended.cjs",
+		"pregen": "node -e \"require('fs').rmSync('generated',{recursive:true,force:true})\"",
 		"gen": "rtmx generate",
 		"prebuild": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
 		"build": "rtmx build",
