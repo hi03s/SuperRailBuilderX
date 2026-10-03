@@ -40,3 +40,4 @@
 - 検証済み: pnpm zip（全4ターゲットビルド、警告・エラー0件、83ファイルのZIP生成）、pnpm test:rail-patch（KaizPatchX/AE両include方式・描画補正・再適用防止・GL復元）、対象Prettier、git diff --check。
 - 変更前後の配布patch_source.jsを評価し、RAIL_RENDER_PATCH_SOURCE文字列が完全一致することを確認。型宣言のみの変更で、対象Engineへ評価させるコードは変わらない。
 - 未検証: Minecraft実機での起動・描画再確認は前項の確認待ちを維持。
+- 修正コミットdcb52b4をorigin/feature/appleextended-compatへpush・同期済み。
