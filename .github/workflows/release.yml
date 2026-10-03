@@ -39,6 +39,9 @@ jobs:
                   distribution: temurin
                   java-version: "17"
                   cache: gradle
+                  cache-dependency-path: |
+                      pnpm-lock.yaml
+                      rtmx.json
 
             - name: Verify release notes
               shell: bash
