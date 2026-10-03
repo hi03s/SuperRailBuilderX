@@ -189,6 +189,11 @@ export class SRBXApiCompat {
 		void z;
 	}
 
+	static needsRailClientGhostRetry(expectedKey: string): boolean {
+		void expectedKey;
+		return false;
+	}
+
 	static removeRailClientGhost(
 		world: net.minecraft.world.World,
 		core: [number, number, number],

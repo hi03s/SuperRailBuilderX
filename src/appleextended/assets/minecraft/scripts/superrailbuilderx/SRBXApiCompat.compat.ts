@@ -3,6 +3,8 @@ import {
 	TileEntityLargeRailSwitchCore,
 } from "jp.ngt.rtm.rail";
 import { RailPosition } from "jp.ngt.rtm.rail.util";
+import { NGTLog } from "jp.ngt.ngtlib.io";
+import { WeakHashMap } from "java.util";
 import {
 	AppleExtendedBuilderPoint,
 	AppleExtendedRailCompat,
@@ -13,6 +15,10 @@ import { AppleExtendedRailMoveCompat } from "./AppleExtendedRailMoveCompat";
 
 /** AppleExtended v2.5.3 exposes logical-rail APIs and automatic section rails. */
 export class SRBXApiCompat {
+	private static ghostInvalidated: WeakHashMap<
+		TileEntityLargeRailCore,
+		boolean
+	> | null = null;
 	static getRailCorePos(
 		core: TileEntityLargeRailCore,
 	): [number, number, number] {
@@ -79,12 +85,17 @@ export class SRBXApiCompat {
 		world.notifyBlockUpdate(pos, state, state, 3);
 	}
 
+	static needsRailClientGhostRetry(expectedKey: string): boolean {
+		return expectedKey.indexOf("section:") === 0;
+	}
+
 	static removeRailClientGhost(
 		world: net.minecraft.world.World,
 		corePosition: [number, number, number],
 		expectedKey: string,
 	): void {
 		if (!world.isRemote || !expectedKey) return;
+		if (!this.ghostInvalidated) this.ghostInvalidated = new WeakHashMap();
 		const candidates: TileEntityLargeRailCore[] = [];
 		const root = AppleExtendedRailCompat.getCore(world, corePosition);
 		if (root) candidates.push(root);
@@ -94,14 +105,59 @@ export class SRBXApiCompat {
 			const tile = loaded.get(i);
 			if (tile instanceof TileEntityLargeRailCore) candidates.push(tile);
 		}
+		// Packet-applied chunk tiles need not have joined the loaded list yet.
+		const initialCount = candidates.length;
+		for (let i = 0; i < initialCount; i++) {
+			const core = candidates[i];
+			if (
+				this.getRailPositionCandidateKey(core) !== expectedKey ||
+				!AppleExtendedRailCompat.isSectionCore(core)
+			)
+				continue;
+			const group = core.getRailGroupCorePositions();
+			for (let j = 0; j < group.size(); j++) {
+				const pos = group.get(j);
+				const member = AppleExtendedRailCompat.getCore(world, [
+					pos[0],
+					pos[1],
+					pos[2],
+				]);
+				if (member) candidates.push(member);
+			}
+		}
+		let removed = 0,
+			invalidated = 0;
+		const seen: TileEntityLargeRailCore[] = [];
 		for (let i = 0; i < candidates.length; i++) {
 			const core = candidates[i];
 			if (
-				(world.getTileEntity(core.getPos()) as unknown) === core &&
-				this.getRailPositionCandidateKey(core) === expectedKey
+				seen.indexOf(core) >= 0 ||
+				this.getRailPositionCandidateKey(core) !== expectedKey
 			)
-				core.breakLogicalRail();
+				continue;
+			seen.push(core);
+			const pos = core.getPos();
+			let removedHere = false;
+			// breakLogicalRail also deletes shared rail-bed blocks. A client
+			// cleanup must only remove this exact old tile, never its replacement.
+			if ((world.getTileEntity(pos) as unknown) === core) {
+				const state = world.getBlockState(pos);
+				world.removeTileEntity(pos);
+				world.notifyBlockUpdate(pos, state, state, 3);
+				removed++;
+				removedHere = true;
+			}
+			// Detached tiles can still own GL lists in the render dispatcher.
+			if (removedHere || !this.ghostInvalidated.containsKey(core)) {
+				core.invalidate();
+				this.ghostInvalidated.put(core, true);
+				invalidated++;
+			}
 		}
+		if (removed || invalidated)
+			NGTLog.debug(
+				`[SuperRailBuilderX AE] client ghost cleanup: key=${expectedKey}, removed=${removed}, invalidated=${invalidated}`,
+			);
 	}
 
 	static consumeLastRailPositionMoveCores(): Array<[number, number, number]> {

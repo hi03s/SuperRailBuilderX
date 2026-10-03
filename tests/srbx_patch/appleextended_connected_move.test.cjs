@@ -92,6 +92,7 @@ class MapBasic {
 const split = (map) =>
 	list([map.start, map.end].map((owner) => ({ getStartRP: () => owner })));
 const context = {
+	AppleExtendedSectionPlacementCompat: { plan: () => null },
 	Packages: {
 		jp: {
 			ngt: {

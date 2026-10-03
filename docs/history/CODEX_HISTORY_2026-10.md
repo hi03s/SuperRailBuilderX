@@ -106,3 +106,13 @@
 - 実行済み: pnpm zip（全4ターゲット・警告0・87ファイル）、test:appleextended（8スイート）、test:input、test:rail-patch、test:runtime-dispatch、変更TS/テスト/package.jsonのPrettier確認、git diff --check。新回帰テストはbuiltの実配置計画と移動helperを組み合わせ、共有端点2本の順次移動、逆順Undo、先行道床所有維持、通常生成fallback、配置候補2か所が他レール所有の場合の非破壊拒否を検証。
 - 未実施: Minecraft/AE/KaizPatchX実機。バックアップ済みワールドで今回の同じ接続端部を選択→移動→Undo、再移動、再ログイン/走行を確認。失敗時は操作順・時刻とlogs/latest.logを格納。新診断placement blocked before removalが出れば実際の保護配置拒否を調べる。ユーザーgui_base.xcfと生ログを追加しない。
 - 修正コミット`a9df8bb`を`origin/feature/appleextended-compat`へpush済み。HEAD/origin差分0/0を確認。
+
+## 2026-10-04 ローカルCodex: 両端所有先競合・クライアントSectionゴースト
+
+- 00:46～00:47 latest.logをlogs/appleextended-endpoint-owner-client-ghost-20261004.logへ最小抜粋。接続2本移動/Undo成功も確認したが、00:46:27で両コア候補が保護対象となりpartial_target_1:rail_overlap、00:47:19一括Undoもrail_overlap。別操作のrail_not_foundはクライアント旧Section残存との関連を疑い、再入場で消えるという実機報告に合わせて描画参照/packet順を調べた。
+- 両端候補が塞がる場合だけ、AppleExtendedSectionPlacementCompatで既存のRailChunkSectioner区間に属する道床の空き・ロード済み座標を選ぶ。物理Section.startRPの所有ブロックを移しsetPositionで精密座標を保持、論理RP/区間ratioは変更しない。公式v2.5.3/dev JARのRailMapSection.getRailPosがsource+ratioへ委譲することと、BlockMarkerのSection生成手順を確認し公開APIで補完。正常な従来経路は維持する。
+- 全物理配置先とmap.canPlaceRailを書込み前に再検証、所有座標を重複排除。NBTでprotected version/モデル/physical RPを初期化しconfigureRailSectionでUUID/論理RP/全コア一覧を設定。共有道床所有先はfinally復元。途中失敗なら今回の未完成コアだけ除去し、全コア初期化成功後にpacketを送る。空きなしは診断して元レール削除前に拒否。
+- 独立したghost調査/実装をサブエージェントへ委譲、親が統合確認。AEのクライアント掃除でbreakLogicalRailを使わず、旧keyの現存tileのみremoveTileEntity、切離し参照はinvalidateで公式GL削除処理を実行。WeakHashMapで同参照の重複解放を抑止し、group座標からloaded一覧未反映tileも調べる。後着旧packetを100tickまで再確認し、掃除件数だけNGT診断する。新keyとサーバーは変更しない。
+- needsRailClientGhostRetry compat hookを追加し、AEのsection keyのみ再確認を許可。KaizPatchX/mc1710/mc1122はfalseで従来cleanupの頻度/動作を維持。共通rendererだけに期限付きqueueを追加。rtm-ts/参照toolkitは未変更。
+- 実行済み: pnpm zip（全4ターゲット・警告0・88ファイル）、test:appleextended（9スイート: 両端保護でもSection内代替配置・論理RP/ratio維持・SRG-only NBT・全配置事前検証・初期化失敗時非破壊cleanup/packet抑止、chunk/loadedずれ・stale GL解放・後着旧packet・new group保護・server no-opを含む）、test:input、test:rail-patch、test:runtime-dispatch、変更TS/テスト/package.jsonのPrettier、git diff --check。全体format:checkは既知の未変更差分があり再実行しない。
+- 未実施: Minecraft/AE/KaizPatchX実機。バックアップワールドで失敗した端点移動→Undo、接続2本・一括移動、再入場せずghost消失、再ログイン/走行・モデル/カント保持を確認。失敗時は操作順/時刻とlogs/latest.log、新診断section owners relocated/section owner relocation blocked/client ghost cleanupを提出。実機でのghost原因特定は診断による再確認が必要。ユーザーgui_base.xcfと生ログは追加しない。

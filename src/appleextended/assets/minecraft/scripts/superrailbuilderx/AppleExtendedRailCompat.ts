@@ -15,6 +15,10 @@ import { TileEntityLargeRailSectionCore } from "jp.apple.rail";
 import { RailChunkSectioner, RailMapSection } from "jp.apple.rail.util";
 import { AppleExtendedSwitchCompat } from "./AppleExtendedSwitchCompat";
 import { AppleExtendedRailProtection } from "./AppleExtendedRailProtection";
+import {
+	AppleExtendedSectionPlacement,
+	AppleExtendedSectionPlacementCompat,
+} from "./AppleExtendedSectionPlacementCompat";
 import { NGTLog } from "jp.ngt.ngtlib.io";
 
 type RailCorePos = [number, number, number];
@@ -258,6 +262,7 @@ export class AppleExtendedRailCompat {
 		ordered: RailPosition[];
 		root: RailPosition;
 		property: ResourceStateRail;
+		sections?: AppleExtendedSectionPlacement;
 	} | null {
 		if (!positions || positions.length < 2) return null;
 		const ordered = positions.slice();
@@ -321,6 +326,29 @@ export class AppleExtendedRailCompat {
 				ordered.reverse();
 				root = other;
 			} else {
+				if (ordered.length === 2) {
+					const logicalStart =
+						ordered[0].blockY >= ordered[1].blockY
+							? ordered[1]
+							: ordered[0];
+					const logicalEnd =
+						logicalStart === ordered[0] ? ordered[1] : ordered[0];
+					const sections = AppleExtendedSectionPlacementCompat.plan(
+						world,
+						logicalStart,
+						logicalEnd,
+						property,
+						(owner) =>
+							this.corePlacementBlocked(world, owner, ignoredKey),
+					);
+					if (sections)
+						return {
+							ordered,
+							root: sections.sections[0].start,
+							property,
+							sections,
+						};
+				}
 				NGTLog.debug(
 					`[SuperRailBuilderX AE] creation blocked: protected rail owner at ${root.blockX},${root.blockY},${root.blockZ}`,
 				);
@@ -388,8 +416,14 @@ export class AppleExtendedRailCompat {
 			creationProperty,
 		);
 		try {
-			apiResult =
-				ordered.length > 2
+			apiResult = plan.sections
+				? AppleExtendedSectionPlacementCompat.create(
+						world,
+						plan.sections,
+						creationProperty,
+						player.capabilities.isCreativeMode,
+					)
+				: ordered.length > 2
 					? AppleExtendedSwitchCompat.create(
 							world,
 							player,

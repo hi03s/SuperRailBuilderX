@@ -24,7 +24,7 @@
 
 ## 作業中
 
-- なし。
+- ローカルCodex: 00:46～00:47再テストの物理Sectionコア代替配置・クライアントghost掃除を実装済み。最終検証/同期中。
 
 ## 優先確認事項
 
@@ -57,8 +57,8 @@
 
 - 20:07～20:14再テストの接続カント片側欠落・中央invalid_endpoint・分岐Undo失敗を修正。接続探索は論理キーで自グループを除外し、ロード済み端点へ向きに応じて適用する。中央/端点・同向/逆向接続・分岐Undoを再確認する。
 - 複線のSection生成がコア未作成で失敗する内部理由は未確定。部分生成がない場合だけ通常レールで1回再試行し、既設道床/コアを保護する。10/04ログではこの再試行で複線生成成功を確認。失敗時はsection creation failedのowners/partial/creativeと前後ログを確認する。
-- 移動ゴーストは旧代表コアが置換済みでも残存Sectionを旧論理キーで除去する。失敗時復元・部分Undoも旧キー除去と新キー同期を通知し、古い選択を破棄する。接続2本移動→Undo、一部失敗後の再選択・再Undo、再ログイン後の走行を確認する。
-- 10/04 00:32～00:33の片側移動/Undo失敗は、論理端点の他レール道床をコア配置競合と誤認していた。実コア配置計画で判定し、自グループだけ削除予定として除外。共有道床保護・通常生成/反対端点の選択を維持。接続2本移動→Undoを実機再確認する。実際に安全な配置先がないrail_overlap拒否と分岐レール自体の移動未対応は維持。
+- AEクライアントghost掃除は旧keyの現存tile除去とinvalidateによるGL解放へ変更。破壊APIで道床を消さず、chunk/loaded一覧ずれ・stale描画参照・後着packetを100tick再確認。再確認はAEだけ、他ターゲットは従来処理を維持。移動→Undo/再移動後、再入場せず旧Sectionが消えることを確認する。
+- 接続移動/Undoの配置判定は生成計画へ統一。00:46～00:47で残った両端候補塞がりは、既存Section範囲内の空き道床へ物理コアだけ代替配置するfallbackを追加（論理端点/線形/ratioを維持）。全配置先を変更前に検証し、空きなしは非破壊で拒否。接続2本移動・一括移動・Undo/再ログイン/走行を再確認する。新診断section owners relocated/section owner relocation blockedとclient ghost cleanupを含むlogs/latest.logを共有する。
 
 ## 次に行うこと
 
@@ -128,9 +128,7 @@
 
 ## 直近の完了
 
-- 2026-10-04 ローカルCodex: 接続端部移動の競合判定を生成計画へ統一。両側移動/逆順Undo/配置先保護の回帰テストと全4ターゲット警告0件ZIP成功、実機待ち。`a9df8bb`を`origin/feature/appleextended-compat`へpush・同期済み。詳細はdocs/history/CODEX_HISTORY_2026-10.md。
-
-- 2026-10-03 ローカルCodex: 接続/中央カント・分岐Undo・複線安全再試行・Sectionゴースト/失敗時同期を修正。警告0件ZIP・10回帰スイート・変更整形成功、実機待ち。`8b83fc2`を`origin/feature/appleextended-compat`へpush・同期済み。詳細はdocs/history/CODEX_HISTORY_2026-10.md。
+- 2026-10-04 ローカルCodex: 両端コア候補塞がりを物理Section代替配置で補完し、旧tile/GL解放とAEだけの遅延packet再確認を追加。実機再検証待ち。詳細はdocs/history/CODEX_HISTORY_2026-10.md。
 
 ## 関連資料
 

@@ -83,6 +83,8 @@ type EditorState = {
 	awaitingResult: boolean;
 	pendingAction: "move" | "undo" | null;
 	snapEnabled: boolean;
+	ghostCleanup?: { core: RailCorePos; key: string; untilTick: number }[];
+	ghostCleanupTick?: number;
 };
 
 type CandidateScanDiagnostics = {
@@ -1264,6 +1266,15 @@ function handleInput(
 					removed[i].core,
 					removed[i].key,
 				);
+				// Section packets may arrive after the tool result. Their unique
+				// group key allows bounded retries without touching replacements.
+				if (SRBXApiCompat.needsRailClientGhostRetry(removed[i].key)) {
+					if (!state.ghostCleanup) state.ghostCleanup = [];
+					state.ghostCleanup.push({
+						...removed[i],
+						untilTick: entity.ticksExisted + 100,
+					});
+				}
 			}
 		NGTOBuilderUtil.resetJsonData(dataMap, "railPositionUpdatedCores");
 		NGTOBuilderUtil.resetJsonData(dataMap, "railPositionRemovedRails");
@@ -1350,6 +1361,14 @@ function render(
 	if (!host || host !== player) return;
 	SRBXApiCompat.doFollowing(entity, host);
 	const state = getState(entity);
+	if (state.ghostCleanup && state.ghostCleanupTick !== entity.ticksExisted) {
+		state.ghostCleanupTick = entity.ticksExisted;
+		state.ghostCleanup = state.ghostCleanup.filter((record) => {
+			if (entity.ticksExisted > record.untilTick) return false;
+			SRBXApiCompat.removeRailClientGhost(world, record.core, record.key);
+			return true;
+		});
+	}
 	const candidates =
 		!state.awaitingResult && state.stage === 0
 			? findCandidates(entity, partialTicks)

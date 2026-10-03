@@ -997,6 +997,11 @@ export class SRBXApiCompat {
 		);
 	}
 
+	static needsRailClientGhostRetry(expectedKey: string): boolean {
+		void expectedKey;
+		return false;
+	}
+
 	static removeRailClientGhost(
 		world: net.minecraft.world.World,
 		corePosition: [number, number, number],

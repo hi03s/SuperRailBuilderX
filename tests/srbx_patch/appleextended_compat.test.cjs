@@ -50,6 +50,7 @@ class Thread {
 const messages = [];
 let scheduled = false;
 const context = {
+	AppleExtendedSectionPlacementCompat: { plan: () => null },
 	RTMX_COMPAT_TARGETS: {},
 	Packages: {
 		java: { util: { ArrayList }, lang: { Thread } },
