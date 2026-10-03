@@ -128,7 +128,7 @@
 
 ## 直近の完了
 
-- 2026-10-03 ローカルCodex: AE生成APIの常時falseをコア確認で補い、論理RailMap overrideとnullガード、bootstrapのSRG変換を修正。型生成・警告0件ZIP・3回帰テスト成功。詳細は`docs/history/CODEX_HISTORY_2026-10.md`。
+- 2026-10-03 ローカルCodex: AE生成APIの常時falseをコア確認で補い、論理RailMap overrideとnullガード、bootstrapのSRG変換を修正。型生成・警告0件ZIP・3回帰テスト成功。修正`25609e2`を`origin/feature/appleextended-compat`へ同期済み。詳細は`docs/history/CODEX_HISTORY_2026-10.md`。
 
 - 2026-10-03 ローカルCodex: AE生成unsupportedの原因はMod ID誤判定。実際の`applelib`へ修正し、AE/KaizPatchX/通常RTMのdispatchテストと警告0件のZIP生成成功。修正`49126a6`を`origin/feature/appleextended-compat`へ同期済み。詳細は`docs/history/CODEX_HISTORY_2026-10.md`。
 
