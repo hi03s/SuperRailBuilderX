@@ -126,3 +126,4 @@
 - AE RailMapBasic.getRailRollは開始cantEdge/終了-cantEdgeを使う。生成Aの接続RPでyaw/directionを反転するときcantEdgeも反転し、既設RPは変更しない。cantCenter/KaizPatchの接続変換/rtm-tsは変更しない。開始/終了の既設端点と新規開始/終了側、正負/0カントの物理roll連続性を回帰検証。
 - 実行済み: pnpm zip（全4ターゲット・警告0・89ファイル）、test:appleextended 10スイート、test:input/test:rail-patch/test:runtime-dispatch、変更ファイルPrettier、git diff --check。ghostテストはtile-only除去禁止と旧ブロック除去/新コア保護を追加。highlightテストはAE callback不使用・論理全長・GL復元・診断抑制・従来renderer委譲を検証。
 - 未実施: AE/KaizPatchのMinecraft実機。移動→Undo→再移動、ghost/チャンク例外、正負カントの端点接続を再確認し、操作時刻とlogs/latest.logを提出。KaizPatchの端点接続と従来ハイライトも確認する。
+- 修正コミット`4bf5aaf`を`origin/feature/appleextended-compat`へpush済み。引継ぎ帳へ同期結果を反映。

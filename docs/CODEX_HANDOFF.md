@@ -130,7 +130,7 @@
 
 ## 直近の完了
 
-- 2026-10-04 ローカルCodex: AE移動後クラッシュ対策と生成Aの接続カント反転を修正。全4ターゲットZIP/回帰13スイート成功、実機未確認。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)。
+- 2026-10-04 ローカルCodex: AE移動後クラッシュ対策と生成Aの接続カント反転を修正。全4ターゲットZIP/回帰13スイート成功、実機未確認。修正`4bf5aaf`を`origin/feature/appleextended-compat`へpush済み（差分0/0）。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 ## 関連資料
 
