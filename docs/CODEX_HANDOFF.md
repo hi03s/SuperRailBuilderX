@@ -126,7 +126,7 @@
 
 ## 直近の完了
 
-- 2026-10-03 ローカルCodex: AEのinclude展開による描画patch文字列破損を修正。KaizPatchX/AE両方式の配布JS構文・描画補正テストと全ターゲットビルド成功。実機は再確認待ち。詳細は`docs/history/CODEX_HISTORY_2026-10.md`。
+- 2026-10-03 ローカルCodex: AEのinclude展開による描画patch文字列破損を修正。KaizPatchX/AE両方式の配布JS構文・描画補正テストと全ターゲットビルド成功。実機は再確認待ち。修正`3ed8919`を`origin/feature/appleextended-compat`へ同期済み。詳細は`docs/history/CODEX_HISTORY_2026-10.md`。
 
 - 2026-10-03 ローカルCodex: JitPack復旧後、未改造rtm-tsでAE v2.5.3取得・全4ターゲットの`pnpm gen`・`pnpm build`と描画patchテストが成功。詳細は`docs/history/CODEX_HISTORY_2026-10.md`。検証記録`56182c4`を`origin/feature/appleextended-compat`へ同期済み。
 
