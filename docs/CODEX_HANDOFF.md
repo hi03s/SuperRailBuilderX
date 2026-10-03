@@ -8,7 +8,7 @@
 
 - rtm-ts 0.12.0、`kaizpatch`・`mc1710`・`appleextended`・`mc1122`のmulti-target環境を構築済み。AEは正式版`v2.5.3`基準で、全ターゲットの生成・ビルドを確認済み。
 - NGTOBuilder2由来のツールキットは `src/common/assets/minecraft/scripts/lib_hi03toolkit_1_0` に置き、参照専用とする。SuperRailBuilderX固有処理は `superrailbuilderx` ディレクトリと `SRBXApiCompat` に実装する。
-- 正式版`SuperRailBuilderX_RailMover`は通常・自動分割レールとも元状態を退避し、builder1と同じ衝突判定・道床生成規則で再生成する。論理RailMapの複数選択・一括平行移動・一括Undoに対応し、ホバーは現在のコアとRailPositionから再構築する。
+- 正式版`SuperRailBuilderX_RailMover`は通常・自動分割レールとも元状態を退避し、builder1と同じ衝突判定・道床生成規則で再生成する。論理RailMapの複数選択・一括平行移動・一括Undoと、KaizPatchX分岐レールの端点移動に対応し、ホバーは現在のコアとRailPositionから再構築する。
 - `SuperRailBuilderX_builder1`を実装済み。JSON識別名はbuilder1を維持し、文書・ヘルプでは`レール生成A`と表記する。自由点・通常/分岐レール端点接続、曲線半径固定、勾配・縦曲線、複数レール一括Undo、道床・コア保護を備える。
 - `SuperRailBuilderX_RailSplitter`を実装済み。論理RailMap強調、レールパーツ描画位置と同じ約0.5 m間隔の候補、予定長表示、手持ちモデルによる2本生成、分割前状態へ戻すUndoを備える。分割後の両区間を3 m超に制限し、分割不可レールは赤表示する。
 - `SuperRailBuilderX_DoubleTrackCopy`を実装済み。通常レールの複数選択、カーソル距離に応じた指定間隔の反復複製、水平平行線形、0.5 m端点接続、手持ち/複製元モデル、一括Undoを備える。
@@ -20,12 +20,19 @@
 - `v*`タグpush時に型定義生成・multi-targetビルド・ZIP生成を行い、`release-notes.md`を本文とするDraft Releaseを作成するGitHub Actionsを整備済み。公開はGitHub上で手動実施する。
 - レール生成・自由点移動の構造は `docs/rail-generation-and-free-positioning.md`、各ツールの仕様と検証方法は下記「関連資料」を参照する。
 - `AGENTS.md`へ、親モデルを途中変更するのではなく、限定作業だけを軽量・バランス型サブエージェントへ委譲するモデル運用規則を追加済み。
+- KaizPatchX / AppleExtended向けの分岐レール描画runtime compatibility patchを`main`へ統合済み。KaizPatchXの描画は実機確認済みで、AppleExtended確認待ちのため`fix/rail-render-offset-compat-patch`は保持する。通常RTMはno-op。
 
 ## 作業中
 
 - 2026-10-03 ローカルCodex: AE v2.5.3対応後、origin/mainを統合して全ターゲットを生成・ビルドする。
 
 ## 優先確認事項
+
+### 分岐レール描画compatibility patch
+
+- AppleExtendedで起動時ログの`[SRBX rail patch] completed`を確認し、`failed=0`であることを確認する。
+- AppleExtendedで通常レール、offsetなし分岐、offsetあり分岐を表示し、offsetあり分岐の根元～中央と中央～終端がともにRailMapへ一致し、他2ケースの描画が変化しないことを確認する。
+- `exclude.json`へ実在するrenderer script pathを一時指定し`skipped: excluded`になること、AppleExtendedではモデルパックreload後に新しいEngineへ再適用されることを確認する。
 
 ### 共通の走行遷移
 
@@ -34,16 +41,15 @@
 ### レール移動ツール
 
 - 平行移動・端点移動・Undo後も、前後の接続レールを含むホバー強調が現在の線形で表示されることを確認する。
+- KaizPatchX分岐レールの根元・本線端・側線端を移動でき、接続レールとの同時移動、走行、Undoで分岐全体が正しく再構築されることを確認する。分岐全体の平行移動は未対応。
 
 ### カント整形
 
 - カント付きレールの端部・中央から10 m以上離れた任意位置で、分割とカント適用が成功することを確認する。
-- カントを2回以上適用してからUndoを繰り返し、各適用を新しい順に戻せることを確認する。
 - 適用・Undo後の水色/黄色ハイライトが、変更前ではなく現在の線形で表示されることを確認する。
 
 ### 分岐生成
 
-- 共有端点の選択前は両レールが黄色、選択後は分岐先カーソルを伸ばした側だけ水色となり、分岐先確定後は非ベース側の黄色が消えることを確認する。
 - 分岐化後に新しく接する既設レールもカント0となり、Undoで元へ戻ることを確認する。
 - 端点・中央の分岐生成後にUndoしてもワールドから切断されず、エラーなく元レールへ戻ることを確認する。
 
@@ -56,9 +62,9 @@
 
 ## 次に行うこと
 
-1. 優先確認事項のレール移動、カント整形、分岐生成をバックアップ済みワールドで再確認する。
-2. AE環境で通常レール端点移動と、自動分割レールの生成A、複線コピー、分割、中央/端点分岐、カント整形、走行、各Undoを確認する。
-3. 既存の「優先確認事項」も確認し、不具合時は機能名・操作順・時刻と`logs/latest.log`を共有する。
+1. AppleExtended v2.5.3で分岐描画patchのBootstrapログとoffsetあり/なし描画を確認する。
+2. レール移動・カント任意点分割・分岐Undoと、AE自動分割レールの生成・分割・分岐・走行・Undoをバックアップ済みワールドで確認する。
+3. 不具合時は機能名・操作順・時刻と`[SuperRailBuilderX`または`[SRBX rail patch]`を含むログを共有する。
 
 ## 双方向連絡
 
@@ -122,17 +128,12 @@
 
 ## 直近の完了
 
-- 2026-09-13 ローカルCodex: `feature/appleextended-compat`へ最新mainを統合し、AE正式版`v2.5.3`の自動分割・論理レールAPIへ対応。詳細は`docs/appleextended-target.md`、月別履歴、コミット`0f16794`・`c8970d6`を参照（`origin/feature/appleextended-compat`へ同期済み）。
+- 2026-09-13 ローカルCodex: `feature/appleextended-compat`へ最新mainを統合し、AE上流`9df86c2`の自動分割・論理レールAPIへ対応。詳細は`docs/appleextended-target.md`、月別履歴、コミット`0f16794`・`c8970d6`を参照（`origin/feature/appleextended-compat`へ同期済み）。
 
 - 2026-09-13 ローカルCodex: `v*`タグ専用の正式リリースworkflow、初期リリースノート、手動公開・誤タグ・再実行手順を追加。詳細は月別履歴とコミット`fa57990`を参照（`origin/main`へ同期済み）。
+- 2026-09-13 ローカルCodex: 分岐描画patchを`main`へfast-forward統合し、KaizPatchX実機確認済み・AppleExtended確認待ちとして修正ブランチを保持。包含確認済みの`feature/appleextended`はローカル・リモートから削除。詳細は月別履歴とコミット`08756a7`を参照。
 
-- 2026-09-13 ローカルCodex: 分岐Undo時の旧TileEntity向けNBT競合と内部半レールの誤ったカント復元、カント付き任意点の高さ照合、複数回Undo、撤去済みコア由来の旧ハイライトを修正。詳細は月別履歴とコミット`f6e700b`を参照（引継ぎ更新`c590893`とともに`origin/main`へ同期済み）。
-
-- 2026-09-13 ローカルCodex: KaizPatchXで空だったロード済みTE一覧をチャンク内コア列挙で補い、レール移動・カント選択を復旧。分岐生成待機中のnull RailPosition参照を防ぎ、分岐先確定後は非ベース側強調を消すよう修正。詳細は月別履歴とコミット`b78ab58`を参照（`origin/main`へ同期済み）。
-
-- 2026-09-13 ローカルCodex: レール移動・カント候補をロード済みコアから毎フレーム再構築し、カント共有端点を曲線優先・方向基準で適用、分岐共有端点を選択後のカーソル方向で切替。分岐コアの初期化前同期とUndo順も修正。詳細は月別履歴とコミット`34cb8a0`を参照（`origin/main`へ同期済み）。
-
-- 2026-09-13 ローカルCodex: レール移動のホバー取得とCtrl操作、カント整形のスナップ/強調/透明表示、分岐生成の共有端点判定を再構築。優先確認事項を実機未確認項目だけに整理した。詳細は月別履歴とコミット`fc0a02e`を参照（`origin/main`へ同期済み）。
+- 2026-09-13 ローカルCodex: レール移動/分岐Undoの論理レール再解決、現行セクションコアからのハイライト、カント任意点分割、KaizPatchX分岐端点移動を修正。詳細は月別履歴とコミット`41a13ad`を参照（引継ぎ更新`bd939ec`とともに`origin/main`へ同期済み）。
 
 - 2026-09-12 ローカルCodex: AE通常レール向けの分割・中央/端点分岐・カント整形と各Undoを実装。詳細は`docs/appleextended-target.md`、月別履歴、コミット`b507824`を参照（`origin/feature/appleextended-compat`へ同期済み）。
 - 2026-09-12 ローカルCodex: KaizPatchX/AE生成API差分を整理し、AEでは通常レールを生成する一時compatとUndoを追加。詳細は`docs/appleextended-target.md`、月別履歴、コミット`6289a96`を参照（`origin/feature/appleextended-compat`へ同期済み）。

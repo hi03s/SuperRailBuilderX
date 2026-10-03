@@ -815,6 +815,57 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 未検証: Minecraft実機でのチャンク境界をまたぐ生成・分割・分岐・走行・Undo、全Sectionへのカント反映・Undo。
 - 実装コミット: `c8970d6`
 - 同期: 実装`c8970d6`・引継ぎ更新`14262dc`を`origin/feature/appleextended-compat`へ同期済み。
+### 2026-09-13 ローカルCodex — ローカル調査資料のGit除外
+
+- `.tmp-kaizpatchx-source/`と`logs/latest.log`を`.gitignore`へ追加した。
+- ローカル指示書`Implementing an Automated Release Action.md`を`docs/instructions/`へ移動し、指示書フォルダ全体をGit管理外とした。
+- 検証済み: `git check-ignore`、移動元・移動先の存在確認、`git diff --check`。
+
+### 2026-09-13 ローカルCodex — 分岐レール描画runtime compatibility patch
+
+- KaizPatchX / AppleExtendedの`LibRenderRail.js`を確認し、自由配置した分岐根元のX/Zオフセットが`renderRailDynamic2`の外側変換と内部RailMap相対移動で二重加算される一方、Yは内部で高さ差として相殺され外側変換だけが必要なことを確認した。
+- builder1の`init()`だけを起点とし、専用Bootstrap・全レール走査/適用・patch source・target別Platform Adapter・除外JSONを`scripts/srbx_patch/`へ分離した。元`renderRailDynamic2`を保持するwrapperをScriptEngineへ`eval()`し、分岐時の呼出座標からRailPositionのX/Z offsetを1回分だけ差し引く。
+- KaizPatchXは`RTM ModelPack Load`スレッド終了と全Rail ModelSetのmodel/renderer取得を、AppleExtendedは`ModelPackManager.modelConstructed`と同じmodel/renderer取得をreadiness条件にした。待機は専用daemon thread上で100 ms間隔・最大10分とし、patch自体は各Minecraft client threadへscheduleする。
+- `renderRailDynamic2`なし・scriptなし・除外対象は正常skipし、Engine内フラグ`__SRBX_RAIL_RENDER_PATCHED__`で二重適用を防ぐ。一件の失敗で走査全体を止めず、debugログへ対象と集計を残す。通常RTM 1.7.10 / 1.12.2 adapterはno-opとした。
+- 除外JSONは`{"packs":[],"scripts":[]}`形式。両環境でrenderer script pathは取得できるが、モデルパックを一意かつ安全に表す公開情報は確認できなかったため、初期実装の`packs`判定は予約フィールドであり、実際の除外は`scriptPath`完全一致を利用する。
+- AppleExtendedのreloadはModelSet/ScriptEngineを再生成し、builder1の新しいEngineでも`init()`が実行されるため同じBootstrapが再適用される見込み。KaizPatchX側には対応対象版で安全に利用できるreloadイベントを確認できず、起動時適用のみとした。
+- 検証済み: patch sourceのNode `vm` PoC（offsetあり/なし分岐、非分岐不変、二重patch防止）、`pnpm format:check`、`pnpm gen`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、生成物のtarget dispatch・client thread schedule・no-op確認、`git diff --check`。
+- 未検証: Minecraft実機でのKaizPatchX / AppleExtendedのBootstrapログ、全レール走査、offsetあり/なし分岐と通常レール描画、scriptなし/関数なし/除外対象。AppleExtended reload後の再適用も実機未確認。
+- 実装コミット: `48bc82e`
+- 同期: 実装と引継ぎ更新を`origin/fix/rail-render-offset-compat-patch`へ同期。
+
+### 2026-09-13 ローカルCodex — 分岐描画patchの非分岐側回帰修正
+
+- KaizPatchX実機確認で、本来ずれていた根元～中央の分岐可動部は修正された一方、元は正常だった中央～終端の非分岐部がoffsetと逆方向へずれることを確認した。
+- 初期wrapperが`renderRailDynamic2`全体の引数からoffsetを除いていたため、内部でoffsetが二重になる`renderRailMapDynamic`だけでなく、正しい外側変換を必要とする`renderRailMapStatic`側にも補正が掛かったことが原因。
+- `renderRailDynamic2`実行中だけ`renderRailMapDynamic`を一時wrapperへ差し替え、その呼び出しをGL上で`-offsetX/-offsetZ`移動する方式へ変更した。元関数とGL行列はそれぞれ`finally`で復元し、中央～終端側は元の外側変換を維持する。
+- 検証済み: Node `vm` PoCでoffsetあり分岐の分岐側/非分岐側、offsetなし、非分岐、二重patch防止、GL行列復元、`pnpm format:check`、`pnpm build`（全ターゲット）、`git diff --check`。
+- 未検証: 修正版でのKaizPatchX実機再確認、AppleExtended実機確認。
+- 修正コミット: `bfa6fc0`
+- 同期: 引継ぎ更新とともに`origin/fix/rail-render-offset-compat-patch`へ同期。
+
+### 2026-09-13 ローカルCodex — 分岐描画patchのmain統合とブランチ整理
+
+- 修正版をKaizPatchX実機で再確認し、offsetあり分岐の根元～中央と中央～終端を含め、描画に問題がないとの開発者確認を受けた。
+- `origin/main`が`origin/fix/rail-render-offset-compat-patch`の基点であることを確認し、`main`を`08756a7`へfast-forwardしてpushした。AppleExtended実機確認が残るため修正ブランチは削除せず保持した。
+- `origin/feature/appleextended`が`origin/main`に完全包含されていることを確認後、`feature/appleextended`をローカル・リモートから削除した。別ブランチ`feature/appleextended-compat`は対象外のため変更していない。
+- 検証済み: 統合前の`pnpm test:rail-patch`、`pnpm format:check`、`pnpm build`（全ターゲット）、`git diff --check`、Git commit包含関係。
+- 未検証: AppleExtended実機での描画patchとreload後の再適用。
+- 統合コミット: `08756a7`
+- 同期: `origin/main`へ同期済み。
+
+### 2026-09-13 ローカルCodex — レールUndo識別・分岐端点移動・カント分割再修正
+
+- `logs/latest.log`から、レール移動/Undo後の次操作がセクション内の旧物理コア座標を送って`rail_not_found`となること、カント分割自体は成功後に共有端点を解決できないこと、端点分岐Undoが接続レールのカント記録を物理コア座標で見失うことを確認した。必要行のみ`logs/rail-tools-retest-20260913-4.log`へ保存した。
+- レール移動要求へ論理レールキーを含め、保存した物理コア座標が再構築で消えてもロード済みコアから同じ論理レールを再解決するようにした。自動分割レールの候補列挙は各セクションの任意コピーではなく、グループ先頭の現行コアへ正規化してから毎回新しい`RailMapBasic`を構築する。
+- カント分割後の端点探索を約0.5 m描画候補に対応する水平距離判定へ変更し、適用要求には分割前のサンプル座標ではなく生成後RailPositionの実座標を渡すようにした。
+- 分岐Undoは生成物とカント復元対象を撤去前にすべて検証し、途中失敗で一部だけ消えることを防止した。カント復元対象も物理コアが消えた場合は論理レールキーで再解決する。
+- KaizPatchX分岐レールの端点を選択可能にし、変更時は3個以上のRailPosition、全分岐RailMap、道床、モデル、信号、サブレールを一体で再構築する専用処理を追加した。既存のUndo経路で元の分岐全体へ戻す。分岐全体の平行移動は未対応。
+- 開発者確認済み: カント整形の2回以上Undo、分岐生成のハイライト。
+- 検証済み: 対象Prettier、`pnpm format:check`、`pnpm gen`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、`git diff --check`。
+- 未検証: Minecraft実機での旧形状ハイライト解消、カント任意点分割、レール移動/分岐生成Undo、分岐レール端点移動・接続・走行・Undo。
+- 実装コミット: `41a13ad`
+- 同期: 実装`41a13ad`・引継ぎ更新`bd939ec`を`origin/main`へ同期済み。
 
 ### 記録テンプレート
 

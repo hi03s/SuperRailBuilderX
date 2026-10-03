@@ -20,6 +20,7 @@ const VERSION = "alpha-0.1.0";
 
 export type RailPositionMoveTarget = {
 	core: [number, number, number];
+	railKey?: string;
 	index: number;
 	original: [number, number, number];
 };
@@ -95,6 +96,41 @@ function samePosition(a: RailCorePos, b: RailCorePos): boolean {
 		Math.abs(a[1] - b[1]) <= 0.001 &&
 		Math.abs(a[2] - b[2]) <= 0.001
 	);
+}
+
+function resolveCurrentCore(
+	world: any,
+	position: RailCorePos,
+	expectedKey?: string,
+): TileEntityLargeRailCore | null {
+	const tile = SRBXApiCompat.getTileEntity(
+		world,
+		position[0],
+		position[1],
+		position[2],
+	);
+	if (tile instanceof TileEntityLargeRailBase) {
+		const core = tile.getRailCore();
+		if (
+			core &&
+			(!expectedKey ||
+				SRBXApiCompat.getRailPositionCandidateKey(core) === expectedKey)
+		)
+			return core;
+	}
+	if (!expectedKey) return null;
+	const loaded = SRBXApiCompat.getLoadedRailCores(
+		world,
+		position[0],
+		position[2],
+		192,
+	);
+	for (let i = 0; i < loaded.length; i++)
+		if (
+			SRBXApiCompat.getRailPositionCandidateKey(loaded[i]) === expectedKey
+		)
+			return loaded[i];
+	return null;
 }
 
 function parallelPlansAreConnected(
@@ -272,26 +308,15 @@ function applyUndo(
 	const removed: RemovedRail[] = [];
 	for (let i = record.operations.length - 1; i >= 0; i--) {
 		const operation = record.operations[i];
-		const tile = SRBXApiCompat.getTileEntity(
+		const core = resolveCurrentCore(
 			world,
-			operation.core[0],
-			operation.core[1],
-			operation.core[2],
+			operation.core,
+			operation.railKey,
 		);
-		if (!(tile instanceof TileEntityLargeRailBase)) {
+		if (!core) {
 			record.operations = record.operations.slice(0, i + 1);
 			sendClientChanges(dataMap, updated, removed);
 			return "undo_rail_not_found";
-		}
-		const core = tile.getRailCore();
-		if (
-			!core ||
-			SRBXApiCompat.getRailPositionCandidateKey(core) !==
-				operation.railKey
-		) {
-			record.operations = record.operations.slice(0, i + 1);
-			sendClientChanges(dataMap, updated, removed);
-			return "undo_rail_changed";
 		}
 		const result =
 			operation.mode === "endpoint"
@@ -411,14 +436,7 @@ function applyRequest(
 			!request.end
 		)
 			return "invalid_parallel_request";
-		const tile = SRBXApiCompat.getTileEntity(
-			world,
-			request.core[0],
-			request.core[1],
-			request.core[2],
-		);
-		if (!(tile instanceof TileEntityLargeRailBase)) return "rail_not_found";
-		const core = tile.getRailCore();
+		const core = resolveCurrentCore(world, request.core, request.railKey);
 		if (!core) return "rail_not_found";
 		const connectedMoves = request.connectedMoves || [];
 		if (connectedMoves.length > 16) return "too_many_connected_targets";
@@ -440,15 +458,11 @@ function applyRequest(
 					: null;
 			if (!sourceEnd || !samePosition(move.destination, sourceEnd))
 				return `connected_${i}:invalid_destination`;
-			const connectedTile = SRBXApiCompat.getTileEntity(
+			const connectedCore = resolveCurrentCore(
 				world,
-				move.target.core[0],
-				move.target.core[1],
-				move.target.core[2],
+				move.target.core,
+				move.target.railKey,
 			);
-			if (!(connectedTile instanceof TileEntityLargeRailBase))
-				return `connected_${i}:rail_not_found`;
-			const connectedCore = connectedTile.getRailCore();
 			if (!connectedCore) return `connected_${i}:rail_not_found`;
 			const railKey =
 				SRBXApiCompat.getRailPositionCandidateKey(connectedCore);
@@ -579,15 +593,7 @@ function applyRequest(
 			Math.abs(target.original[2] - sharedPosition[2]) > 0.001
 		)
 			return `target_${i}:not_connected`;
-		const tile = SRBXApiCompat.getTileEntity(
-			world,
-			target.core[0],
-			target.core[1],
-			target.core[2],
-		);
-		if (!(tile instanceof TileEntityLargeRailBase))
-			return `target_${i}:rail_not_found`;
-		const core = tile.getRailCore();
+		const core = resolveCurrentCore(world, target.core, target.railKey);
 		if (!core) return `target_${i}:rail_not_found`;
 		const railKey = SRBXApiCompat.getRailPositionCandidateKey(core);
 		const key = `${railKey}:${target.index}`;

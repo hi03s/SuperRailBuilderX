@@ -40,7 +40,8 @@ export class SRBXApiCompat {
 		core: TileEntityLargeRailCore,
 	): string {
 		if (!core) return "missing_core";
-		if (core instanceof TileEntityLargeRailSwitchCore) return "switch";
+		if (core instanceof TileEntityLargeRailSwitchCore)
+			return "switch_unsupported";
 		if (AppleExtendedRailCompat.isSectionCore(core))
 			return "sectioned_relocation_unavailable";
 		const positions = AppleExtendedRailCompat.getLogicalPositions(core);

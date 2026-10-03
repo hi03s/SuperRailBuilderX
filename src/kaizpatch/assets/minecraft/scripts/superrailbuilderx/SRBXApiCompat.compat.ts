@@ -196,11 +196,32 @@ export class SRBXApiCompat {
 			if (!(tile instanceof TileEntityLargeRailCore)) return;
 			const pos = this.getRailCorePos(tile),
 				currentTile = this.getTileEntity(world, pos[0], pos[1], pos[2]),
-				current =
+				resolved =
 					currentTile instanceof TileEntityLargeRailBase
 						? currentTile.getRailCore()
 						: null;
+			let current = resolved;
 			if (!current) return;
+			// Every section core stores a copy of the logical RailPosition data.
+			// Always use the first (owner) core so enumeration order cannot select
+			// an older copy that is still waiting for its client update packet.
+			if (this.isSectionCore(current)) {
+				const group = current.getRailGroupCorePositions();
+				if (group && group.size() > 0) {
+					const ownerPos = group.get(0),
+						tileAtOwner = this.getTileEntity(
+							world,
+							ownerPos[0],
+							ownerPos[1],
+							ownerPos[2],
+						);
+					if (tileAtOwner instanceof TileEntityLargeRailBase) {
+						const owner = tileAtOwner.getRailCore();
+						if (owner && current.isSameLogicalRail(owner))
+							current = owner;
+					}
+				}
+			}
 			const currentPos = this.getRailCorePos(current),
 				key = `${currentPos[0]},${currentPos[1]},${currentPos[2]}`;
 			if (seen[key]) return;
@@ -1050,7 +1071,8 @@ export class SRBXApiCompat {
 		y: number,
 		z: number,
 	): string {
-		if (!this.canMoveRailPosition(core)) return "unsupported";
+		const isSwitch = core instanceof TileEntityLargeRailSwitchCore;
+		if (!isSwitch && !this.canMoveRailPosition(core)) return "unsupported";
 		if (core.isLogicalRailOccupied()) return "occupied";
 		const positions = this.getEditableRailPositions(core);
 		if (!positions || index < 0 || index >= positions.length)
@@ -1070,6 +1092,7 @@ export class SRBXApiCompat {
 			y,
 			z,
 		);
+		if (isSwitch) return this.validateSwitchMovePath(core, movedPositions);
 		const roadbedValidation = this.validateBuilderMovePath(
 			core,
 			movedPositions,
@@ -1203,6 +1226,8 @@ export class SRBXApiCompat {
 		);
 		if (validation !== "ok") return validation;
 		if (!player) return "missing_player";
+		if (core instanceof TileEntityLargeRailSwitchCore)
+			return this.moveSwitchRailPosition(core, index, x, y, z);
 		const wasSectioned = this.isSectionCore(core);
 		const sourcePositions = this.getEditableRailPositions(core);
 		if (!sourcePositions || sourcePositions.length !== 2)
@@ -1327,6 +1352,104 @@ export class SRBXApiCompat {
 			`[SuperRailBuilderX RailPosition] builder-rule rebuild failed: result=${result.status}, restored=${rollbackOk}`,
 		);
 		return rollbackOk ? result.status : "move_rollback_failed";
+	}
+
+	private static validateSwitchMovePath(
+		core: TileEntityLargeRailCore,
+		positions: RailPosition[],
+	): string {
+		const world = this.getCoreWorld(core),
+			property = core.getProperty(),
+			maker = new RailMaker(
+				world,
+				this.toRailPositionArray(positions),
+				RailMapBasic.fixRTMRailMapVersionCurrent,
+			),
+			railSwitch = maker.getSwitch();
+		if (!railSwitch) return "invalid_switch";
+		const maps = railSwitch.getAllRailMap(),
+			protectedKeys: { [key: string]: boolean } = {};
+		const keys = this.getBuilderMoveProtectedRailKeys(core, positions);
+		for (let i = 0; i < keys.length; i++) protectedKeys[keys[i]] = true;
+		for (let i = 0; i < maps.length; i++) {
+			const map = maps[i] as unknown as RailSectionMap;
+			if (!this.isBuilderRoadbedLoaded(world, map, property))
+				return "path_unloaded";
+			const validation = this.validateBuilderPlacement(
+				world,
+				[map],
+				property,
+				protectedKeys,
+				false,
+			);
+			if (validation !== "ok") return validation;
+		}
+		return "ok";
+	}
+
+	private static moveSwitchRailPosition(
+		core: TileEntityLargeRailSwitchCore,
+		index: number,
+		x: number,
+		y: number,
+		z: number,
+	): string {
+		const world = this.getCoreWorld(core),
+			original = this.copyRailPositions(
+				this.getEditableRailPositions(core),
+			),
+			moved = this.copyRailPositions(original),
+			property = this.cloneRailProperty(core.getProperty()),
+			signal = core.getSignal(),
+			subRails = new ArrayList<RailProperty>();
+		let protectedKeys: string[];
+		if (!original || index < 0 || index >= original.length)
+			return "not_found";
+		moved[index].setPosition(x, y, z);
+		protectedKeys = this.getBuilderMoveProtectedRailKeys(core, moved);
+		const originalProtectedKeys = this.getBuilderMoveProtectedRailKeys(
+			core,
+			original,
+		);
+		for (let i = 0; i < originalProtectedKeys.length; i++)
+			if (protectedKeys.indexOf(originalProtectedKeys[i]) < 0)
+				protectedKeys.push(originalProtectedKeys[i]);
+		for (let i = 0; i < core.subRails.size(); i++)
+			subRails.add(this.cloneRailProperty(core.subRails.get(i)));
+		core.breakLogicalRail();
+		let created = this.createBuilderBasicSwitch(
+			world,
+			moved,
+			property,
+			protectedKeys,
+		);
+		if (!created) {
+			created = this.createBuilderBasicSwitch(
+				world,
+				original,
+				property,
+				protectedKeys,
+			);
+			if (created)
+				this.applyBuilderRailState(
+					world,
+					{ undoCore: this.getRailCorePos(created) },
+					signal,
+					subRails,
+				);
+			return created ? "switch_rebuild_failed" : "switch_rollback_failed";
+		}
+		this.applyBuilderRailState(
+			world,
+			{ undoCore: this.getRailCorePos(created) },
+			signal,
+			subRails,
+		);
+		this.recordLastRailPositionMoveCores(created);
+		NGTLog.debug(
+			`[SuperRailBuilderX RailPosition] switch endpoint rebuild succeeded: index=${index}, positions=${moved.length}`,
+		);
+		return "ok";
 	}
 
 	static moveBuilderRail(
@@ -3566,6 +3689,28 @@ export class SRBXApiCompat {
 		this.lastSplitClientUpdate = null;
 		const record = this.splitUndoRecords[undoToken];
 		if (!record) return "nothing_to_undo";
+		// Preflight all dependencies before deleting a generated rail. Otherwise
+		// a later failure can leave only part of the Undo applied.
+		for (let i = 0; i < record.created.length; i++) {
+			const rail = record.created[i],
+				tile = world.getTileEntity(
+					rail.core[0],
+					rail.core[1],
+					rail.core[2],
+				);
+			if (!(tile instanceof TileEntityLargeRailBase))
+				return "undo_rail_not_found";
+			const core = tile.getRailCore();
+			if (!core || this.getRailPositionCandidateKey(core) !== rail.key)
+				return "undo_rail_changed";
+			if (core.isLogicalRailOccupied()) return "rail_occupied";
+		}
+		if (record.cants)
+			for (let i = 0; i < record.cants.length; i++) {
+				const core = this.resolveCantRecordCore(world, record.cants[i]);
+				if (!core) return "undo_rail_not_found";
+				if (core.isLogicalRailOccupied()) return "rail_occupied";
+			}
 		const removed: SplitCreatedRail[] = [];
 		for (let i = record.created.length - 1; i >= 0; i--) {
 			const rail = record.created[i];
@@ -3748,19 +3893,8 @@ export class SRBXApiCompat {
 		const refreshed: SplitCreatedRail[] = [];
 		for (let i = 0; i < records.length; i++) {
 			const record = records[i];
-			const tile = world.getTileEntity(
-				record.core[0],
-				record.core[1],
-				record.core[2],
-			);
-			if (!(tile instanceof TileEntityLargeRailBase))
-				return { status: "undo_rail_not_found", refreshed };
-			const core = tile.getRailCore();
-			if (
-				!core ||
-				this.getRailPositionCandidateKey(core) !== record.railKey
-			)
-				return { status: "undo_rail_changed", refreshed };
+			const core = this.resolveCantRecordCore(world, record);
+			if (!core) return { status: "undo_rail_not_found", refreshed };
 			if (core.isLogicalRailOccupied())
 				return { status: "rail_occupied", refreshed };
 			const cores = this.updateCantRail(world, core, record.positions);
@@ -3768,6 +3902,40 @@ export class SRBXApiCompat {
 				refreshed.push({ core: cores[j], key: record.railKey });
 		}
 		return { status: "ok", refreshed };
+	}
+
+	private static resolveCantRecordCore(
+		world: net.minecraft.world.World,
+		record: { core: [number, number, number]; railKey: string },
+	): TileEntityLargeRailCore | null {
+		const tile = world.getTileEntity(
+			record.core[0],
+			record.core[1],
+			record.core[2],
+		);
+		let core =
+			tile instanceof TileEntityLargeRailBase ? tile.getRailCore() : null;
+		if (
+			!core ||
+			this.getRailPositionCandidateKey(core) !== record.railKey
+		) {
+			core = null;
+			const loaded = this.getLoadedRailCores(
+				world,
+				record.core[0],
+				record.core[2],
+				192,
+			);
+			for (let j = 0; j < loaded.length; j++)
+				if (
+					this.getRailPositionCandidateKey(loaded[j]) ===
+					record.railKey
+				) {
+					core = loaded[j];
+					break;
+				}
+		}
+		return core;
 	}
 
 	static applyRailCants(

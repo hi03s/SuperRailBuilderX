@@ -3,3 +3,6 @@ dist/
 generated/
 artifacts/
 .cache/
+/.tmp-kaizpatchx-source/
+/logs/latest.log
+/docs/instructions/
