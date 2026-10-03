@@ -330,6 +330,7 @@ export class AppleExtendedRailCompat {
 		// AE v2.5.3 discards the internal result and always returns false.
 		let apiResult = false;
 		const placementMaps: RailMap[] = [];
+		const sectionOwners: RailPosition[] = [];
 		if (ordered.length === 2) {
 			const start =
 				ordered[0].blockY >= ordered[1].blockY
@@ -347,6 +348,7 @@ export class AppleExtendedRailCompat {
 				if (sections.size() > 1)
 					for (let i = 0; i < sections.size(); i++) {
 						const section = sections.get(i);
+						sectionOwners.push(section.getStartRP());
 						placementMaps.push(
 							new RailMapSection(
 								map,
@@ -398,6 +400,35 @@ export class AppleExtendedRailCompat {
 			NGTLog.debug(
 				`[SuperRailBuilderX AE] creation not confirmed: apiResult=${apiResult}, positions=${ordered.length}, root=${root.blockX},${root.blockY},${root.blockZ}, existingCore=${before !== null}`,
 			);
+			if (sectionOwners.length > 1) {
+				let partial = false;
+				const owners: string[] = [];
+				for (let i = 0; i < sectionOwners.length; i++) {
+					const owner = sectionOwners[i];
+					owners.push(
+						`${owner.blockX},${owner.blockY},${owner.blockZ}`,
+					);
+					if (this.corePlacementBlocked(world, owner)) partial = true;
+				}
+				NGTLog.debug(
+					`[SuperRailBuilderX AE] section creation failed: owners=${owners.join(";")}, partial=${partial}, creative=${player.capabilities.isCreativeMode}`,
+				);
+				// Retry only when no live section owner remains. Do not replace a partial group.
+				if (!partial) {
+					const fallback = ItemRail.getDefaultProperty();
+					fallback.readFromNBT(creationProperty.writeToNBT());
+					fallback.autoSplit = false;
+					NGTLog.debug(
+						"[SuperRailBuilderX AE] retrying creation as normal rail",
+					);
+					return this.createFromPositions(
+						world,
+						player,
+						ordered,
+						fallback,
+					);
+				}
+			}
 			return null;
 		}
 		NGTLog.debug(

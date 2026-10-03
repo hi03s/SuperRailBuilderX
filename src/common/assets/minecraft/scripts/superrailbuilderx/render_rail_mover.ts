@@ -1298,6 +1298,15 @@ function handleInput(
 			state.destination = null;
 			state.parallelPlans = [];
 		} else {
+			// A partial operation or rollback can replace logical identities even
+			// when the request fails. Do not submit the old selection again.
+			if (updatedCores.length > 0 || removed.length > 0) {
+				state.stage = 0;
+				state.selected = null;
+				state.selectedRails = [];
+				state.destination = null;
+				state.parallelPlans = [];
+			}
 			NGTLog.sendChatMessage(
 				sender,
 				`§c[SuperRailBuilderX] 適用失敗: ${result}`,

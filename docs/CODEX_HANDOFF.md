@@ -24,6 +24,8 @@
 
 ## 作業中
 
+- ローカルCodex: 接続カント・複線生成再試行・Sectionゴースト・移動失敗時同期を実装済み。最終検証・コミット/push中。
+
 ## 優先確認事項
 
 ### 分岐レール描画compatibility patch
@@ -53,12 +55,10 @@
 
 ### AppleExtended
 
-- 19:37～19:42再テストで生成・分割/移動Undo成功を確認。空Undoを可否フラグで抑止し、複線は実Sectionコア位置を確認する。既設道床/コアを新コアへ置換せず、共有道床所有先を維持する修正を追加。接続レールの分割・Undo後に未選択レールが残ることを再確認する。
-
-- バックアップ済みワールドで通常/自動分割レールの端点・全体移動、失敗時復元、Ctrl+Z、再ログイン後の永続化・描画・走行を確認する。
-- レール生成Aと複線コピーでチャンク境界をまたぐ自動分割レールの生成・接続・モデル継承・走行・Undoを確認する。
-- カントNBTのsetTag未変換と分岐のfinal switchType代入/null player例外を修正。全Sectionのカント適用・複数Undo、中央/端点分岐・走行・Undoを再確認する。安全なコア位置がない場合は生成前に拒否する。失敗時は時刻と`[SuperRailBuilderX`を含む`logs/latest.log`を共有する。
-- AE移動はSection単体の`relocateRail`を使わない。group欠損/未ロード・占有・変更検証とモデル/信号/サブレール復元を備える。分岐レール自体の移動は未対応。失敗時は`[SuperRailBuilderX AE move]`を含む`logs/latest.log`を共有する。
+- 20:07～20:14再テストの接続カント片側欠落・中央invalid_endpoint・分岐Undo失敗を修正。接続探索は論理キーで自グループを除外し、ロード済み端点へ向きに応じて適用する。中央/端点・同向/逆向接続・分岐Undoを再確認する。
+- 複線のSection生成がコア未作成で失敗する内部理由は未確定。部分生成がない場合だけ通常レールで1回再試行し、既設道床/コアを保護する。失敗時はsection creation failedのowners/partial/creativeと前後ログを確認する。
+- 移動ゴーストは旧代表コアが置換済みでも残存Sectionを旧論理キーで除去する。失敗時復元・部分Undoも旧キー除去と新キー同期を通知し、古い選択を破棄する。接続2本移動→Undo、一部失敗後の再選択・再Undo、再ログイン後の走行を確認する。
+- 安全上のrail_overlap拒否は維持。20:12の接続移動Undoで実際に所有ブロックが競合する配置は要実機再確認。分岐レール自体の移動は未対応。失敗時は操作順・時刻とlogs/latest.logを共有する。
 
 ## 次に行うこと
 
@@ -128,11 +128,7 @@
 
 ## 直近の完了
 
-- 2026-10-03 ローカルCodex: AE既設道床所有先・コア位置を保護し、実Sectionコア確認、カントSRG変換、final種別/NBT初期化による分岐と空Undo抑止を修正。警告0件ZIP・7回帰テスト・変更TS整形成功、実機再検証待ち。`911ee0a`を`origin/feature/appleextended-compat`へpush・同期済み。詳細は`docs/history/CODEX_HISTORY_2026-10.md`。
-
-- 2026-10-03 ローカルCodex: AE生成所有端点・論理選択・左右Ctrl UndoとSection全体再生成による移動/復元を修正。警告0件ZIP・6回帰テスト・変更TS整形成功（全体整形は既存9ファイルで失敗）、実機再検証待ち。`579efbf`を`origin/feature/appleextended-compat`へpush・同期済み。詳細は`docs/history/CODEX_HISTORY_2026-10.md`。
-
-- 2026-10-03 ローカルCodex: AE生成APIの常時falseをコア確認で補い、論理RailMap overrideとnullガード、bootstrapのSRG変換を修正。型生成・警告0件ZIP・3回帰テスト成功。修正`25609e2`を`origin/feature/appleextended-compat`へ同期済み。詳細は`docs/history/CODEX_HISTORY_2026-10.md`。
+- 2026-10-03 ローカルCodex: 接続/中央カント、分岐Undo、複線安全再試行、残存Sectionゴーストと失敗時Undo同期を修正。実機再検証待ち。詳細はdocs/history/CODEX_HISTORY_2026-10.md。
 
 ## 関連資料
 

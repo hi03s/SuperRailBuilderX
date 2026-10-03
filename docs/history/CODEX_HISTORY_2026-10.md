@@ -86,3 +86,13 @@
 - 空Undo要求は前回除去した可否フラグのゲートを全6ツールへ戻し、単回Undo成功時にクライアントもfalseへ更新。カント複数Undoの残履歴はサーバー判定のまま。左右Ctrl対応を維持する。
 - 実行済み: pnpm zip（全4ターゲット、警告0、87ファイル）、test:appleextended（既設道床競合/実Section所有位置/両端保護時非破壊拒否/成功と例外時の道床所有復元、SRG-only NBT、final/protected Javaフィールド、分岐事前拒否/生成、既存選択/移動/復元/Undo検証）、test:input、test:rail-patch、test:runtime-dispatch、変更TSのPrettier確認とgit diff --check。全体整形は前回確認済みの未変更9ファイル差分が残るため再実行しない。
 - 未実施: Minecraft/AE/KaizPatchX実機再検証。バックアップワールドで接続レール分割→Undoと未選択レール保護、複線複数生成、カント適用→複数Undo、中央/端点分岐→Undo、空履歴Ctrl+Z無反応を確認。旧版で既に消失したレールをこのコード変更だけで復元することはできない。失敗時は操作順・時刻とlogs/latest.logを共有する。rtm-ts・参照toolkitは未変更。
+
+## 2026-10-03 ローカルCodex: 接続カント・複線失敗・Sectionゴースト再修正
+
+- 20:07～20:14 latest.logをSRBX関連へ絞り、logs/appleextended-connected-cant-copy-ghost-20261003.logへ抜粋。中央カントinvalid_endpoint、分岐Undoのundo_cant_restore_failed→undo_rail_changed、複線create_failed、接続移動Undoのrail_overlap、一部移動move_failed_rolled_backを確認。無関係なfixrtm/テクスチャ/advancementエラーは抜粋しない。
+- 接続カント探索でcore参照を比較すると同じgroupの別Sectionを他レールと扱い、自分へ逆符号のカントを再適用する。論理キーで自グループを除外し、ロード済み論理端点を重複除外して探索、yawから符号を決める。centerモードを追加し、端点処理の再計算で明示中央カントを上書きしない。
+- 分岐で自グループを外部カント退避に含めない。Undoで外部カント復元対象も削除前に検証し、変更/占有時に破壊せず再試行可能とする。
+- 複線のネイティブSectionコア未生成理由は未確定。予定Section所有ブロックすべてに生きた所有コアがない場合だけ、モデルを複製してautoSplit=falseで1回再試行。部分生成や既設レールがあれば再試行しない。owner座標/partial/creative診断を追加。元モデル・既設道床/コア保護を維持する。
+- 旧代表コアが新groupへ置換されると旧位置だけを見たghost除去が早期returnする。クライアント限定でロード済み現存Sectionを旧論理キーにより探索し、置換された新group/無効な旧tile参照を削除しない。world.loadedTileEntityListは型を通じfield_147482_gへ変換する。
+- 移動失敗時のrollbackも新group identityになる。共通moverで更新コアがある失敗の旧キー除去を通知し、Undo記録を復元後のキーへ更新、クライアントの古い選択を解除する。他ターゲットでワールド変更前に拒否し更新コアなしのケースには影響しない。rail_overlap保護は解除していない。
+- 実行済み: pnpm zip（全4ターゲット・警告0・87ファイル）、test:appleextended（7スイート: 接続同向/逆向・論理重複除外・中央・全Section NBT伝播・部分生成時非破壊拒否・通常再試行・置換代表位置ゴースト・サーバー除去抑止・rollback同期/Undo再試行を含む）、test:input、test:rail-patch、test:runtime-dispatch、変更TS/テスト/package.jsonのPrettier確認、git diff --check。生成JSのfield_147482_g/func_175625_s変換を確認。全体format:checkは未変更の既知9ファイル差分があり再実行しない。Minecraft/AE/KaizPatchX実機は未実施。バックアップ済みAEワールドで接続カント両側/中央→Undo、複線複数コピー→Undo、接続2本移動→Undo、一部失敗後の再選択・再Undo・ゴースト・再ログイン/走行を確認する。失敗時は操作順/時刻とlogs/latest.logを格納する。rtm-tsと参照toolkitは未変更。

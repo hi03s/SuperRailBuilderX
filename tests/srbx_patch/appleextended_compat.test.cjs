@@ -301,6 +301,46 @@ assert.strictEqual(
 	beforeCalls,
 	"all occupied owners must reject without world mutation",
 );
+// An opaque native Section failure may retry as normal only with no live owners.
+world.func_175625_s = () => null;
+createdOwner = null;
+const normalApi = context.Packages.jp.ngt.rtm.rail.BlockMarker.createRail;
+context.Packages.jp.ngt.rtm.rail.BlockMarker.createRail = (...args) => {
+	if (args[5].autoSplit) {
+		apiCalls++;
+		return false;
+	}
+	return normalApi(...args);
+};
+const retryCalls = apiCalls;
+assert.strictEqual(
+	helper.createFromPositions(world, player, positions, autoProperty).key,
+	"created",
+);
+assert.strictEqual(apiCalls - retryCalls, 2);
+assert.strictEqual(receivedProperty.autoSplit, false);
+assert.strictEqual(autoProperty.autoSplit, true);
+createdOwner = null;
+let livePartial = false;
+world.func_175625_s = (pos) =>
+	livePartial && pos.z === sectionOwners[1].blockZ ? foreign : null;
+context.Packages.jp.ngt.rtm.rail.BlockMarker.createRail = () => {
+	apiCalls++;
+	livePartial = true;
+	return false;
+};
+const partialCalls = apiCalls;
+assert.strictEqual(
+	helper.createFromPositions(world, player, positions, autoProperty),
+	null,
+);
+assert.strictEqual(
+	apiCalls - partialCalls,
+	1,
+	"partial group must not be replaced by fallback",
+);
+context.Packages.jp.ngt.rtm.rail.BlockMarker.createRail = normalApi;
+
 // Placement may reassign shared roadbed tiles; restore their old ownership even on failure.
 world.func_175625_s = (pos) => (pos.z === 77 ? foreign : null);
 let foreignOwner = [44, 4, 55];

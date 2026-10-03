@@ -24,6 +24,8 @@ type CantTarget = {
 	index: number;
 	position: RailCorePos;
 	angle: number;
+	mode?: "edge" | "center" | "split";
+	yaw?: number;
 };
 type BranchRequest = {
 	core: RailCorePos;
@@ -130,20 +132,30 @@ export class AppleExtendedRailToolsCompat {
 	): Array<{ core: TileEntityLargeRailCore; index: number }> {
 		const result: Array<{ core: TileEntityLargeRailCore; index: number }> =
 			[];
-		const neighbor = source.getNeighborBlockPos();
-		const tile = world.getTileEntity(neighbor);
-		if (!(tile instanceof TileEntityLargeRailBase)) return result;
-		const core = tile.getRailCore();
-		if (!core || core === sourceCore) return result;
-		const positions = AppleExtendedRailCompat.getLogicalPositions(core);
-		if (!positions) return result;
-		for (let i = 0; i < positions.length; i++)
-			if (
-				Math.abs(positions[i].posX - source.posX) <= 0.001 &&
-				Math.abs(positions[i].posY - source.posY) <= 0.001 &&
-				Math.abs(positions[i].posZ - source.posZ) <= 0.001
-			)
-				result.push({ core, index: i });
+		const seen: { [key: string]: boolean } = {};
+		seen[AppleExtendedRailCompat.coreKey(sourceCore)] = true;
+		const inspect = (tile: unknown) => {
+			if (!(tile instanceof TileEntityLargeRailBase)) return;
+			const core = tile.getRailCore();
+			if (!core || core instanceof TileEntityLargeRailSwitchCore) return;
+			const key = AppleExtendedRailCompat.coreKey(core);
+			if (seen[key]) return;
+			seen[key] = true;
+			const positions = AppleExtendedRailCompat.getLogicalPositions(core);
+			if (!positions) return;
+			for (let i = 0; i < positions.length; i++)
+				if (
+					Math.abs(positions[i].posX - source.posX) <= 0.001 &&
+					Math.abs(positions[i].posY - source.posY) <= 0.001 &&
+					Math.abs(positions[i].posZ - source.posZ) <= 0.001
+				)
+					result.push({ core, index: i });
+		};
+		inspect(world.getTileEntity(source.getNeighborBlockPos()));
+		// A logical endpoint may be distant from its owning section core;
+		// its neighbor block alone does not enumerate all connected rails.
+		const loaded = world.loadedTileEntityList;
+		for (let i = 0; i < loaded.size(); i++) inspect(loaded.get(i));
 		return result;
 	}
 
@@ -160,9 +172,10 @@ export class AppleExtendedRailToolsCompat {
 		const getPending = (core: TileEntityLargeRailCore) => {
 			const key = AppleExtendedRailCompat.coreKey(core);
 			if (!pending[key]) {
-				const positions = this.copyPositions(
-					AppleExtendedRailCompat.getLogicalPositions(core),
-				);
+				const logical =
+					AppleExtendedRailCompat.getLogicalPositions(core);
+				if (!logical || logical.length !== 2) return null;
+				const positions = this.copyPositions(logical);
 				if (positions.length !== 2) return null;
 				records.push({
 					core: this.corePos(core),
@@ -189,6 +202,12 @@ export class AppleExtendedRailToolsCompat {
 			if (core.isLogicalRailOccupied())
 				return { status: "rail_occupied" };
 			const entry = getPending(core);
+			if (target.mode === "center") {
+				if (!entry) return { status: "invalid_rail" };
+				entry.positions[0].cantCenter = target.angle;
+				entry.positions[1].cantCenter = target.angle;
+				continue;
+			}
 			if (
 				!entry ||
 				target.index < 0 ||
@@ -209,16 +228,34 @@ export class AppleExtendedRailToolsCompat {
 					return { status: "rail_occupied" };
 				const neighbor = getPending(connected[j].core);
 				if (!neighbor) return { status: "invalid_rail" };
-				neighbor.positions[connected[j].index].cantEdge = -target.angle;
+				const referenceYaw = isFinite(target.yaw as number)
+					? (target.yaw as number)
+					: rp.anchorYaw;
+				const neighborYaw =
+					neighbor.positions[connected[j].index].anchorYaw;
+				const delta = Math.abs(
+					((((neighborYaw - referenceYaw) % 360) + 540) % 360) - 180,
+				);
+				neighbor.positions[connected[j].index].cantEdge =
+					delta > 90 ? -target.angle : target.angle;
 			}
 		}
 		const keys = Object.keys(pending);
 		for (let i = 0; i < keys.length; i++) {
 			const entry = pending[keys[i]];
+			let hasCenterTarget = false;
+			for (let j = 0; j < targets.length; j++)
+				if (
+					targets[j].railKey === keys[i] &&
+					targets[j].mode === "center"
+				)
+					hasCenterTarget = true;
 			const center =
 				(entry.positions[0].cantEdge - entry.positions[1].cantEdge) / 2;
-			entry.positions[0].cantCenter = center;
-			entry.positions[1].cantCenter = center;
+			if (!hasCenterTarget) {
+				entry.positions[0].cantCenter = center;
+				entry.positions[1].cantCenter = center;
+			}
 			this.lastCantUpdate = this.lastCantUpdate.concat(
 				this.updateCants(entry.core, entry.positions),
 			);
@@ -581,6 +618,18 @@ export class AppleExtendedRailToolsCompat {
 		this.lastSplitUpdate = null;
 		const record = this.splitUndoRecords[token];
 		if (!record) return "nothing_to_undo";
+		// Cant records belong to external connections. Check them before
+		// deleting the replacement rails, so a failed Undo remains retryable.
+		if (record.cants)
+			for (let i = 0; i < record.cants.length; i++) {
+				const validation =
+					AppleExtendedRailCompat.validateUndoNormalRail(
+						world,
+						record.cants[i].core,
+						record.cants[i].railKey,
+					);
+				if (validation !== "ok") return validation;
+			}
 		const removed: CreatedRail[] = [];
 		// Validate the entire replacement set before removing either half.
 		for (let i = 0; i < record.created.length; i++) {
@@ -718,7 +767,8 @@ export class AppleExtendedRailToolsCompat {
 			);
 			if (
 				core &&
-				core !== sourceCore &&
+				AppleExtendedRailCompat.coreKey(core) !==
+					AppleExtendedRailCompat.coreKey(sourceCore) &&
 				request.branchEnd.index !== undefined
 			)
 				this.zeroExternalCant(core, request.branchEnd.index, records);

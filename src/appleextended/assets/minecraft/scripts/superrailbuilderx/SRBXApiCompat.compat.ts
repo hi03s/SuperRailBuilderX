@@ -84,10 +84,24 @@ export class SRBXApiCompat {
 		corePosition: [number, number, number],
 		expectedKey: string,
 	): void {
-		const core = AppleExtendedRailCompat.getCore(world, corePosition);
-		if (!core || this.getRailPositionCandidateKey(core) !== expectedKey)
-			return;
-		core.breakLogicalRail();
+		if (!world.isRemote || !expectedKey) return;
+		const candidates: TileEntityLargeRailCore[] = [];
+		const root = AppleExtendedRailCompat.getCore(world, corePosition);
+		if (root) candidates.push(root);
+		// The representative can already belong to the replacement group.
+		const loaded = world.loadedTileEntityList;
+		for (let i = 0; i < loaded.size(); i++) {
+			const tile = loaded.get(i);
+			if (tile instanceof TileEntityLargeRailCore) candidates.push(tile);
+		}
+		for (let i = 0; i < candidates.length; i++) {
+			const core = candidates[i];
+			if (
+				(world.getTileEntity(core.getPos()) as unknown) === core &&
+				this.getRailPositionCandidateKey(core) === expectedKey
+			)
+				core.breakLogicalRail();
+		}
 	}
 
 	static consumeLastRailPositionMoveCores(): Array<[number, number, number]> {
