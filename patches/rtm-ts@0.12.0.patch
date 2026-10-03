@@ -1,0 +1,30 @@
+diff --git a/dist/config.d.ts b/dist/config.d.ts
+index 1fb14140a9072d1aaa022f700ca16d9ee2e94bcb..4282f2ef41e5dd62b82f2232ebca380e8240ed6a 100644
+--- a/dist/config.d.ts
++++ b/dist/config.d.ts
+@@ -11,6 +11,8 @@ export interface ScanConfig {
+     mappingsVersion: string;
+     /** rfg.deobf() で追加する Maven 座標 */
+     mods?: string[];
++    /** Additional MCP-named JARs, placed first on the scanner classpath. */
++    extraJars?: string[];
+     /** スキャン対象 Java パッケージプレフィックス */
+     packages: string[];
+     /** 生成ファイルの出力先 (typings/, mappings/ が作られる) */
+diff --git a/dist/generate.js b/dist/generate.js
+index 96c5b5da7665c9968f431fbe76a150f3856687f3..f4f667779d4046e13935a6a92d6c7b9238d6c6c6 100644
+--- a/dist/generate.js
++++ b/dist/generate.js
+@@ -185,7 +185,11 @@ function runScanner(scan, paths) {
+     const mappingsDir = path.join(outputDir, "mappings");
+     fs.mkdirSync(typingsDir, { recursive: true });
+     fs.mkdirSync(mappingsDir, { recursive: true });
+-    const classpath = [paths.deobfJar, ...paths.compileClasspath].join(path.delimiter);
++    const extraJars = (scan.extraJars || []).map((jar) => path.resolve(jar));
++    for (const jar of extraJars) {
++        if (!fs.existsSync(jar)) throw new Error(`Extra scan JAR not found: ${jar}`);
++    }
++    const classpath = [...extraJars, paths.deobfJar, ...paths.compileClasspath].join(path.delimiter);
+     const javaArgs = [
+         "-jar",
+         scannerJar,

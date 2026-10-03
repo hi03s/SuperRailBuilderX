@@ -87,7 +87,13 @@
 				"channel": "stable",
 				"mappingsVersion": "39",
 				"mods": [
-					"com.github.ringo-1234:AppleExtended:9df86c205d1b181cccaa4b68d7d09906f193e102"
+					"curse.maven:ngtlib-288989:4641592",
+					"curse.maven:realtrainmod-288988:4641603",
+					"curse.maven:mc-terrain-editor-289840:4641597"
+				],
+				"extraJars": [
+					".cache/appleextended/AppleExtended-forge1.12.2-2.5.3-dev.jar",
+					".cache/appleextended/groovy-all-2.4.15.jar"
 				],
 				"packages": [
 					"net.minecraft",

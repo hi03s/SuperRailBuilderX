@@ -1,10 +1,10 @@
 # AppleExtended target
 
-SRBXはAppleExtended commit `9df86c2`を対応基準とする。AE固有処理は`src/appleextended/assets/minecraft/scripts/superrailbuilderx`へ隔離し、AE本体に同等APIが追加されたものから削除する。
+SRBXはAppleExtended正式リリース`v2.5.3`（タグcommit `6f74d99`）を対応基準とする。AE固有処理は`src/appleextended/assets/minecraft/scripts/superrailbuilderx`へ隔離し、AE本体に同等APIが追加されたものから削除する。
 
 ## 最新AEで利用する機能
 
-2026-09-13時点のAEには、以前の基準`ca255fd`以降に次が追加された。
+AE v2.5.3には、初期基準`ca255fd`以降に次が追加された。従来基準`9df86c2`から既存の生成・論理レール・移設・NBT APIのシグネチャ変更はなく、SRBXの補完処理は継続利用できる。自動分割には最小Section長2 mの制限が追加され、ポイント転換APIも追加された。
 
 - `ResourceStateRail.autoSplit`と、`BlockMarker.createRail(...)`によるチャンク単位の自動分割生成
 - `TileEntityLargeRailSectionCore`、`RailChunkSectioner`、`RailSection`
@@ -59,7 +59,9 @@ pnpm gen
 pnpm build
 ```
 
-AEターゲットのMCP mappingsは`stable/39`を使用する。`9df86c2`への更新後、2026-09-13に4ターゲットの型生成とビルドが成功した。JitPackの初回取得でHTTP 429やタイムアウトが発生した場合は再試行する。
+AEターゲットのMCP mappingsは`stable/39`を使用する。公式リリースの`AppleExtended-forge1.12.2-2.5.3-dev.jar`を使用する（リポジトリはKirtmunaへ移転）。JitPackで正式タグの取得がタイムアウトしたため、`pnpm gen`の前処理で公式dev JARと上流指定のGroovy 2.4.15をダウンロードし、SHA-256を確認する。取得済みJARは`.cache/appleextended/`へ保存し、Gitへ追加しない。
+
+rtm-ts 0.12.0には追加JAR指定がないため、`patches/rtm-ts@0.12.0.patch`で`scan.extraJars`を追加する。AE dev JARを標準1.12.2依存より先にスキャンクラスパスへ置き、MCP名のまま型生成する。`pnpm install`でパッチが適用される。初回は`rtmx generate`を直接呼ばず`pnpm gen`を使う。生成用の標準RTM依存は配布物には同梱されない。
 
 ## AE側に追加されれば削除できる補完
 

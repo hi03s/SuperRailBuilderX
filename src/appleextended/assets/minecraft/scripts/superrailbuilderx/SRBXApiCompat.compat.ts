@@ -10,7 +10,7 @@ import {
 } from "./AppleExtendedRailCompat";
 import { AppleExtendedRailToolsCompat } from "./AppleExtendedRailToolsCompat";
 
-/** AppleExtended 9df86c2 exposes logical-rail APIs and automatic section rails. */
+/** AppleExtended v2.5.3 exposes logical-rail APIs and automatic section rails. */
 export class SRBXApiCompat {
 	private static lastRailPositionMoveCores: Array<[number, number, number]> =
 		[];

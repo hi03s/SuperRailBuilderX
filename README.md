@@ -4,7 +4,7 @@
 
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.7.10-62b47a)](https://www.minecraft.net/)
 [![KaizPatchX](https://img.shields.io/badge/KaizPatchX-1.10.3%2B-57b57b)](https://github.com/Kai-Z-JP/KaizPatchX)
-[![AppleExtended](https://img.shields.io/badge/AppleExtended-ca255fd_experimental-c96f4a)](https://github.com/ringo-1234/AppleExtended/commit/ca255fd65758ef4d587f80e3e23ad5eaa6b81e45)
+[![AppleExtended](https://img.shields.io/badge/AppleExtended-v2.5.3_experimental-c96f4a)](https://github.com/Kirtmuna/AppleExtended/releases/tag/v2.5.3)
 [![Release](https://img.shields.io/badge/release-alpha--0.1.0-orange)](https://github.com/hi03s/SuperRailBuilderX/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 

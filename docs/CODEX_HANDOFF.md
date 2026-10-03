@@ -2,11 +2,11 @@
 
 このファイルは、次の作業に必要な現行情報だけを共有するための短期引継ぎ帳です。詳細な過去記録は `docs/history/` に保存し、通常は読みません。
 
-最終更新: 2026-09-13（ローカルCodex）
+最終更新: 2026-10-03（ローカルCodex）
 
 ## 現在の状態
 
-- rtm-ts 0.12.0、`kaizpatch`・`mc1710`・`appleextended`・`mc1122`のmulti-target環境を構築済み。AEは上流`9df86c2`基準で、全ターゲットの生成・ビルドを確認済み。
+- rtm-ts 0.12.0、`kaizpatch`・`mc1710`・`appleextended`・`mc1122`のmulti-target環境を構築済み。AEは正式版`v2.5.3`基準で、全ターゲットの生成・ビルドを確認済み。
 - NGTOBuilder2由来のツールキットは `src/common/assets/minecraft/scripts/lib_hi03toolkit_1_0` に置き、参照専用とする。SuperRailBuilderX固有処理は `superrailbuilderx` ディレクトリと `SRBXApiCompat` に実装する。
 - 正式版`SuperRailBuilderX_RailMover`は通常・自動分割レールとも元状態を退避し、builder1と同じ衝突判定・道床生成規則で再生成する。論理RailMapの複数選択・一括平行移動・一括Undoに対応し、ホバーは現在のコアとRailPositionから再構築する。
 - `SuperRailBuilderX_builder1`を実装済み。JSON識別名はbuilder1を維持し、文書・ヘルプでは`レール生成A`と表記する。自由点・通常/分岐レール端点接続、曲線半径固定、勾配・縦曲線、複数レール一括Undo、道床・コア保護を備える。
@@ -14,7 +14,7 @@
 - `SuperRailBuilderX_DoubleTrackCopy`を実装済み。通常レールの複数選択、カーソル距離に応じた指定間隔の反復複製、水平平行線形、0.5 m端点接続、手持ち/複製元モデル、一括Undoを備える。
 - `SuperRailBuilderX_CantFormatter`を実装済み。端点・中央への10 mスナップ、任意点分割、未選択分割候補の黄色表示、選択済み変更対象の水色表示、共有端点の連続適用、複数回の適用を遡るUndoに対応する。
 - `SuperRailBuilderX_BranchBuilder`を実装済み。中央の約0.5 m候補、接続/未接続の正確な端点を根元とする単純分岐、共有端点両側の強調と分岐先カーソル方向によるベース選択、接続部カント0化とUndoに対応する。
-- AppleExtended対応ブランチへ最新mainを統合し、AE上流`9df86c2`の自動分割・論理レールAPIへ対応した。生成、複線コピー、分割、分岐、カント整形とUndoは通常・自動分割レールを扱う。AEにSection group移設APIがないため、自動分割レールの端点・平行移動だけは無効化する。
+- AppleExtended対応ブランチへ最新mainを統合し、AE正式版`v2.5.3`の自動分割・論理レールAPIへ対応した。生成、複線コピー、分割、分岐、カント整形とUndoは通常・自動分割レールを扱う。AEにSection group移設APIがないため、自動分割レールの端点・平行移動だけは無効化する。
 - builder1のチャンク境界交差・候補表示・Iキー地上高合わせ、複線コピーの生成、分割パネル・縦勾配・カント、レール移動の基本操作・接続・回り込み防止・三線軌条の相互走行は実機確認済み。
 - `alpha-0.1.0`の配布設定、README、統合操作ガイド、同梱readme.txt・LICENSEを整備済み。配布ZIPは`SuperRailBuilderX-alpha-0.1.0.zip`として生成できる。
 - `v*`タグpush時に型定義生成・multi-targetビルド・ZIP生成を行い、`release-notes.md`を本文とするDraft Releaseを作成するGitHub Actionsを整備済み。公開はGitHub上で手動実施する。
@@ -22,6 +22,8 @@
 - `AGENTS.md`へ、親モデルを途中変更するのではなく、限定作業だけを軽量・バランス型サブエージェントへ委譲するモデル運用規則を追加済み。
 
 ## 作業中
+
+- 2026-10-03 ローカルCodex: AE v2.5.3対応後、origin/mainを統合して全ターゲットを生成・ビルドする。
 
 ## 優先確認事項
 
@@ -120,7 +122,7 @@
 
 ## 直近の完了
 
-- 2026-09-13 ローカルCodex: `feature/appleextended-compat`へ最新mainを統合し、AE上流`9df86c2`の自動分割・論理レールAPIへ対応。詳細は`docs/appleextended-target.md`、月別履歴、コミット`0f16794`・`c8970d6`を参照（`origin/feature/appleextended-compat`へ同期済み）。
+- 2026-09-13 ローカルCodex: `feature/appleextended-compat`へ最新mainを統合し、AE正式版`v2.5.3`の自動分割・論理レールAPIへ対応。詳細は`docs/appleextended-target.md`、月別履歴、コミット`0f16794`・`c8970d6`を参照（`origin/feature/appleextended-compat`へ同期済み）。
 
 - 2026-09-13 ローカルCodex: `v*`タグ専用の正式リリースworkflow、初期リリースノート、手動公開・誤タグ・再実行手順を追加。詳細は月別履歴とコミット`fa57990`を参照（`origin/main`へ同期済み）。
 
