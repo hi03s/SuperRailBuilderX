@@ -2,11 +2,11 @@
 
 このファイルは、次の作業に必要な現行情報だけを共有するための短期引継ぎ帳です。詳細な過去記録は `docs/history/` に保存し、通常は読みません。
 
-最終更新: 2026-09-13（ローカルCodex）
+最終更新: 2026-10-04（ローカルCodex）
 
 ## 現在の状態
 
-- rtm-ts 0.12.0、`kaizpatch`・`mc1710`・`appleextended`・`mc1122`のmulti-target環境を構築済み。AEは`ca255fd`基準の実験対応で、全ターゲットの生成・ビルドを確認済み。
+- rtm-ts 0.12.0、`kaizpatch`・`mc1710`・`appleextended`・`mc1122`のmulti-target環境を構築済み。AEは正式版`v2.5.3`基準。JitPack取得が復旧し、未改造rtm-tsの標準手順で全4ターゲットの型生成・ビルド成功。
 - NGTOBuilder2由来のツールキットは `src/common/assets/minecraft/scripts/lib_hi03toolkit_1_0` に置き、参照専用とする。SuperRailBuilderX固有処理は `superrailbuilderx` ディレクトリと `SRBXApiCompat` に実装する。
 - 正式版`SuperRailBuilderX_RailMover`は通常・自動分割レールとも元状態を退避し、builder1と同じ衝突判定・道床生成規則で再生成する。論理RailMapの複数選択・一括平行移動・一括Undoと、KaizPatchX分岐レールの端点移動に対応し、ホバーは現在のコアとRailPositionから再構築する。
 - `SuperRailBuilderX_builder1`を実装済み。JSON識別名はbuilder1を維持し、文書・ヘルプでは`レール生成A`と表記する。自由点・通常/分岐レール端点接続、曲線半径固定、勾配・縦曲線、複数レール一括Undo、道床・コア保護を備える。
@@ -14,7 +14,7 @@
 - `SuperRailBuilderX_DoubleTrackCopy`を実装済み。通常レールの複数選択、カーソル距離に応じた指定間隔の反復複製、水平平行線形、0.5 m端点接続、手持ち/複製元モデル、一括Undoを備える。
 - `SuperRailBuilderX_CantFormatter`を実装済み。端点・中央への10 mスナップ、任意点分割、未選択分割候補の黄色表示、選択済み変更対象の水色表示、共有端点の連続適用、複数回の適用を遡るUndoに対応する。
 - `SuperRailBuilderX_BranchBuilder`を実装済み。中央の約0.5 m候補、接続/未接続の正確な端点を根元とする単純分岐、共有端点両側の強調と分岐先カーソル方向によるベース選択、接続部カント0化とUndoに対応する。
-- AppleExtended実験対応をmainへ統合済み。通常レール端点移動・同期・Undoだけを有効化し、道床再生成を必要とする機能は安全に無効化する。
+- AppleExtended対応ブランチへ最新mainを統合し、AE正式版`v2.5.3`へ対応。生成コア確認・論理端点選択・Undo入力を修正し、通常/自動分割レールの端点・全体移動は元状態退避とgroup全体再生成で補完する。実機再検証待ち。
 - builder1のチャンク境界交差・候補表示・Iキー地上高合わせ、複線コピーの生成、分割パネル・縦勾配・カント、レール移動の基本操作・接続・回り込み防止・三線軌条の相互走行は実機確認済み。
 - `alpha-0.1.0`の配布設定、README、統合操作ガイド、同梱readme.txt・LICENSEを整備済み。配布ZIPは`SuperRailBuilderX-alpha-0.1.0.zip`として生成できる。
 - `v*`タグpush時に型定義生成・multi-targetビルド・ZIP生成を行い、`release-notes.md`を本文とするDraft Releaseを作成するGitHub Actionsを整備済み。公開はGitHub上で手動実施する。
@@ -30,7 +30,7 @@
 
 ### 分岐レール描画compatibility patch
 
-- AppleExtendedで起動時ログの`[SRBX rail patch] completed`を確認し、`failed=0`であることを確認する。
+- 修正版ZIPでAEのモデル構築が成功し、`[SRBX rail patch] source prepared: function serialization`と`completed`（`failed=0`）を確認する。KaizPatchXでもoffsetあり/なし分岐の描画を再確認する。
 - AppleExtendedで通常レール、offsetなし分岐、offsetあり分岐を表示し、offsetあり分岐の根元～中央と中央～終端がともにRailMapへ一致し、他2ケースの描画が変化しないことを確認する。
 - `exclude.json`へ実在するrenderer script pathを一時指定し`skipped: excluded`になること、AppleExtendedではモデルパックreload後に新しいEngineへ再適用されることを確認する。
 
@@ -55,14 +55,18 @@
 
 ### AppleExtended
 
-- バックアップ済みワールドで通常レールの小さい端点オフセット、再ログイン後の永続化、描画、走行、Ctrl+Zを確認する。大移動は道床範囲外になるため未対応。
+- レール生成Aの接続端点を180度反転するとき、AEだけcantEdgeも反転する。KaizPatchのカント処理/モデルハイライトは従来通り。正負カント・既設レール両端・新規レール開始/終了側の接続をAE/KaizPatchで確認し、操作時刻とlogs/latest.logを共有する。
+
+- 20:07～20:14再テストの接続カント片側欠落・中央invalid_endpoint・分岐Undo失敗を修正。接続探索は論理キーで自グループを除外し、ロード済み端点へ向きに応じて適用する。中央/端点・同向/逆向接続・分岐Undoを再確認する。
+- 複線のSection生成がコア未作成で失敗する内部理由は未確定。部分生成がない場合だけ通常レールで1回再試行し、既設道床/コアを保護する。10/04ログではこの再試行で複線生成成功を確認。失敗時はsection creation failedのowners/partial/creativeと前後ログを確認する。
+- AEの02:37クラッシュ対策: 旧keyのコアはブロック/tileを同時に除去して未初期化tileの再作成を防ぐ。AEだけ論理線形のハイライトへ切替え、モデルのshouldRenderObject呼出しを避ける。移動→Undo/再移動後のクラッシュ・ghost・チャンク例外消失を実機再確認。
+- 接続移動/Undoの配置判定は生成計画へ統一。00:46～00:47で残った両端候補塞がりは、既存Section範囲内の空き道床へ物理コアだけ代替配置するfallbackを追加（論理端点/線形/ratioを維持）。全配置先を変更前に検証し、空きなしは非破壊で拒否。接続2本移動・一括移動・Undo/再ログイン/走行を再確認する。新診断section owners relocated/section owner relocation blockedとclient ghost cleanupを含むlogs/latest.logを共有する。
 
 ## 次に行うこと
 
-1. AppleExtendedで分岐レール描画compatibility patchのBootstrapログとoffsetあり/なし描画を確認する。
-2. 優先確認事項のレール移動、カント整形、分岐生成をバックアップ済みワールドで再確認する。
-3. AE環境で通常レール端点移動・永続化・描画・走行・Undoを確認する。
-4. 既存の「優先確認事項」も確認し、不具合時は機能名・操作順・時刻と`logs/latest.log`を共有する。
+1. AppleExtended v2.5.3で分岐描画patchのBootstrapログとoffsetあり/なし描画を確認する。
+2. レール移動・カント任意点分割・分岐Undoと、AE自動分割レールの生成・分割・分岐・走行・Undoをバックアップ済みワールドで確認する。
+3. 不具合時は機能名・操作順・時刻と`[SuperRailBuilderX`または`[SRBX rail patch]`を含むログを共有する。
 
 ## 双方向連絡
 
@@ -126,11 +130,7 @@
 
 ## 直近の完了
 
-- 2026-09-13 ローカルCodex: 分岐描画patchを`main`へfast-forward統合し、KaizPatchX実機確認済み・AppleExtended確認待ちとして修正ブランチを保持。包含確認済みの`feature/appleextended`はローカル・リモートから削除。詳細は月別履歴とコミット`08756a7`を参照。
-
-- 2026-09-13 ローカルCodex: レール移動/分岐Undoの論理レール再解決、現行セクションコアからのハイライト、カント任意点分割、KaizPatchX分岐端点移動を修正。詳細は月別履歴とコミット`41a13ad`を参照（引継ぎ更新`bd939ec`とともに`origin/main`へ同期済み）。
-
-詳細な作業履歴は `docs/history/CODEX_HISTORY_2026-09.md` に保存しています。過去の原因や判断経緯が必要な場合だけ、対象機能名・エラー名・コミットSHAで検索してください。
+- 2026-10-04 ローカルCodex: AE移動後クラッシュ対策と生成Aの接続カント反転を修正。全4ターゲットZIP/回帰13スイート成功、実機未確認。修正`4bf5aaf`を`origin/feature/appleextended-compat`へpush済み（差分0/0）。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 ## 関連資料
 

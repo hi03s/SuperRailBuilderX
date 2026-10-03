@@ -1,3 +1,4 @@
+import { SRBXRailHighlight } from "./SRBXRailHighlight";
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { MCWrapperClient, NGTUtilClient } from "jp.ngt.ngtlib.util";
 import { EntityVehicle } from "jp.ngt.rtm.entity.vehicle";
@@ -11,7 +12,7 @@ import { System } from "java.lang";
 import { WeakHashMap } from "java.util";
 import { Keyboard, Mouse } from "org.lwjgl.input";
 import { GL11 } from "org.lwjgl.opengl";
-import { InputManager } from "../lib_hi03toolkit_1_0/lib_InputManager";
+import { SRBXInputManager as InputManager } from "./SRBXInputManager";
 import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
 import { NGTOBuilderUtilClient } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtilClient";
 import { RTMApiCompat } from "@target/assets/minecraft/scripts/lib_hi03toolkit_1_0/lib_RTMApiCompat";
@@ -639,7 +640,7 @@ function renderRailHighlight(
 	);
 	GL11.glPushMatrix();
 	GL11.glTranslatef(-origin[0], -origin[1], -origin[2]);
-	NGTOBuilderUtilClient.renderRailMapHighlight(entity, map, color, alpha);
+	SRBXRailHighlight.render(entity, map, color, alpha);
 	GL11.glPopMatrix();
 }
 
@@ -717,6 +718,7 @@ function handleResult(
 			"§a[SuperRailBuilderX] 複線を生成しました",
 		);
 	} else if (result === "undo_ok" && pendingAction === "undo") {
+		dataMap.setBoolean("doubleTrackCopyCanUndo", false, 0);
 		const removed =
 			NGTOBuilderUtil.getJsonData<
 				Array<{ core: RailCorePos; key: string }>

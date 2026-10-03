@@ -1,3 +1,4 @@
+import { SRBXRailHighlight } from "./SRBXRailHighlight";
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { MCWrapperClient, NGTUtilClient } from "jp.ngt.ngtlib.util";
 import { EntityVehicle } from "jp.ngt.rtm.entity.vehicle";
@@ -10,7 +11,7 @@ import { EntityPlayer } from "net.minecraft.entity.player";
 import { WeakHashMap } from "java.util";
 import { Keyboard, Mouse } from "org.lwjgl.input";
 import { GL11 } from "org.lwjgl.opengl";
-import { InputManager } from "../lib_hi03toolkit_1_0/lib_InputManager";
+import { SRBXInputManager as InputManager } from "./SRBXInputManager";
 import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
 import { NGTOBuilderUtilClient } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtilClient";
 import { RTMApiCompat } from "@target/assets/minecraft/scripts/lib_hi03toolkit_1_0/lib_RTMApiCompat";
@@ -623,6 +624,7 @@ function handleResult(sender: ICommandSender, e: EntityVehicle, s: State) {
 		r = d.getString("branchBuilderResult");
 	if (!s.awaiting || !s.pending || !r || r === "waiting") return;
 	s.awaiting = false;
+	if (r === "undo_ok") d.setBoolean("branchBuilderCanUndo", false, 0);
 	const u = NGTOBuilderUtil.getJsonData<BranchClientUpdate>(
 		d,
 		"branchBuilderClientUpdate",
@@ -681,7 +683,7 @@ function renderRailHighlight(
 	const origin = NGTOBuilderUtilClient.getInterpolatedPos(e, pt);
 	GL11.glPushMatrix();
 	GL11.glTranslatef(-origin[0], -origin[1], -origin[2]);
-	NGTOBuilderUtilClient.renderRailMapHighlight(e, map, color, 0.6);
+	SRBXRailHighlight.render(e, map, color, 0.6);
 	GL11.glPopMatrix();
 }
 
@@ -908,7 +910,7 @@ function render(e: EntityVehicle, pass: number, pt: number): void {
 				const o = NGTOBuilderUtilClient.getInterpolatedPos(e, pt);
 				GL11.glPushMatrix();
 				GL11.glTranslatef(-o[0], -o[1], -o[2]);
-				NGTOBuilderUtilClient.renderRailMapHighlight(
+				SRBXRailHighlight.render(
 					e,
 					map,
 					s.split ? "00ffff" : "ffff00",

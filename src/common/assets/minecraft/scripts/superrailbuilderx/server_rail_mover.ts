@@ -343,6 +343,16 @@ function applyUndo(
 		const moved = SRBXApiCompat.consumeLastRailPositionMoveCores();
 		for (let j = 0; j < moved.length; j++) updated.push(moved[j]);
 		if (!isMoveSuccess(result)) {
+			if (moved.length > 0) {
+				removed.push({ core: operation.core, key: operation.railKey });
+				// AE rollback recreates the group with a new identity. Keep Undo retryable.
+				const restored = resolveCurrentCore(world, moved[0]);
+				if (restored) {
+					operation.core = moved[0];
+					operation.railKey =
+						SRBXApiCompat.getRailPositionCandidateKey(restored);
+				}
+			}
 			record.operations = record.operations.slice(0, i + 1);
 			sendClientChanges(dataMap, updated, removed);
 			return `undo_${i}:${result}`;
@@ -498,7 +508,13 @@ function applyRequest(
 		);
 		const movedCores = SRBXApiCompat.consumeLastRailPositionMoveCores();
 		if (!isMoveSuccess(result)) {
-			sendClientChanges(dataMap, movedCores, []);
+			sendClientChanges(
+				dataMap,
+				movedCores,
+				movedCores.length > 0
+					? [{ core: request.core, key: request.railKey }]
+					: [],
+			);
 			return result;
 		}
 		const operations: UndoOperation[] = [];
@@ -533,6 +549,11 @@ function applyRequest(
 			for (let j = 0; j < connectedCores.length; j++)
 				movedCores.push(connectedCores[j]);
 			if (!isMoveSuccess(connectedResult)) {
+				if (connectedCores.length > 0)
+					removed.push({
+						core: item.move.target.core,
+						key: item.railKey,
+					});
 				if (operations.length > 0)
 					undoRecords.put(entity, { operations });
 				sendClientChanges(dataMap, movedCores, removed);
@@ -637,6 +658,11 @@ function applyRequest(
 			result !== "ok_sectioned" &&
 			result !== "ok_normal_crossing"
 		) {
+			if (movedCores.length > 0)
+				removedRails.push({
+					core: item.target.core,
+					key: item.railKey,
+				});
 			if (operations.length > 0) undoRecords.put(entity, { operations });
 			sendClientChanges(dataMap, updatedCores, removedRails);
 			NGTLog.debug(

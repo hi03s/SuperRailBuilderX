@@ -1,0 +1,74 @@
+# AE v2.5.3 endpoint move + client ghost retest, 2026-10-04
+# User reports per-section visual remnants disappearing after world re-entry.
+# Relevant SRBX diagnostics only; raw latest.log is not tracked.
+[00:46:26] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] applying connected endpoint: targets=2
+[00:46:27] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
+[00:46:27] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:00194ab4-7cf7-4dc0-9d17-a2c957dcf89d, newKey=section:7365de71-bfd1-44b6-9fdd-c614bb0e74ec, cores=4
+[00:46:27] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] section owner collision: using normal rail to protect existing logical rails
+[00:46:27] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation blocked: protected rail owner at 1344,4,-1506
+[00:46:27] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] placement blocked before removal: key=section:8d05f5aa-1443-45c9-bdb9-4add9b1962e1
+[00:46:27] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] connected endpoint apply failed: target=1, applied=1, result=rail_overlap
+[00:46:27] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=move, mode=endpoint, result=partial_target_1:rail_overlap
+[00:46:29] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
+[00:46:29] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:7365de71-bfd1-44b6-9fdd-c614bb0e74ec, newKey=section:e4579cf1-45cc-48c6-ab1d-9633cbf52a66, cores=4
+[00:46:29] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=undo, mode=undo, result=undo_ok
+[00:46:35] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] applying connected endpoint: targets=1
+[00:46:35] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] section owner collision: using normal rail to protect existing logical rails
+[00:46:35] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] section owner collision: using normal rail to protect existing logical rails
+[00:46:35] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=false, positions=2
+[00:46:35] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:0a9f882f-a853-4f30-bca5-0b58c5d5fda2, newKey=core:1346,4,-1610, cores=1
+[00:46:35] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] endpoint undo recorded: operations=1
+[00:46:35] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=move, mode=endpoint, result=ok
+[00:46:42] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] applying connected endpoint: targets=1
+[00:46:42] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
+[00:46:42] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:b8588c44-3f8d-4362-8242-0b7ffc699886, newKey=section:a4e75d73-7fef-41b4-a8a7-a5ed32f951a1, cores=3
+[00:46:42] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] endpoint undo recorded: operations=1
+[00:46:42] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=move, mode=endpoint, result=ok
+[00:46:46] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=move, mode=parallel_multi, result=parallel_0:rail_not_found
+[00:46:49] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=move, mode=parallel_multi, result=parallel_0:rail_not_found
+[00:46:57] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] applying connected endpoint: targets=2
+[00:46:57] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
+[00:46:57] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:a4e75d73-7fef-41b4-a8a7-a5ed32f951a1, newKey=section:9fe672f3-9b00-4239-ad4e-65f062a59f5d, cores=3
+[00:46:57] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
+[00:46:57] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:f7b59d31-41f9-45b0-91f9-96dac3d6200b, newKey=section:c6606224-ff21-4b78-b087-c29a219f3b8f, cores=2
+[00:46:57] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] endpoint undo recorded: operations=2
+[00:46:57] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=move, mode=endpoint, result=ok
+[00:47:00] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
+[00:47:00] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:c6606224-ff21-4b78-b087-c29a219f3b8f, newKey=section:9736b20a-97b2-4973-86cb-2509f6a4d625, cores=2
+[00:47:00] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] section owner collision: using normal rail to protect existing logical rails
+[00:47:00] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] section owner collision: using normal rail to protect existing logical rails
+[00:47:00] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=false, positions=2
+[00:47:00] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:9fe672f3-9b00-4239-ad4e-65f062a59f5d, newKey=core:1352,4,-1549, cores=1
+[00:47:00] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=undo, mode=undo, result=undo_ok
+[00:47:04] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] applying connected endpoint: targets=2
+[00:47:04] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
+[00:47:04] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:8d05f5aa-1443-45c9-bdb9-4add9b1962e1, newKey=section:ad77b031-3ded-4e7e-aaca-22a7cae76665, cores=3
+[00:47:04] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
+[00:47:04] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:26af02f5-e5cb-4df8-8a0f-5b8f563d0687, newKey=section:1deb2882-5ce0-483e-a766-0b75982b9cab, cores=3
+[00:47:04] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] endpoint undo recorded: operations=2
+[00:47:04] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=move, mode=endpoint, result=ok
+[00:47:08] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
+[00:47:08] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:1deb2882-5ce0-483e-a766-0b75982b9cab, newKey=section:44255c36-157d-459c-bdf1-b1b5675a8e05, cores=2
+[00:47:08] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
+[00:47:08] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:ad77b031-3ded-4e7e-aaca-22a7cae76665, newKey=section:60fb1b30-98e4-44ef-9802-6c8f91b53c49, cores=3
+[00:47:08] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=undo, mode=undo, result=undo_ok
+[00:47:12] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
+[00:47:12] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:60fb1b30-98e4-44ef-9802-6c8f91b53c49, newKey=section:77c35be2-5894-4e0b-8207-1a81e4ce7327, cores=3
+[00:47:12] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] section owner collision: using normal rail to protect existing logical rails
+[00:47:12] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] section owner collision: using normal rail to protect existing logical rails
+[00:47:12] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=false, positions=2
+[00:47:12] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:e4579cf1-45cc-48c6-ab1d-9633cbf52a66, newKey=core:1342,4,-1610, cores=1
+[00:47:12] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] section owner collision: using normal rail to protect existing logical rails
+[00:47:12] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] section owner collision: using normal rail to protect existing logical rails
+[00:47:12] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=false, positions=2
+[00:47:12] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:44255c36-157d-459c-bdf1-b1b5675a8e05, newKey=core:1346,4,-1477, cores=1
+[00:47:12] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] parallel undo recorded: operations=3
+[00:47:12] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=move, mode=parallel_multi, result=ok
+[00:47:19] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=false, positions=2
+[00:47:19] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=core:1346,4,-1477, newKey=core:1344,4,-1506, cores=1
+[00:47:19] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=false, positions=2
+[00:47:19] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=core:1342,4,-1610, newKey=core:1342,4,-1552, cores=1
+[00:47:19] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] section owner collision: using normal rail to protect existing logical rails
+[00:47:19] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation blocked: protected rail owner at 1342,4,-1552
+[00:47:19] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] placement blocked before removal: key=section:77c35be2-5894-4e0b-8207-1a81e4ce7327
+[00:47:19] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=undo, mode=undo, result=undo_0:rail_overlap

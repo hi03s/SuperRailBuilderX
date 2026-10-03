@@ -15,7 +15,7 @@ import { WeakHashMap } from "java.util";
 import { Keyboard, Mouse } from "org.lwjgl.input";
 import { GL11 } from "org.lwjgl.opengl";
 import { ErrorLogger } from "../lib_hi03toolkit_1_0/lib_ErrorLogger";
-import { InputManager } from "../lib_hi03toolkit_1_0/lib_InputManager";
+import { SRBXInputManager as InputManager } from "./SRBXInputManager";
 import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
 import { NGTOBuilderUtilClient } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtilClient";
 import {
@@ -997,6 +997,7 @@ function handleResult(
 				"§e[SuperRailBuilderX] セクションコア交差のため通常レールとして生成しました",
 			);
 	} else if (result === "undo_ok" && state.pendingAction === "undo") {
+		dataMap.setBoolean("builder1CanUndo", false, 0);
 		state.selected = state.lastBuiltSelection
 			? state.lastBuiltSelection.map(copyPoint)
 			: [];

@@ -1,0 +1,16 @@
+# AE v2.5.3: relevant excerpts from the developer's 19:12-19:15 retest.
+# Raw latest.log remains untracked; unrelated mod logs and machine paths omitted.
+[19:12:21] [SRBX rail patch] completed: patched=167, no renderRailDynamic2=173, excluded=0, already patched=0, failed=0
+[19:12:34] [SuperRailBuilderX AE] creation not confirmed: apiResult=false, positions=2, root=1336,4,-1435, existingCore=false
+[19:12:34] [SuperRailBuilderX builder1] request completed: action=create, result=create_failed
+[19:13:18] [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
+[19:13:18] [SuperRailBuilderX AE] creation not confirmed: apiResult=false, positions=2, root=1344,4,-1456, existingCore=true
+[19:13:18] [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
+[19:13:18] [SuperRailBuilderX splitter] request completed: action=split, result=create_failed
+[19:13:38] [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
+[19:13:38] [SuperRailBuilderX builder1] request completed: action=create, result=ok
+[19:14:14] [SuperRailBuilderX RailPosition] unsupported core: core=1326,4,-1443, reason=sectioned_relocation_unavailable
+[19:14:14] [SuperRailBuilderX RailPosition] candidate scan: candidates=0, railTiles=10, uniqueCores=3, missingCores=0, unsupportedCores=3, errors=0
+[19:15:10] [SuperRailBuilderX AE] creation not confirmed: apiResult=false, positions=2, root=1322,4,-1445, existingCore=false
+[19:15:11] [SuperRailBuilderX double-track-copy] request completed: action=create, result=create_failed
+# No SRBX action=undo request appears in this test log; exact input cause unconfirmed.

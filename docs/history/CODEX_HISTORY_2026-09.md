@@ -711,6 +711,25 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - マージコミット: `de3c3cb`
 - 同期: `origin/main`へ同期済み。
 
+### 2026-09-12 ローカルCodex — AppleExtended通常レール生成compat
+
+- KaizPatchXとAE `ca255fd`の生成API差分を比較し、自動分割、Section core、論理レール、設定型、座標API、NBT復元の違いとSRBX側の対応方針を`docs/appleextended-target.md`へ整理した。
+- AE専用の`AppleExtendedRailCompat.ts`を追加した。レール生成Aと複線コピーの`createBuilderRail`をAE標準`BlockMarker.createRail`による通常レール生成へ接続し、自由座標RailPosition、モデル選択、複製元再検証、通常レールUndoを補完した。
+- 自動分割構造に依存する分割・分岐・カントSection更新・既設レール再生成は、引き続き安全スタブで無効化した。AE側に同等公開APIが追加された補完から順次削除する。
+- 検証済み: `pnpm format:check`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、AE生成JavaScriptへの専用compat includeと通常レール生成呼び出しの出力、`git diff --check`。
+- 未検証: Minecraft実機でのAEレール生成A・複線コピーの生成、接続、モデル継承、走行、Undo。
+- 実装コミット: `6289a96`
+- 同期: `origin/feature/appleextended-compat`へ同期済み。
+
+### 2026-09-12 ローカルCodex — AE分割・分岐・カント対応
+
+- AE通常レール向けの`AppleExtendedRailToolsCompat.ts`を追加し、レール分割、中央/端点分岐生成、カント整形と各Undoを実装した。分割結果は常に通常レール2本とし、分岐はAE標準RTMのSwitch core生成へ委譲する。
+- 分割形状は元RailMapの候補位置、水平Bezier分割、勾配、カントを引き継ぐ。変更前のRailPosition、モデル、信号、サブレールを記録し、生成途中の失敗時とUndo時に元レールを復元する。
+- カントは通常RailPositionを更新し、共有端点の接続相手へ反対符号を適用する。分岐接続部のカント0化もUndo対象に含めた。削除レールのクライアントゴースト除去をAE用に追加した。
+- 検証済み: `pnpm format:check`、`pnpm gen`、`pnpm build`（4ターゲット）、AE生成JavaScriptへの全compatメソッド出力、AE生成物にKaizPatchX Section API参照がないこと、`git diff --check`。
+- 未検証: Minecraft実機でのAE通常レール分割・Undo、中央/端点分岐の切替・走行・Undo、カント共有端点反映・Undo、各失敗時ロールバック。
+- 実装コミット: `b507824`
+- 同期: `origin/feature/appleextended-compat`へ同期済み。
 ### 2026-09-13 ローカルCodex — レール移動・カント整形・分岐生成の実機指摘対応
 
 - `logs/latest.log`ではレール移動の単体/複数適用とUndo、カントの共有端点適用とUndo、分岐生成の中央/端点生成とUndoが成功しており、対象処理の例外はなかった。生ログは追加せず、判断に必要な成功行だけを`logs/rail-tools-retest-20260913.log`へ匿名化して保存した。
@@ -786,6 +805,16 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 実装コミット: `fa57990`
 - 同期: `origin/main`へ同期済み。
 
+### 2026-09-13 ローカルCodex — 最新AppleExtended論理レールAPI対応
+
+- `feature/appleextended-compat`へ最新`origin/main`を統合した（merge commit `0f16794`）。
+- AppleExtended上流HEAD `9df86c205d1b181cccaa4b68d7d09906f193e102`を調査し、依存を同commitへ更新した。`ca255fd`以降に自動分割、Section core、論理RailPosition・group core一覧、論理占有判定・削除、通常レール移設APIが追加されている。
+- AE生成時は`ResourceStateRail.autoSplit`を尊重し、共有コードが`forceNormal`を指定した場合だけ複製したpropertyで無効化する。識別・端点取得・占有判定・削除を論理レール単位へ変更した。
+- 分割・分岐は論理RailMapから再生成するため通常・自動分割レールに対応した。カント整形は全Section coreの論理端点NBTを書き換えて同期する。AEの`relocateRail`はSection overrideがないため、自動分割レール移設は安全のため未対応のままとした。
+- 検証済み: `pnpm gen`、`pnpm format:check`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、`git diff --check`。
+- 未検証: Minecraft実機でのチャンク境界をまたぐ生成・分割・分岐・走行・Undo、全Sectionへのカント反映・Undo。
+- 実装コミット: `c8970d6`
+- 同期: 実装`c8970d6`・引継ぎ更新`14262dc`を`origin/feature/appleextended-compat`へ同期済み。
 ### 2026-09-13 ローカルCodex — ローカル調査資料のGit除外
 
 - `.tmp-kaizpatchx-source/`と`logs/latest.log`を`.gitignore`へ追加した。

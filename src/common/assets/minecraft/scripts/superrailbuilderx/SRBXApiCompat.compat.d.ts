@@ -115,6 +115,8 @@ export class SRBXApiCompat {
 		y: number,
 		z: number,
 	): void;
+	static usesGeometryRailHighlight(): boolean;
+	static needsRailClientGhostRetry(expectedKey: string): boolean;
 	static removeRailClientGhost(
 		world: World,
 		core: RailCorePos,
@@ -171,6 +173,7 @@ export class SRBXApiCompat {
 		x: number,
 		y: number,
 		z: number,
+		player?: EntityPlayer,
 	): string;
 	static createBuilderRail(
 		world: World,

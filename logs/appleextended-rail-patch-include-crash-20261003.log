@@ -1,0 +1,17 @@
+# AE v2.5.3 / SRBX rail patch include crash, 2026-10-03 17:47:46
+# Minimal excerpt; local paths, PC details and unrelated mods omitted.
+Description: Constructing RTM ModelPack
+com.anatawa12.fixRtm.rtm.modelpack.init.ModelConstructingException:
+  constructing resource: SuperRailBuilderX_builder1
+Caused by: java.lang.RuntimeException:
+  Script exec error: minecraft:scripts/superrailbuilderx/render_builder1.js
+  at jp.ngt.ngtlib.io.ScriptUtil.doScript(ScriptUtil.java:74)
+  at com.anatawa12.fixRtm.scripting.FIXScriptUtil.getScriptAndDoScript(FIXScriptUtil.kt:36)
+Caused by: jdk.nashorn.internal.runtime.ParserException:
+  <eval>:15688:78 Expected ; but found undefined
+  var RAIL_RENDER_PATCH_SOURCE = "nif (typeof __SRBX_RAIL_RENDER_PATCHED__ === "undefined") ...";
+
+Analysis: AE ModelPackManager.loadScript inserts included source with
+Matcher.replaceFirst without Matcher.quoteReplacement. Backslashes in the
+embedded source string are consumed, corrupting its escaped quotes/newlines.
+KaizPatchX v1.10.3 protects replacements with Matcher.quoteReplacement.

@@ -1,3 +1,4 @@
+import { SRBXRailHighlight } from "./SRBXRailHighlight";
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { MCWrapperClient, NGTUtilClient } from "jp.ngt.ngtlib.util";
 import { EntityVehicle } from "jp.ngt.rtm.entity.vehicle";
@@ -10,7 +11,7 @@ import { EntityPlayer } from "net.minecraft.entity.player";
 import { WeakHashMap } from "java.util";
 import { Keyboard, Mouse } from "org.lwjgl.input";
 import { GL11 } from "org.lwjgl.opengl";
-import { InputManager } from "../lib_hi03toolkit_1_0/lib_InputManager";
+import { SRBXInputManager as InputManager } from "./SRBXInputManager";
 import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
 import { NGTOBuilderUtilClient } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtilClient";
 import { RTMApiCompat } from "@target/assets/minecraft/scripts/lib_hi03toolkit_1_0/lib_RTMApiCompat";
@@ -496,7 +497,7 @@ function renderRailHighlight(
 	const origin = NGTOBuilderUtilClient.getInterpolatedPos(entity, pt);
 	GL11.glPushMatrix();
 	GL11.glTranslatef(-origin[0], -origin[1], -origin[2]);
-	NGTOBuilderUtilClient.renderRailMapHighlight(entity, map, color, 0.65);
+	SRBXRailHighlight.render(entity, map, color, 0.65);
 	GL11.glPopMatrix();
 }
 

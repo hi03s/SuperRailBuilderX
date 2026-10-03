@@ -1,3 +1,4 @@
+import { SRBXRailHighlight } from "./SRBXRailHighlight";
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { MCWrapperClient, NGTUtilClient } from "jp.ngt.ngtlib.util";
 import { EntityVehicle } from "jp.ngt.rtm.entity.vehicle";
@@ -13,7 +14,7 @@ import { EntityPlayer } from "net.minecraft.entity.player";
 import { WeakHashMap } from "java.util";
 import { Keyboard, Mouse } from "org.lwjgl.input";
 import { GL11 } from "org.lwjgl.opengl";
-import { InputManager } from "../lib_hi03toolkit_1_0/lib_InputManager";
+import { SRBXInputManager as InputManager } from "./SRBXInputManager";
 import { ErrorLogger } from "../lib_hi03toolkit_1_0/lib_ErrorLogger";
 import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
 import { NGTOBuilderUtilClient } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtilClient";
@@ -83,6 +84,8 @@ type EditorState = {
 	awaitingResult: boolean;
 	pendingAction: "move" | "undo" | null;
 	snapEnabled: boolean;
+	ghostCleanup?: { core: RailCorePos; key: string; untilTick: number }[];
+	ghostCleanupTick?: number;
 };
 
 type CandidateScanDiagnostics = {
@@ -1053,7 +1056,7 @@ function renderRailHighlight(
 	);
 	GL11.glPushMatrix();
 	GL11.glTranslatef(-origin[0], -origin[1], -origin[2]);
-	NGTOBuilderUtilClient.renderRailMapHighlight(entity, map, color, alpha);
+	SRBXRailHighlight.render(entity, map, color, alpha);
 	GL11.glPopMatrix();
 }
 
@@ -1264,10 +1267,20 @@ function handleInput(
 					removed[i].core,
 					removed[i].key,
 				);
+				// Section packets may arrive after the tool result. Their unique
+				// group key allows bounded retries without touching replacements.
+				if (SRBXApiCompat.needsRailClientGhostRetry(removed[i].key)) {
+					if (!state.ghostCleanup) state.ghostCleanup = [];
+					state.ghostCleanup.push({
+						...removed[i],
+						untilTick: entity.ticksExisted + 100,
+					});
+				}
 			}
 		NGTOBuilderUtil.resetJsonData(dataMap, "railPositionUpdatedCores");
 		NGTOBuilderUtil.resetJsonData(dataMap, "railPositionRemovedRails");
 		if (result === "undo_ok" && state.pendingAction === "undo") {
+			dataMap.setBoolean("railMoverCanUndo", false, 0);
 			NGTLog.sendChatMessage(
 				sender,
 				"§a[SuperRailBuilderX] 移動前の状態へ戻しました",
@@ -1297,6 +1310,15 @@ function handleInput(
 			state.destination = null;
 			state.parallelPlans = [];
 		} else {
+			// A partial operation or rollback can replace logical identities even
+			// when the request fails. Do not submit the old selection again.
+			if (updatedCores.length > 0 || removed.length > 0) {
+				state.stage = 0;
+				state.selected = null;
+				state.selectedRails = [];
+				state.destination = null;
+				state.parallelPlans = [];
+			}
 			NGTLog.sendChatMessage(
 				sender,
 				`§c[SuperRailBuilderX] 適用失敗: ${result}`,
@@ -1305,7 +1327,11 @@ function handleInput(
 		state.pendingAction = null;
 		dataMap.setString("applyResult", "", 1);
 	}
-	if (keys.pressed("undo") && !state.awaitingResult) {
+	if (
+		keys.pressed("undo") &&
+		!state.awaitingResult &&
+		dataMap.getBoolean("railMoverCanUndo")
+	) {
 		NGTOBuilderUtil.sendJsonData(dataMap, "railPositionMove", {
 			action: "undo",
 		} as RailPositionMoveRequest);
@@ -1336,6 +1362,14 @@ function render(
 	if (!host || host !== player) return;
 	SRBXApiCompat.doFollowing(entity, host);
 	const state = getState(entity);
+	if (state.ghostCleanup && state.ghostCleanupTick !== entity.ticksExisted) {
+		state.ghostCleanupTick = entity.ticksExisted;
+		state.ghostCleanup = state.ghostCleanup.filter((record) => {
+			if (entity.ticksExisted > record.untilTick) return false;
+			SRBXApiCompat.removeRailClientGhost(world, record.core, record.key);
+			return true;
+		});
+	}
 	const candidates =
 		!state.awaitingResult && state.stage === 0
 			? findCandidates(entity, partialTicks)
