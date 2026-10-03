@@ -249,12 +249,16 @@ export class AppleExtendedRailCompat {
 		);
 	}
 
-	static createFromPositions(
+	static planCreation(
 		world: World,
-		player: EntityPlayer,
 		positions: RailPosition[],
 		property: ResourceStateRail,
-	): { core: RailCorePos; key: string } | null {
+		ignoredKey?: string,
+	): {
+		ordered: RailPosition[];
+		root: RailPosition;
+		property: ResourceStateRail;
+	} | null {
 		if (!positions || positions.length < 2) return null;
 		const ordered = positions.slice();
 		if (ordered.length === 2 && ordered[0].posY > ordered[1].posY)
@@ -283,7 +287,10 @@ export class AppleExtendedRailCompat {
 				for (let i = 0; i < sections.size(); i++) {
 					const owner = sections.get(i).getStartRP();
 					const key = `${owner.blockX},${owner.blockY},${owner.blockZ}`;
-					if (owners[key] || this.corePlacementBlocked(world, owner))
+					if (
+						owners[key] ||
+						this.corePlacementBlocked(world, owner, ignoredKey)
+					)
 						collision = true;
 					owners[key] = true;
 				}
@@ -300,14 +307,14 @@ export class AppleExtendedRailCompat {
 				}
 			}
 		}
-		if (this.corePlacementBlocked(world, root)) {
+		if (this.corePlacementBlocked(world, root, ignoredKey)) {
 			const other =
 				ordered.length === 2 && ordered[0].blockY === ordered[1].blockY
 					? root === ordered[0]
 						? ordered[1]
 						: ordered[0]
 					: null;
-			if (other && !this.corePlacementBlocked(world, other)) {
+			if (other && !this.corePlacementBlocked(world, other, ignoredKey)) {
 				creationProperty = ItemRail.getDefaultProperty();
 				creationProperty.readFromNBT(property.writeToNBT());
 				creationProperty.autoSplit = false;
@@ -320,6 +327,20 @@ export class AppleExtendedRailCompat {
 				return null;
 			}
 		}
+		return { ordered, root, property: creationProperty };
+	}
+
+	static createFromPositions(
+		world: World,
+		player: EntityPlayer,
+		positions: RailPosition[],
+		property: ResourceStateRail,
+	): { core: RailCorePos; key: string } | null {
+		const plan = this.planCreation(world, positions, property);
+		if (!plan) return null;
+		const ordered = plan.ordered;
+		const root = plan.root;
+		const creationProperty = plan.property;
 		const list = new ArrayList<RailPosition>();
 		for (let i = 0; i < ordered.length; i++) list.add(ordered[i]);
 		const before = this.getCore(world, [
@@ -444,12 +465,15 @@ export class AppleExtendedRailCompat {
 	private static corePlacementBlocked(
 		world: World,
 		owner: RailPosition,
+		ignoredKey?: string,
 	): boolean {
 		const tile = world.getTileEntity(
 			new BlockPos(owner.blockX, owner.blockY, owner.blockZ),
 		);
 		// Replacing even a foreign roadbed calls breakBlock -> breakLogicalRail.
-		return tile instanceof TileEntityLargeRailBase && !!tile.getRailCore();
+		if (!(tile instanceof TileEntityLargeRailBase)) return false;
+		const core = tile.getRailCore();
+		return !!core && (!ignoredKey || this.coreKey(core) !== ignoredKey);
 	}
 
 	private static propertyFromSource(

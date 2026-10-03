@@ -182,19 +182,28 @@ export class AppleExtendedRailMoveCompat {
 				)
 			)
 				return "unloaded_rail";
-			const owner = AppleExtendedRailCompat.getCore(world, [
-				rp.blockX,
-				rp.blockY,
-				rp.blockZ,
-			]);
-			if (owner && AppleExtendedRailCompat.coreKey(owner) !== expectedKey)
-				return "rail_overlap";
 		}
+
 		const original = [
 			AppleExtendedRailCompat.cloneRailPosition(positions[0]),
 			AppleExtendedRailCompat.cloneRailPosition(positions[1]),
 		];
 		const property = this.cloneProperty(core.getResourceState());
+		// An endpoint may share another rail's roadbed without owning its core.
+		// Use the actual creation plan and ignore only the group we will remove.
+		if (
+			!AppleExtendedRailCompat.planCreation(
+				world,
+				moved,
+				property,
+				expectedKey,
+			)
+		) {
+			NGTLog.debug(
+				`[SuperRailBuilderX AE move] placement blocked before removal: key=${expectedKey}`,
+			);
+			return "rail_overlap";
+		}
 		const signal = core.getSignal();
 		const subRails: ResourceStateRail[] = [];
 		for (let i = 0; i < core.subRails.size(); i++)

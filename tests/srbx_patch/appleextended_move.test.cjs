@@ -56,6 +56,7 @@ function makeCore(positions, key) {
 }
 const helper = {
 	coreKey: (core) => core.key,
+	planCreation: () => ({}),
 	getCore: (_world, position) => (position[0] === 9 ? null : current),
 	getLogicalPositions: (core) => core.positions,
 	isSectionCore: (core) => core.section,
