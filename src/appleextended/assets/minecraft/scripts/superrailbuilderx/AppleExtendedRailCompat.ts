@@ -1,3 +1,4 @@
+import { AppleExtendedRoadbedPlacement } from "./AppleExtendedRoadbedPlacement";
 import { RTMItem } from "jp.ngt.rtm";
 import {
 	BlockMarker,
@@ -382,6 +383,9 @@ export class AppleExtendedRailCompat {
 		let apiResult = false;
 		const placementMaps: RailMap[] = [];
 		const sectionOwners: RailPosition[] = [];
+		let preservingSections:
+			| import("./AppleExtendedSectionPlacementCompat").AppleExtendedSectionPlacement
+			| undefined;
 		if (ordered.length === 2) {
 			const start =
 				ordered[0].blockY >= ordered[1].blockY
@@ -396,6 +400,35 @@ export class AppleExtendedRailCompat {
 			placementMaps.push(map);
 			if (creationProperty.autoSplit) {
 				const sections = RailChunkSectioner.split(map);
+				if (sections.size() > 1) {
+					preservingSections = { source: map, sections: [] };
+					for (let i = 0; i < sections.size(); i++) {
+						const s = sections.get(i);
+						const start = s.getStartRP(),
+							end = s.getEndRP();
+						const owner = java.lang.reflect.Array.newInstance(
+							java.lang.Integer.TYPE,
+							3,
+						) as JavaIntArray;
+						owner[0] = start.blockX;
+						owner[1] = start.blockY;
+						owner[2] = start.blockZ;
+						preservingSections.sections.push({
+							start,
+							end,
+							from: s.getStartRatio(),
+							to: s.getEndRatio(),
+							owner,
+							map: new RailMapSection(
+								map,
+								start,
+								end,
+								s.getStartRatio(),
+								s.getEndRatio(),
+							),
+						});
+					}
+				}
 				if (sections.size() > 1)
 					for (let i = 0; i < sections.size(); i++) {
 						const section = sections.get(i);
@@ -432,16 +465,35 @@ export class AppleExtendedRailCompat {
 							ordered,
 							creationProperty,
 						)
-					: BlockMarker.createRail(
-							world,
-							root.blockX,
-							root.blockY,
-							root.blockZ,
-							list,
-							creationProperty,
-							true,
-							player.capabilities.isCreativeMode,
-						);
+					: protectedRoadbeds.length > 0 ||
+						  AppleExtendedRoadbedPlacement.hasExisting(
+								world,
+								placementMaps,
+								creationProperty,
+						  )
+						? preservingSections
+							? AppleExtendedSectionPlacementCompat.create(
+									world,
+									preservingSections,
+									creationProperty,
+									player.capabilities.isCreativeMode,
+								)
+							: AppleExtendedRoadbedPlacement.createNormal(
+									world,
+									placementMaps[0],
+									creationProperty,
+									player.capabilities.isCreativeMode,
+								)
+						: BlockMarker.createRail(
+								world,
+								root.blockX,
+								root.blockY,
+								root.blockZ,
+								list,
+								creationProperty,
+								true,
+								player.capabilities.isCreativeMode,
+							);
 		} catch (error) {
 			NGTLog.debug(`[SuperRailBuilderX AE] creation exception: ${error}`);
 			return null;

@@ -143,3 +143,11 @@
 - 成功run https://github.com/hi03s/SuperRailBuilderX/actions/runs/37143858616 で型生成・ビルド・ZIP生成・Draft作成まで全ステップ成功。最終v0.2.0タグは1c73128、未公開時のみ付け直した。
 - Draft id 402638176の本文をrelease-notes.mdと照合。添付SuperRailBuilderX-0.2.0-v0.2.0.zip（226672 bytes、88ファイル）を取得し、readme=0.2.0と4ターゲット収録、SHA-256 de25d9efb8cf9e597f84f87331934fd3668338724d2232223d73c85eb369bcdfを検証。ローカルのユーザー未追跡XCFは配布へ含まれない。
 - 2026-10-04 03:30 JST、Releaseをdraft=false/make_latest=trueで公開し、タグから取得可能な正式Releaseを確認: https://github.com/hi03s/SuperRailBuilderX/releases/tag/v0.2.0 。実機再テストは今回未実施（直前の回帰13スイート成功・開発者の概ね不具合解消報告を継承）。設定修正コミットはorigin/mainへpush済み、完了記録も同期する。
+
+## 2026-10-09 ローカルCodex: KaizPatch接続カント・両環境道床保持
+
+- KaizPatchの生成Aで接続カント反転を再現する実機報告を受領。複製した接続RPのcantEdgeをyaw/direction反転と同時に反転し、既設RP/cantCenterを維持。usesGeometryRailHighlightをtrueとしAEと同じ論理線形描画に統一。
+- Kaiz共通道床配置は既存Base tile/BlockLargeRailBaseなら無条件skip。終端・所有先なし・tile欠損・overwriteForeign指定も保持。コア設置は別工程。AEは保持付き道床placement helperを追加し、重なる通常生成/Section/分岐を適用。通常コアはNBTでversion/State/RPを初期化し、失敗時は作成したコアだけ除去。Section ownersはJava int[]で格納。capture/restoreは非コアだけ、実変更時のみ同期。
+- 独立したネイティブマーカー比較とKaiz実装/新規VM回帰をサブエージェントへ委譲し、親がAE実装・統合・差分確認。一次ソース/JARでは両環境とも同じ通常道床を再配置して所有先を新コアへ更新し、別種類のレールブロックは道床工程で保持。prepareBaseBlocksの地形コピーも既存道床は保持。Creativeはnative canPlaceRailの障害物拒否を迂回するため旧資料を訂正。調査詳細/根拠/比較手順はdocs/roadbed-ownership-investigation.md。
+- 実行済み: pnpm zip（全4ターゲット・警告0）、test:appleextended 11スイート/test:kaizpatch/test:input/test:rail-patch/test:runtime-dispatch計15スイート、変更ソース/テスト整形確認、git diff --check。実機未実施。低速片方向引っかかりと所有先上書きの因果は未確定で、新規敷設の生成順・双方向低速/通常速度・標準マーカー対照・移動/Undoを比較しlogs/latest.log提出を依頼。
+- rtm-ts/参照toolkit/Mod本体/標準マーカー/公開Releaseは変更しない。ユーザーXCFを保持し、リリースタグ作成/Publishは実行しない。

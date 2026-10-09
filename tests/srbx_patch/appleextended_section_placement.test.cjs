@@ -83,6 +83,7 @@ class RP {
 	}
 }
 class Base {
+	func_70296_d() {}
 	constructor(xyz, owner) {
 		this.xyz = xyz;
 		this.owner = owner;
@@ -253,10 +254,16 @@ context.Packages.jp.ngt.ngtlib = {
 	block: {
 		BlockUtil: {
 			setBlock(_w, x, y, z, _block, meta) {
-				assert.equal(meta, 1);
-				tiles.set(key([x, y, z]), new Section([x, y, z]));
+				assert([0, 1].includes(meta));
+				tiles.set(
+					key([x, y, z]),
+					meta === 1
+						? new Section([x, y, z])
+						: new Base([x, y, z], [x, y, z]),
+				);
 			},
 			getTileEntity: (_w, x, y, z) => tiles.get(key([x, y, z])),
+			getBlock: () => ({}),
 		},
 	},
 };
@@ -264,6 +271,7 @@ context.Packages.jp.ngt.rtm = {
 	RTMRail: { largeRailBase: {}, largeRailCore: {} },
 	rail: {
 		TileEntityLargeRailBase: Base,
+		BlockLargeRailBase: class {},
 		TileEntityLargeRailCore: Section,
 		util: { RailPosition: RP, RailMapBasic: Basic },
 	},
@@ -283,11 +291,18 @@ context.Packages.net = {
 		nbt: { NBTTagCompound: Nbt },
 	},
 };
+context.java = {
+	lang: {
+		reflect: { Array: { newInstance: (_type, n) => Array(n).fill(0) } },
+		Integer: { TYPE: "int" },
+	},
+};
 vm.createContext(context);
 const dir =
 	"dist/assets/minecraft/__targets__/appleextended/scripts/superrailbuilderx/";
 for (const n of [
 	"AppleExtendedRailProtection",
+	"AppleExtendedRoadbedPlacement",
 	"AppleExtendedSectionPlacementCompat",
 	"AppleExtendedRailCompat",
 ])

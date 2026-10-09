@@ -50,6 +50,7 @@ class Thread {
 const messages = [];
 let scheduled = false;
 const context = {
+	AppleExtendedRoadbedPlacement: { hasExisting: () => false },
 	AppleExtendedSectionPlacementCompat: { plan: () => null },
 	RTMX_COMPAT_TARGETS: {},
 	Packages: {
@@ -69,6 +70,7 @@ const context = {
 					},
 					rail: {
 						TileEntityLargeRailBase: RailBase,
+						TileEntityLargeRailCore: class extends RailBase {},
 						BlockMarker: { createRail: () => false },
 						util: { RailMapBasic },
 					},
@@ -101,6 +103,12 @@ const context = {
 				},
 			},
 		},
+	},
+};
+context.java = {
+	lang: {
+		reflect: { Array: { newInstance: (_type, n) => Array(n).fill(0) } },
+		Integer: { TYPE: "int" },
 	},
 };
 vm.createContext(context);
@@ -396,10 +404,18 @@ assert.strictEqual(
 );
 context.Packages.jp.ngt.rtm.rail.BlockMarker.createRail = normalApi;
 
-// Placement may reassign shared roadbed tiles; restore their old ownership even on failure.
+// Overlapping roadbeds select the preserving placement path, including failure.
+context.AppleExtendedRoadbedPlacement = {
+	createNormal() {
+		return context.Packages.jp.ngt.rtm.rail.BlockMarker.createRail();
+	},
+};
 world.func_175625_s = (pos) => (pos.z === 77 ? foreign : null);
 let foreignOwner = [44, 4, 55];
 foreign.getStartPoint = () => foreignOwner;
+foreign.func_70296_d = () => {};
+world.func_180495_p = () => ({});
+world.func_184138_a = () => {};
 foreign.setStartPoint = (...owner) => {
 	foreignOwner = owner;
 };

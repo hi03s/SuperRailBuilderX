@@ -1,4 +1,5 @@
-﻿import { ArrayList, UUID } from "java.util";
+import { AppleExtendedRoadbedPlacement } from "./AppleExtendedRoadbedPlacement";
+import { ArrayList, UUID } from "java.util";
 import { BlockUtil } from "jp.ngt.ngtlib.block";
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { RTMRail } from "jp.ngt.rtm";
@@ -168,12 +169,10 @@ export class AppleExtendedSectionPlacementCompat {
 			for (let i = 0; i < sections.length; i++) {
 				const section = sections[i],
 					owner = section.owner;
-				section.map.placeRailBlocks(
+				AppleExtendedRoadbedPlacement.place(
 					world,
-					RTMRail.largeRailBase,
-					owner[0],
-					owner[1],
-					owner[2],
+					section.map,
+					section.start,
 					property,
 				);
 			}

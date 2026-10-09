@@ -1,4 +1,7 @@
-import { TileEntityLargeRailBase } from "jp.ngt.rtm.rail";
+import {
+	TileEntityLargeRailBase,
+	TileEntityLargeRailCore,
+} from "jp.ngt.rtm.rail";
 import { RailMap } from "jp.ngt.rtm.rail.util";
 import { ResourceStateRail } from "jp.ngt.rtm.modelpack.state";
 import { World } from "net.minecraft.world";
@@ -30,7 +33,7 @@ export class AppleExtendedRailProtection {
 				);
 				if (
 					!(tile instanceof TileEntityLargeRailBase) ||
-					!tile.getRailCore()
+					tile instanceof TileEntityLargeRailCore
 				)
 					continue;
 				const owner = tile.getStartPoint();
@@ -53,12 +56,31 @@ export class AppleExtendedRailProtection {
 					entry.position[2],
 				),
 			);
-			if (tile instanceof TileEntityLargeRailBase)
+			if (
+				tile instanceof TileEntityLargeRailBase &&
+				!(tile instanceof TileEntityLargeRailCore)
+			) {
+				const current = tile.getStartPoint();
+				if (
+					current[0] === entry.owner[0] &&
+					current[1] === entry.owner[1] &&
+					current[2] === entry.owner[2]
+				)
+					continue;
 				tile.setStartPoint(
 					entry.owner[0],
 					entry.owner[1],
 					entry.owner[2],
 				);
+				tile.markDirty();
+				const pos = new BlockPos(
+					entry.position[0],
+					entry.position[1],
+					entry.position[2],
+				);
+				const state = world.getBlockState(pos);
+				world.notifyBlockUpdate(pos, state, state, 3);
+			}
 		}
 	}
 }

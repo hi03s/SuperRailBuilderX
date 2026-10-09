@@ -2,7 +2,7 @@
 
 このファイルは、次の作業に必要な現行情報だけを共有するための短期引継ぎ帳です。詳細な過去記録は `docs/history/` に保存し、通常は読みません。
 
-最終更新: 2026-10-04（ローカルCodex）
+最終更新: 2026-10-09（ローカルCodex）
 
 ## 現在の状態
 
@@ -36,6 +36,8 @@
 
 ### 共通の走行遷移
 
+- 2026-10-09: KaizPatch/AEのSRBX敷設で既存通常道床の上書きを停止（コア設置工程は別）。標準マーカーは同じ通常道床の所有先を変更する。低速片方向の因果は実機未確定。[調査と比較手順](roadbed-ownership-investigation.md)に従い、新規接続の生成順・双方向走行・移動/Undoとlogs/latest.logのroadbed/transitionを確認する。
+
 - 分割・複製・builder1生成レールで低速遷移不能を再現したら、進行方向・速度・おおよその時刻を控え、`[SuperRailBuilderX transition]`を含むログを共有する。
 
 ### レール移動ツール
@@ -56,7 +58,7 @@
 ### AppleExtended
 
 - 開発者から概ね不具合解消の報告を受領しmainへ統合。個別の全ケース確認済みとは扱わず、今後の再発時は操作順・時刻とlogs/latest.logを確認する。
-- AEだけ接続cantEdge反転・論理線形ハイライト・旧コアのブロック/tile一括掃除を適用。KaizPatch回帰、AE接続移動/Undo/走行は今後も継続確認する。
+- 接続cantEdge反転・論理線形ハイライトはKaizPatch/AEで適用。旧コアのブロック/tile一括掃除はAEのみ。接続移動/Undo/走行は今後も継続確認する。
 - Section生成にコア配置競合があれば保護道床への代替配置、部分生成なしなら通常生成へfallback。失敗診断はsection creation failed/section owner relocation blockedを参照する。
 
 ## 次に行うこと
@@ -127,7 +129,7 @@
 
 ## 直近の完了
 
-- 2026-10-04 ローカルCodex: v0.2.0公開完了。Actions設定を`9c6c14b`/`1c73128`で修正してorigin/mainへ同期済み。[成功run](https://github.com/hi03s/SuperRailBuilderX/actions/runs/37143858616)・配布ZIP/本文を確認。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)。
+- 2026-10-09 ローカルCodex: KaizPatch接続カント/論理ハイライト、両環境の既存通常道床保持を修正。標準マーカー規則を比較し、低速遷移の調査手順を作成。実機未確認。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 ## 関連資料
 

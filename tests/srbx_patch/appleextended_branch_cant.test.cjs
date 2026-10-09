@@ -57,6 +57,7 @@ let ownerOccupied = false;
 const map = {
 	canPlaceRail: () => placeable,
 	setRail: () => changes++,
+	prepareBaseBlocks: () => changes++,
 	getRailBlockList: () => ({ size: () => 0 }),
 };
 class Maker {
@@ -96,6 +97,7 @@ const core = {
 	sendPacket() {},
 };
 const context = {
+	AppleExtendedRoadbedPlacement: { place() {} },
 	AppleExtendedRailCompat: {
 		getLogicalPositions: (member) => member.positions,
 		isSectionCore: (member) => member instanceof Section,

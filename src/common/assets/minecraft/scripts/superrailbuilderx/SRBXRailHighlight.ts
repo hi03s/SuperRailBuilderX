@@ -72,7 +72,7 @@ export class SRBXRailHighlight {
 			if (!this.reported) {
 				this.reported = true;
 				NGTLog.debug(
-					`[SuperRailBuilderX AE] logical highlight deferred: ${error}`,
+					`[SuperRailBuilderX highlight] logical highlight deferred: ${error}`,
 				);
 			}
 		}

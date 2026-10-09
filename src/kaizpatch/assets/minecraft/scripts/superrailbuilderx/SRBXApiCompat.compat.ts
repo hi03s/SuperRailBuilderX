@@ -998,7 +998,7 @@ export class SRBXApiCompat {
 	}
 
 	static usesGeometryRailHighlight(): boolean {
-		return false;
+		return true;
 	}
 
 	static needsRailClientGhostRetry(expectedKey: string): boolean {
@@ -2078,6 +2078,7 @@ export class SRBXApiCompat {
 		result.direction = (source.direction + 4) & 7;
 		result.anchorYaw = this.normalizeDegrees(source.anchorYaw + 180);
 		result.anchorPitch = -source.anchorPitch;
+		result.cantEdge = -source.cantEdge;
 		result.setPosition(source.posX, source.posY, source.posZ);
 		return result;
 	}
@@ -2299,75 +2300,37 @@ export class SRBXApiCompat {
 		replacementEndpoint?: [number, number, number],
 		overwriteForeignRoadbeds = false,
 	): number {
+		void protectedRailKeys;
+		void preserveSectionCores;
+		void replacementEndpoint;
+		void overwriteForeignRoadbeds;
 		const blocks = this.getBuilderRoadbedBlocks(railMap, property);
-		let replaced = 0;
+		let replaced = 0,
+			retained = 0,
+			added = 0;
+		const samples: string[] = [];
 		for (let i = 0; i < blocks.length; i++) {
 			const pos = blocks[i];
 			const existingTile = world.getTileEntity(pos[0], pos[1], pos[2]);
-			if (existingTile instanceof TileEntityLargeRailBase) {
-				const owner = existingTile.getRailCore();
-				if (existingTile instanceof TileEntityLargeRailCore) {
-					NGTLog.debug(
-						`[SuperRailBuilderX builder1] existing rail core preserved during roadbed placement: pos=${pos[0]},${pos[1]},${pos[2]}`,
-					);
-					continue;
-				}
-				const protectedEndpointRoadbed =
-					overwriteForeignRoadbeds &&
-					owner &&
-					this.isBuilderEndpointRoadbed(owner, pos, 2);
-				if (protectedEndpointRoadbed) {
-					NGTLog.debug(
-						`[SuperRailBuilderX RailPosition] existing endpoint roadbed preserved: pos=${pos[0]},${pos[1]},${pos[2]}, railKey=${this.getRailPositionCandidateKey(owner)}`,
-					);
-					continue;
-				}
-				const replacesEndpoint =
-					!overwriteForeignRoadbeds &&
-					!(existingTile instanceof TileEntityLargeRailCore) &&
-					replacementEndpoint !== undefined &&
-					pos[0] === replacementEndpoint[0] &&
-					pos[1] === replacementEndpoint[1] &&
-					pos[2] === replacementEndpoint[2];
-				if (
-					!overwriteForeignRoadbeds &&
-					!(existingTile instanceof TileEntityLargeRailCore) &&
-					owner &&
-					!replacesEndpoint
-				) {
-					NGTLog.debug(
-						`[SuperRailBuilderX builder1] foreign normal roadbed preserved: pos=${pos[0]},${pos[1]},${pos[2]}, railKey=${this.getRailPositionCandidateKey(owner)}`,
-					);
-					continue;
-				}
-				if (replacesEndpoint)
-					NGTLog.debug(
-						`[SuperRailBuilderX builder1] endpoint roadbed ownership replaced: pos=${pos[0]},${pos[1]},${pos[2]}`,
-					);
-				if (
-					preserveSectionCores &&
-					existingTile instanceof TileEntityLargeRailCore &&
-					owner &&
-					this.isSectionCore(owner)
-				) {
-					NGTLog.debug(
-						`[SuperRailBuilderX builder1] crossing section core preserved: pos=${pos[0]},${pos[1]},${pos[2]}, railKey=${this.getRailPositionCandidateKey(owner)}`,
-					);
-					continue;
-				}
-				if (
-					!overwriteForeignRoadbeds &&
-					!replacesEndpoint &&
-					owner &&
-					protectedRailKeys[this.getRailPositionCandidateKey(owner)]
-				) {
-					NGTLog.debug(
-						`[SuperRailBuilderX builder1] protected connection roadbed preserved: pos=${pos[0]},${pos[1]},${pos[2]}`,
-					);
-					continue;
-				}
-			}
 			const beforeBlock = world.getBlock(pos[0], pos[1], pos[2]);
+			// Roadbed placement never transfers existing ownership. Core
+			// installation is a separate step and may promote a roadbed tile.
+			if (
+				existingTile instanceof TileEntityLargeRailBase ||
+				beforeBlock instanceof BlockLargeRailBase
+			) {
+				retained++;
+				if (samples.length < 4) {
+					const prior =
+						existingTile instanceof TileEntityLargeRailBase
+							? existingTile.getStartPoint()
+							: null;
+					samples.push(
+						`${pos[0]},${pos[1]},${pos[2]}:${prior ? `${prior[0]},${prior[1]},${prior[2]}` : "missing_tile"}`,
+					);
+				}
+				continue;
+			}
 			const beforeMetadata = world.getBlockMetadata(
 				pos[0],
 				pos[1],
@@ -2389,31 +2352,12 @@ export class SRBXApiCompat {
 				);
 			tile.setStartPoint(coreX, coreY, coreZ);
 			tile.markDirty();
+			added++;
 		}
+		NGTLog.debug(
+			`[SuperRailBuilderX roadbed] target=kaizpatch, added=${added}, retained=${retained}, owner=${coreX},${coreY},${coreZ}, samples=${samples.join(";")}`,
+		);
 		return replaced;
-	}
-
-	private static isBuilderEndpointRoadbed(
-		core: TileEntityLargeRailCore,
-		position: [number, number, number],
-		endpointLength: number,
-	): boolean {
-		const map = this.getLogicalRailMap(core);
-		if (!map || map.getLength() <= 0) return false;
-		const split = Math.max(
-			8,
-			Math.min(4096, Math.ceil(map.getLength() * 4)),
-		);
-		const index = map.getNearlestPoint(
-			split,
-			position[0] + 0.5,
-			position[2] + 0.5,
-		);
-		const distance = (map.getLength() * index) / split;
-		return (
-			distance <= endpointLength + 0.25 ||
-			map.getLength() - distance <= endpointLength + 0.25
-		);
 	}
 
 	private static getBuilderProtectedRailKeys(

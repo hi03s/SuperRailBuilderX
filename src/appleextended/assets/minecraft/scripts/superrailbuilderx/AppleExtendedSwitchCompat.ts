@@ -1,3 +1,4 @@
+import { AppleExtendedRoadbedPlacement } from "./AppleExtendedRoadbedPlacement";
 import { ArrayList } from "java.util";
 import { BlockUtil } from "jp.ngt.ngtlib.block";
 import { NGTLog } from "jp.ngt.ngtlib.io";
@@ -74,15 +75,20 @@ export class AppleExtendedSwitchCompat {
 			property,
 		);
 		try {
-			for (let i = 0; i < maps.length; i++)
-				maps[i].setRail(
+			for (let i = 0; i < maps.length; i++) {
+				maps[i].prepareBaseBlocks(
 					world,
-					RTMRail.largeRailBase,
 					root.blockX,
 					root.blockY,
 					root.blockZ,
+				);
+				AppleExtendedRoadbedPlacement.place(
+					world,
+					maps[i],
+					root,
 					property,
 				);
+			}
 			for (let i = 0; i < positions.length; i++) {
 				const rp = positions[i];
 				BlockUtil.setBlock(
