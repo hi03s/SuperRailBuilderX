@@ -7,3 +7,4 @@ artifacts/
 /logs/latest.log
 /docs/instructions/
 /logs/crash-*.txt
+/logs/fml-client-latest.log

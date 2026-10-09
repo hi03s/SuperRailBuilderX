@@ -9,7 +9,7 @@
 5. SRBX生成と標準マーカー生成を同じ条件で比較する。停止/引っかかりのおおよその時刻・進行方向・接続座標・生成順を控える。
 6. 検証後は車両を撤去すると記録が止まる。`logs/latest.log` を格納して共有する。専用サーバーではサーバー側ログを共有する。
 
-詳細な台車診断はKaizPatchX v1.10.3とAppleExtended v2.5.3用。通常RTMでは車体情報だけを出し、台車はmissingと表示する。
+詳細な台車診断はKaizPatchX v1.10.3を型生成基準とし、実機v1.10.4でも取得を確認。AppleExtended v2.5.3にも対応。通常RTMでは車体情報だけを出し、台車はmissingと表示する。
 
 ## 記録内容
 
@@ -34,7 +34,7 @@
 - 内部フィールドはcompat層からreflectionで読み取る。台車を生成し得るgetBogieは使わず、world/車両/RailMap/位置バッファの書換えは行わない。
 - 加減速・レール探索・衝突処理はMod本体に任せる。速度上限はモデル設定で指定し、ログ用スクリプトから速度や台車を強制変更しない。
 - 低速停止を調べる専用小型車両なので、他モデルの台車間隔・編成条件でのみ起こる症状が再現するとは限らない。
-- 2026-10-10のAE実機ログでモデル読み込み・車両設置・運転・start出力を確認済み。自由端点接続の低速走行には[別途確認した遷移制約](appleextended-free-endpoint-transition-report.md)がある。KaizPatchの実機確認は残る。
+- 2026-10-10のAE実機ログでモデル読み込み・車両設置・運転・start出力を確認済み。自由端点接続の低速走行には[別途確認した遷移制約](appleextended-free-endpoint-transition-report.md)がある。KaizPatchX 1.10.4でも読み込み・走行・台車診断を確認し、[RailMap往復と位置飛び](kaizpatch-free-endpoint-transition-report.md)を記録した。
 
 2026-10-09の提出ログには生成成功とhold_rail_itemの記録があるが、走行中の台車状態やroadbed/transition出力はなく、低速停止の原因は確定できない。必要箇所の抜粋は `logs/rail-transition-before-debug-vehicle-20261009.log`。
 
