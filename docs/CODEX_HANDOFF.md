@@ -131,7 +131,7 @@
 
 ## 直近の完了
 
-- 2026-10-10 ローカルCodex: デバッグ車両のMQO Scene省略による材質欠落/NPEを修正。全4targetビルド/ZIP・診断/材質回帰テスト成功、実機再確認待ち。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)。
+- 2026-10-10 ローカルCodex: デバッグ車両のMQO Scene省略による材質欠落/NPEを修正。全4targetビルド/ZIP・診断/材質回帰テスト成功、実機再確認待ち。修正`b822958`をorigin/mainへpush済み（差分0/0）。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 ## 関連資料
 
