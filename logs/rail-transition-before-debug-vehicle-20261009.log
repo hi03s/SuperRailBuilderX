@@ -1,0 +1,8 @@
+[23:36:13] [Server thread/INFO] [NGT]: [SuperRailBuilderX builder1] vertical profile plan: type=default, logicalRails=1, radius=default
+[23:36:13] [Server thread/INFO] [NGT]: [SuperRailBuilderX builder1] request completed: action=create, result=hold_rail_item
+[23:36:15] [Server thread/INFO] [NGT]: [SuperRailBuilderX builder1] vertical profile plan: type=default, logicalRails=1, radius=default
+[23:36:15] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
+[23:36:15] [Server thread/INFO] [NGT]: [SuperRailBuilderX builder1] request completed: action=create, result=ok
+[23:36:23] [Server thread/INFO] [NGT]: [SuperRailBuilderX builder1] vertical profile plan: type=straight, logicalRails=1, radius=1000
+[23:36:23] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
+[23:36:23] [Server thread/INFO] [NGT]: [SuperRailBuilderX builder1] request completed: action=create, result=ok

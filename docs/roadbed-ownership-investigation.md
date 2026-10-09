@@ -44,3 +44,7 @@
 5. logs/latest.logを格納する。[SuperRailBuilderX roadbed]のadded/retained/owner/samples、[SuperRailBuilderX transition]の接続端点/所有先と、失敗した操作の前後を使って判断する。
 
 保持により重複ブロックは既設側の所有先だけを持つため、症状が残る/逆方向へ移る可能性もある。精密端点・接続ブロック・探索順も併せて切り分ける。今回Minecraft実機の走行確認は未実施。
+
+## 走行中の診断
+
+生成ツールのログでは台車の実追従状態を観測できないため、[走行デバッグ車両](train-debug-vehicle.md)を追加した。KaizPatch/AEでこの車両を使い、同条件・双方向の低速比較を行い、train-debugの実コア/RailMapとnearbyの道床所有先を突き合わせる。

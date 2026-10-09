@@ -152,3 +152,14 @@
 - 実行済み: pnpm zip（全4ターゲット・警告0）、test:appleextended 11スイート/test:kaizpatch/test:input/test:rail-patch/test:runtime-dispatch計15スイート、変更ソース/テスト整形確認、git diff --check。実機未実施。低速片方向引っかかりと所有先上書きの因果は未確定で、新規敷設の生成順・双方向低速/通常速度・標準マーカー対照・移動/Undoを比較しlogs/latest.log提出を依頼。
 - rtm-ts/参照toolkit/Mod本体/標準マーカー/公開Releaseは変更しない。ユーザーXCFを保持し、リリースタグ作成/Publishは実行しない。
 - 修正コミットab806d8をorigin/mainへpush済み、HEAD/origin差分0/0。引継ぎ帳へ同期結果を反映。
+
+## 2026-10-09 ローカルCodex: 走行デバッグ車両
+
+- 依頼: logs/latest.logを受領。生成ツールでは走行中の台車を観測できないため、SRBXパックに検証用列車を用意する。
+- 最新ログはhold_rail_item後の生成成功2件を確認。roadbed/transition/走行中の台車情報はなく、低速片方向の停止原因は未確定。必要なSRBX行だけ logs/rail-transition-before-debug-vehicle-20261009.logへ抜粋。生ログは未追加。
+- ModelTrain_SuperRailBuilderX_TrainDebug.json、小型車体/台車MQOとserver_TrainDebugを追加。単車EC、台車間隔2.5 m、最高速度P1～P5=約1/2/5/10/20 km/h。加速度は標準値0.001736で、標準惰行抵抗0.0002を下回らないよう確認。既存テクスチャを共用。
+- KaizPatchX v1.10.3/AE v2.5.3の公式JARでprivate currentRailObj/currentRailMap/split/prevPosIndexを確認。台車取得APIは欠落時生成を伴うため、controller.bogiesも読み取りreflectionで参照し、台車/レールの更新APIを呼ばない。通常RTMでは内部診断を無効化し車体のみ記録。rtm-tsと参照ツールキットは未変更。
+- サーバーonUpdateの当tick編成移動前に車体速度/ノッチ/方向/位置と前後台車実追従状態・道床所有先を記録。通常10 tick、停止100 tick、遷移は即時。力行中40 tickの微小移動時に直前20 tickの履歴を一度出力。ログ例外は抑制・復帰でき、クライアントでは実行しない。停止判定はブレーキ緩解待ち等も含む可能性がある。
+- 検証済み: pnpm zip（全4target、警告0）、test:train-debug、test:appleextended（11件）、test:kaizpatch、test:input、test:rail-patch、test:runtime-dispatch、対象Prettier/diff check。新規テストは台車生成API未使用、実追従フィールド、ログ頻度・履歴上限、前台車欠落時の後台車番号、クライアント除外、例外抑制/復帰、モデル参照を検証。
+- ZIP再梱包は100ファイル。開発者の未追跡gui_base.xcfはソースに保持し、配布用distコピーだけ除外。公開済みRelease/タグは変更しない。
+- 未実施: Minecraft実機のモデル表示/設置/運転、KaizPatch/AEで接続部双方向低速走行。docs/train-debug-vehicle.mdの手順でlogs/latest.logを再提出する。
