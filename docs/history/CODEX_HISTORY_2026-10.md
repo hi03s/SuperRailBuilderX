@@ -200,3 +200,10 @@
 - 逆向きは362→365約0.26667 m/3tick、445→448約0.17918 m/3tick。端への切替は確認できるが途中2tickが未記録なので単tick位置飛び量は断定しない。
 - 実施: 189フレームの対象限定解析、91tick連続性/交互切替検証、map長・index・床所有先比較、3tick変位計算、匿名化51行抜粋/差分確認。SRBX非経由の対照、境界接続/通常レール比較は未実施。ソース変更なしにつきビルド/テスト再実行なし。Mod/rtm-ts/車両/ワールドの変更はなし。相談資料とlogs/kaizpatch-long-section-transition-20261010.logを保存し、原本とユーザー所有xcfは追加しない。
 - 同期: 追加調査コミット `b866e2c` をorigin/mainへpush済み。同期記録を引継ぎ帳へ反映。
+
+## 2026-10-10 ローカルCodex: Issue #534の責務判断と独自パッチ検討
+
+- 開発者からKaiz制作者の見解とSRBXからのパッチ実現性検討依頼を受領。GitHub公開APIでIssue #534/comment6086321090を確認。制作者はブロック端への曲線端点配置をスクリプト側の責務とし、今回配置は遷移不可が正しいという見解。原因観測は維持し、Kaiz側の修正依頼という結論をSRBXの生成条件対応へ変更。AEへは同見解を適用しない。
+- 現行ScriptEngine.evalの描画関数差替え、専用車両onUpdateの読取り範囲、実Kaiz JARのprivate getRail/resetRailObj・final/static resolver・controller/setBogieを確認。既存描画方式ではJava探索を直接差替え不可。パック単独の台車/controller置換は広い車両処理互換性が未成立。探索hook用の別途coremodが有力で、追加JARなしなら標準境界配置による自由端点制限が候補。
+- docs/free-endpoint-transition-patch-feasibility.mdに対象別のhook案、候補比較、台車単位のmap保持/実端点越え/残距離/分岐経路の設計条件を記録。床所有先の動的変更や毎tickのフィールド補正は汎用対処に採用しない。配布形態・対象限定方法・仕様判断待ち。
+- 実施: Issue本文/制作者コメントの一次情報確認、既存TS/実Java bytecodeの照合、資料/リンク/差分確認。未実施: 実装、クラス変換、台車差替え、全実機パッチ試験。コード/rtm-ts/Mod/ワールドは未変更、資料のみにつきビルド/テスト再実行なし。
