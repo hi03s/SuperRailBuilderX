@@ -38,6 +38,7 @@
 
 - 2026-10-10: AEの自由端点接続で一方向index=0停止と逆方向1 tick約0.22 mの位置補正を確認。接続点はブロック内部で、AEのfloor X/Z→単一道床所有コア→map投影という探索制約と整合。任意精密端点を維持するにはAE側対応が必要。SRBX単独の敷設ミスとは断定せず、座標/所有先/車両の自動変更は行わない。[制作者向け資料](appleextended-free-endpoint-transition-report.md)を参照し、標準マーカー＋offsetの実機対照を追加して対応可否を相談する。
 - KaizPatchX 1.10.4で新旧RailMap往復と位置飛びを確認。位置変更後の5.85585 m区間でも91tick連続で往復し、極短区間は必須条件ではない。新map内で床所有先が新コアに変わると往復が止まる。[Issue #534](https://github.com/Kai-Z-JP/KaizPatchX/issues/534)で制作者はブロック端への端点配置をスクリプト側の責務と回答。KaizはSRBX側の対応設計へ切替。AEの仕様判断は別途確認。[調査資料](kaizpatch-free-endpoint-transition-report.md)。
+- [自由化の導入意図](rail-position-free-endpoint-intent.md): Kaizはチャンク境界上の精密分割点を扱う目的でoffset/setPositionを追加し、導入時からブロック端保証は設定側の責務。AEの導入も座標/保存/描画対応で、任意点走行接続保証は確認できない。
 - [遷移パッチ実現性](free-endpoint-transition-patch-feasibility.md): 描画patch方式ではprivate/staticなJava探索を差替え不可。任意精密端点維持には補助Mod/coremodが有力、追加JARなしなら標準境界への配置が候補。配布形態/仕様判断待ち、実装・パッチ実機試験は未実施。
 - デバッグ車両 `SuperRailBuilderX_TrainDebug` はAE/KaizPatchX 1.10.4の読み込み・走行ログ取得を確認済み。[走行診断](train-debug-vehicle.md)。
 - KaizPatch/AEのSRBX敷設は既存通常道床を保持。標準マーカーは同じ通常道床の所有先を変更する。[道床の比較](roadbed-ownership-investigation.md)。AEログは当初敷設の履歴なし。Kaiz追加ログでは新短区間のadded=0/retained=0と接続セルの旧所有先保持を確認。
@@ -131,7 +132,7 @@
 
 ## 直近の完了
 
-- 2026-10-10 ローカルCodex: Kaiz Issue #534の端点配置責務を反映し、SRBXからの遷移補正は補助Mod/coremodが有力と整理。資料更新のみ、実装・実機パッチ試験なし。調査`fe3218e`をorigin/mainへpush済み。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)。
+- 2026-10-10 ローカルCodex: RailPosition自由化は内部チャンク分割の精密境界点を扱う目的と推定、導入時からブロック端保証条件があったことを一次差分で確認。資料更新のみ。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 ## 関連資料
 

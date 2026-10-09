@@ -208,3 +208,11 @@
 - docs/free-endpoint-transition-patch-feasibility.mdに対象別のhook案、候補比較、台車単位のmap保持/実端点越え/残距離/分岐経路の設計条件を記録。床所有先の動的変更や毎tickのフィールド補正は汎用対処に採用しない。配布形態・対象限定方法・仕様判断待ち。
 - 実施: Issue本文/制作者コメントの一次情報確認、既存TS/実Java bytecodeの照合、資料/リンク/差分確認。未実施: 実装、クラス変換、台車差替え、全実機パッチ試験。コード/rtm-ts/Mod/ワールドは未変更、資料のみにつきビルド/テスト再実行なし。
 - 同期: 実現性調査コミット `fe3218e` をorigin/mainへpush済み。同期結果を引継ぎ帳へ記録。
+
+## 2026-10-10 ローカルCodex: RailPosition自由化の実装経緯/意図
+
+- 依頼: 自由端点で走行接続可能と思っていたため、導入経緯と意図を実装から推定。Kaiz公式履歴でa8664a7（JST 7/18）を確認。continuous sampling/ChunkSectioner/MapSectionとoffset/setPosition/NBTを同時追加。初回Javadocとv1.10.2公開説明の両方に、ブロック端保証は設定側の責務と記載。
+- 区間を元曲線へ委譲して勾配/カント/接線を維持し、チャンク境界上の面中央ではない任意座標を表すためのAPIと推定。ブロック座標/所有/同一性が分離されたままで、canConnectの幾何一致だけでは台車探索を保証しない。resolverは7/26追加、8/31内部section往復/境界探索修正という後続履歴を確認。1.10.4新設という解釈はしない。
+- AE 74fe2ed（9/8）はRailPositionとRailPartsRendererBaseのみ変更。offset/NBTと描画原点へ対応し、台車探索は同commit未変更。Kaizと同構造だが直接移植や作者の全意図は断定しない。
+- docs/rail-position-free-endpoint-intent.mdへ事実/推定/一次リンクを整理。既存自由化文書の「端点一致なら前方探索で対処」という広い解釈を修正。SRBXの自由端点走行を保証する解釈は導入説明より広かったことを明記。
+- 実施: 公式commit/release/APIで導入・後続差分、該当ソースとAE実JARの照合、資料/リンク/差分確認。未実施: 作者への追加問い合わせ、新規実機対照。コード変更なしのためビルド/テスト再実行なし。Mod/rtm-ts/既存ワールドを変更せずユーザー所有xcfは未追加。
