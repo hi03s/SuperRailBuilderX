@@ -24,7 +24,7 @@
 
 ## 作業中
 
-- ローカルCodex: 境界端点対応の最終差分確認・ZIP検証・同期中。
+- なし。
 
 ## 優先確認事項
 
@@ -133,7 +133,7 @@
 
 ## 直近の完了
 
-- 2026-10-10 ローカルCodex: RailPosition自由化は内部チャンク分割の精密境界点を扱う目的と推定、導入時からブロック端保証条件があったことを一次差分で確認。資料更新のみ。調査`7342ba2`をorigin/mainへpush済み。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)。
+- 2026-10-10 ローカルCodex: 全6ツールのKaizPatch/AE境界端点・接続方向・owner・Undo復元を実装。全4build/回帰成功、修正版ZIP生成。実装`f8ecee4`をorigin/mainへpush済み。実機走行確認待ち。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)・[確認手順](rail-boundary-endpoints.md)。
 
 ## 関連資料
 

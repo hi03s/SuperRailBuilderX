@@ -226,3 +226,5 @@
 - 未実施: Minecraftでの両方向低速走行、全ツール操作とUndo実機検証。手順/限界はdocs/rail-boundary-endpoints.md。修正版ZIP artifacts/SuperRailBuilderX-0.2.0.zipを101ファイルで生成し、4ターゲット・helper・include138参照・ユーザーgui_base.xcf除外を確認。SHA256 FEB08D6EA9962FAA49866A147875E2267F3BDD2001FD2C8008A8CB6E2F93831C。同期結果は完了後記録する。
 
 - 最終レビュー: endpoint Undoのサーバー記録へoriginalPointを追加し、変更前owner/directionをKaiz通常/分岐とAEへ渡して復元。AEの公開compat経由で復元flag/snapshotが届く回帰ケースも追加。縦区間長は共有点snap前に保存してアンカー比補正し、短区間のクライアント配列参照を防止。追加修正後もbuild/境界/AE11本/Kaiz/描画/include/入力等が成功。
+
+- 同期: 実装コミット `f8ecee4` をorigin/mainへpush成功。引継ぎ帳は現行状態と実機確認待ちへ更新。
