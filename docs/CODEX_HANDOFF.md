@@ -37,7 +37,7 @@
 ### 共通の走行遷移
 
 - 2026-10-10: AEの自由端点接続で一方向index=0停止と逆方向1 tick約0.22 mの位置補正を確認。接続点はブロック内部で、AEのfloor X/Z→単一道床所有コア→map投影という探索制約と整合。任意精密端点を維持するにはAE側対応が必要。SRBX単独の敷設ミスとは断定せず、座標/所有先/車両の自動変更は行わない。[制作者向け資料](appleextended-free-endpoint-transition-report.md)を参照し、標準マーカー＋offsetの実機対照を追加して対応可否を相談する。
-- KaizPatchX 1.10.4ログでは新旧RailMapの毎tick往復（87tick）と逆方向の約0.19 m/0.11 m位置飛びを確認。AEと共通の自由端点/単一道床所有という背景だが、1.10.4の端点探索と床探索の競合が疑われる。[KaizPatch相談資料](kaizpatch-free-endpoint-transition-report.md)を参照。SRBX非経由の同配置対照は未実施。
+- KaizPatchX 1.10.4で新旧RailMap往復と位置飛びを確認。位置変更後の5.85585 m区間でも91tick連続で往復し、極短区間は必須条件ではない。新map内で床所有先が新コアに変わると往復が止まる。AEと共通の自由端点/単一道床所有という背景だが、1.10.4の端点探索と床探索の競合が疑われる。[KaizPatch相談資料](kaizpatch-free-endpoint-transition-report.md)を参照。SRBX非経由の同配置対照は未実施。
 - デバッグ車両 `SuperRailBuilderX_TrainDebug` はAE/KaizPatchX 1.10.4の読み込み・走行ログ取得を確認済み。[走行診断](train-debug-vehicle.md)。
 - KaizPatch/AEのSRBX敷設は既存通常道床を保持。標準マーカーは同じ通常道床の所有先を変更する。[道床の比較](roadbed-ownership-investigation.md)。AEログは当初敷設の履歴なし。Kaiz追加ログでは新短区間のadded=0/retained=0と接続セルの旧所有先保持を確認。
 
@@ -130,7 +130,7 @@
 
 ## 直近の完了
 
-- 2026-10-10 ローカルCodex: AEに続きKaizPatchX 1.10.4のRailMap往復/位置飛びをログと実JARで照合し、制作者向け相談文と匿名化抜粋を作成。コード変更なし。調査`aec3501`をorigin/mainへpush済み。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)。
+- 2026-10-10 ローカルCodex: KaizPatch位置変更後のログで5.85585 m区間でも往復を確認し、極短区間原因説を見直した。相談資料と匿名化51行抜粋を更新、コード変更なし。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 ## 関連資料
 
