@@ -36,11 +36,9 @@
 
 ### 共通の走行遷移
 
-- 走行診断用 `SuperRailBuilderX_TrainDebug` を追加。今回のZIPでパックを置き換え、KaizPatch/AEでP1/P2の双方向比較を行う。[導入・ログの読み方](train-debug-vehicle.md)を参照し、train-debugの実追従コア/RailMapとnearbyの道床所有先を含むlogs/latest.logを共有する。2026-10-10のモデル構築クラッシュはMQOのScene省略による材質欠落と特定し、両モデルを修正。実機再起動で読み込み・設置・start出力を再確認する。
-
-- 2026-10-09: KaizPatch/AEのSRBX敷設で既存通常道床の上書きを停止（コア設置工程は別）。標準マーカーは同じ通常道床の所有先を変更する。低速片方向の因果は実機未確定。[調査と比較手順](roadbed-ownership-investigation.md)に従い、新規接続の生成順・双方向走行・移動/Undoとlogs/latest.logのroadbed/transitionを確認する。
-
-- 分割・複製・builder1生成レールで低速遷移不能を再現したら、進行方向・速度・おおよその時刻を控え、`[SuperRailBuilderX transition]`を含むログを共有する。
+- 2026-10-10: AEの自由端点接続で一方向index=0停止と逆方向1 tick約0.22 mの位置補正を確認。接続点はブロック内部で、AEのfloor X/Z→単一道床所有コア→map投影という探索制約と整合。任意精密端点を維持するにはAE側対応が必要。SRBX単独の敷設ミスとは断定せず、座標/所有先/車両の自動変更は行わない。[制作者向け資料](appleextended-free-endpoint-transition-report.md)を参照し、標準マーカー＋offsetの実機対照を追加して対応可否を相談する。
+- デバッグ車両 `SuperRailBuilderX_TrainDebug` の読み込み・走行ログ取得はAE実機で確認済み。使用方法は[走行診断](train-debug-vehicle.md)。KaizPatchの同条件実機比較は未確認。
+- KaizPatch/AEのSRBX敷設は既存通常道床を保持。標準マーカーは同じ通常道床の所有先を変更する。[道床の比較](roadbed-ownership-investigation.md)。今回ログは当初敷設の履歴がなく、過去の上書き有無は未確定。
 
 ### レール移動ツール
 
@@ -131,7 +129,7 @@
 
 ## 直近の完了
 
-- 2026-10-10 ローカルCodex: デバッグ車両のMQO Scene省略による材質欠落/NPEを修正。全4targetビルド/ZIP・診断/材質回帰テスト成功、実機再確認待ち。修正`b822958`をorigin/mainへpush済み（差分0/0）。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)。
+- 2026-10-10 ローカルCodex: AEの方向別低速停止/位置飛びを台車ログとnative bytecodeで調査し、自由端点とブロック所有先探索の不整合を特定。制作者向け資料・必要ログ抜粋を作成、コード変更なし。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 ## 関連資料
 

@@ -34,7 +34,7 @@
 - 内部フィールドはcompat層からreflectionで読み取る。台車を生成し得るgetBogieは使わず、world/車両/RailMap/位置バッファの書換えは行わない。
 - 加減速・レール探索・衝突処理はMod本体に任せる。速度上限はモデル設定で指定し、ログ用スクリプトから速度や台車を強制変更しない。
 - 低速停止を調べる専用小型車両なので、他モデルの台車間隔・編成条件でのみ起こる症状が再現するとは限らない。
-- Minecraft実機でのモデル表示・設置・運転・接続走行は未確認。最初にstartが出ることを確認し、API失敗時もその前後のログを共有する。
+- 2026-10-10のAE実機ログでモデル読み込み・車両設置・運転・start出力を確認済み。自由端点接続の低速走行には[別途確認した遷移制約](appleextended-free-endpoint-transition-report.md)がある。KaizPatchの実機確認は残る。
 
 2026-10-09の提出ログには生成成功とhold_rail_itemの記録があるが、走行中の台車状態やroadbed/transition出力はなく、低速停止の原因は確定できない。必要箇所の抜粋は `logs/rail-transition-before-debug-vehicle-20261009.log`。
 

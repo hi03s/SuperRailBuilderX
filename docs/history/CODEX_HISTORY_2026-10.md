@@ -173,3 +173,12 @@
 - test:train-debugに外部ネイティブ初期解析状態に基づくMQO材質抽出・JSONとの解決/ファイル確認、Scene除去時の失敗再現を追加。以前のファイル存在確認だけでは材質欠落を検出できなかったため補完。
 - 検証済み: pnpm zip（全4target、警告0）、test:train-debug、対象Prettier、diff check、配布ZIP再梱包100ファイル。開発者のgui_base.xcfはソースに保持し、distコピーのみ配布から除外。実機モデルローダーでの再起動/表示/設置/走行は未実施。docs/train-debug-vehicle.mdの手順で再確認しlogs/latest.logを共有する。
 - 同期: 修正コミット `b822958` をorigin/mainへpush済み。SHA/同期結果を引継ぎ帳へ記録。
+
+## 2026-10-10 ローカルCodex: AE方向別走行遷移の責任切り分け
+
+- 依頼: logs/latest.logを受領。A方向で低速停止、逆方向Bで台車切替時に微小加速/瞬間移動。追加指示はSRBX側なら修正、AE側なら制作者へ対応依頼を検討すること。
+- AE id=123はtick506～538でP2/約2 km/hなのに車体不変、先頭旧map index=0。速度0.201352 m/tickで次コアへ移行。id=151はtick390→391の速度0.028520一定で車体約0.21960 m変位（通常移動より約0.19108 m超過）。後台車もtick474でbufが精密端点へ約0.08744 m投影されている。関連train-debug/nearbyだけlogs/appleextended-directional-transition-20261010.logへ抜粋。
+- 接続点(1405.85950,4.06250,-1600.85950)は旧コアのブロック内部。公式AE v2.5.3のEntityBogie.updateBogiePos/resetRailObj/getRail、Base.getRailFromCoordinates、RailMapの最近傍処理を確認。予測点のfloor X/Zにある単一道床の所有コアを先に選び、map端へ投影するため、小移動でセルを出られない方向は端に戻り、逆方向は精密端点より早く切替先の端へ飛ぶ。45度直線のセル境界まで約0.198697 m（約14.31 km/h）という見積もりが通過速度と整合。
+- 限定readonlyのnative API評価をselection_auditへ委譲し、同じ責任境界を確認。ブロック内部自由端点を任意精度のまま低速走行可能にするにはAE側の探索対応が必要。setPositionの接続保証範囲は未確定なのでAE契約違反とは断定せず、制約/対応可否相談としてdocs/appleextended-free-endpoint-transition-report.mdを用意。道床所有先を変更するだけでは双方向を保証できない。
+- SRBX側回避は接続両側の座標を境界に合わせる/自由端点を制限する仕様変更であり、現時点では特定敷設処理の誤りだけが原因とは確認できない。精密線形・保存ワールドを自動変更しない。Mod/rtm-ts/車両挙動コードも未変更。作者への送信は行わず開発者用相談文を作成。
+- 確認済み: ログ抽出・座標/1 tick変位/セル境界距離の計算、公式JAR bytecodeと探索/投影の照合、差分/個人情報除去確認。コード変更なしにつきビルド/既存テスト再実行なし。デバッグ車両のAEモデル読み込みと走行ログ取得は今回の実機ログで確認。未実施: 標準マーカー＋offsetによる同状態再現、境界接続との対照、KaizPatch同条件の実機比較。
