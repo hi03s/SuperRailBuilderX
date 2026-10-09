@@ -216,3 +216,4 @@
 - AE 74fe2ed（9/8）はRailPositionとRailPartsRendererBaseのみ変更。offset/NBTと描画原点へ対応し、台車探索は同commit未変更。Kaizと同構造だが直接移植や作者の全意図は断定しない。
 - docs/rail-position-free-endpoint-intent.mdへ事実/推定/一次リンクを整理。既存自由化文書の「端点一致なら前方探索で対処」という広い解釈を修正。SRBXの自由端点走行を保証する解釈は導入説明より広かったことを明記。
 - 実施: 公式commit/release/APIで導入・後続差分、該当ソースとAE実JARの照合、資料/リンク/差分確認。未実施: 作者への追加問い合わせ、新規実機対照。コード変更なしのためビルド/テスト再実行なし。Mod/rtm-ts/既存ワールドを変更せずユーザー所有xcfは未追加。
+- 同期: 導入経緯調査コミット `7342ba2` をorigin/mainへpush済み。同期結果を引継ぎ帳へ記録。
