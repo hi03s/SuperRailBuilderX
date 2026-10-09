@@ -164,3 +164,11 @@
 - ZIP再梱包は100ファイル。開発者の未追跡gui_base.xcfはソースに保持し、配布用distコピーだけ除外。公開済みRelease/タグは変更しない。
 - 未実施: Minecraft実機のモデル表示/設置/運転、KaizPatch/AEで接続部双方向低速走行。docs/train-debug-vehicle.mdの手順でlogs/latest.logを再提出する。
 - 同期: 実装コミット `652be14` をorigin/mainへpush済み。コミット記録を引継ぎ帳へ反映して文書同期する。
+
+## 2026-10-10 ローカルCodex: デバッグ車両モデル構築クラッシュ
+
+- logs/latest.logのModelConstructingException: SuperRailBuilderX_TrainDebugを調査。原因はModelObject.getMaterials:284 → ModelPackManager.getResource:306のnull参照。例外と関連スタックだけlogs/train-debug-model-materials-crash-20261010.logへ抜粋し、ローカルパスを除去。
+- 公式AE JARの行番号/bytecodeからgetMaterials:284が材質一覧空のdefault参照であることを確認。PolygonModelのコンストラクタからinitが呼ばれ、MqoModel.currentType=-1代入はsuperから戻った後。Sceneの無い今回MQOでは初期mode=0のままMaterialブロックが無視され、材質空/default未設定でNPEになっていた。KaizPatchXも同じ初期化順。
+- train_debug.mqo/train_debug_bogie.mqoへSceneブロックを追加。AEのtextures第三要素は配列長3未満で空文字列へfallbackするため、省略は原因ではない。不透明モデルのJSONは維持。rtm-ts/参照ツールキット/車両走行処理は未変更。
+- test:train-debugに外部ネイティブ初期解析状態に基づくMQO材質抽出・JSONとの解決/ファイル確認、Scene除去時の失敗再現を追加。以前のファイル存在確認だけでは材質欠落を検出できなかったため補完。
+- 検証済み: pnpm zip（全4target、警告0）、test:train-debug、対象Prettier、diff check、配布ZIP再梱包100ファイル。開発者のgui_base.xcfはソースに保持し、distコピーのみ配布から除外。実機モデルローダーでの再起動/表示/設置/走行は未実施。docs/train-debug-vehicle.mdの手順で再確認しlogs/latest.logを共有する。

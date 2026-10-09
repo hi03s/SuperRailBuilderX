@@ -2,7 +2,7 @@
 
 このファイルは、次の作業に必要な現行情報だけを共有するための短期引継ぎ帳です。詳細な過去記録は `docs/history/` に保存し、通常は読みません。
 
-最終更新: 2026-10-09（ローカルCodex）
+最終更新: 2026-10-10（ローカルCodex）
 
 ## 現在の状態
 
@@ -36,7 +36,7 @@
 
 ### 共通の走行遷移
 
-- 走行診断用 `SuperRailBuilderX_TrainDebug` を追加。今回のZIPでパックを置き換え、KaizPatch/AEでP1/P2の双方向比較を行う。[導入・ログの読み方](train-debug-vehicle.md)を参照し、train-debugの実追従コア/RailMapとnearbyの道床所有先を含むlogs/latest.logを共有する。実機表示・設置・走行は未確認。
+- 走行診断用 `SuperRailBuilderX_TrainDebug` を追加。今回のZIPでパックを置き換え、KaizPatch/AEでP1/P2の双方向比較を行う。[導入・ログの読み方](train-debug-vehicle.md)を参照し、train-debugの実追従コア/RailMapとnearbyの道床所有先を含むlogs/latest.logを共有する。2026-10-10のモデル構築クラッシュはMQOのScene省略による材質欠落と特定し、両モデルを修正。実機再起動で読み込み・設置・start出力を再確認する。
 
 - 2026-10-09: KaizPatch/AEのSRBX敷設で既存通常道床の上書きを停止（コア設置工程は別）。標準マーカーは同じ通常道床の所有先を変更する。低速片方向の因果は実機未確定。[調査と比較手順](roadbed-ownership-investigation.md)に従い、新規接続の生成順・双方向走行・移動/Undoとlogs/latest.logのroadbed/transitionを確認する。
 
@@ -131,9 +131,7 @@
 
 ## 直近の完了
 
-- 2026-10-09 ローカルCodex: 走行デバッグ車両と低速診断ログを追加。全4ターゲットZIP（100ファイル、警告0）・新規/既存16テスト成功、実機未確認。実装`652be14`をorigin/mainへpush済み（差分0/0）。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)。
-- 2026-10-09 ローカルCodex: 走行デバッグ車両と低速診断ログを追加。全4ターゲットZIP（100ファイル、警告0）・新規/既存16テスト成功、実機未確認。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)。
-- 2026-10-09 ローカルCodex: KaizPatch接続カント/論理ハイライト、両環境の既存通常道床保持を修正。標準マーカー規則を比較し、低速遷移の調査手順を作成。修正`ab806d8`をorigin/mainへpush済み（差分0/0）、実機未確認。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)。
+- 2026-10-10 ローカルCodex: デバッグ車両のMQO Scene省略による材質欠落/NPEを修正。全4targetビルド/ZIP・診断/材質回帰テスト成功、実機再確認待ち。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 ## 関連資料
 

@@ -1,6 +1,17 @@
 Metasequoia Document
 Format Text Ver 1.1
 
+Scene {
+	pos 0 0 1500
+	lookat 0 0 0
+	head 0
+	pich 0
+	bank 0
+	ortho 0
+	zoom2 5
+	amb 0.25 0.25 0.25
+}
+
 Material 1 {
  "bogie" shader(1) col(0.15 0.15 0.15 1) dif(0.8) amb(0.6) emi(0) spc(0) power(5) tex("../../textures/superrailbuilderx/builder1.png")
 }

@@ -229,6 +229,53 @@ assert(
 for (const model of [config.trainModel2, config.bogieModel2])
 	assert(fs.existsSync("dist/assets/minecraft/models/" + model.modelFile));
 assert(fs.existsSync("dist/assets/minecraft/" + config.serverScriptPath));
+
+// NGTLib calls MqoModel.init from the superclass constructor, before
+// currentType=-1 is assigned. Its initial mode is 0; a Scene closing brace
+// must reset it before Material. Without Scene the whole material block is
+// ignored and ModelObject asks for an absent default texture (NPE).
+function parsedMaterials(mqo) {
+	let mode = 0;
+	const result = [];
+	for (let line of mqo.split(/\r?\n/)) {
+		line = line.replace(/\s+/g, " ").trim();
+		if (!line) continue;
+		if (mode >= 0) {
+			if (line.startsWith("}")) mode = -1;
+			else if (mode === 3)
+				result.push(line.split(" ")[0].replaceAll('"', ""));
+		} else if (line.startsWith("Material")) mode = 3;
+		else if (line.startsWith("vertex")) mode = 1;
+		else if (line.startsWith("face")) mode = 2;
+	}
+	return result;
+}
+for (const model of [config.trainModel2, config.bogieModel2]) {
+	const mqo = fs.readFileSync(
+		"dist/assets/minecraft/models/" + model.modelFile,
+		"utf8",
+	);
+	const materials = parsedMaterials(mqo);
+	assert(materials.length > 0, "NGTLib must parse model materials");
+	const textures = new Map(
+		model.textures.map(([name, texture]) => [name, texture]),
+	);
+	for (const material of materials) {
+		const texture = textures.get(material) || textures.get("default");
+		assert(
+			texture,
+			"material must resolve to a non-null texture: " + material,
+		);
+		assert(fs.existsSync("dist/assets/minecraft/" + texture));
+	}
+	const withoutScene = mqo.replace(/Scene \{[\s\S]*?\}\s*/, "");
+	assert.equal(
+		parsedMaterials(withoutScene).length,
+		0,
+		"regression: omitted Scene loses all materials",
+	);
+}
+
 console.log(
 	"Train debug observation, rate limits, stall history, client exclusion and recovery passed",
 );

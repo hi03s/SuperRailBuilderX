@@ -37,3 +37,13 @@
 - Minecraft実機でのモデル表示・設置・運転・接続走行は未確認。最初にstartが出ることを確認し、API失敗時もその前後のログを共有する。
 
 2026-10-09の提出ログには生成成功とhold_rail_itemの記録があるが、走行中の台車状態やroadbed/transition出力はなく、低速停止の原因は確定できない。必要箇所の抜粋は `logs/rail-transition-before-debug-vehicle-20261009.log`。
+
+## 2026-10-10 モデル構築クラッシュ修正
+
+提出ログの例外はModelObject.getMaterials:284 → ModelPackManager.getResource:306のNullPointerException。AEのgetMaterials:284は材質一覧が空の場合のdefaultテクスチャ参照で、今回JSONには名前付き材質だけが設定されていた。
+
+車体/台車MQOにSceneが無く、NGTLibの初期解析状態(currentType=0)がMaterialより前に解除されないため、Materialブロックが読み飛ばされていた。KaizPatchXでも同じコンストラクタ初期化順を確認。両MQOへ標準のSceneブロックを追加して材質解析を成立させる。
+
+AlphaBlend/Light等の第三要素はAEのローダー上で省略可能（省略時は空文字列）。今回は不透明モデルなので変更不要。JSONへのdefault追加だけで材質欠落を隠す対応は行わず、MQOを修正した。
+
+回帰テストに、ネイティブの初期解析状態に基づく材質抽出・全材質のJSONテクスチャ解決・配布ファイル存在確認と、Scene削除時の材質欠落再現を追加。全4targetビルド/ZIPとtest:train-debugは成功。実機再起動でモデル構築・車両設置・start出力を再確認し、失敗した場合はlogs/latest.logを共有する。
