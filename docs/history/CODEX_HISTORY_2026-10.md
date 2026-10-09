@@ -217,3 +217,12 @@
 - docs/rail-position-free-endpoint-intent.mdへ事実/推定/一次リンクを整理。既存自由化文書の「端点一致なら前方探索で対処」という広い解釈を修正。SRBXの自由端点走行を保証する解釈は導入説明より広かったことを明記。
 - 実施: 公式commit/release/APIで導入・後続差分、該当ソースとAE実JARの照合、資料/リンク/差分確認。未実施: 作者への追加問い合わせ、新規実機対照。コード変更なしのためビルド/テスト再実行なし。Mod/rtm-ts/既存ワールドを変更せずユーザー所有xcfは未追加。
 - 同期: 導入経緯調査コミット `7342ba2` をorigin/mainへpush済み。同期結果を引継ぎ帳へ記録。
+
+## 2026-10-10 ローカルCodex: KaizPatch/AEの境界端点配置
+
+- 依頼: 内側自由端点の遷移問題に対し、ブロック縁上へ配置可能か検討し全生成/整形ツールへ対応。全6ツールと両compatに境界条件を実装。精密anchorYawを保持し、ownerは内向き接線側、native directionは横切る面に合わせる。円弧/分割は元曲線の境界交点、共有移動/縦曲線は同一共有点を使う。縦曲線補正で厳密な半径は変わり得ることを文書化。
+- 非境界の既設接続/カント/分割/分岐は破壊前に拒否。移動Undoと内部rollbackは保存座標・方向・ownerを維持。既存ワールド一括変更なし、rtm-ts/共有toolkit変更なし、ユーザーxcfは未追加。
+- 実施: 全4ターゲットbuild warning 0、boundary幾何/所有/円弧/縦共有点、AE11本、Kaiz、描画patch/include展開、dispatch、入力、デバッグ車両の回帰検証。target→common helperは@common importとし配布include参照も検証。変更TSの整形確認。全体format:checkは既存未変更ファイルの整形違反が残る。
+- 未実施: Minecraftでの両方向低速走行、全ツール操作とUndo実機検証。手順/限界はdocs/rail-boundary-endpoints.md。修正版ZIP artifacts/SuperRailBuilderX-0.2.0.zipを101ファイルで生成し、4ターゲット・helper・include138参照・ユーザーgui_base.xcf除外を確認。SHA256 FEB08D6EA9962FAA49866A147875E2267F3BDD2001FD2C8008A8CB6E2F93831C。同期結果は完了後記録する。
+
+- 最終レビュー: endpoint Undoのサーバー記録へoriginalPointを追加し、変更前owner/directionをKaiz通常/分岐とAEへ渡して復元。AEの公開compat経由で復元flag/snapshotが届く回帰ケースも追加。縦区間長は共有点snap前に保存してアンカー比補正し、短区間のクライアント配列参照を防止。追加修正後もbuild/境界/AE11本/Kaiz/描画/include/入力等が成功。

@@ -1,3 +1,4 @@
+import { SRBXRailBoundary } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXRailBoundary";
 import {
 	TileEntityLargeRailCore,
 	TileEntityLargeRailSwitchCore,
@@ -101,6 +102,7 @@ export class AppleExtendedRailMoveCompat {
 		start: AppleExtendedBuilderPoint,
 		end: AppleExtendedBuilderPoint,
 		player?: EntityPlayer,
+		preserveEndpointGeometry = false,
 	): string {
 		this.updated = [];
 		if (!player) return "missing_player";
@@ -134,6 +136,12 @@ export class AppleExtendedRailMoveCompat {
 			return "rail_changed";
 		if (!this.validPoint(start) || !this.validPoint(end))
 			return "invalid_point";
+		if (
+			!preserveEndpointGeometry &&
+			(!SRBXRailBoundary.isBoundary(start.position, start.anchorYaw) ||
+				!SRBXRailBoundary.isBoundary(end.position, end.anchorYaw))
+		)
+			return "endpoint_not_on_block_boundary";
 		const distance = Math.sqrt(
 			Math.pow(start.position[0] - end.position[0], 2) +
 				Math.pow(start.position[1] - end.position[1], 2) +
@@ -170,10 +178,23 @@ export class AppleExtendedRailMoveCompat {
 			}
 		}
 		const moved = [
-			AppleExtendedRailCompat.resolveBuilderPoint(world, start),
-			AppleExtendedRailCompat.resolveBuilderPoint(world, end),
+			AppleExtendedRailCompat.resolveBuilderPoint(
+				world,
+				start,
+				preserveEndpointGeometry,
+			),
+			AppleExtendedRailCompat.resolveBuilderPoint(
+				world,
+				end,
+				preserveEndpointGeometry,
+			),
 		];
 		if (!moved[0] || !moved[1]) return "rail_endpoint_changed";
+		if (
+			!preserveEndpointGeometry &&
+			!AppleExtendedRailCompat.areBoundaryPositions(moved)
+		)
+			return "endpoint_not_on_block_boundary";
 		for (let i = 0; i < moved.length; i++) {
 			const rp = moved[i];
 			if (

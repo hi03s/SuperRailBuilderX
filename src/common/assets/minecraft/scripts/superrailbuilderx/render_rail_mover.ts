@@ -1,3 +1,4 @@
+import { SRBXRailBoundary } from "./SRBXRailBoundary";
 import { SRBXRailHighlight } from "./SRBXRailHighlight";
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { MCWrapperClient, NGTUtilClient } from "jp.ngt.ngtlib.util";
@@ -252,7 +253,7 @@ function getDestination(
 		looking.posZ,
 	);
 	const roundHorizontal = snapEnabled ? roundSnap : roundCentimeter;
-	return [
+	const position: SRBXVec3 = [
 		roundHorizontal(looking.posX),
 		railHeight === null
 			? (snapEnabled
@@ -261,6 +262,25 @@ function getDestination(
 			: railHeight,
 		roundHorizontal(looking.posZ),
 	];
+	const selected = getState(entity).selected;
+	if (
+		selected &&
+		selected.candidates.length > 0 &&
+		SRBXApiCompat.requiresRailBoundarySnap()
+	) {
+		const yaws: number[] = [];
+		let pitch = 0;
+		for (let i = 0; i < selected.candidates.length; i++) {
+			const candidate = selected.candidates[i];
+			const rp = SRBXApiCompat.getEditableRailPositions(candidate.core)[
+				candidate.index
+			];
+			yaws.push(SRBXApiCompat.getHorizontalAnchorYaw(rp));
+			if (i === 0) pitch = SRBXApiCompat.getRailPositionAnchorPitch(rp);
+		}
+		return SRBXRailBoundary.snapShared(position, yaws, pitch);
+	}
+	return position;
 }
 
 function logCandidateErrorOnce(
@@ -672,8 +692,19 @@ function defaultOwnerBlock(point: SRBXBuilderPoint): RailCorePos {
 }
 
 function setDefaultOwner(point: SRBXBuilderPoint): void {
-	point.direction = SRBXMath.directionFromYaw(point.anchorYaw);
-	point.ownerBlock = defaultOwnerBlock(point);
+	if (SRBXApiCompat.requiresRailBoundarySnap()) {
+		point.position = SRBXRailBoundary.snap(
+			point.position,
+			point.anchorYaw,
+			point.anchorPitch,
+		);
+	}
+	point.direction = SRBXApiCompat.requiresRailBoundarySnap()
+		? SRBXRailBoundary.direction(point.position, point.anchorYaw)
+		: SRBXMath.directionFromYaw(point.anchorYaw);
+	point.ownerBlock = SRBXApiCompat.requiresRailBoundarySnap()
+		? SRBXRailBoundary.owner(point.position, point.anchorYaw)
+		: defaultOwnerBlock(point);
 	point.markerPosition = [
 		point.ownerBlock[0] + 0.5,
 		point.position[1],
@@ -744,6 +775,14 @@ function connectionCandidate(
 				const corePos = SRBXApiCompat.getRailCorePos(core);
 				for (let index = 0; index < positions.length; index++) {
 					const rp = positions[index] as RailPosition;
+					if (
+						SRBXApiCompat.requiresRailBoundarySnap() &&
+						!SRBXRailBoundary.isBoundary(
+							[rp.posX, rp.posY, rp.posZ],
+							SRBXApiCompat.getHorizontalAnchorYaw(rp),
+						)
+					)
+						continue;
 					const distance =
 						Math.pow(rp.posX - center[0], 2) +
 						Math.pow(rp.posY - center[1], 2) +
@@ -938,6 +977,77 @@ function buildParallelPlans(
 		if (!plan) return [];
 		result.push(plan);
 	}
+	if (SRBXApiCompat.requiresRailBoundarySnap()) {
+		const endpoints: { original: SRBXVec3; point: SRBXBuilderPoint }[] = [];
+		for (let i = 0; i < result.length; i++) {
+			endpoints.push({
+				original: result[i].originalStart,
+				point: result[i].start,
+			});
+			endpoints.push({
+				original: result[i].originalEnd,
+				point: result[i].end,
+			});
+		}
+		const visited: boolean[] = [];
+		for (let i = 0; i < endpoints.length; i++) {
+			if (visited[i]) continue;
+			const group = [endpoints[i].point];
+			visited[i] = true;
+			for (let j = i + 1; j < endpoints.length; j++) {
+				if (
+					!visited[j] &&
+					SRBXMath.distance(
+						endpoints[i].original,
+						endpoints[j].original,
+					) < CONNECTED_ENDPOINT_TOLERANCE
+				) {
+					group.push(endpoints[j].point);
+					visited[j] = true;
+				}
+			}
+			const fixed = group.filter((p) => p.kind === "rail");
+			const yaws = group.map((p) => p.anchorYaw);
+			const position =
+				fixed.length > 0
+					? fixed[0].position
+					: SRBXRailBoundary.snapShared(
+							group[0].position,
+							yaws,
+							group[0].anchorPitch,
+						);
+			if (
+				group.some(
+					(p) =>
+						!SRBXRailBoundary.isBoundary(position, p.anchorYaw) ||
+						(p.kind === "rail" &&
+							SRBXMath.distance(position, p.position) >
+								CONNECTED_ENDPOINT_TOLERANCE),
+				)
+			)
+				return [];
+			for (let j = 0; j < group.length; j++) {
+				const point = group[j];
+				if (point.kind !== "free") continue;
+				point.position = [position[0], position[1], position[2]];
+				point.direction = SRBXApiCompat.requiresRailBoundarySnap()
+					? SRBXRailBoundary.direction(
+							point.position,
+							point.anchorYaw,
+						)
+					: SRBXMath.directionFromYaw(point.anchorYaw);
+				point.ownerBlock = SRBXRailBoundary.owner(
+					position,
+					point.anchorYaw,
+				);
+				point.markerPosition = [
+					point.ownerBlock[0] + 0.5,
+					position[1],
+					point.ownerBlock[2] + 0.5,
+				];
+			}
+		}
+	}
 	return result;
 }
 
@@ -1071,6 +1181,12 @@ function handleInput(
 	const dataMap = entity.getResourceState().getDataMap();
 	const state = getState(entity);
 	if (keys.pressed("help")) {
+		if (SRBXApiCompat.requiresRailBoundarySnap())
+			NGTLog.sendChatMessage(
+				sender,
+				"接続端点はブロック境界へ合わせます。既設の内部端点への接続はできません。",
+			);
+
 		NGTLog.sendChatMessage(
 			sender,
 			"--- SuperRailBuilderX レール移動ツール ---",

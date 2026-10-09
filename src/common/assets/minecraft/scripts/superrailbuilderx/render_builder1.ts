@@ -1,3 +1,4 @@
+import { SRBXRailBoundary } from "./SRBXRailBoundary";
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { MCWrapperClient, NGTUtilClient } from "jp.ngt.ngtlib.util";
 import { EntityVehicle } from "jp.ngt.rtm.entity.vehicle";
@@ -329,6 +330,27 @@ function ownerBlockForDirection(
 
 function updateFreePointMarker(point: SRBXBuilderPoint): void {
 	if (point.kind !== "free") return;
+	if (SRBXApiCompat.requiresRailBoundarySnap()) {
+		point.position = SRBXRailBoundary.snap(
+			point.position,
+			point.anchorYaw,
+			point.anchorPitch,
+		);
+		point.direction = SRBXRailBoundary.direction(
+			point.position,
+			point.anchorYaw,
+		);
+		point.ownerBlock = SRBXRailBoundary.owner(
+			point.position,
+			point.anchorYaw,
+		);
+		point.markerPosition = [
+			point.ownerBlock[0] + 0.5,
+			point.position[1],
+			point.ownerBlock[2] + 0.5,
+		];
+		return;
+	}
 	point.ownerBlock = ownerBlockForDirection(point.position, point.direction);
 	point.markerPosition = markerPositionForDirection(
 		point.position,
@@ -387,6 +409,14 @@ function findRailCandidate(
 					const corePos = SRBXApiCompat.getRailCorePos(core);
 					for (let index = 0; index < positions.length; index++) {
 						const rp = positions[index] as RailPosition;
+						if (
+							SRBXApiCompat.requiresRailBoundarySnap() &&
+							!SRBXRailBoundary.isBoundary(
+								[rp.posX, rp.posY, rp.posZ],
+								SRBXApiCompat.getHorizontalAnchorYaw(rp),
+							)
+						)
+							continue;
 						const dx = rp.posX - looking.posX;
 						const dy = rp.posY - looking.posY;
 						const dz = rp.posZ - looking.posZ;
@@ -609,8 +639,111 @@ function orientPair(
 			start.curveRadius =
 				fixed === start ? circular.radius : -circular.radius;
 	}
+	if (
+		SRBXApiCompat.requiresRailBoundarySnap() &&
+		!(start.kind === "rail" && end.kind === "rail")
+	) {
+		const locked =
+			state &&
+			state.curveRadiusLocked &&
+			!state.curveKeepSelectedEndpoints &&
+			state.curveRadius < MAX_CURVE_RADIUS;
+		const origin =
+			start.kind === "rail" ? start : end.kind === "rail" ? end : start;
+		const free = origin === start ? end : start;
+		if (origin.kind === "free") {
+			if (locked && state && state.curveStartYaw !== null)
+				origin.anchorYaw = state.curveStartYaw;
+			updateFreePointMarker(origin);
+		}
+		const magnitude =
+			locked && state
+				? state.curveRadius
+				: Math.abs(
+						start.curveRadius === undefined
+							? Infinity
+							: start.curveRadius,
+					);
+		if (isFinite(magnitude) && magnitude < MAX_CURVE_RADIUS) {
+			const side =
+				SRBXMath.relativeDegrees(
+					SRBXMath.horizontalYaw(origin.position, free.position),
+					origin.anchorYaw,
+				) <= 0
+					? 1
+					: -1;
+			const radius = magnitude * side;
+			const chord = SRBXMath.horizontalDistance(
+				origin.position,
+				free.position,
+			);
+			const arcLength =
+				2 * magnitude * Math.asin(Math.min(1, chord / (2 * magnitude)));
+			const boundary = SRBXRailBoundary.findCircularBoundary(
+				origin.position,
+				origin.anchorYaw,
+				radius,
+				arcLength,
+			);
+			if (boundary) {
+				const oldY = free.position[1];
+				free.position = boundary.position;
+				free.position[1] =
+					arcLength > 0.000001
+						? origin.position[1] +
+							((oldY - origin.position[1]) * boundary.arcLength) /
+								arcLength
+						: oldY;
+				free.anchorYaw = SRBXMath.normalizeDegrees(
+					boundary.endYaw + 180,
+				);
+				origin.anchorLength = SRBXMath.circularAnchorLength(
+					radius,
+					boundary.angle,
+				);
+				free.anchorLength = origin.anchorLength;
+				if (origin.kind === "free") {
+					origin.anchorPitch =
+						(Math.atan2(
+							free.position[1] - origin.position[1],
+							SRBXMath.horizontalDistance(
+								origin.position,
+								free.position,
+							),
+						) *
+							180) /
+						Math.PI;
+					free.anchorPitch = -origin.anchorPitch;
+				} else {
+					const circular = SRBXMath.circularConnection(
+						origin.position,
+						origin.anchorYaw,
+						origin.anchorPitch,
+						free.position,
+					);
+					free.anchorPitch = circular.freePitch;
+				}
+				start.curveRadius = origin === start ? radius : -radius;
+			} else if (locked) {
+				start.curveRadius = undefined;
+			}
+		}
+	}
+	const beforeBoundaryStart = start.position.slice(0) as SRBXVec3;
+	const beforeBoundaryEnd = end.position.slice(0) as SRBXVec3;
 	updateFreePointMarker(start);
 	updateFreePointMarker(end);
+	if (
+		SRBXApiCompat.requiresRailBoundarySnap() &&
+		state &&
+		state.curveRadiusLocked &&
+		!state.curveKeepSelectedEndpoints &&
+		(SRBXMath.distance(beforeBoundaryStart, start.position) > 0.000001 ||
+			SRBXMath.distance(beforeBoundaryEnd, end.position) > 0.000001)
+	) {
+		start.curveRadius = undefined;
+		end.curveRadius = undefined;
+	}
 	if (state && state.slopePermil !== null) {
 		const pitch = SRBXMath.pitchFromPermil(state.slopePermil);
 		if (start.kind === "rail" && end.kind === "free") {
@@ -623,7 +756,12 @@ function orientPair(
 			start.slopeTarget = true;
 			start.verticalCurveRadius = state.verticalCurveRadius;
 		}
-		const verticalSegments = SRBXMath.planVerticalRailSegments(start, end);
+		const verticalSegments = SRBXMath.planVerticalRailSegments(
+			start,
+			end,
+			SRBXApiCompat.requiresRailBoundarySnap(),
+		);
+		if (verticalSegments.length === 0) return [start, end];
 		return [
 			verticalSegments[0][0],
 			verticalSegments[verticalSegments.length - 1][1],
@@ -776,13 +914,83 @@ function renderBezierSegment(
 	}
 }
 
+function boundaryPlanError(
+	start: SRBXBuilderPoint,
+	end: SRBXBuilderPoint,
+	state: BuilderState,
+): string {
+	if (!SRBXApiCompat.requiresRailBoundarySnap()) return "";
+	if (
+		state.curveRadiusLocked &&
+		!state.curveKeepSelectedEndpoints &&
+		state.curveRadius < MAX_CURVE_RADIUS &&
+		start.curveRadius === undefined
+	)
+		return "境界への補正で固定半径を維持できません。端点位置を変更するか、半径固定を解除してください。";
+	if (
+		state.curveRadiusLocked &&
+		!state.curveKeepSelectedEndpoints &&
+		state.curveRadius < MAX_CURVE_RADIUS
+	) {
+		const side =
+			SRBXMath.relativeDegrees(
+				SRBXMath.horizontalYaw(start.position, end.position),
+				start.anchorYaw,
+			) <= 0
+				? 1
+				: -1;
+		const expected = SRBXMath.continueCircularCurve(
+			start.position,
+			start.anchorYaw,
+			state.curveRadius * side,
+			2 *
+				state.curveRadius *
+				Math.asin(
+					Math.min(
+						1,
+						SRBXMath.horizontalDistance(
+							start.position,
+							end.position,
+						) /
+							(2 * state.curveRadius),
+					),
+				),
+		);
+		if (
+			SRBXMath.horizontalDistance(expected.position, end.position) > 0.001
+		)
+			return "境界端点と固定半径の円弧が一致しません。端点位置を変更するか、半径固定を解除してください。";
+	}
+	const segments = SRBXMath.planVerticalRailSegments(
+		start,
+		end,
+		SRBXApiCompat.requiresRailBoundarySnap(),
+	);
+	if (!segments.length)
+		return "境界へ補正すると縦曲線の区間が短すぎます。端点位置を変更してください。";
+	if (segments.length === 0)
+		return "境界への補正で縦曲線の区間が短くなりすぎます。位置・勾配・縦曲線半径を変更してください。";
+	for (let i = 0; i < segments.length; i++) {
+		for (let j = 0; j < 2; j++) {
+			const p = segments[i][j];
+			if (!SRBXRailBoundary.isBoundary(p.position, p.anchorYaw))
+				return "縦曲線の端点または途中の接続点がブロック境界にありません。位置・勾配・縦曲線半径を変更してください。";
+		}
+	}
+	return "";
+}
+
 function renderBezier(
 	entity: EntityVehicle,
 	partialTicks: number,
 	start: SRBXBuilderPoint,
 	end: SRBXBuilderPoint,
 ): void {
-	const segments = SRBXMath.planVerticalRailSegments(start, end);
+	const segments = SRBXMath.planVerticalRailSegments(
+		start,
+		end,
+		SRBXApiCompat.requiresRailBoundarySnap(),
+	);
 	for (let i = 0; i < segments.length; i++)
 		renderBezierSegment(
 			entity,
@@ -934,6 +1142,11 @@ function sendRequest(
 }
 
 function showHelp(sender: ICommandSender): void {
+	if (SRBXApiCompat.requiresRailBoundarySnap())
+		NGTLog.sendChatMessage(
+			sender,
+			"接続端点はブロック境界へ合わせます。固定半径・縦曲線の接続点を維持できない配置は生成できません。",
+		);
 	NGTLog.sendChatMessage(sender, "--- SuperRailBuilderX レール生成A ---");
 	NGTLog.sendChatMessage(sender, "[右クリック] 始点→終点を選択");
 	NGTLog.sendChatMessage(sender, "[左クリック] 最後の選択を解除");
@@ -1327,6 +1540,14 @@ function handleInput(
 		state.selected.length === 2
 	) {
 		const pair = orientPair(state.selected[0], state.selected[1], state);
+		const boundaryError = boundaryPlanError(pair[0], pair[1], state);
+		if (boundaryError) {
+			NGTLog.sendChatMessage(
+				sender,
+				"§c[SuperRailBuilderX] " + boundaryError,
+			);
+			return;
+		}
 		state.selected = [copyPoint(pair[0]), copyPoint(pair[1])];
 		sendRequest(entity, state, {
 			action: "create",

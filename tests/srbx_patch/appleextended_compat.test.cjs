@@ -112,6 +112,18 @@ context.java = {
 	},
 };
 vm.createContext(context);
+vm.runInContext(
+	fs.readFileSync(
+		"dist/assets/minecraft/scripts/superrailbuilderx/SRBXRailBoundary.js",
+		"utf8",
+	),
+	context,
+);
+if (
+	context.AppleExtendedRailCompat &&
+	!context.AppleExtendedRailCompat.areBoundaryPositions
+)
+	context.AppleExtendedRailCompat.areBoundaryPositions = () => true;
 function load(relative) {
 	vm.runInContext(
 		fs.readFileSync(path.join(root, relative), "utf8"),
@@ -139,7 +151,7 @@ world.func_175625_s = () => connectionCore;
 for (const edge of [-8, 0, 8])
 	for (const index of [0, 1]) {
 		const source = {
-			posX: 1.25,
+			posX: 1,
 			posY: 4.5,
 			posZ: 2.75,
 			direction: 2,
@@ -163,7 +175,7 @@ for (const edge of [-8, 0, 8])
 			kind: "rail",
 			core: [1, 4, 2],
 			index,
-			position: [1.25, 4.5, 2.75],
+			position: [1, 4.5, 2.75],
 		});
 		assert.strictEqual(result.cantEdge, -edge);
 		assert.strictEqual(result.cantCenter, 5);
@@ -181,6 +193,53 @@ for (const edge of [-8, 0, 8])
 			assert.strictEqual(newRoll, reverseTravel ? -oldRoll : oldRoll);
 		}
 	}
+const faceSource = {
+	posX: 1,
+	posY: 4.0625,
+	posZ: 2.75,
+	direction: 2,
+	anchorYaw: 45,
+	anchorPitch: 0,
+	cantEdge: 0,
+	cantCenter: 0,
+	setPosition(x, y, z) {
+		this.posX = x;
+		this.posY = y;
+		this.posZ = z;
+	},
+};
+connectionCore.getLogicalRailPositions = () => [faceSource, faceSource];
+const faceConnection = helper.resolveBuilderPoint(world, {
+	kind: "rail",
+	core: [1, 4, 2],
+	index: 0,
+	position: [1, 4.0625, 2.75],
+});
+assert.strictEqual(
+	faceConnection.direction,
+	6,
+	"a single X-face connection must not cross a Z cell",
+);
+assert.strictEqual(
+	faceConnection.anchorYaw,
+	225,
+	"actual diagonal tangent is preserved",
+);
+assert.deepStrictEqual(
+	[faceConnection.blockX, faceConnection.blockY, faceConnection.blockZ],
+	[0, 4, 2],
+);
+faceSource.posX = 1.25;
+assert.strictEqual(
+	helper.resolveBuilderPoint(world, {
+		kind: "rail",
+		core: [1, 4, 2],
+		index: 0,
+		position: [1.25, 4.0625, 2.75],
+	}),
+	null,
+	"legacy interior endpoints are rejected without throwing or moving the source",
+);
 world.func_175625_s = savedTileLookup;
 helper.cloneRailPosition = savedClone;
 const positions = [
@@ -489,3 +548,53 @@ assert(
 	"bootstrap must schedule using the SRG Callable overload",
 );
 console.log("AppleExtended creation, logical hover and bootstrap tests passed");
+
+// Public compat must forward Undo mode and the trusted server endpoint snapshot.
+const undoPositions = [
+	{ posX: 0, posY: 4, posZ: 2, anchorYaw: 90 },
+	{ posX: 4, posY: 4, posZ: 2, anchorYaw: 270 },
+];
+context.AppleExtendedRailCompat.getLogicalPositions = () => undoPositions;
+api.canMoveRailPosition = () => true;
+let undoArgs;
+context.AppleExtendedRailMoveCompat = {
+	consumeUpdated() {},
+	point: (rp) => ({
+		kind: "free",
+		position: [rp.posX, rp.posY, rp.posZ],
+		direction: 2,
+		ownerBlock: [0, 4, 2],
+	}),
+	move(...args) {
+		undoArgs = args;
+		return "ok";
+	},
+};
+api.getRailPositionCandidateKey = () => "undo";
+const savedPoint = {
+	kind: "free",
+	position: [0.25, 4, 2],
+	direction: 7,
+	ownerBlock: [-8, 4, 13],
+};
+assert.strictEqual(
+	api.moveRailPosition(
+		{ isLogicalRailOccupied: () => false },
+		0,
+		0,
+		4,
+		2,
+		0.25,
+		4,
+		2,
+		{},
+		true,
+		savedPoint,
+	),
+	"ok",
+);
+assert.strictEqual(undoArgs[7], true);
+assert.strictEqual(undoArgs[4].direction, 7);
+assert.deepStrictEqual(Array.from(undoArgs[4].ownerBlock), [-8, 4, 13]);
+assert.deepStrictEqual(Array.from(undoArgs[4].position), [0.25, 4, 2]);
+console.log("AppleExtended public endpoint Undo preserves owner and direction");

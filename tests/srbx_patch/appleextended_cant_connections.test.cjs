@@ -51,6 +51,8 @@ const context = {
 	},
 };
 vm.createContext(context);
+vm.runInContext(fs.readFileSync("dist/assets/minecraft/scripts/superrailbuilderx/SRBXRailBoundary.js", "utf8"), context);
+if (context.AppleExtendedRailCompat && !context.AppleExtendedRailCompat.areBoundaryPositions) context.AppleExtendedRailCompat.areBoundaryPositions = () => true;
 vm.runInContext(
 	fs.readFileSync(
 		"dist/assets/minecraft/__targets__/appleextended/scripts/superrailbuilderx/AppleExtendedRailToolsCompat.js",
@@ -146,6 +148,13 @@ assert.equal(
 	0,
 	"center only updates the selected rail",
 );
+const beforeBoundaryReject = JSON.stringify(cores.map(core => core.positions));
+helper.areBoundaryPositions = () => false;
+assert.equal(tools.applyRailCants(world, [target]).status, "endpoint_not_on_block_boundary");
+assert.equal(JSON.stringify(cores.map(core => core.positions)), beforeBoundaryReject, "boundary rejection leaves every connected rail untouched");
+assert.equal(tools.consumeLastCantClientUpdate().length, 0);
+helper.areBoundaryPositions = () => true;
+
 tools.splitUndoRecords.branch = {
 	created: [{ core: [1, 4, 0], key: source.key }],
 	cants: [

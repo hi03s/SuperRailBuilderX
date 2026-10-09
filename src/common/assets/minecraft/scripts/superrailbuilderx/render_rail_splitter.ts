@@ -1,3 +1,4 @@
+import { SRBXRailBoundary } from "./SRBXRailBoundary";
 import { SRBXRailHighlight } from "./SRBXRailHighlight";
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { MCWrapperClient, NGTUtilClient } from "jp.ngt.ngtlib.util";
@@ -139,7 +140,19 @@ function findHoverTarget(
 						minimumIndex,
 						Math.min(maximumIndex, index),
 					);
-				const position = railPoint(map, candidateSplit, index);
+				let ratio = index / candidateSplit;
+				let position = railPoint(map, candidateSplit, index);
+				if (splittable && SRBXApiCompat.requiresRailBoundarySnap()) {
+					const boundary = SRBXRailBoundary.findMapBoundary(
+						map,
+						ratio,
+						minimumIndex / candidateSplit,
+						maximumIndex / candidateSplit,
+					);
+					if (!boundary) continue;
+					ratio = boundary.ratio;
+					position = boundary.position;
+				}
 				const distance =
 					Math.pow(position[0] - looking.posX, 2) +
 					Math.pow(position[1] - looking.posY, 2) +
@@ -149,7 +162,7 @@ function findHoverTarget(
 				best = {
 					core: SRBXApiCompat.getRailCorePos(core),
 					railKey,
-					ratio: index / candidateSplit,
+					ratio,
 					position,
 					length: map.getLength(),
 					splittable,
@@ -284,6 +297,11 @@ function sendRequest(
 }
 
 function showHelp(sender: ICommandSender): void {
+	if (SRBXApiCompat.requiresRailBoundarySnap())
+		NGTLog.sendChatMessage(
+			sender,
+			"接続端点はブロック境界へ合わせます。既設の内部端点への接続はできません。",
+		);
 	NGTLog.sendChatMessage(sender, "--- SuperRailBuilderX 線路分割 ---");
 	NGTLog.sendChatMessage(sender, "[右クリック] 分割位置を確定");
 	NGTLog.sendChatMessage(sender, "[左クリック] 選択解除");

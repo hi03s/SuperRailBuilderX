@@ -71,6 +71,8 @@ export type SRBXBranchRequest = {
 };
 
 export class SRBXApiCompat {
+	static requiresRailBoundarySnap(): boolean;
+
 	static getRider(entity: unknown): Entity | null;
 	static getRidingEntity(entity: unknown): Entity | null;
 	static getWorld(entity: unknown): World;
@@ -133,6 +135,8 @@ export class SRBXApiCompat {
 		x: number,
 		y: number,
 		z: number,
+		preserveEndpointGeometry?: boolean,
+		restorePoint?: SRBXBuilderPoint,
 	): string;
 	static moveRailPosition(
 		core: TileEntityLargeRailCore,
@@ -144,6 +148,8 @@ export class SRBXApiCompat {
 		y: number,
 		z: number,
 		player?: EntityPlayer,
+		preserveEndpointGeometry?: boolean,
+		restorePoint?: SRBXBuilderPoint,
 	): string;
 	static moveBuilderRail(
 		core: TileEntityLargeRailCore,
@@ -153,6 +159,7 @@ export class SRBXApiCompat {
 		start: SRBXBuilderPoint,
 		end: SRBXBuilderPoint,
 		player?: EntityPlayer,
+		preserveEndpointGeometry?: boolean,
 	): string;
 	static validateRailPositionMoveAsNormal(
 		core: TileEntityLargeRailCore,
@@ -163,6 +170,7 @@ export class SRBXApiCompat {
 		x: number,
 		y: number,
 		z: number,
+		preserveEndpointGeometry?: boolean,
 	): string;
 	static moveRailPositionAsNormal(
 		core: TileEntityLargeRailCore,
@@ -174,6 +182,7 @@ export class SRBXApiCompat {
 		y: number,
 		z: number,
 		player?: EntityPlayer,
+		preserveEndpointGeometry?: boolean,
 	): string;
 	static createBuilderRail(
 		world: World,
@@ -188,6 +197,7 @@ export class SRBXApiCompat {
 		overwriteForeignRoadbeds?: boolean,
 		propertySourcePoint?: SRBXBuilderPoint,
 		replaceProtectedCoreRoadbedAt?: RailCorePos,
+		preserveEndpointGeometry?: boolean,
 	): SRBXBuilderCreateResult;
 	static undoBuilderRail(
 		world: World,

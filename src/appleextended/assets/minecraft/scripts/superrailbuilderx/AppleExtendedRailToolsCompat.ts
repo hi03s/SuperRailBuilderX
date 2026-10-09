@@ -1,3 +1,4 @@
+import { SRBXRailBoundary } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXRailBoundary";
 import {
 	TileEntityLargeRailBase,
 	TileEntityLargeRailCore,
@@ -241,6 +242,13 @@ export class AppleExtendedRailToolsCompat {
 			}
 		}
 		const keys = Object.keys(pending);
+		for (let i = 0; i < keys.length; i++)
+			if (
+				!AppleExtendedRailCompat.areBoundaryPositions(
+					pending[keys[i]].positions,
+				)
+			)
+				return { status: "endpoint_not_on_block_boundary" };
 		for (let i = 0; i < keys.length; i++) {
 			const entry = pending[keys[i]];
 			let hasCenterTarget = false;
@@ -460,16 +468,17 @@ export class AppleExtendedRailToolsCompat {
 		const positions = AppleExtendedRailCompat.getLogicalPositions(core);
 		if (!railMap || !positions || positions.length !== 2)
 			return { status: "invalid_rail" };
+		if (!AppleExtendedRailCompat.areBoundaryPositions(positions))
+			return { status: "endpoint_not_on_block_boundary" };
 		const length = railMap.getLength();
-		const candidateSplit = Math.max(2, Math.floor(length * 2));
-		const candidateIndex = Math.round(ratio * candidateSplit);
-		if (
-			candidateIndex <= 0 ||
-			candidateIndex >= candidateSplit ||
-			Math.abs(ratio - candidateIndex / candidateSplit) > 0.0000001
-		)
-			return { status: "invalid_split_position" };
-		ratio = candidateIndex / candidateSplit;
+		const boundary = SRBXRailBoundary.findMapBoundary(
+			railMap,
+			ratio,
+			3 / length,
+			1 - 3 / length,
+		);
+		if (!boundary) return { status: "endpoint_not_on_block_boundary" };
+		ratio = boundary.ratio;
 		if (length * ratio <= 3 || length * (1 - ratio) <= 3)
 			return { status: "rail_too_short" };
 		const original = this.copyPositions(positions);
@@ -485,25 +494,28 @@ export class AppleExtendedRailToolsCompat {
 			})(),
 			created: [],
 		};
-		const sample = 1000000;
+		const sample = 100000000;
 		const index = Math.round(ratio * sample);
-		const point = railMap.getRailPos(sample, index);
 		const cant = railMap.getCant(sample, index);
-		const x = point[1],
-			z = point[0];
+		const x = boundary.position[0],
+			z = boundary.position[2];
 		const y =
-			railMap.getRailHeight(sample, index) -
+			boundary.position[1] -
 			Math.abs(Math.sin((cant * Math.PI) / 180) * 1.5);
 		const pitch = railMap.getRailPitch(sample, index);
 		const horizontal = this.splitHorizontal(original[0], original[1], x, z);
-		const direction = AppleExtendedRailCompat.directionFromYaw(
+		const direction = SRBXRailBoundary.direction(
+			[x, y, z],
 			horizontal.secondStartYaw,
 		);
-		const radians = (direction * 45 * Math.PI) / 180;
+		const startOwner = SRBXRailBoundary.owner(
+			[x, y, z],
+			horizontal.secondStartYaw,
+		);
 		const splitStart = new RailPosition(
-			Math.floor(x + Math.sin(radians) * 0.000001),
-			Math.floor(y - 1 / 16 + 0.000001),
-			Math.floor(z + Math.cos(radians) * 0.000001),
+			startOwner[0],
+			startOwner[1],
+			startOwner[2],
 			direction,
 			0,
 		);
@@ -524,11 +536,17 @@ export class AppleExtendedRailToolsCompat {
 		);
 		splitStart.setPosition(x, y, z);
 		const splitEnd = AppleExtendedRailCompat.cloneRailPosition(splitStart);
-		const neighbor = splitStart.getNeighborBlockPos();
-		splitEnd.blockX = neighbor.getX();
-		splitEnd.blockY = neighbor.getY();
-		splitEnd.blockZ = neighbor.getZ();
-		splitEnd.direction = (splitStart.direction + 4) & 7;
+		const endOwner = SRBXRailBoundary.owner(
+			[x, y, z],
+			horizontal.firstEndYaw,
+		);
+		splitEnd.blockX = endOwner[0];
+		splitEnd.blockY = endOwner[1];
+		splitEnd.blockZ = endOwner[2];
+		splitEnd.direction = SRBXRailBoundary.direction(
+			[x, y, z],
+			horizontal.firstEndYaw,
+		);
 		splitEnd.anchorYaw = horizontal.firstEndYaw;
 		splitEnd.anchorPitch = -pitch;
 		splitEnd.anchorLengthHorizontal = Math.max(
@@ -802,6 +820,28 @@ export class AppleExtendedRailToolsCompat {
 			AppleExtendedRailCompat.getLogicalPositions(sourceCore);
 		if (!sourcePositions || sourcePositions.length !== 2)
 			return { status: "invalid_source_rail" };
+		if (!AppleExtendedRailCompat.areBoundaryPositions(sourcePositions))
+			return { status: "endpoint_not_on_block_boundary" };
+		if (
+			!request.branchStart ||
+			!request.branchEnd ||
+			!request.branchEnd.position ||
+			!isFinite(request.branchEnd.anchorYaw) ||
+			!isFinite(request.branchEnd.anchorPitch) ||
+			request.branchEnd.position.some((value) => !isFinite(value))
+		)
+			return { status: "invalid_branch_end" };
+		request = {
+			...request,
+			branchEnd: SRBXRailBoundary.normalizePoint(request.branchEnd),
+		};
+		if (
+			!SRBXRailBoundary.isBoundary(
+				request.branchEnd.position,
+				request.branchEnd.anchorYaw,
+			)
+		)
+			return { status: "endpoint_not_on_block_boundary" };
 		const endpoint = request.ratio === 0 || request.ratio === 1;
 		if (
 			(endpoint && request.branchStart.kind !== "rail") ||
@@ -819,6 +859,36 @@ export class AppleExtendedRailToolsCompat {
 			return { status: "invalid_branch_start" };
 		const sourceMap = AppleExtendedRailCompat.getLogicalRailMap(sourceCore);
 		if (!sourceMap) return { status: "invalid_source_rail" };
+		if (!endpoint) {
+			const length = sourceMap.getLength();
+			const boundary = SRBXRailBoundary.findMapBoundary(
+				sourceMap,
+				request.ratio,
+				3 / length,
+				1 - 3 / length,
+			);
+			if (!boundary) return { status: "endpoint_not_on_block_boundary" };
+			const position: RailCorePos = [
+				boundary.position[0],
+				boundary.position[1] -
+					Math.abs(
+						Math.sin(
+							(sourceMap.getCant(
+								100000000,
+								Math.round(boundary.ratio * 100000000),
+							) *
+								Math.PI) /
+								180,
+						) * 1.5,
+					),
+				boundary.position[2],
+			];
+			request = {
+				...request,
+				ratio: boundary.ratio,
+				branchStart: { ...request.branchStart, position },
+			};
+		}
 		const sampleIndex = Math.round(request.ratio * 1000000);
 		const sampled = endpoint
 			? sourcePositions[request.ratio === 0 ? 0 : 1]
@@ -848,6 +918,8 @@ export class AppleExtendedRailToolsCompat {
 			request.branchEnd,
 		);
 		if (!branchEnd) return { status: "invalid_branch_end" };
+		if (!AppleExtendedRailCompat.areBoundaryPositions([branchEnd]))
+			return { status: "endpoint_not_on_block_boundary" };
 		branchEnd.anchorLengthHorizontal = request.branchEnd.anchorLength;
 		branchEnd.anchorLengthVertical =
 			request.branchEnd.anchorLengthVertical === undefined

@@ -7,6 +7,10 @@ import { EntityPlayer } from "net.minecraft.entity.player";
 import { BlockPos } from "net.minecraft.util.math";
 
 export class SRBXApiCompat {
+	static requiresRailBoundarySnap(): boolean {
+		return false;
+	}
+
 	static getLoadedRailCores(
 		world: net.minecraft.world.World,
 		centerX: number,

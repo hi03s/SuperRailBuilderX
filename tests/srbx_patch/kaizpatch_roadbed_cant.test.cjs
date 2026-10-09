@@ -26,6 +26,12 @@ class RailBlock {
 	}
 }
 class RailPosition {
+	constructor(x, y, z, direction) {
+		this.blockX = x;
+		this.blockY = y;
+		this.blockZ = z;
+		this.direction = direction;
+	}
 	static REVISION = Array.from({ length: 8 }, (_, i) => [
 		Math.sin((i * Math.PI) / 4),
 		Math.cos((i * Math.PI) / 4),
@@ -63,6 +69,13 @@ const context = {
 	},
 };
 vm.createContext(context);
+vm.runInContext(
+	fs.readFileSync(
+		"dist/assets/minecraft/scripts/superrailbuilderx/SRBXRailBoundary.js",
+		"utf8",
+	),
+	context,
+);
 const directory =
 	"dist/assets/minecraft/__targets__/kaizpatch/scripts/superrailbuilderx";
 const file = fs
@@ -219,4 +232,143 @@ api.addMissingRoadbed({
 });
 console.log(
 	"KaizPatch roadbed ownership and reversed endpoint cant tests passed",
+);
+
+// Boundary preflight must reject before either rebuilding or touching the world.
+api.canMoveRailPosition = () => true;
+api.isSectionCore = () => false;
+context.Packages.jp.ngt.rtm.rail.TileEntityLargeRailSwitchCore = class {};
+const boundaryPositions = [0, 1].map((i) =>
+	Object.assign(new RailPosition(), {
+		blockX: 0,
+		blockY: 4,
+		blockZ: i * 20,
+		posX: 0.35,
+		posY: 4.0625,
+		posZ: i * 20,
+		anchorYaw: i * 180,
+		direction: i * 4,
+	}),
+);
+api.getEditableRailPositions = () => boundaryPositions;
+api.validateBuilderMovePath = (_, positions) => {
+	assert.equal(positions[0].blockZ, 2);
+	return "ok";
+};
+const movable = { isLogicalRailOccupied: () => false };
+assert.equal(
+	api.validateRailPositionMove(movable, 0, 0.35, 4.0625, 0, 0.35, 4.0625, 2),
+	"ok",
+);
+assert.equal(
+	api.validateRailPositionMove(
+		movable,
+		0,
+		0.35,
+		4.0625,
+		0,
+		0.35,
+		4.0625,
+		2.3,
+	),
+	"endpoint_not_on_block_boundary",
+);
+api.validateBuilderMovePath = () => "ok";
+assert.equal(
+	api.validateRailPositionMove(
+		movable,
+		0,
+		0.35,
+		4.0625,
+		0,
+		0.35,
+		4.0625,
+		2.3,
+		true,
+	),
+	"ok",
+	"Undo must restore pre-existing interior endpoint exactly",
+);
+const railPoint = {
+	kind: "rail",
+	position: [0.35, 4.0625, 0.3],
+	markerPosition: [0, 4, 0],
+	anchorYaw: 0,
+	anchorPitch: 0,
+	anchorLength: 1,
+	core: [0, 4, 0],
+	index: 0,
+};
+const freePoint = {
+	...railPoint,
+	kind: "free",
+	position: [0.35, 4.0625, 20.3],
+};
+assert.equal(
+	api.createBuilderRail({}, {}, railPoint, freePoint).status,
+	"endpoint_not_on_block_boundary",
+	"Existing connections must not be snapped on only one side",
+);
+console.log("KaizPatch boundary validation and restore bypass tests passed");
+
+const angledBoundary = {
+	kind: "free",
+	position: [12, 4.0625, 20.35],
+	markerPosition: [12, 4, 20],
+	ownerBlock: [12, 4, 20],
+	direction: 1,
+	anchorYaw: 45,
+	anchorPitch: 0,
+	anchorLength: 1,
+};
+const freshBoundary = api.createBuilderFreePoint(angledBoundary);
+assert.equal(
+	freshBoundary.direction,
+	2,
+	"A single X face must use native east/west direction even with diagonal tangent",
+);
+assert.equal(
+	freshBoundary.anchorYaw,
+	45,
+	"Native direction adaptation must retain the curve tangent",
+);
+assert.equal(
+	api.createBuilderFreePoint(angledBoundary, true).direction,
+	1,
+	"Undo must retain original direction",
+);
+
+const storedPoint = {
+	...angledBoundary,
+	position: [0.35, 4.0625, 2.3],
+	ownerBlock: [-8, 4, 13],
+	direction: 7,
+};
+api.validateBuilderMovePath = (_, restored) => {
+	assert.deepEqual(
+		Array.from([
+			restored[0].blockX,
+			restored[0].blockY,
+			restored[0].blockZ,
+		]),
+		[-8, 4, 13],
+	);
+	assert.equal(restored[0].direction, 7);
+	return "ok";
+};
+assert.equal(
+	api.validateRailPositionMove(
+		movable,
+		0,
+		0.35,
+		4.0625,
+		0,
+		0.35,
+		4.0625,
+		2.3,
+		true,
+		storedPoint,
+	),
+	"ok",
+	"Endpoint Undo validation must use the stored owner and direction rather than the moved rail's metadata",
 );

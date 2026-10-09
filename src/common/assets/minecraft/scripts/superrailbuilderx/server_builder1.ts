@@ -62,7 +62,9 @@ function processRequest(
 	const segments = SRBXMath.planVerticalRailSegments(
 		request.start,
 		request.end,
+		SRBXApiCompat.requiresRailBoundarySnap(),
 	);
+	if (!segments.length) return "boundary_profile_too_short";
 	segments.sort((a, b) => {
 		const aMinimumY = Math.min(a[0].position[1], a[1].position[1]);
 		const bMinimumY = Math.min(b[0].position[1], b[1].position[1]);

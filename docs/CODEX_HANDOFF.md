@@ -24,7 +24,7 @@
 
 ## 作業中
 
-- なし。
+- ローカルCodex: 境界端点対応の最終差分確認・ZIP検証・同期中。
 
 ## 優先確認事項
 
@@ -36,10 +36,10 @@
 
 ### 共通の走行遷移
 
-- 2026-10-10: AEの自由端点接続で一方向index=0停止と逆方向1 tick約0.22 mの位置補正を確認。接続点はブロック内部で、AEのfloor X/Z→単一道床所有コア→map投影という探索制約と整合。任意精密端点を維持するにはAE側対応が必要。SRBX単独の敷設ミスとは断定せず、座標/所有先/車両の自動変更は行わない。[制作者向け資料](appleextended-free-endpoint-transition-report.md)を参照し、標準マーカー＋offsetの実機対照を追加して対応可否を相談する。
-- KaizPatchX 1.10.4で新旧RailMap往復と位置飛びを確認。位置変更後の5.85585 m区間でも91tick連続で往復し、極短区間は必須条件ではない。新map内で床所有先が新コアに変わると往復が止まる。[Issue #534](https://github.com/Kai-Z-JP/KaizPatchX/issues/534)で制作者はブロック端への端点配置をスクリプト側の責務と回答。KaizはSRBX側の対応設計へ切替。AEの仕様判断は別途確認。[調査資料](kaizpatch-free-endpoint-transition-report.md)。
+- KaizPatch/AEの全6ツールへブロック境界端点・面に応じたdirection/ownerを適用。円弧交点、縦曲線共有点、接続移動とUndoを対応。ビルド/回帰テスト成功、両Modの低速走行実機確認待ち。[実装・検証手順](rail-boundary-endpoints.md)。既存線の自動一括修正はしない。
+- 内側自由端点ではAE停止/位置補正、Kaiz新旧map往復を確認済み。Kaiz [Issue #534](https://github.com/Kai-Z-JP/KaizPatchX/issues/534)は端点のブロック端保証をスクリプト責務と回答。[Kaiz報告](kaizpatch-free-endpoint-transition-report.md)・[AE報告](appleextended-free-endpoint-transition-report.md)。
 - [自由化の導入意図](rail-position-free-endpoint-intent.md): Kaizはチャンク境界上の精密分割点を扱う目的でoffset/setPositionを追加し、導入時からブロック端保証は設定側の責務。AEの導入も座標/保存/描画対応で、任意点走行接続保証は確認できない。
-- [遷移パッチ実現性](free-endpoint-transition-patch-feasibility.md): 描画patch方式ではprivate/staticなJava探索を差替え不可。任意精密端点維持には補助Mod/coremodが有力、追加JARなしなら標準境界への配置が候補。配布形態/仕様判断待ち、実装・パッチ実機試験は未実施。
+- [遷移パッチ実現性](free-endpoint-transition-patch-feasibility.md): Java探索の直接差替えは補助Mod/coremod候補。今回の依頼は追加JARなしの境界端点制約を採用し、任意内側端点の走行保証は対象外。
 - デバッグ車両 `SuperRailBuilderX_TrainDebug` はAE/KaizPatchX 1.10.4の読み込み・走行ログ取得を確認済み。[走行診断](train-debug-vehicle.md)。
 - KaizPatch/AEのSRBX敷設は既存通常道床を保持。標準マーカーは同じ通常道床の所有先を変更する。[道床の比較](roadbed-ownership-investigation.md)。AEログは当初敷設の履歴なし。Kaiz追加ログでは新短区間のadded=0/retained=0と接続セルの旧所有先保持を確認。
 
@@ -66,9 +66,10 @@
 
 ## 次に行うこと
 
-1. AppleExtended v2.5.3で分岐描画patchのBootstrapログとoffsetあり/なし描画を確認する。
-2. レール移動・カント任意点分割・分岐Undoと、AE自動分割レールの生成・分割・分岐・走行・Undoをバックアップ済みワールドで確認する。
-3. 不具合時は機能名・操作順・時刻と`[SuperRailBuilderX`または`[SRBX rail patch]`を含むログを共有する。
+1. KaizPatch/AEで境界端点の接続を新規生成し、デバッグ車両の両方向低速走行・移動・Undoを確認する（rail-boundary-endpoints.md）。
+2. AppleExtended v2.5.3で分岐描画patchのBootstrapログとoffsetあり/なし描画を確認する。
+3. レール移動・カント任意点分割・分岐Undoと、AE自動分割レールの生成・分割・分岐・走行・Undoをバックアップ済みワールドで確認する。
+4. 不具合時は機能名・操作順・時刻と`[SuperRailBuilderX`または`[SRBX rail patch]`を含むログを共有する。
 
 ## 双方向連絡
 

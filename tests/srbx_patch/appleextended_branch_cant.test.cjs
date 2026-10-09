@@ -146,6 +146,8 @@ const context = {
 	},
 };
 vm.createContext(context);
+vm.runInContext(fs.readFileSync("dist/assets/minecraft/scripts/superrailbuilderx/SRBXRailBoundary.js", "utf8"), context);
+if (context.AppleExtendedRailCompat && !context.AppleExtendedRailCompat.areBoundaryPositions) context.AppleExtendedRailCompat.areBoundaryPositions = () => true;
 for (const file of [
 	"AppleExtendedRailProtection.js",
 	"AppleExtendedRailToolsCompat.js",

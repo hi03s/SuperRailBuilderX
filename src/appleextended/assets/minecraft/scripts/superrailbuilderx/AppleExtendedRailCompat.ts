@@ -1,3 +1,4 @@
+import { SRBXRailBoundary } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXRailBoundary";
 import { AppleExtendedRoadbedPlacement } from "./AppleExtendedRoadbedPlacement";
 import { RTMItem } from "jp.ngt.rtm";
 import {
@@ -111,21 +112,18 @@ export class AppleExtendedRailCompat {
 
 	private static createFreePoint(
 		point: AppleExtendedBuilderPoint,
+		preserveOwner = false,
 	): RailPosition {
-		const direction = this.directionFromYaw(point.anchorYaw);
-		const radians = (direction * 45 * Math.PI) / 180;
-		const epsilon = 0.000001;
-		const owner = point.ownerBlock;
+		const direction = preserveOwner
+			? point.direction
+			: SRBXRailBoundary.direction(point.position, point.anchorYaw);
+		const owner =
+			(preserveOwner && point.ownerBlock) ||
+			SRBXRailBoundary.owner(point.position, point.anchorYaw);
 		const result = new RailPosition(
-			owner
-				? Math.floor(owner[0])
-				: Math.floor(point.position[0] + Math.sin(radians) * epsilon),
-			owner
-				? Math.floor(owner[1])
-				: Math.floor(point.position[1] - 1 / 16 + epsilon),
-			owner
-				? Math.floor(owner[2])
-				: Math.floor(point.position[2] + Math.cos(radians) * epsilon),
+			Math.floor(owner[0]),
+			Math.floor(owner[1]),
+			Math.floor(owner[2]),
 			direction,
 			0,
 		);
@@ -170,12 +168,25 @@ export class AppleExtendedRailCompat {
 			Math.abs(source.posZ - point.position[2]) > 0.001
 		)
 			return null;
+		if (
+			!SRBXRailBoundary.isBoundary(
+				[source.posX, source.posY, source.posZ],
+				source.anchorYaw,
+			)
+		)
+			return null;
 		const result = this.cloneRailPosition(source);
-		const neighbor = source.getNeighborBlockPos();
-		result.blockX = neighbor.getX();
-		result.blockY = neighbor.getY();
-		result.blockZ = neighbor.getZ();
-		result.direction = (source.direction + 4) & 7;
+		const owner = SRBXRailBoundary.owner(
+			[source.posX, source.posY, source.posZ],
+			source.anchorYaw + 180,
+		);
+		result.blockX = owner[0];
+		result.blockY = owner[1];
+		result.blockZ = owner[2];
+		result.direction = SRBXRailBoundary.direction(
+			[source.posX, source.posY, source.posZ],
+			source.anchorYaw + 180,
+		);
 		result.anchorYaw = this.normalizeDegrees(source.anchorYaw + 180);
 		result.anchorPitch = -source.anchorPitch;
 		// AE cantEdge is measured in the endpoint heading, reversed above.
@@ -184,13 +195,31 @@ export class AppleExtendedRailCompat {
 		return result;
 	}
 
+	static areBoundaryPositions(positions: {
+		length: number;
+		[index: number]: RailPosition;
+	}): boolean {
+		for (let i = 0; i < positions.length; i++) {
+			const rp = positions[i];
+			if (
+				!SRBXRailBoundary.isBoundary(
+					[rp.posX, rp.posY, rp.posZ],
+					rp.anchorYaw,
+				)
+			)
+				return false;
+		}
+		return true;
+	}
+
 	static resolveBuilderPoint(
 		world: World,
 		point: AppleExtendedBuilderPoint,
+		preserveOwner = false,
 	): RailPosition | null {
 		return point.kind === "rail"
 			? this.resolveRailPoint(world, point)
-			: this.createFreePoint(point);
+			: this.createFreePoint(point, preserveOwner);
 	}
 
 	static propertyFromPlayer(player: EntityPlayer): ResourceStateRail | null {
@@ -602,6 +631,13 @@ export class AppleExtendedRailCompat {
 		if (startStatus !== "ok") return { status: startStatus };
 		const endStatus = this.validatePoint(end);
 		if (endStatus !== "ok") return { status: endStatus };
+		start = SRBXRailBoundary.normalizePoint(start);
+		end = SRBXRailBoundary.normalizePoint(end);
+		if (
+			!SRBXRailBoundary.isBoundary(start.position, start.anchorYaw) ||
+			!SRBXRailBoundary.isBoundary(end.position, end.anchorYaw)
+		)
+			return { status: "endpoint_not_on_block_boundary" };
 		const dx = end.position[0] - start.position[0];
 		const dy = end.position[1] - start.position[1];
 		const dz = end.position[2] - start.position[2];
@@ -642,6 +678,8 @@ export class AppleExtendedRailCompat {
 				? this.resolveRailPoint(world, end)
 				: this.createFreePoint(end);
 		if (!startRP || !endRP) return { status: "rail_endpoint_changed" };
+		if (!this.areBoundaryPositions([startRP, endRP]))
+			return { status: "endpoint_not_on_block_boundary" };
 
 		const createdProperty = ItemRail.getDefaultProperty();
 		createdProperty.readFromNBT(property.writeToNBT());

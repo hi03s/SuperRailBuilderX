@@ -6,6 +6,10 @@ import { RailPosition } from "jp.ngt.rtm.rail.util";
 import { EntityPlayer } from "net.minecraft.entity.player";
 
 export class SRBXApiCompat {
+	static requiresRailBoundarySnap(): boolean {
+		return false;
+	}
+
 	static getLoadedRailCores(
 		world: net.minecraft.world.World,
 		centerX: number,

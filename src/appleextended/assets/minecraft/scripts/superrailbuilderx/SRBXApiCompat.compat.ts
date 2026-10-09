@@ -1,3 +1,4 @@
+import { SRBXRailBoundary } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXRailBoundary";
 import {
 	TileEntityLargeRailCore,
 	TileEntityLargeRailSwitchCore,
@@ -15,6 +16,10 @@ import { AppleExtendedRailMoveCompat } from "./AppleExtendedRailMoveCompat";
 
 /** AppleExtended v2.5.3 exposes logical-rail APIs and automatic section rails. */
 export class SRBXApiCompat {
+	static requiresRailBoundarySnap(): boolean {
+		return true;
+	}
+
 	private static ghostInvalidated: WeakHashMap<
 		TileEntityLargeRailCore,
 		boolean
@@ -175,7 +180,10 @@ export class SRBXApiCompat {
 		x: number,
 		y: number,
 		z: number,
+		preserveEndpointGeometry = false,
+		restorePoint?: AppleExtendedBuilderPoint,
 	): string {
+		void restorePoint;
 		if (!this.canMoveRailPosition(core)) return "unsupported";
 		if (
 			!isFinite(originalX) ||
@@ -198,6 +206,15 @@ export class SRBXApiCompat {
 		)
 			return "changed";
 		if (!isFinite(x) || !isFinite(y) || !isFinite(z)) return "invalid";
+		if (!preserveEndpointGeometry) {
+			for (let i = 0; i < positions.length; i++) {
+				const rp = positions[i];
+				const position: [number, number, number] =
+					i === index ? [x, y, z] : [rp.posX, rp.posY, rp.posZ];
+				if (!SRBXRailBoundary.isBoundary(position, rp.anchorYaw))
+					return "endpoint_not_on_block_boundary";
+			}
+		}
 		return "ok";
 	}
 
@@ -211,6 +228,8 @@ export class SRBXApiCompat {
 		y: number,
 		z: number,
 		player?: net.minecraft.entity.player.EntityPlayer,
+		preserveEndpointGeometry = false,
+		restorePoint?: AppleExtendedBuilderPoint,
 	): string {
 		AppleExtendedRailMoveCompat.consumeUpdated();
 		const validation = this.validateRailPositionMove(
@@ -222,14 +241,20 @@ export class SRBXApiCompat {
 			x,
 			y,
 			z,
+			preserveEndpointGeometry,
+			restorePoint,
 		);
 		if (validation !== "ok") return validation;
 		const positions = AppleExtendedRailCompat.getLogicalPositions(core);
 		const start = AppleExtendedRailMoveCompat.point(positions[0]);
 		const end = AppleExtendedRailMoveCompat.point(positions[1]);
 		const moved = index === 0 ? start : end;
+		if (preserveEndpointGeometry && restorePoint) {
+			moved.direction = restorePoint.direction;
+			moved.ownerBlock = restorePoint.ownerBlock;
+		}
 		moved.position = [x, y, z];
-		delete moved.ownerBlock;
+		if (!preserveEndpointGeometry || !restorePoint) delete moved.ownerBlock;
 		return AppleExtendedRailMoveCompat.move(
 			core,
 			this.getRailPositionCandidateKey(core),
@@ -238,6 +263,7 @@ export class SRBXApiCompat {
 			start,
 			end,
 			player,
+			preserveEndpointGeometry,
 		);
 	}
 
@@ -249,6 +275,7 @@ export class SRBXApiCompat {
 		start: AppleExtendedBuilderPoint,
 		end: AppleExtendedBuilderPoint,
 		player?: net.minecraft.entity.player.EntityPlayer,
+		preserveEndpointGeometry = false,
 	): string {
 		return AppleExtendedRailMoveCompat.move(
 			core,
@@ -258,6 +285,7 @@ export class SRBXApiCompat {
 			start,
 			end,
 			player,
+			preserveEndpointGeometry,
 		);
 	}
 
@@ -270,6 +298,7 @@ export class SRBXApiCompat {
 		x: number,
 		y: number,
 		z: number,
+		preserveEndpointGeometry = false,
 	): string {
 		return this.validateRailPositionMove(
 			core,
@@ -280,6 +309,7 @@ export class SRBXApiCompat {
 			x,
 			y,
 			z,
+			preserveEndpointGeometry,
 		);
 	}
 
@@ -293,6 +323,7 @@ export class SRBXApiCompat {
 		y: number,
 		z: number,
 		player?: net.minecraft.entity.player.EntityPlayer,
+		preserveEndpointGeometry = false,
 	): string {
 		return this.moveRailPosition(
 			core,
@@ -304,6 +335,7 @@ export class SRBXApiCompat {
 			y,
 			z,
 			player,
+			preserveEndpointGeometry,
 		);
 	}
 
@@ -320,7 +352,9 @@ export class SRBXApiCompat {
 		overwriteForeignRoadbeds?: boolean,
 		propertySourcePoint?: AppleExtendedBuilderPoint,
 		replaceProtectedCoreRoadbedAt?: [number, number, number],
+		preserveEndpointGeometry = false,
 	) {
+		void preserveEndpointGeometry;
 		void additionalProtectedRailKeys;
 		void overwriteForeignRoadbeds;
 		void replaceProtectedCoreRoadbedAt;
