@@ -131,7 +131,7 @@
 
 ## 直近の完了
 
-- 2026-10-10 ローカルCodex: Kaiz Issue #534の端点配置責務を反映し、SRBXからの遷移補正は補助Mod/coremodが有力と整理。資料更新のみ、実装・実機パッチ試験なし。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)。
+- 2026-10-10 ローカルCodex: Kaiz Issue #534の端点配置責務を反映し、SRBXからの遷移補正は補助Mod/coremodが有力と整理。資料更新のみ、実装・実機パッチ試験なし。調査`fe3218e`をorigin/mainへpush済み。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 ## 関連資料
 

@@ -207,3 +207,4 @@
 - 現行ScriptEngine.evalの描画関数差替え、専用車両onUpdateの読取り範囲、実Kaiz JARのprivate getRail/resetRailObj・final/static resolver・controller/setBogieを確認。既存描画方式ではJava探索を直接差替え不可。パック単独の台車/controller置換は広い車両処理互換性が未成立。探索hook用の別途coremodが有力で、追加JARなしなら標準境界配置による自由端点制限が候補。
 - docs/free-endpoint-transition-patch-feasibility.mdに対象別のhook案、候補比較、台車単位のmap保持/実端点越え/残距離/分岐経路の設計条件を記録。床所有先の動的変更や毎tickのフィールド補正は汎用対処に採用しない。配布形態・対象限定方法・仕様判断待ち。
 - 実施: Issue本文/制作者コメントの一次情報確認、既存TS/実Java bytecodeの照合、資料/リンク/差分確認。未実施: 実装、クラス変換、台車差替え、全実機パッチ試験。コード/rtm-ts/Mod/ワールドは未変更、資料のみにつきビルド/テスト再実行なし。
+- 同期: 実現性調査コミット `fe3218e` をorigin/mainへpush済み。同期結果を引継ぎ帳へ記録。
