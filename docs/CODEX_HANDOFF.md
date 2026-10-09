@@ -130,7 +130,7 @@
 
 ## 直近の完了
 
-- 2026-10-10 ローカルCodex: AEに続きKaizPatchX 1.10.4のRailMap往復/位置飛びをログと実JARで照合し、制作者向け相談文と匿名化抜粋を作成。コード変更なし。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)。
+- 2026-10-10 ローカルCodex: AEに続きKaizPatchX 1.10.4のRailMap往復/位置飛びをログと実JARで照合し、制作者向け相談文と匿名化抜粋を作成。コード変更なし。調査`aec3501`をorigin/mainへpush済み。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 ## 関連資料
 

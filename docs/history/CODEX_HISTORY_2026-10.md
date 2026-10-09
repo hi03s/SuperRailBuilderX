@@ -191,3 +191,4 @@
 - 実インストールJARを読取専用で調査キャッシュへコピーし、javapでEntityBogie/RailTransitionResolverを確認。findCrossedConnectedCore→床探索getRailFromCoordinates→keepCurrentSectionCoreの探索順と、別論理グループでは現在コアを保持しないことが往復の説明に整合。resetRailObjのcanConnectとfindConnectedEntryIndex/map投影も照合。これはAEの端点探索なしとは異なる1.10.4の挙動で、Kaiz制作者への対応可否相談資料をdocs/kaizpatch-free-endpoint-transition-report.mdに準備。作者への送信はしていない。
 - SRBX自由端点/極短自動分割が再現条件だが、特定敷設ミスとは確認できず、Mod側サポート範囲も未確定。既存精密線形、道床所有先、車両、rtm-ts、Modを自動変更しない。関連ログ54行をlogs/kaizpatch-104-transition-oscillation-20261010.logへ抜粋し、原本を.gitignoreへ追加。ユーザー所有gui_base.xcfは保持・未追加。
 - 実施: 全tick/座標/単tick変位計算、生成/床所有ログと実JAR探索順の照合、ログ匿名化/差分確認。提出実機ログによりKaizのモデル読み込みと台車診断取得も確認。未実施: SRBX非経由の同配置対照、境界接続比較、修正版での再走行。ソース変更なしのためビルド/テスト再実行なし。
+- 同期: 調査コミット `aec3501` をorigin/mainへpush済み。同期結果を引継ぎ帳へ記録。
