@@ -163,3 +163,4 @@
 - 検証済み: pnpm zip（全4target、警告0）、test:train-debug、test:appleextended（11件）、test:kaizpatch、test:input、test:rail-patch、test:runtime-dispatch、対象Prettier/diff check。新規テストは台車生成API未使用、実追従フィールド、ログ頻度・履歴上限、前台車欠落時の後台車番号、クライアント除外、例外抑制/復帰、モデル参照を検証。
 - ZIP再梱包は100ファイル。開発者の未追跡gui_base.xcfはソースに保持し、配布用distコピーだけ除外。公開済みRelease/タグは変更しない。
 - 未実施: Minecraft実機のモデル表示/設置/運転、KaizPatch/AEで接続部双方向低速走行。docs/train-debug-vehicle.mdの手順でlogs/latest.logを再提出する。
+- 同期: 実装コミット `652be14` をorigin/mainへpush済み。コミット記録を引継ぎ帳へ反映して文書同期する。
