@@ -151,3 +151,4 @@
 - 独立したネイティブマーカー比較とKaiz実装/新規VM回帰をサブエージェントへ委譲し、親がAE実装・統合・差分確認。一次ソース/JARでは両環境とも同じ通常道床を再配置して所有先を新コアへ更新し、別種類のレールブロックは道床工程で保持。prepareBaseBlocksの地形コピーも既存道床は保持。Creativeはnative canPlaceRailの障害物拒否を迂回するため旧資料を訂正。調査詳細/根拠/比較手順はdocs/roadbed-ownership-investigation.md。
 - 実行済み: pnpm zip（全4ターゲット・警告0）、test:appleextended 11スイート/test:kaizpatch/test:input/test:rail-patch/test:runtime-dispatch計15スイート、変更ソース/テスト整形確認、git diff --check。実機未実施。低速片方向引っかかりと所有先上書きの因果は未確定で、新規敷設の生成順・双方向低速/通常速度・標準マーカー対照・移動/Undoを比較しlogs/latest.log提出を依頼。
 - rtm-ts/参照toolkit/Mod本体/標準マーカー/公開Releaseは変更しない。ユーザーXCFを保持し、リリースタグ作成/Publishは実行しない。
+- 修正コミットab806d8をorigin/mainへpush済み、HEAD/origin差分0/0。引継ぎ帳へ同期結果を反映。
