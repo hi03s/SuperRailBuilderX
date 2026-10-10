@@ -298,3 +298,4 @@
 - 検証済み: pnpm build全4ターゲット（warningなし）、rail-patch/runtime-dispatch回帰、対象TSのPrettier/diff --check。生成JSのrenderToolGuiをローカル模擬GL状態で実行し、初期霧ON/OFF各ケースと描画例外時も色描画中の霧OFF・終了時の元霧/texture unit/属性/行列復元を確認。これは実GPUの画像検証ではない。
 - 更新SuperRailBuilderX-0.2.0-builder1-gui.zipは102ファイル、霧無効化/診断ログを確認。不要debug JSON/ユーザーgui_base.xcfは非同梱。main ZIPと両SRBXPatch JARは維持。ユーザーの画像/xcfは未追跡のまま保持し、Gitへ追加しない。
 - 未実施: 修正後Minecraft実機の昼/夕方GUI色・文字・透明部分、ツール終了後のワールド描画。更新ZIPへ置換し確認、再発時は画像とlogs/latest.log（fog isolatedを含む）を提出する手順をdocs/builder1.mdへ追記。
+- 同期: 修正1cdd292をorigin/feature/builder1-guiへpush成功。更新GUI ZIP SHA256 791d5792a383d22fa6bf971402f85d13817acbcb29eb7d7a5511d038a568ea81。

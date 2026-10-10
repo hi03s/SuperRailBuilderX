@@ -103,7 +103,7 @@
 
 ## 直近の完了
 
-- 2026-10-10 ローカルCodex: GUI空色症状に対しワールド霧を隔離、初回診断ログを追加。全4build/描画関連回帰/整形/状態復元検証成功、更新GUI ZIP生成。実機再確認待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。同期結果はコミット後に記載。
+- 2026-10-10 ローカルCodex: GUI空色症状に対しワールド霧を隔離、初回診断ログを追加。全4build/描画関連回帰/整形/状態復元検証成功、更新GUI ZIP生成。実機再確認待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。修正[1cdd292](https://github.com/hi03s/SuperRailBuilderX/commit/1cdd292)をorigin/feature/builder1-guiへpush済み。
 
 ## 関連資料
 
