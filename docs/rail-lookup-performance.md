@@ -1,10 +1,10 @@
 # 台車のレール探索と軽量化比較
 
-対象: `feature/kaizpatch-free-endpoint-mod` / KaizPatchX v1.10.4。調査日: 2026-10-10。
+対象: main（旧専用ブランチの試作を統合） / KaizPatchX v1.10.4。調査日: 2026-10-10。
 
 ## 既存実装の役割
 
-SRBXModは`EntityBogie#getRail(DDD)`先頭にサーバー限定hookを追加する。元の探索コードを削除しない。
+SRBXPatchは`EntityBogie#getRail(DDD)`先頭にサーバー限定hookを追加する。元の探索コードを削除しない。
 
 1. 台車のcurrentRailObj/currentRailMap・split/prevPosIndexと移動予測座標を読む。
 2. コア/tileとmapの存続を検証する。自由端点付近だけ、端点の接線平面に対して予測位置が内側か判定する。

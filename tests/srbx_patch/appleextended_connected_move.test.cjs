@@ -119,7 +119,21 @@ const context = {
 	},
 };
 vm.createContext(context);
-vm.runInContext(fs.readFileSync("dist/assets/minecraft/scripts/superrailbuilderx/SRBXRailBoundary.js", "utf8"), context);
+vm.runInContext(
+	fs.readFileSync(
+		"dist/assets/minecraft/scripts/superrailbuilderx/SRBXRailBoundary.js",
+		"utf8",
+	),
+	context,
+);
+vm.runInContext(
+	fs.readFileSync(
+		"dist/assets/minecraft/scripts/superrailbuilderx/SRBXFreeEndpointPolicy.js",
+		"utf8",
+	),
+	context,
+);
+
 const dir =
 	"dist/assets/minecraft/__targets__/appleextended/scripts/superrailbuilderx/";
 for (const name of ["AppleExtendedRailCompat", "AppleExtendedRailMoveCompat"])

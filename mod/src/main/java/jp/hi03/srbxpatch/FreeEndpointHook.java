@@ -1,4 +1,4 @@
-package jp.hi03.srbxmod;
+package jp.hi03.srbxpatch;
 
 import java.lang.reflect.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -81,7 +81,7 @@ public final class FreeEndpointHook {
         } catch (ReflectiveOperationException | RuntimeException error) {
             healthy = false;
             if (warned.compareAndSet(false, true))
-                System.err.println("[SRBXMod] hook unavailable; delegating to KaizPatch: " + error);
+                System.err.println("[SRBXPatch] hook unavailable; delegating to KaizPatch: " + error);
             return null;
         }
     }

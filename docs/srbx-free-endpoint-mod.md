@@ -1,63 +1,55 @@
-# SRBXMod: KaizPatch完全自由点の実験ブランチ
+# SRBXPatch: 自由端点接続の暫定サーバーパッチ
 
-対象: Minecraft 1.7.10 / Forge 10.13.4.1614 / KaizPatchX 1.10.4。
-ブランチ: `feature/kaizpatch-free-endpoint-mod`。AEの走行パッチは保留。
+mainはKaizPatch/AEとも完全自由点仕様を使用する。生成・複線・分割・移動・カント整形・分岐生成で端点をブロック境界へ丸めない。本家の走行接続対応まで、SRBXパックと独立したSRBXPatchを併用する。
 
 ## 配布と導入
 
-[検証済みビルド 3e889f2](https://github.com/hi03s/SuperRailBuilderX/actions/runs/38031947718)の[Artifacts](https://github.com/hi03s/SuperRailBuilderX/actions/runs/38031947718/artifacts/11662501365)から、内包JARとクライアント用ZIPを取得できる（Actionsの保存期限まで）。Releaseは作成していない。
+| 環境 | パッチMod |
+| --- | --- |
+| Minecraft 1.7.10 / KaizPatchX 1.10.4 | `SRBXPatch-v1.0-1.7.10.jar` |
+| Minecraft 1.12.2 / AppleExtended 2.5.3 | `SRBXPatch-v1.0-1.12.2.jar` |
 
-`SRBXMod-0.1.0-experimental.jar`はサーバーcoremodとSRBXモデルパックを内包する。
-サーバーのmodsへ導入する。既存SRBXパックと同時導入しない。
-クライアントにSRBXModのJavaパッチは必須ではない（FMLの`acceptableRemoteVersions="*"`、独自パケットなし）。
-描画・ツール操作にはクライアント側にも同版のSRBXモデルパック資産が必要。JavaパッチなしのZIPは`pnpm zip`で生成できる。
-シングルプレイでは統合サーバー側だけが補正される。
+対象JARをサーバーの`mods`へ入れ、SRBXモデルパックZIPを従来どおりサーバーとクライアントへ別途導入する。JARにはパック資産を含めない。旧試作`SRBXMod-0.1.0-experimental.jar`を置き換え、パックを重複配置しない。
 
-## 仕組みとCrossTie互換性
+Javaパッチはサーバーワールドだけで動作し、独自通信は追加しない。クライアントへのJAR導入を必須にしない設計（`acceptableRemoteVersions="*"`）。シングルプレイは統合サーバーがあるため、そのMinecraftへJARを導入する。JARなしクライアントの接続と実機走行は未検証。
 
-探索の役割、Direction方式との比較、採用した軽量化は[台車探索の比較](rail-lookup-performance.md)を参照する。
+通常RTM向けmc1710/mc1122は変更しない。KaizPatch/AE向けはサーバーでパッチの有効化を確認できない場合、生成・移動・分割・カント・分岐の書き込みを`srbxpatch_required`で拒否する。既存線を自動変換しない。
 
-`EntityBogie.getRail(DDD)`の先頭へ小さなhookを追加する。現在コアとmapが存続し、予測位置が現在mapの端点内側・線形近傍にある場合だけ現在コアを維持する。
-端点を越えた場合はKaizPatchの`findCrossedConnectedCore`・分岐選択・セクション接続・`resetRailObj`へ戻す。道床所有先、台車フィールド、パケット、コントローラーを上書きしない。
-削除・再生成済みmap、未ロードコア、遠い線形、異なる高さ、非有限座標、未対応バイトコードでは標準処理へ戻る。
+## 仕組みと制限
 
-CrossTie commit `cf3ce92`を調査した。`EntityBogieChunkCacheMixin`のloadChunk redirect、`EntityBogiePhysicsMixin`のジョイント音、`RailTransitionSearchRangeMixin`の探索範囲overwriteを削除・置換しない。
-元getRail全体と既存stack-map frameを保持し、専用の早期returnだけ追加する。CrossTie同時導入の実機検証は別途必要。
+`EntityBogie.getRail(DDD)`先頭へhookを加え、元の命令・呼び出し・stack-map frameを保持する。クライアント、未対応バイトコード、不正状態、曖昧な候補は標準処理へ戻す。反射情報だけをクラス単位でキャッシュし、world/core/map/台車はキャッシュしない。
 
-SRBXのKaizPatch側だけ自由点ポリシーを使い、端点・分割点を境界へ丸めない。AEの境界制約は維持する。
-サーバーでhook有効化を確認できない場合は自由点の生成・移動・分割・カント・分岐適用を`srbxmod_required`で拒否する。
-既存ワールドの端点を一括変換しない。
+- KaizPatch: 生存する現在mapの端点内側・線形近傍では現在コアを保持し、旧道床への誤復帰を抑える。端点越えはnativeの接続探索・分岐選択・セクション接続・resetRailObjへ委譲する。CrossTieが対象とするcallsiteを保持するが、併用実機確認は必要。
+- AE: 現在mapの内側では現在コアを保持する。端点越え後はロード済み周辺道床から候補を探し、精密端点（XZ差1 mm以内/Y差3 cm以内）、進行方向、予測位置、分岐の選択中経路を検証する。遷移自体は既存resetRailObjへ返し、残りの移動予測を標準処理へ渡す。
 
-## ビルド
+削除/再生成済みmap、未ロードコア、前回サンプルから離れた台車、不正な高さ・座標を対象にしない。同一セルのコア競合、複数の極短区間を1 Tickで越える場合は保証しない。Kaizのnative探索で発見できない配置、AEの周辺探索範囲に次コアの道床がない配置も対象外。実機走行に基づく判定条件調整が必要。
+
+## ビルドと検証
 
 ```sh
 pnpm install --frozen-lockfile
 pnpm gen
 pnpm build
-python3 mod/build.py --test
-pnpm zip
+python3 mod/build.py --target all --test
+pnpm exec rtmx zip
 ```
 
-`.npmrc`のgradle-java-homeを実在するJDKへ設定するか、`npm_config_gradle_java_home`で上書きする。
-Javaパッチだけの検証は`python3 mod/build.py --core-only --test`。core-only JARにはSRBX資産がなく、配布用JARとは区別する。
-ビルドはJDKのjavac（なければ固定版ECJ）とSHA-256検証済みForge/LaunchWrapper/ASM依存を使い、Java 8バイトコードを出力する。依存ModのクラスはJARへ同梱しない。
-GitHub Actions `free-endpoint-mod.yml`は対象コードのブランチpushまたは手動実行で全ターゲット生成・ビルド・回帰・内包JAR・クライアントZIPを生成する。
-実KaizPatch JARの変換検証は`python3 mod/build.py --core-only --test --kaizpatch-jar /path/to/KaizPatchX.jar`で行う。
+Gradle用JDKは`.npmrc`または`npm_config_gradle_java_home`で指定する。Javaビルドはjavac（なければ固定版ECJ）とSHA-256検証付きForge/LaunchWrapper/ASM依存を使い、Java 8形式を出力する。依存Modやテストクラスは同梱しない。`--target 1.7.10`/`--target 1.12.2`で片方を選べる。旧`--core-only`は互換引数として受け付けるが、常にパッチのみのJARになる。
 
-## 検証結果（2026-10-10）
+実際の対象JARへの変換検証:
 
-- GitHub Actionsで全4ターゲットの型生成・ビルド、既存回帰テスト一式、Javaパッチの行動/バイトコードテストに成功。内部自由点の許可、境界点のnative direction維持、hookなしの書換拒否を確認。
-- ローカルでは実KaizPatchX v1.10.4のgetRail変換をASM BasicVerifierで検査し、nativeメソッド呼出しの保持を確認済み。
-- 成果物JARのJavaクラスは全てJava8（major52）、FMLCorePlugin manifestあり。Forge/RTM/ASMのクラスとテストクラスは非同梱。クライアントZIPの102ファイルはJAR内資産と内容一致。
-- JAR SHA-256: `2db3255f39d7d51c551729993f43422ebf4273476a9e8253e6621939287df423`。
-- 実際のMinecraft起動・走行、CrossTie同時導入、JavaModなしクライアントの接続は未実施。下記を開発者/ローカルCodexへ引き継ぐ。
+```sh
+python3 mod/build.py --test --kaizpatch-jar /path/to/KaizPatchX.jar --appleextended-jar /path/to/AppleExtended.jar
+```
+
+ローカルでは全4build、スクリプト回帰、両Java挙動テスト、実Kaiz 1.10.4/AE 2.5.3へのASM BasicVerifier検証に成功。Java8形式、資産/依存/テスト非同梱、テストあり/なしビルドの再現性も確認済み。GitHub Actionsはmain/専用ブランチpushでZIPと2 JARを生成し、タグのworkflowは3ファイルをDraftへ添付する。Publishは手動。
 
 ## 実機確認
 
-1. バックアップ済みワールドでSRBXからブロック内側の共有端点を作り、座標が境界へ丸められないことを確認する。
-2. 起動ログの`[SRBXMod] KaizPatch EntityBogie hook installed`を確認する。
-3. 旧道床を共有する自由点を両方向に微速で通過し、旧mapへの往復が止まることをデバッグ車両ログで確認する。
-4. 停止・後退、0.20m/5.86m区間、曲線、勾配、カント、分岐切替、交差、複数列車、再ログイン・チャンク再読込、移動・分割・Undoを確認する。
-5. CrossTieなし/ありを比較する。サーバーのみModを入れ、クライアントはモデルパックZIPだけで接続・走行・ツールを確認する。
+1. バックアップ済みワールドで新版ZIPと対象JARを導入し、起動ログの`[SRBXPatch]`とhook installedを確認する。
+2. ブロック内側の共有端点を作り、座標が境界へ丸められないこと、全6ツールの適用/Undoを確認する。
+3. 通常車両で旧道床を共有する接続を両方向から微速通過し、停止/引き戻し/瞬間的加速がないか確認する。
+4. 停止/後退、短区間、曲線、勾配、カント、分岐切替、複数車両、再ログイン、チャンク再読込を確認する。
+5. KaizではCrossTieなし/ありを比較する。サーバーだけJAR、クライアントはZIPだけの接続と操作も確認する。
 
-このパッチは現在mapへの誤った戻りを抑える。KaizPatchが接続先自体を見つけられない配置、同ブロック内でのコア配置競合、複数の極短区間を一tickで越える問題まで保証するものではない。実機ログを基に追加対応する。
+問題時は操作順、時刻、方向、接続座標とlogs/latest.log（Kaizはlogs/fml-client-latest.log）、専用サーバーログを共有する。デバッグ車両の登録JSONは除去済みで、モデル/テクスチャ/診断スクリプトは再利用用に残している。

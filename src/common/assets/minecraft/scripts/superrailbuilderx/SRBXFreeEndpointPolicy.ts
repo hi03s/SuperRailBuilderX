@@ -1,7 +1,7 @@
-import { SRBXRailBoundary } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXRailBoundary";
+import { SRBXRailBoundary } from "./SRBXRailBoundary";
 import { RailMap } from "jp.ngt.rtm.rail.util";
 
-/** KaizPatch experimental branch only. AE keeps its block-boundary policy. */
+/** Precise endpoints for KaizPatch and AE; server writes require SRBXPatch. */
 export class SRBXFreeEndpointPolicy {
 	static isBoundary(
 		position: [number, number, number],

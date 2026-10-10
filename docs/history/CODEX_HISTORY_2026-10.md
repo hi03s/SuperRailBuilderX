@@ -255,3 +255,15 @@
 - Java回帰で2サンプル、中央早期除外、非線形mapの全照合fallbackと従来ケースを検証。資料はrail-lookup-performance.md。実機TPS測定は未実施。
 
 - 採用版`3e889f29227d064e1001dfafc3ce57461241f6d3`を専用ブランチへpush済み。Actions #38031947718成功（生成型cache利用、全4build/回帰、Javaテスト、JAR/ZIP生成）。実KaizPatchX v1.10.4のBasicVerifier/native呼出し保持も再確認。Artifacts #11662501365のJava8/依存・テスト・試作非同梱/資産一致を検証。新JAR SHA256: 2db3255f39d7d51c551729993f43422ebf4273476a9e8253e6621939287df423。実機の走行/TPS/CrossTie併用は未検証。
+
+## 2026-10-10 ローカルCodex: 自由点へ統一、SRBXPatchを分離して両版生成
+
+- Web側feature/kaizpatch-free-endpoint-modの最新462fdb1までを確認し、mainへfast-forward統合。開発者の新方針に従い、Kaiz/AE全6ツールから境界スナップ制約を外した。共有自由点ポリシーは精密座標と分割比率を維持し、実際の境界上ではnative direction/ownerを維持する。接続移動/Undoの所有座標復元も保持。
+- SRBXModをjp.hi03.srbxpatch/SRBXPatch（Mod版1.0）へ改名し、Javaパッチとモデルパックを分離。rtmxのパック名は通常名SuperRailBuilderX-0.2.0へ戻した。両版ともサーバー限定・独自通信なし・クライアントJAR必須にしない設計。パッチ有効化を確認できないサーバーのツール書き込みはsrbxpatch_requiredで拒否。
+- KaizはWeb側の現map保持/軽量化とnative接続探索を維持。AEは現map保持、端点越え後のロード済み周辺道床探索を追加。精密端点、高さ、進行方向、現在位置/前回sample、分岐active経路、生存状態を検証し、候補競合や非対応条件はnativeへ戻す。変換は既存命令/frames/callsiteを保持。クラス単位の反射キャッシュだけを使用。
+- デバッグ車両の登録JSONのみ除去。MQO/テクスチャ/診断スクリプトは保存。ユーザーの未追跡gui_base.xcfはソースから削除せず、今回の配布ZIPへ混入させないため生成コピーだけ除外。
+- 検証済み: pnpm build全4ターゲット（warningなし）、rail-patch/runtime-dispatch/appleextended/input/kaizpatch/rail-boundary/free-endpoint/train-debug回帰全成功。変更TS/CJSのPrettier確認成功。workflow YAMLを構文解析し、diff --check成功。全体format:checkは既知の未変更ファイルの違反があるため完了扱いにしない。
+- Java: 両版の挙動テスト、実KaizPatchX 1.10.4/AE 2.5.3へのASM BasicVerifier/native call保持検証に成功。異常bytecode無効化・冪等変換・client除外・切断/高低差/再生成map・AE逆方向/active分岐/競合/stale位置を確認。Java8 major52、資産/依存/テスト非同梱、テストあり/なし出力一致を検証。
+- 成果物: SRBXPatch-v1.0-1.7.10.jar SHA256 f6490d1acad0b948b96bd4e20d2ac86e4ba05bf6e12cd1886338f4a67099a886、SRBXPatch-v1.0-1.12.2.jar SHA256 1e523739f9eba6c776512de7f2c43344c256331cd142c4c7d6d782ec2bc51f55。SuperRailBuilderX-0.2.0.zipは101ファイル、include参照欠落なし、JSON除去/再利用資産保持を確認。ZIP SHA256 438859bacd644cd7cf5aa236a2b1f666cddd263972d11039679434ee203dacb1。
+- CIはmain/専用ブランチで独立ZIP＋2 JARを生成。タグworkflowも3配布物をDraftへ添付し、既存公開Release変更拒否と手動Publishを維持。今回はタグ/Release/Publishを実行しない。rtm-ts/共有ツールキットは変更しない。
+- 未実施: Minecraft起動/両方向低速走行、CrossTie併用、JARなしクライアント接続、実機全ツール/Undo。通常車両での確認手順とログ提出先をdocs/srbx-free-endpoint-mod.mdへ記載。同セルコア競合、複数極短区間の1 Tick通過、Kaiz nativeが見つけられない配置、AE周辺探索範囲外の候補は保証外。

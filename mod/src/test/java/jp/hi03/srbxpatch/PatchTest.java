@@ -1,4 +1,4 @@
-package jp.hi03.srbxmod;
+package jp.hi03.srbxpatch;
 
 import java.lang.reflect.Method;
 import org.objectweb.asm.*;
@@ -89,7 +89,7 @@ public final class PatchTest {
         verifyLookupWork();
         verifyTransformer();
         if (args.length > 0) verifyRealJar(args[0]);
-        System.out.println("SRBXMod behavioral and bytecode tests passed");
+        System.out.println("SRBXPatch behavioral and bytecode tests passed");
     }
     private static void verifyLookupWork() {
         Bogie middle=new Bogie();middle.prevPosIndex=1800;middle.posZ=5.2;
@@ -138,11 +138,11 @@ public final class PatchTest {
     private static void verifyTransformer() throws Exception {
         Loader l = new Loader();
         String coreName = "jp.ngt.rtm.rail.TileEntityLargeRailCore";
-        Class<?> coreType = l.define(coreName, type(coreName.replace('.', '/'), "jp/hi03/srbxmod/PatchTest$Core", false, false));
+        Class<?> coreType = l.define(coreName, type(coreName.replace('.', '/'), "jp/hi03/srbxpatch/PatchTest$Core", false, false));
         String resolver = "jp.kaiz.kaizpatch.rtm.rail.util.RailTransitionResolver";
         l.define(resolver, type(resolver.replace('.', '/'), "java/lang/Object", false, true));
         String name = "jp.ngt.rtm.entity.train.EntityBogie";
-        byte[] original = type(name.replace('.', '/'), "jp/hi03/srbxmod/PatchTest$Bogie", true, false);
+        byte[] original = type(name.replace('.', '/'), "jp/hi03/srbxpatch/PatchTest$Bogie", true, false);
         BogieTransformer t = new BogieTransformer();
         byte[] patched = t.transform(name, name, original);
         expect(java.util.Arrays.equals(patched, t.transform(name,name,patched)), "idempotence");
@@ -184,7 +184,7 @@ public final class PatchTest {
         java.util.List<String> calls = new java.util.ArrayList<String>();
         for (AbstractInsnNode i = method.instructions.getFirst(); i != null; i=i.getNext()) if(i instanceof MethodInsnNode) {
             MethodInsnNode c=(MethodInsnNode)i;
-            if (!c.owner.equals("jp/hi03/srbxmod/FreeEndpointHook")) calls.add(c.owner+"."+c.name+c.desc);
+            if (!c.owner.equals("jp/hi03/srbxpatch/FreeEndpointHook")) calls.add(c.owner+"."+c.name+c.desc);
         }
         return calls;
     }

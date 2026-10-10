@@ -1,4 +1,4 @@
-import { SRBXRailBoundary } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXRailBoundary";
+import { SRBXFreeEndpointPolicy as SRBXRailBoundary } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXFreeEndpointPolicy";
 import {
 	TileEntityLargeRailCore,
 	TileEntityLargeRailSwitchCore,
@@ -17,7 +17,31 @@ import { AppleExtendedRailMoveCompat } from "./AppleExtendedRailMoveCompat";
 /** AppleExtended v2.5.3 exposes logical-rail APIs and automatic section rails. */
 export class SRBXApiCompat {
 	static requiresRailBoundarySnap(): boolean {
-		return true;
+		return false;
+	}
+
+	/** Clients need only the separate model pack; Java capability is checked on writes. */
+	private static hasFreeEndpointPatch(): boolean {
+		try {
+			const type = java.lang.Class.forName("jp.hi03.srbxpatch.SRBXPatch");
+			const classes = java.lang.reflect.Array.newInstance(
+				java.lang.Class.class,
+				0,
+			);
+			const args = java.lang.reflect.Array.newInstance(
+				java.lang.Class.forName("java.lang.Object"),
+				0,
+			);
+			return (
+				String(
+					type
+						.getMethod("isFreeEndpointEnabled", classes)
+						.invoke(null, args),
+				) === "true"
+			);
+		} catch (error) {
+			return false;
+		}
 	}
 
 	private static ghostInvalidated: WeakHashMap<
@@ -183,6 +207,7 @@ export class SRBXApiCompat {
 		preserveEndpointGeometry = false,
 		restorePoint?: AppleExtendedBuilderPoint,
 	): string {
+		if (!this.hasFreeEndpointPatch()) return "srbxpatch_required";
 		void restorePoint;
 		if (!this.canMoveRailPosition(core)) return "unsupported";
 		if (
@@ -277,6 +302,7 @@ export class SRBXApiCompat {
 		player?: net.minecraft.entity.player.EntityPlayer,
 		preserveEndpointGeometry = false,
 	): string {
+		if (!this.hasFreeEndpointPatch()) return "srbxpatch_required";
 		return AppleExtendedRailMoveCompat.move(
 			core,
 			expectedKey,
@@ -354,6 +380,8 @@ export class SRBXApiCompat {
 		replaceProtectedCoreRoadbedAt?: [number, number, number],
 		preserveEndpointGeometry = false,
 	) {
+		if (!this.hasFreeEndpointPatch())
+			return { status: "srbxpatch_required" };
 		void preserveEndpointGeometry;
 		void additionalProtectedRailKeys;
 		void overwriteForeignRoadbeds;
@@ -389,6 +417,8 @@ export class SRBXApiCompat {
 		world: net.minecraft.world.World,
 		targets: unknown[],
 	) {
+		if (!this.hasFreeEndpointPatch())
+			return { status: "srbxpatch_required" };
 		return AppleExtendedRailToolsCompat.applyRailCants(
 			world,
 			targets as Parameters<
@@ -415,6 +445,8 @@ export class SRBXApiCompat {
 		expectedKey: string,
 		ratio: number,
 	) {
+		if (!this.hasFreeEndpointPatch())
+			return { status: "srbxpatch_required" };
 		return AppleExtendedRailToolsCompat.splitBuilderRail(
 			world,
 			player,
@@ -445,6 +477,8 @@ export class SRBXApiCompat {
 		player: net.minecraft.entity.player.EntityPlayer,
 		request: unknown,
 	) {
+		if (!this.hasFreeEndpointPatch())
+			return { status: "srbxpatch_required" };
 		return AppleExtendedRailToolsCompat.createBranchBuilderRail(
 			world,
 			player,

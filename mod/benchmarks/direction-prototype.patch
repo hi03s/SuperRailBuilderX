@@ -1,5 +1,5 @@
---- a/mod/src/main/java/jp/hi03/srbxmod/FreeEndpointHook.java
-+++ b/mod/src/main/java/jp/hi03/srbxmod/FreeEndpointHook.java
+--- a/mod/src/main/java/jp/hi03/srbxpatch/FreeEndpointHook.java
++++ b/mod/src/main/java/jp/hi03/srbxpatch/FreeEndpointHook.java
 @@ -49,9 +49,11 @@
              if (!freeStart && !freeEnd) return null;
              // Test only the nearby endpoint planes. A distant curve may cross its own tangent plane.

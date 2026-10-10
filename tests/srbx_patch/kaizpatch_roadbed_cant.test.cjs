@@ -79,7 +79,10 @@ vm.runInContext(
 const directory =
 	"dist/assets/minecraft/__targets__/kaizpatch/scripts/superrailbuilderx";
 vm.runInContext(
-	fs.readFileSync(path.join(directory, "SRBXFreeEndpointPolicy.js"), "utf8"),
+	fs.readFileSync(
+		"dist/assets/minecraft/scripts/superrailbuilderx/SRBXFreeEndpointPolicy.js",
+		"utf8",
+	),
 	context,
 );
 const file = fs
@@ -243,9 +246,12 @@ context.Packages.jp.ngt.rtm.rail.TileEntityLargeRailSwitchCore = class {};
 assert.equal(api.requiresRailBoundarySnap(), false);
 assert.equal(
 	api.validateRailPositionMove({}, 0, 0, 0, 0, 0, 0, 0),
-	"srbxmod_required",
+	"srbxpatch_required",
 );
-assert.equal(api.createBuilderRail({}, {}, {}, {}).status, "srbxmod_required");
+assert.equal(
+	api.createBuilderRail({}, {}, {}, {}).status,
+	"srbxpatch_required",
+);
 api.hasFreeEndpointPatch = () => true;
 // Interior points are preserved after capability validation.
 api.canMoveRailPosition = () => true;
@@ -321,7 +327,7 @@ const freePoint = {
 api.hasFreeEndpointPatch = () => false;
 assert.equal(
 	api.createBuilderRail({}, {}, railPoint, freePoint).status,
-	"srbxmod_required",
+	"srbxpatch_required",
 	"Missing server hook blocks free-point creation before writes",
 );
 api.hasFreeEndpointPatch = () => true;

@@ -1,5 +1,5 @@
 {
-	"name": "SuperRailBuilderX-free-endpoint-experimental",
+	"name": "SuperRailBuilderX-0.2.0",
 	"outDir": "dist",
 	"commonApiPolicy": "allow",
 	"targets": {

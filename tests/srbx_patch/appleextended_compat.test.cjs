@@ -119,6 +119,14 @@ vm.runInContext(
 	),
 	context,
 );
+vm.runInContext(
+	fs.readFileSync(
+		"dist/assets/minecraft/scripts/superrailbuilderx/SRBXFreeEndpointPolicy.js",
+		"utf8",
+	),
+	context,
+);
+
 if (
 	context.AppleExtendedRailCompat &&
 	!context.AppleExtendedRailCompat.areBoundaryPositions
@@ -140,6 +148,7 @@ load("superrailbuilderx/AppleExtendedRailCompat.js");
 loadCompat("superrailbuilderx", "SRBXApiCompat.");
 const api = Object.values(context.RTMX_COMPAT_TARGETS.appleextended)[0]
 	.SRBXApiCompat;
+api.hasFreeEndpointPatch = () => true;
 const helper = context.AppleExtendedRailCompat;
 // Connecting reverses the endpoint heading; edge cant must reverse with it.
 const savedClone = helper.cloneRailPosition;
@@ -230,15 +239,21 @@ assert.deepStrictEqual(
 	[0, 4, 2],
 );
 faceSource.posX = 1.25;
-assert.strictEqual(
-	helper.resolveBuilderPoint(world, {
-		kind: "rail",
-		core: [1, 4, 2],
-		index: 0,
-		position: [1.25, 4.0625, 2.75],
-	}),
-	null,
-	"legacy interior endpoints are rejected without throwing or moving the source",
+const interiorConnection = helper.resolveBuilderPoint(world, {
+	kind: "rail",
+	core: [1, 4, 2],
+	index: 0,
+	position: [1.25, 4.0625, 2.75],
+});
+assert(interiorConnection, "precise interior endpoints remain connectable");
+assert.deepStrictEqual(
+	[interiorConnection.posX, interiorConnection.posY, interiorConnection.posZ],
+	[1.25, 4.0625, 2.75],
+);
+assert.equal(
+	faceSource.posX,
+	1.25,
+	"resolving an endpoint must not move the source",
 );
 world.func_175625_s = savedTileLookup;
 helper.cloneRailPosition = savedClone;
@@ -598,3 +613,23 @@ assert.strictEqual(undoArgs[4].direction, 7);
 assert.deepStrictEqual(Array.from(undoArgs[4].ownerBlock), [-8, 4, 13]);
 assert.deepStrictEqual(Array.from(undoArgs[4].position), [0.25, 4, 2]);
 console.log("AppleExtended public endpoint Undo preserves owner and direction");
+
+api.hasFreeEndpointPatch = () => false;
+assert.equal(
+	api.createBuilderRail({}, {}, {}, {}).status,
+	"srbxpatch_required",
+);
+assert.equal(
+	api.validateRailPositionMove({}, 0, 0, 0, 0, 0, 0, 0),
+	"srbxpatch_required",
+);
+assert.equal(
+	api.splitBuilderRail({}, {}, [0, 0, 0], "", 0.5).status,
+	"srbxpatch_required",
+);
+assert.equal(api.applyRailCants({}, []).status, "srbxpatch_required");
+assert.equal(
+	api.createBranchBuilderRail({}, {}, {}).status,
+	"srbxpatch_required",
+);
+console.log("AppleExtended separate patch capability guards passed");

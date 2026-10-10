@@ -1,4 +1,4 @@
-package jp.hi03.srbxmod;
+package jp.hi03.srbxpatch;
 
 import java.net.*;
 import java.io.File;
@@ -11,11 +11,11 @@ public final class LookupBenchmark {
         final URL root = new File(args[0]).toURI().toURL();
         URLClassLoader loader = new URLClassLoader(new URL[]{root}, LookupBenchmark.class.getClassLoader()) {
             protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-                if (!name.startsWith("jp.hi03.srbxmod.FreeEndpointHook")) return super.loadClass(name,resolve);
+                if (!name.startsWith("jp.hi03.srbxpatch.FreeEndpointHook")) return super.loadClass(name,resolve);
                 Class<?> c=findLoadedClass(name);if(c==null)c=findClass(name);if(resolve)resolveClass(c);return c;
             }
         };
-        Method old=loader.loadClass("jp.hi03.srbxmod.FreeEndpointHook").getMethod("retainCurrent",Object.class,double.class,double.class,double.class);
+        Method old=loader.loadClass("jp.hi03.srbxpatch.FreeEndpointHook").getMethod("retainCurrent",Object.class,double.class,double.class,double.class);
         Method now=FreeEndpointHook.class.getMethod("retainCurrent",Object.class,double.class,double.class,double.class);
         PatchTest.Bogie b=new PatchTest.Bogie();
         old.invoke(null,b,0.3,4.0625,0.26); int oldSamples=b.currentRailMap.samples;
@@ -32,11 +32,11 @@ public final class LookupBenchmark {
             final URL prototypeRoot=new File(args[1]).toURI().toURL();
             URLClassLoader prototypeLoader=new URLClassLoader(new URL[]{prototypeRoot},LookupBenchmark.class.getClassLoader()) {
                 protected Class<?> loadClass(String name,boolean resolve) throws ClassNotFoundException {
-                    if(!name.startsWith("jp.hi03.srbxmod.FreeEndpointHook"))return super.loadClass(name,resolve);
+                    if(!name.startsWith("jp.hi03.srbxpatch.FreeEndpointHook"))return super.loadClass(name,resolve);
                     Class<?> c=findLoadedClass(name);if(c==null)c=findClass(name);if(resolve)resolveClass(c);return c;
                 }
             };
-            Method prototype=prototypeLoader.loadClass("jp.hi03.srbxmod.FreeEndpointHook").getMethod("retainCurrent",Object.class,double.class,double.class,double.class);
+            Method prototype=prototypeLoader.loadClass("jp.hi03.srbxpatch.FreeEndpointHook").getMethod("retainCurrent",Object.class,double.class,double.class,double.class);
             crossingComparison(old,prototype);
             prototypeLoader.close();
         }

@@ -1,4 +1,4 @@
-package jp.hi03.srbxmod;
+package jp.hi03.srbxpatch;
 
 /** Pure geometry shared by the runtime and regression tests. */
 public final class EndpointGeometry {

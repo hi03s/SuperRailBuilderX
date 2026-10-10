@@ -33,6 +33,8 @@ AppleExtended v2.5.3では、通常・自動分割レールの生成、複線コ
 
 ## 導入方法
 
+開発中のmain版は完全自由点仕様に戻し、KaizPatchX 1.10.4 / AppleExtended 2.5.3で暫定パッチModを併用します。パックZIPは従来どおり導入し、サーバーの`mods`へ`SRBXPatch-v1.0-1.7.10.jar`または`SRBXPatch-v1.0-1.12.2.jar`を別途配置してください。シングルプレイではプレイするMinecraftへJARを導入します。JAR内にパックは含まれません。[導入・実機確認手順](docs/srbx-free-endpoint-mod.md)を参照してください。公開済みv0.2.0は従来の配布内容です。
+
 1. RealTrainModとKaizPatchX、またはAppleExtended v2.5.3を導入します。
 2. [Releases](https://github.com/hi03s/SuperRailBuilderX/releases)から配布パックをダウンロードします。
 3. ダウンロードしたパックをMinecraftの`mods`フォルダーへ入れます。

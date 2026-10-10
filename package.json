@@ -19,6 +19,7 @@
 		"test:input": "node tests/srbx_patch/input_manager.test.cjs",
 		"test:kaizpatch": "node tests/srbx_patch/kaizpatch_roadbed_cant.test.cjs",
 		"test:rail-boundary": "node tests/srbx_patch/rail_boundary.test.cjs",
+		"test:free-endpoint": "node tests/srbx_patch/free_endpoint_policy.test.cjs",
 		"test:train-debug": "node tests/srbx_patch/train_debug.test.cjs"
 	},
 	"dependencies": {

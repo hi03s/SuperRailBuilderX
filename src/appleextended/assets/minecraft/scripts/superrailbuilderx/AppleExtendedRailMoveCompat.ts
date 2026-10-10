@@ -1,4 +1,4 @@
-import { SRBXRailBoundary } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXRailBoundary";
+import { SRBXFreeEndpointPolicy as SRBXRailBoundary } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXFreeEndpointPolicy";
 import {
 	TileEntityLargeRailCore,
 	TileEntityLargeRailSwitchCore,

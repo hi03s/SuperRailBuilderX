@@ -213,22 +213,25 @@ for (const target of ["kaizpatch", "appleextended"]) {
 	assert(logs.length > errorCount);
 	assert.equal(writes, 0);
 }
-const config = JSON.parse(
-	fs.readFileSync(
+assert(
+	!fs.existsSync(
 		"src/common/json/ModelTrain_SuperRailBuilderX_TrainDebug.json",
-		"utf8",
 	),
 );
-assert.equal(config.trainType, "EC");
-assert.equal(config.maxSpeed.length, 5);
-assert.equal(config.useVariableAcceleration, false);
 assert(
-	config.accelerateion > 0.0002,
-	"tractive acceleration must exceed native coasting resistance",
+	!fs.existsSync("dist/json/ModelTrain_SuperRailBuilderX_TrainDebug.json"),
 );
-for (const model of [config.trainModel2, config.bogieModel2])
-	assert(fs.existsSync("dist/assets/minecraft/models/" + model.modelFile));
-assert(fs.existsSync("dist/assets/minecraft/" + config.serverScriptPath));
+const retainedModels = [
+	"superrailbuilderx/train_debug.mqo",
+	"superrailbuilderx/train_debug_bogie.mqo",
+];
+for (const file of retainedModels)
+	assert(fs.existsSync("dist/assets/minecraft/models/" + file));
+assert(
+	fs.existsSync(
+		"dist/assets/minecraft/scripts/superrailbuilderx/server_TrainDebug.js",
+	),
+);
 
 // NGTLib calls MqoModel.init from the superclass constructor, before
 // currentType=-1 is assigned. Its initial mode is 0; a Scene closing brace
@@ -250,24 +253,18 @@ function parsedMaterials(mqo) {
 	}
 	return result;
 }
-for (const model of [config.trainModel2, config.bogieModel2]) {
+for (const modelFile of retainedModels) {
 	const mqo = fs.readFileSync(
-		"dist/assets/minecraft/models/" + model.modelFile,
+		"dist/assets/minecraft/models/" + modelFile,
 		"utf8",
 	);
 	const materials = parsedMaterials(mqo);
 	assert(materials.length > 0, "NGTLib must parse model materials");
-	const textures = new Map(
-		model.textures.map(([name, texture]) => [name, texture]),
+	assert(
+		fs.existsSync(
+			"dist/assets/minecraft/textures/superrailbuilderx/builder1.png",
+		),
 	);
-	for (const material of materials) {
-		const texture = textures.get(material) || textures.get("default");
-		assert(
-			texture,
-			"material must resolve to a non-null texture: " + material,
-		);
-		assert(fs.existsSync("dist/assets/minecraft/" + texture));
-	}
 	const withoutScene = mqo.replace(/Scene \{[\s\S]*?\}\s*/, "");
 	assert.equal(
 		parsedMaterials(withoutScene).length,

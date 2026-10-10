@@ -96,8 +96,32 @@ const context = {
 	},
 };
 vm.createContext(context);
-vm.runInContext(fs.readFileSync("dist/assets/minecraft/scripts/superrailbuilderx/SRBXRailBoundary.js", "utf8"), context);
-if (context.AppleExtendedRailCompat && !context.AppleExtendedRailCompat.areBoundaryPositions) context.AppleExtendedRailCompat.areBoundaryPositions = positions => positions.every(rp => context.SRBXRailBoundary.isBoundary([rp.posX, rp.posY, rp.posZ], rp.anchorYaw === undefined ? 90 : rp.anchorYaw));
+vm.runInContext(
+	fs.readFileSync(
+		"dist/assets/minecraft/scripts/superrailbuilderx/SRBXRailBoundary.js",
+		"utf8",
+	),
+	context,
+);
+vm.runInContext(
+	fs.readFileSync(
+		"dist/assets/minecraft/scripts/superrailbuilderx/SRBXFreeEndpointPolicy.js",
+		"utf8",
+	),
+	context,
+);
+
+if (
+	context.AppleExtendedRailCompat &&
+	!context.AppleExtendedRailCompat.areBoundaryPositions
+)
+	context.AppleExtendedRailCompat.areBoundaryPositions = (positions) =>
+		positions.every((rp) =>
+			context.SRBXFreeEndpointPolicy.isBoundary(
+				[rp.posX, rp.posY, rp.posZ],
+				rp.anchorYaw === undefined ? 90 : rp.anchorYaw,
+			),
+		);
 vm.runInContext(
 	fs.readFileSync(
 		"dist/assets/minecraft/__targets__/appleextended/scripts/superrailbuilderx/AppleExtendedRailMoveCompat.js",
@@ -181,11 +205,27 @@ assert.strictEqual(move(), "rail_changed");
 assert.strictEqual(breaks, 0);
 console.log("AppleExtended logical rail move and rollback tests passed");
 
-// A rejected interior endpoint must not delete any source group. Undo may restore it exactly.
+// The restored free-point policy preserves interior endpoints during apply and Undo.
 reset();
-const interiorMove = (preserve = false) => api.move(current, "source", [1,4,2], [25,4,2], point(2.25), point(26.25), {}, preserve);
-assert.strictEqual(interiorMove(), "endpoint_not_on_block_boundary");
-assert.strictEqual(breaks, 0);
-assert.strictEqual(attempts.length, 0);
+const interiorMove = (preserve = false) =>
+	api.move(
+		current,
+		"source",
+		[1, 4, 2],
+		[25, 4, 2],
+		point(2.25),
+		point(26.25),
+		{},
+		preserve,
+	);
+assert.strictEqual(interiorMove(), "ok");
+assert.deepStrictEqual(attempts[0], [
+	[2.25, 4, 2],
+	[26.25, 4, 2],
+]);
+reset();
 assert.strictEqual(interiorMove(true), "ok");
-assert.deepStrictEqual(attempts[0], [[2.25,4,2],[26.25,4,2]]);
+assert.deepStrictEqual(attempts[0], [
+	[2.25, 4, 2],
+	[26.25, 4, 2],
+]);

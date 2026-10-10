@@ -1,8 +1,8 @@
-name: Build experimental SRBX server mod
+name: Build SRBX pack and temporary patches
 
 on:
     push:
-        branches: [feature/kaizpatch-free-endpoint-mod]
+        branches: [main, feature/kaizpatch-free-endpoint-mod]
         paths:
             [
                 "mod/**",
@@ -38,8 +38,8 @@ jobs:
                   cache-dependency-path: |
                       pnpm-lock.yaml
                       rtmx.json
-            - name: Build and test coremod (Java 8 bytecode)
-              run: python3 mod/build.py --core-only --test
+            - name: Build and test both patch-only JARs (Java 8 bytecode)
+              run: python3 mod/build.py --test
             - uses: actions/cache/restore@v4
               id: generated
               with:
@@ -57,7 +57,7 @@ jobs:
               with:
                   path: generated
                   key: ${{ steps.generated.outputs.cache-primary-key }}
-            - name: Build embedded SRBX model pack
+            - name: Build independent SRBX model pack
               run: pnpm exec rtmx build
             - name: Regression tests
               run: |
@@ -67,15 +67,15 @@ jobs:
                   pnpm test:input
                   pnpm test:kaizpatch
                   pnpm test:rail-boundary
+                  pnpm test:free-endpoint
                   pnpm test:train-debug
             - name: Package client model pack
               run: pnpm exec rtmx zip
-            - name: Package SRBX with server patch
-              run: python3 mod/build.py
             - uses: actions/upload-artifact@v4
               if: always()
               with:
-                  name: SRBXMod-experimental-${{ github.sha }}
+                  name: SRBX-pack-and-patches-${{ github.sha }}
                   path: |
-                      artifacts/SRBXMod-0.1.0-experimental.jar
+                      artifacts/SRBXPatch-v1.0-1.7.10.jar
+                      artifacts/SRBXPatch-v1.0-1.12.2.jar
                       artifacts/*.zip

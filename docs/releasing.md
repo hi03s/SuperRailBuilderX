@@ -1,6 +1,6 @@
 # 正式リリース手順
 
-GitHub Actionsは、`v`から始まるタグがpushされたときだけモデルパックをビルドし、配布ZIPを添付したDraft Releaseを作成します。Releaseの公開は自動化していません。
+GitHub Actionsは、`v`から始まるタグがpushされたときだけモデルパックと両版SRBXPatchをビルドし、ZIPと2 JARを添付したDraft Releaseを作成します。Releaseの公開は自動化していません。
 
 ## リリースする
 
@@ -9,13 +9,13 @@ GitHub Actionsは、`v`から始まるタグがpushされたときだけモデ�
 3. mainのリリース対象コミットへ`vX.Y.Z`形式のタグを付ける。
 4. `git push origin vX.Y.Z`でタグをpushする。
 5. GitHub Actionsの「Build draft release」が成功したことを確認する。
-6. GitHub上でDraft Releaseの本文と添付ZIPを確認し、問題がなければ手動でPublishする。
+6. GitHub上でDraft Releaseの本文と添付ZIP・2 JARを確認し、問題がなければ手動でPublishする。
 
 `release-notes.md`はActionsで自動生成しません。リリース準備のたびに、前回のリリース以降の実装・修正だけが記載されていることを確認してください。
 
 ## 再実行
 
-同じタグのDraft Releaseが存在する場合、workflowは本文とタイトルを更新し、同名のZIPを置き換えます。公開済みReleaseが存在する場合は、安全のため変更せず失敗します。
+同じタグのDraft Releaseが存在する場合、workflowは本文とタイトルを更新し、同名のZIP・2 JARを置き換えます。公開済みReleaseが存在する場合は、安全のため変更せず失敗します。
 
 ## タグを誤ってpushした場合
 
