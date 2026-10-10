@@ -40,10 +40,23 @@ jobs:
                       rtmx.json
             - name: Build and test coremod (Java 8 bytecode)
               run: python3 mod/build.py --core-only --test
+            - uses: actions/cache/restore@v4
+              id: generated
+              with:
+                  path: generated
+                  key: srbx-types-${{ hashFiles('rtmx.json', 'pnpm-lock.yaml') }}
             - name: Install and generate model pack types
+              id: generate
               run: |
                   pnpm install --frozen-lockfile
-                  npm_config_gradle_java_home="$JAVA_HOME" pnpm exec rtmx generate
+                  if [ "${{ steps.generated.outputs.cache-hit }}" != "true" ]; then
+                    npm_config_gradle_java_home="$JAVA_HOME" pnpm exec rtmx generate
+                  fi
+            - uses: actions/cache/save@v4
+              if: steps.generated.outputs.cache-hit != 'true'
+              with:
+                  path: generated
+                  key: ${{ steps.generated.outputs.cache-primary-key }}
             - name: Build embedded SRBX model pack
               run: pnpm exec rtmx build
             - name: Regression tests

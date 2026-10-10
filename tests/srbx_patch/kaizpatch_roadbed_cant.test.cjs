@@ -341,8 +341,8 @@ const angledBoundary = {
 const freshBoundary = api.createBuilderFreePoint(angledBoundary);
 assert.equal(
 	freshBoundary.direction,
-	1,
-	"Free-point policy uses the tangent direction without imposing a block face",
+	2,
+	"Boundary points keep native face direction",
 );
 assert.equal(
 	freshBoundary.anchorYaw,
@@ -355,6 +355,14 @@ assert.equal(
 	"Undo must retain original direction",
 );
 
+assert.equal(
+	api.createBuilderFreePoint({
+		...angledBoundary,
+		position: [12.3, 4.0625, 20.35],
+	}).direction,
+	1,
+	"Interior free points use the tangent direction",
+);
 const storedPoint = {
 	...angledBoundary,
 	position: [0.35, 4.0625, 2.3],

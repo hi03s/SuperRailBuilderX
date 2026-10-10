@@ -15,7 +15,8 @@ export class SRBXFreeEndpointPolicy {
 		return point;
 	}
 	static direction(position: [number, number, number], yaw: number): number {
-		void position;
+		if (SRBXRailBoundary.isBoundary(position, yaw))
+			return SRBXRailBoundary.direction(position, yaw);
 		return Math.round((((yaw % 360) + 360) % 360) / 45) & 7;
 	}
 	static owner(position: [number, number, number], yaw: number) {
