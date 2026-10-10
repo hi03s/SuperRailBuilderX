@@ -253,3 +253,5 @@
 - Direction＋精密XYZの反射直接探索はnative通常探索のJava模擬より118.691ms→170.934msと遅く不採用。実MC/Kotlin/CrossTie/チャンクI/Oの速度ではない。試作はbenchmarksのpatchに限定し配布クラスへ入れない。
 - mod/benchmark.pyで旧実装と試作を.cacheへ展開して再比較できる。採用コードはnative/CrossTieの隣接セル優先・探索範囲・loadChunk・resetRailObjを維持。
 - Java回帰で2サンプル、中央早期除外、非線形mapの全照合fallbackと従来ケースを検証。資料はrail-lookup-performance.md。実機TPS測定は未実施。
+
+- 採用版`3e889f29227d064e1001dfafc3ce57461241f6d3`を専用ブランチへpush済み。Actions #38031947718成功（生成型cache利用、全4build/回帰、Javaテスト、JAR/ZIP生成）。実KaizPatchX v1.10.4のBasicVerifier/native呼出し保持も再確認。Artifacts #11662501365のJava8/依存・テスト・試作非同梱/資産一致を検証。新JAR SHA256: 2db3255f39d7d51c551729993f43422ebf4273476a9e8253e6621939287df423。実機の走行/TPS/CrossTie併用は未検証。

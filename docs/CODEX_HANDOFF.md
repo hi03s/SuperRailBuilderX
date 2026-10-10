@@ -6,7 +6,7 @@
 
 ## 現在の状態
 
-- 実験ブランチ`feature/kaizpatch-free-endpoint-mod`: KaizPatchX 1.10.4専用のサーバーcoremod＋SRBX内包JARとクライアント用ZIPを生成済み。実装`c76801f2a69d4c8f762e2b4ac7a890bffb0dc78c`はGitHubへ同期済み。[Actions #38008868160](https://github.com/hi03s/SuperRailBuilderX/actions/runs/38008868160)で全4build・全回帰・Java単体テスト成功。[導入/実機確認](srbx-free-endpoint-mod.md)。以下のmain側既存状態とは区別する。
+- 実験ブランチ`feature/kaizpatch-free-endpoint-mod`: KaizPatchX 1.10.4専用のサーバーcoremod＋SRBX内包JARとクライアント用ZIPを生成済み。実装`3e889f29227d064e1001dfafc3ce57461241f6d3`はGitHubへ同期済み。[Actions #38031947718](https://github.com/hi03s/SuperRailBuilderX/actions/runs/38031947718)で全4build・全回帰・Java単体テスト成功。[導入/実機確認](srbx-free-endpoint-mod.md)。以下のmain側既存状態とは区別する。
 
 - rtm-ts 0.12.0、`kaizpatch`・`mc1710`・`appleextended`・`mc1122`のmulti-target環境を構築済み。AEは正式版`v2.5.3`基準。JitPack取得が復旧し、未改造rtm-tsの標準手順で全4ターゲットの型生成・ビルド成功。
 - NGTOBuilder2由来のツールキットは `src/common/assets/minecraft/scripts/lib_hi03toolkit_1_0` に置き、参照専用とする。SuperRailBuilderX固有処理は `superrailbuilderx` ディレクトリと `SRBXApiCompat` に実装する。
@@ -26,7 +26,7 @@
 
 ## 作業中
 
-- Web側Codex: 台車探索の比較・軽量化を実装、ビルド検証中。Direction直接探索の反射試作は模擬測定で遅く不採用。端点内側の2サンプル照合と中央の早期除外を採用。[比較結果](rail-lookup-performance.md)。
+- なし。実機確認待ちは下記「優先確認事項」へ。
 
 ## 優先確認事項
 
@@ -95,6 +95,8 @@
 - 2026-10-10 Web側Codex: 完全自由点Modは専用ブランチでビルド完了、実機確認待ち。main/AEの境界ポリシーは変更しない。新規repo・fork・Issue・PR・コメントは禁止（開発者指示）。実機確認は[srbx-free-endpoint-mod.md](srbx-free-endpoint-mod.md)を参照。
 
 ## 直近の完了
+
+- 2026-10-10 Web側Codex: 台車探索を比較し、2サンプル照合＋中央早期除外を採用。遷移先はnative Direction優先探索を維持。実装`3e889f2`を専用ブランチへpush済み、Actions #38031947718で全4build/回帰・内包JAR/ZIP成功。[比較・再現](rail-lookup-performance.md)。
 
 - 2026-10-10 Web側Codex: 完全自由点サーバーMod＋SRBX内包JAR/クライアントZIP生成、全4build/回帰成功。`c76801f`を専用ブランチへpush済み。成果物のJava8/manifest/依存クラス非同梱/102資産の一致も確認。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)・[導入手順](srbx-free-endpoint-mod.md)。
 

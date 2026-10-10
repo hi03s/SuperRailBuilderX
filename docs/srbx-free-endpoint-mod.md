@@ -5,7 +5,7 @@
 
 ## 配布と導入
 
-[検証済みビルド c76801f](https://github.com/hi03s/SuperRailBuilderX/actions/runs/38008868160)の[Artifacts](https://github.com/hi03s/SuperRailBuilderX/actions/runs/38008868160/artifacts/11652378368)から、内包JARとクライアント用ZIPを取得できる（Actionsの保存期限まで）。Releaseは作成していない。
+[検証済みビルド 3e889f2](https://github.com/hi03s/SuperRailBuilderX/actions/runs/38031947718)の[Artifacts](https://github.com/hi03s/SuperRailBuilderX/actions/runs/38031947718/artifacts/11662501365)から、内包JARとクライアント用ZIPを取得できる（Actionsの保存期限まで）。Releaseは作成していない。
 
 `SRBXMod-0.1.0-experimental.jar`はサーバーcoremodとSRBXモデルパックを内包する。
 サーバーのmodsへ導入する。既存SRBXパックと同時導入しない。
@@ -49,7 +49,7 @@ GitHub Actions `free-endpoint-mod.yml`は対象コードのブランチpushま�
 - GitHub Actionsで全4ターゲットの型生成・ビルド、既存回帰テスト一式、Javaパッチの行動/バイトコードテストに成功。内部自由点の許可、境界点のnative direction維持、hookなしの書換拒否を確認。
 - ローカルでは実KaizPatchX v1.10.4のgetRail変換をASM BasicVerifierで検査し、nativeメソッド呼出しの保持を確認済み。
 - 成果物JARのJavaクラスは全てJava8（major52）、FMLCorePlugin manifestあり。Forge/RTM/ASMのクラスとテストクラスは非同梱。クライアントZIPの102ファイルはJAR内資産と内容一致。
-- JAR SHA-256: `941ad37c8d6cfe98d0a038d7120e4e59155604bea144e365423b2740dd9de6dd`。
+- JAR SHA-256: `2db3255f39d7d51c551729993f43422ebf4273476a9e8253e6621939287df423`。
 - 実際のMinecraft起動・走行、CrossTie同時導入、JavaModなしクライアントの接続は未実施。下記を開発者/ローカルCodexへ引き継ぐ。
 
 ## 実機確認

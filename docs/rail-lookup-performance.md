@@ -45,6 +45,8 @@ Direction直接探索は試作比較用patchとして`mod/benchmarks/direction-p
 
 ## 再現と検証
 
+採用版実装`3e889f2`は[Actions #38031947718](https://github.com/hi03s/SuperRailBuilderX/actions/runs/38031947718)で全4ターゲットbuild・全回帰・Java行動/バイトコードテストに成功。内包JARとクライアントZIPを再生成し、Java8・依存/テスト/試作非同梱・資産一致を確認済み。
+
 ```sh
 python3 mod/benchmark.py
 ```
