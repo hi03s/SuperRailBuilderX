@@ -362,3 +362,4 @@
 - 変更TS/テストのPrettierとdiff --check成功。全体format:checkは未変更46ファイルの既存整形警告で失敗し、無関係な整形は実施しない。
 - main ZIPを更新（102ファイル、gui_base.xcf非同梱、生成スクリプトの新モード/表記を確認）。SHA256 9e5bb2ad913b9be9d5a2d65dc969d8075b577b5c2b72b914250f41d3c34e40e9。旧GUI ZIPは過去の検証用であり、今回はartifacts/SuperRailBuilderX-0.2.0.zipを使用する。
 - 未実施: 新規モード/白文字/直線表示の実GPU・実ワールド検証。main ZIPを置換してゲームを再起動し、Pで3種類切替、自由点同士/既設端接続、Ctrl+P非依存、影と状態表示を確認する。異常時は操作手順とlogs/latest.logを共有する。
+- 同期: 実装1def6f8をorigin/mainへpush成功。main統合とGUIブランチ削除もリモートへ反映済み。

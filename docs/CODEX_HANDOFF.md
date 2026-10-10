@@ -29,7 +29,7 @@
 
 ## 作業中
 
-- ローカルCodex: AE実機確認済みGUIをmainへ統合し終了ブランチを削除。mainで距離/ブロックスナップとGUI表記を実装・検証する。
+なし。
 
 ## 優先確認事項
 
@@ -103,7 +103,7 @@
 
 ## 直近の完了
 
-- 2026-10-11 ローカルCodex: GLエラー解消を受領。旧Nashornのcontinue/finally挙動を回避しOFF数値を修正、非固定半径/文字影を追加。全4build/実Java 8u51回帰成功、GUI ZIP更新。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[ce7099c](https://github.com/hi03s/SuperRailBuilderX/commit/ce7099c)をorigin/feature/builder1-guiへpush済み。
+- 2026-10-11 ローカルCodex: AE確認済みGUIをmainへ統合しGUIブランチ削除。距離/ブロックスナップと白文字/「直線」表示を追加、全4build・全回帰・旧Java GUI検証成功、main ZIP更新。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[1def6f8](https://github.com/hi03s/SuperRailBuilderX/commit/1def6f8)をorigin/mainへpush済み。
 
 ## 関連資料
 
