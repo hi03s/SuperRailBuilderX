@@ -33,7 +33,7 @@
 
 ### 完全自由点とSRBXPatch
 
-- 両Java挙動テスト、実Kaiz 1.10.4/AE 2.5.3のASM検証、全4build/回帰は成功。実際のMinecraft起動/走行、CrossTie併用、JARなしクライアント接続は未検証。
+- 開発者がKaizPatchのCrossTieあり/なしで動作を確認（2026-10-10）。AEは起動時に大文字依存IDで停止したためrequired-after:rtmへ修正しJARを再生成。Java挙動/実AE ASM/依存ID一致テスト成功、修正版の起動・走行再確認待ち。JARなしクライアント接続は未検証。
 - JARはサーバーmods、パックZIPはサーバー/クライアントへ。旧SRBXMod内包版を置き換える。未有効時の書き込みはsrbxpatch_requiredで拒否。
 - Kaizは現在map保持＋native遷移、AEは現在map保持＋精密接続探索。両方向微速通過・分岐・移動・Undoを実機確認する。同セルコア競合/極短区間の多重通過は保証外。[制限・手順](srbx-free-endpoint-mod.md)。
 
@@ -75,7 +75,7 @@
 
 ## 次に行うこと
 
-1. mainの独立JAR/ZIPで、サーバーのみMod導入・CrossTieあり/なし・内部自由端点の両方向微速走行を確認する（srbx-free-endpoint-mod.md）。
+1. AEの修正版SRBXPatch-v1.0-1.12.2.jarへ置き換え、起動後のhook installedと自由点接続の両方向微速走行を確認する。起動/走行不具合はlogs/latest.logを共有する（srbx-free-endpoint-mod.md）。
 2. KaizPatch/AEで自由端点の接続を新規生成し、通常車両の両方向低速走行・移動・Undoを確認する（srbx-free-endpoint-mod.md）。
 3. AppleExtended v2.5.3で分岐描画patchのBootstrapログとoffsetあり/なし描画を確認する。
 4. レール移動・カント任意点分割・分岐Undoと、AE自動分割レールの生成・分割・分岐・走行・Undoをバックアップ済みワールドで確認する。
@@ -97,7 +97,7 @@
 
 ## 直近の完了
 
-- 2026-10-10 ローカルCodex: Web試作統合、SRBXPatch分離/AE追加、デバッグJSON除去。全4build・回帰・両Java/実バイトコード検証成功、実機未確認。[10月履歴](history/CODEX_HISTORY_2026-10.md)。実装[c04e530](https://github.com/hi03s/SuperRailBuilderX/commit/c04e530)をorigin/mainへpush済み。自由点ブランチも同じ実装へ同期する。
+- 2026-10-10 ローカルCodex: Kaiz/CrossTieありなしの実機報告を記録。AE起動停止の依存IDを修正し、実AEのMod注釈との一致を検証、1.12.2 JAR再生成。[10月履歴](history/CODEX_HISTORY_2026-10.md)。同期結果はコミット後に追記。
 
 ## 関連資料
 

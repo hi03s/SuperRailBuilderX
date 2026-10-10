@@ -268,3 +268,11 @@
 - CIはmain/専用ブランチで独立ZIP＋2 JARを生成。タグworkflowも3配布物をDraftへ添付し、既存公開Release変更拒否と手動Publishを維持。今回はタグ/Release/Publishを実行しない。rtm-ts/共有ツールキットは変更しない。
 - 未実施: Minecraft起動/両方向低速走行、CrossTie併用、JARなしクライアント接続、実機全ツール/Undo。通常車両での確認手順とログ提出先をdocs/srbx-free-endpoint-mod.mdへ記載。同セルコア競合、複数極短区間の1 Tick通過、Kaiz nativeが見つけられない配置、AE周辺探索範囲外の候補は保証外。
 - 同期: 実装c04e530をorigin/mainへpush成功（01e5197→c04e530）。引継ぎ同期記録を追記後、既存feature/kaizpatch-free-endpoint-modもmainへfast-forwardして両ブランチを同期する。
+
+## 2026-10-10 ローカルCodex: AE起動停止のMod依存ID修正
+
+- 開発者よりKaizPatchのCrossTieあり/なしでの動作確認を受領。全個別操作/サーバーのみJAR構成の検証完了とは推定しない。
+- AE latest.logのFML依存宣言解析エラーとMissingModsExceptionを確認。SRBXPatchがrequired-after:RTMと宣言し、Forge 1.12.2が小文字modid必須として起動停止していた。実AE 2.5.3のRTMCoreのMod注釈はrtm。AEだけrequired-after:rtmへ修正し、Kaiz側は変更しない。
+- Javaテストへ成果物のMod注釈、lowercase依存ID、実AE modidとの一致、クライアント任意導入設定の検証を追加。対象1.12.2ビルド、挙動/実AE ASM検証成功。SRBXPatch-v1.0-1.12.2.jarを再生成、SHA256 eb148069ec39843c3b81a1dc3e96a37e5731f1648f941aed21905964bb7f48ec。
+- パック/TypeScript/Kaiz JARは変更なしのため再ビルド不要。rawログはGitへ入れず、必要診断のみlogs/srbxpatch-ae-dependency-startup-failure-20261010.logへ抜粋し個人パス/無関係Modログを除外。AE本体のmulti-release module-info読込警告等もあるが、今回の直接停止原因はSRBXPatch依存宣言。第三者Modは変更しない。
+- 未実施: 修正版AEのMinecraft起動/自由点両方向微速走行。旧JAR置換とhook installed確認、問題時logs/latest.log提出を依頼する。

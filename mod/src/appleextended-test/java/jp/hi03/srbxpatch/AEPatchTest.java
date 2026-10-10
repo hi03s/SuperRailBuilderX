@@ -41,7 +41,30 @@ public final class AEPatchTest {
  }
  static void expect(boolean b,String s){if(!b)throw new AssertionError(s);}
  static Core next(Bogie b){Core c=new Core(new Map(10.2,20.2),new Pos(0,4,15));b.world.put(c.position,c);b.world.put(new Pos(0,4,11),new Tile(c));return c;}
+ static String annotationValue(ClassNode node,String key) {
+  if(node.visibleAnnotations!=null) for(Object entry:node.visibleAnnotations) {
+   AnnotationNode annotation=(AnnotationNode)entry;
+   if(!annotation.desc.equals("Lnet/minecraftforge/fml/common/Mod;"))continue;
+   for(int i=0;i<annotation.values.size();i+=2)
+    if(key.equals(annotation.values.get(i)))return String.valueOf(annotation.values.get(i+1));
+  }
+  return null;
+ }
+ static void verifyModMetadata(String[] args)throws Exception {
+  ClassNode patch=new ClassNode();
+  try(java.io.InputStream in=AEPatchTest.class.getResourceAsStream("SRBXPatch.class")) {
+   new ClassReader(in).accept(patch,ClassReader.SKIP_CODE);
+  }
+  String dependency=annotationValue(patch,"dependencies");
+  expect("required-after:rtm".equals(dependency),"Forge 1.12 dependency must use lowercase RTM modid");
+  expect("*".equals(annotationValue(patch,"acceptableRemoteVersions")),"server-only installation accepts unpatched clients");
+  if(args.length>0)try(ZipFile jar=new ZipFile(args[0]);java.io.InputStream in=jar.getInputStream(jar.getEntry("jp/ngt/rtm/RTMCore.class"))) {
+   ClassNode rtm=new ClassNode();new ClassReader(in).accept(rtm,ClassReader.SKIP_CODE);
+   expect(dependency.equals("required-after:"+annotationValue(rtm,"modid")),"dependency matches actual AE RTM modid");
+  }
+ }
  public static void main(String[] args)throws Exception {
+  verifyModMetadata(args);
   Bogie b=new Bogie();Core c=next(b);
   expect(AEFreeEndpointHook.resolve(b,.3,4.0625,10.19)==b.currentRailObj,"retain before exact endpoint despite next bed");
   expect(AEFreeEndpointHook.resolve(b,.3,4.0625,10.21)==c,"cross exact endpoint despite old bed");

@@ -53,3 +53,11 @@ python3 mod/build.py --test --kaizpatch-jar /path/to/KaizPatchX.jar --appleexten
 5. KaizではCrossTieなし/ありを比較する。サーバーだけJAR、クライアントはZIPだけの接続と操作も確認する。
 
 問題時は操作順、時刻、方向、接続座標とlogs/latest.log（Kaizはlogs/fml-client-latest.log）、専用サーバーログを共有する。デバッグ車両の登録JSONは除去済みで、モデル/テクスチャ/診断スクリプトは再利用用に残している。
+
+## 実機フィードバック（2026-10-10）
+
+開発者がKaizPatchでCrossTieあり/なしの動作を確認。個別の全試験項目やJARなしクライアント接続が完了したとは扱わない。
+
+AEはSRBXPatchの大文字依存宣言required-after:RTMがForge 1.12.2に拒否され、Mod初期化前に停止。実AEのRTMCore注釈のmodid=rtmを確認し、AE側だけrequired-after:rtmへ修正した。JavaテストにMod注釈と実AE依存IDの一致検証を追加し、挙動/変換検証も成功。Kaiz 1.7.10側の依存宣言は維持。
+
+修正版SRBXPatch-v1.0-1.12.2.jarのSHA256はeb148069ec39843c3b81a1dc3e96a37e5731f1648f941aed21905964bb7f48ec。同名旧JARを置き換え、AE起動ログのhook installedと両方向微速走行を再確認し、問題時はlogs/latest.logを共有する。パックZIPとKaiz JARは今回変更していない。
