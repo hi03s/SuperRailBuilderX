@@ -172,7 +172,7 @@ export class SRBXApiCompat {
 				0,
 			);
 			const args = java.lang.reflect.Array.newInstance(
-				java.lang.Object.class,
+				java.lang.Class.forName("java.lang.Object"),
 				0,
 			);
 			return (
