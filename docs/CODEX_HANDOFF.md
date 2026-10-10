@@ -103,7 +103,7 @@
 
 ## 直近の完了
 
-- 2026-10-11 ローカルCodex: GLエラー解消を受領。旧Nashornのcontinue/finally挙動を回避しOFF数値を修正、非固定半径/文字影を追加。全4build/実Java 8u51回帰成功、GUI ZIP更新。[10月履歴](history/CODEX_HISTORY_2026-10.md)。同期結果はコミット後に記載。
+- 2026-10-11 ローカルCodex: GLエラー解消を受領。旧Nashornのcontinue/finally挙動を回避しOFF数値を修正、非固定半径/文字影を追加。全4build/実Java 8u51回帰成功、GUI ZIP更新。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[ce7099c](https://github.com/hi03s/SuperRailBuilderX/commit/ce7099c)をorigin/feature/builder1-guiへpush済み。
 
 ## 関連資料
 

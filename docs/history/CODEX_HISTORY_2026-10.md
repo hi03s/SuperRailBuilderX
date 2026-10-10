@@ -351,3 +351,4 @@
 - 検証済み: 全4ターゲットbuild（warningなし）、test:gui（OFF非固定半径/長さと状態復元、全4のshadow SRG名、既存GLガード）、runtime-dispatch/rail-patch、変更ファイル整形/diff --check。ゲーム実Java 8u51で生成GUIを実行するbuilder1_gui_nashorn.test.jsを追加し、OFF固定/非固定・1/2点・直線∞・ON未選択・影文字とGUI投影維持/終了時復元を確認。GL呼出は模擬、実GPU画像の検証ではない。旧jjsのためこのJSだけPrettier --trailing-comma noneを使用する。
 - 更新GUI ZIP102ファイル、影/プレビュー半径/空行回避とgui_base.xcf非同梱を確認。SHA256 b60502f2e60bfd1229c1a60c12a05410eef7294600668127aa2e5a849bdd0a2b。main ZIP/両SRBXPatch JAR、ユーザー参照画像/xcfは保持。
 - 未実施: 更新後実機でのOFF数値、選択途中/2点の非固定半径、直線∞、文字影の見え方。ZIPを置換してゲームを再起動し、状態切替/カーソル追従を確認する。再発時は操作手順とlogs/latest.logを共有する。
+- 同期: 修正ce7099cをorigin/feature/builder1-guiへpush成功。
