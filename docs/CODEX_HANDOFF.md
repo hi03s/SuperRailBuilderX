@@ -6,6 +6,8 @@
 
 ## 現在の状態
 
+- 実験ブランチ`feature/kaizpatch-free-endpoint-mod`: KaizPatchX 1.10.4専用のサーバーcoremod＋SRBX内包JARとクライアント用ZIPを生成済み。実装`c76801f2a69d4c8f762e2b4ac7a890bffb0dc78c`はGitHubへ同期済み。[Actions #38008868160](https://github.com/hi03s/SuperRailBuilderX/actions/runs/38008868160)で全4build・全回帰・Java単体テスト成功。[導入/実機確認](srbx-free-endpoint-mod.md)。以下のmain側既存状態とは区別する。
+
 - rtm-ts 0.12.0、`kaizpatch`・`mc1710`・`appleextended`・`mc1122`のmulti-target環境を構築済み。AEは正式版`v2.5.3`基準。JitPack取得が復旧し、未改造rtm-tsの標準手順で全4ターゲットの型生成・ビルド成功。
 - NGTOBuilder2由来のツールキットは `src/common/assets/minecraft/scripts/lib_hi03toolkit_1_0` に置き、参照専用とする。SuperRailBuilderX固有処理は `superrailbuilderx` ディレクトリと `SRBXApiCompat` に実装する。
 - 正式版`SuperRailBuilderX_RailMover`は通常・自動分割レールとも元状態を退避し、builder1と同じ衝突判定・道床生成規則で再生成する。論理RailMapの複数選択・一括平行移動・一括Undoと、KaizPatchX分岐レールの端点移動に対応し、ホバーは現在のコアとRailPositionから再構築する。
@@ -24,9 +26,15 @@
 
 ## 作業中
 
-- Web側Codex / 2026-10-10: `feature/kaizpatch-free-endpoint-mod`でKaizPatch 1.10.4専用サーバーcoremodとSRBX内包JARを実装・ビルド中。AEは保留。CrossTieのgetRailチャンク読込redirectとresolver探索overwriteを維持する。
+- なし。実機確認待ちは下記「優先確認事項」へ。
 
 ## 優先確認事項
+
+### 完全自由点サーバーMod（専用ブランチ）
+
+- JARはサーバーmodsへ、クライアントは同版モデルパックZIPを導入。既存SRBXとの重複導入を避ける。Javaパッチをクライアント必須にしない構成だが、実際の接続・走行・ツール操作は未検証。
+- CrossTieの対象callsite/探索overwriteを保持する実装と実KaizPatchのバイトコード検証は済み。併用時の起動・両方向微速通過・分岐・Undoは実機未検証。AE Javaパッチは保留。
+- 現mapへの誤復帰を抑えるパッチであり、nativeが接続先を発見できない配置や同セルのコア競合、極短区間の多重通過は保証しない。詳細は[srbx-free-endpoint-mod.md](srbx-free-endpoint-mod.md)。
 
 ### 分岐レール描画compatibility patch
 
@@ -66,10 +74,11 @@
 
 ## 次に行うこと
 
-1. KaizPatch/AEで境界端点の接続を新規生成し、デバッグ車両の両方向低速走行・移動・Undoを確認する（rail-boundary-endpoints.md）。
-2. AppleExtended v2.5.3で分岐描画patchのBootstrapログとoffsetあり/なし描画を確認する。
-3. レール移動・カント任意点分割・分岐Undoと、AE自動分割レールの生成・分割・分岐・走行・Undoをバックアップ済みワールドで確認する。
-4. 不具合時は機能名・操作順・時刻と`[SuperRailBuilderX`または`[SRBX rail patch]`を含むログを共有する。
+1. 専用ブランチのJAR/ZIPで、サーバーのみMod導入・CrossTieあり/なし・内部自由端点の両方向微速走行を確認する（srbx-free-endpoint-mod.md）。
+2. KaizPatch/AEで境界端点の接続を新規生成し、デバッグ車両の両方向低速走行・移動・Undoを確認する（rail-boundary-endpoints.md）。
+3. AppleExtended v2.5.3で分岐描画patchのBootstrapログとoffsetあり/なし描画を確認する。
+4. レール移動・カント任意点分割・分岐Undoと、AE自動分割レールの生成・分割・分岐・走行・Undoをバックアップ済みワールドで確認する。
+5. 不具合時は機能名・操作順・時刻と`[SuperRailBuilderX`または`[SRBX rail patch]`を含むログを共有する。
 
 ## 双方向連絡
 
@@ -83,9 +92,11 @@
 
 ### Codexから開発者・ローカルCodexへ
 
-- 2026-10-10 Web側Codex: 完全自由点Modは専用ブランチで作業中。main/AEの境界ポリシーは変更しない。新規repo・fork・Issue・PR・コメントは禁止（開発者指示）。実機確認は[srbx-free-endpoint-mod.md](srbx-free-endpoint-mod.md)を参照。
+- 2026-10-10 Web側Codex: 完全自由点Modは専用ブランチでビルド完了、実機確認待ち。main/AEの境界ポリシーは変更しない。新規repo・fork・Issue・PR・コメントは禁止（開発者指示）。実機確認は[srbx-free-endpoint-mod.md](srbx-free-endpoint-mod.md)を参照。
 
 ## 直近の完了
+
+- 2026-10-10 Web側Codex: 完全自由点サーバーMod＋SRBX内包JAR/クライアントZIP生成、全4build/回帰成功。`c76801f`を専用ブランチへpush済み。成果物のJava8/manifest/依存クラス非同梱/102資産の一致も確認。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)・[導入手順](srbx-free-endpoint-mod.md)。
 
 - 2026-10-10 ローカルCodex: 全6ツールのKaizPatch/AE境界端点・接続方向・owner・Undo復元を実装。全4build/回帰成功、修正版ZIP生成。実装`f8ecee4`をorigin/mainへpush済み。実機走行確認待ち。詳細は[10月履歴](history/CODEX_HISTORY_2026-10.md)・[確認手順](rail-boundary-endpoints.md)。
 

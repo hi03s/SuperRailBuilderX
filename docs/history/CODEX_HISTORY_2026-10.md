@@ -238,3 +238,10 @@
 - ローカルでJava単体の行動テスト、合成クラスの-Xverify:all、実KaizPatchX 1.10.4 getRailのASM BasicVerifierとnative呼出し保持検証に成功。Prettier/diff確認済み。ローカルpnpm genはJavaからGradle配布サイトへ到達できず、既存GitHub Actionsで内包ビルドを検証中。
 - 実機走行、CrossTie併用、JavaModなしクライアントの接続は未実施。詳細と確認手順は`srbx-free-endpoint-mod.md`。
 - 引継ぎ帳の9月完了連絡は9月履歴へ移管し105行へ整理。
+
+## 2026-10-10 Web側Codex: 完全自由点Modのビルド完了
+
+- 実装`c76801f2a69d4c8f762e2b4ac7a890bffb0dc78c`を専用ブランチへ同期済み。Actions #38008868160成功: 全4型生成/build、既存回帰、Javaパッチ行動/ASMテスト、クライアントZIPとSRBX内包JARを生成。
+- Java.lang.Objectのscanner宣言に依存した型エラーはClass.forNameで解消。境界端点はnative directionを保持し、内部自由点は接線方向を使用。生成API型のcacheをビルド失敗前に保存し、再生成コストを削減。
+- Artifacts #11652378368を取得し、manifest、Java8 major52、依存/テストクラス非同梱、102個の資産とクライアントZIPのバイト一致を検証。JAR SHA256: 941ad37c8d6cfe98d0a038d7120e4e59155604bea144e365423b2740dd9de6dd。
+- 実機起動/走行・CrossTie併用・JavaModなしクライアント接続は未実施。確認手順とパッチの限界をsrbx-free-endpoint-mod.mdへ記載し、短期引継ぎ帳を更新。main/AEは変更せず、新repo/fork/Issue/PR/comment/Releaseは作成していない。
