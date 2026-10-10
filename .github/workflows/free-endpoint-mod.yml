@@ -3,6 +3,16 @@ name: Build experimental SRBX server mod
 on:
     push:
         branches: [feature/kaizpatch-free-endpoint-mod]
+        paths:
+            [
+                "mod/**",
+                "src/**",
+                "tests/**",
+                "rtmx.json",
+                "package.json",
+                "pnpm-lock.yaml",
+                ".github/workflows/free-endpoint-mod.yml",
+            ]
     workflow_dispatch:
 
 permissions:
@@ -45,10 +55,14 @@ jobs:
                   pnpm test:kaizpatch
                   pnpm test:rail-boundary
                   pnpm test:train-debug
+            - name: Package client model pack
+              run: pnpm exec rtmx zip
             - name: Package SRBX with server patch
               run: python3 mod/build.py
             - uses: actions/upload-artifact@v4
               if: always()
               with:
                   name: SRBXMod-experimental-${{ github.sha }}
-                  path: artifacts/*.jar
+                  path: |
+                      artifacts/SRBXMod-0.1.0-experimental.jar
+                      artifacts/*.zip
