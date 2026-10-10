@@ -284,3 +284,4 @@
 - 保存済みfml-server-latest - コピー.logをcp932で解析。CrossTie Alpha14のNBT未読込警告26件、分割6回はいずれもresult=ok。公開Alpha14タグcf3ce92の診断とSRBX生成/同期コードを照合し、新規setter初期化TEのreadFromNBT未通過による誤検出と判断。SRBX変更不要。詳細docs/crosstie-split-diagnostic.mdと個人情報除去済み抜粋へ保存。生サーバーログはignoreへ追加。
 - 本番サーバーへ接続/変更/再起動/テストは一切行わない。必要な再読込/走行試験は本番以外のバックアップワールドで行う手順を残す。
 - CI対象の削除済み自由点ブランチをGUIブランチへ置換し、GUIでも最新mainの回帰と配布物ビルドを行う。
+- main検証/同期: pnpm test:kaizpatch、diff --check成功。調査45a941fをorigin/mainへpush済み。GUIのビルド結果/同期は同ブランチの続きに記録する。
