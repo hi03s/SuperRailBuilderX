@@ -317,3 +317,4 @@
 - 検証済み: 全4ターゲットpnpm build、対象TS/テストのPrettier、diff --check、rail-patch/runtime-dispatch。pnpm test:guiを追加し、ホスト行列スタックが満杯の条件、通常描画、タイル/文字描画例外、属性容量不足での見送り、元行列/モード/texture unit/霧復元、白い右寄せ数値を確認。CI回帰へ追加。実GLドライバーを実行するテストではない。
 - 更新GUI ZIPは102ファイル、ユーザーgui_base.xcf非同梱。main ZIP/両SRBXPatch JARは保持。GUI ZIP SHA256 6660e237771c414396087bfeffb4a210810babe9bfb54eec9cd45abd32d715aa。
 - 未実施: Minecraft実機でのGLエラー解消とレール描画。更新ZIPを導入し、GUI状態表示/レールプレビュー/ツール切替・終了を確認。再発時は操作手順とlogs/latest.log（fog isolatedを含む）を共有する。
+- 同期: 修正ef1f3ccをorigin/feature/builder1-guiへpush成功。

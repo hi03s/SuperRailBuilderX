@@ -103,7 +103,7 @@
 
 ## 直近の完了
 
-- 2026-10-10 ローカルCodex: GL 1284対策でGUI行列を直接保存/復元し、満杯スタック/例外復元の回帰を追加。全4build成功、GUI ZIP更新、実機再確認待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。同期結果はコミット後に記載。
+- 2026-10-10 ローカルCodex: GL 1284対策でGUI行列を直接保存/復元し、満杯スタック/例外復元の回帰を追加。全4build成功、GUI ZIP更新、実機再確認待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[ef1f3cc](https://github.com/hi03s/SuperRailBuilderX/commit/ef1f3cc)をorigin/feature/builder1-guiへpush済み。
 
 ## 関連資料
 
