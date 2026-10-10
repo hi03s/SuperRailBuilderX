@@ -285,3 +285,70 @@
 - 本番サーバーへ接続/変更/再起動/テストは一切行わない。必要な再読込/走行試験は本番以外のバックアップワールドで行う手順を残す。
 - CI対象の削除済み自由点ブランチをGUIブランチへ置換し、GUIでも最新mainの回帰と配布物ビルドを行う。
 - main検証/同期: pnpm test:kaizpatch、diff --check成功。調査45a941fをorigin/mainへpush済み。GUIのビルド結果/同期は同ブランチの続きに記録する。
+- GUI: feature/builder1-guiのGUIコミットを保持してmain a1afeabをmerge。競合はdocs/CODEX_HANDOFF.mdだけで、最新main状態にGUI仕様/検証項目を足して解消。render_builder1.tsは自動統合され、最新入力/自由点/描画compatを保持。
+- GUI検証: pnpm build全4ターゲット（warningなし）、rail-patch/runtime-dispatch/appleextended/input/kaizpatch/rail-boundary/free-endpoint/train-debug全成功、render_builder1.tsのPrettier確認成功。GUIテクスチャとrenderToolGuiが入ったZIP102ファイル、include欠落なし、不要JSON/gui_base.xcfなし。既存main ZIPを保持し、GUI成果物はSuperRailBuilderX-0.2.0-builder1-gui.zipへ別名保存。
+- 未実施: GUIの画面/スケール/色/透過/3D表示の実機再確認、本番での実行。既存mainの両ModはJava変更なしで再利用する。ユーザーの未追跡gui_base.xcfは保持しGitへ追加しない。
+- GUI同期: merge df0d3d8をorigin/feature/builder1-guiへpush成功（963f30e→df0d3d8）。整形後に全4build/ZIPを再生成し、最終GUI ZIP SHA256 9e75847362539aa34b77035aa43b68261357a0be595bd04a3661e341daf5b84d。現在のチェックアウトはGUIブランチ。本番未操作。
+
+## 2026-10-10 ローカルCodex: builder1 GUIの空色描画とワールド霧の分離
+
+- references/picの2026-10-10_22.37.02.png/22.37.07.pngを視認。上端/右端/枠の形で空色が表示され、昼と夕方の背景色に追従。GUI色だけ失われ深度形状が残る症状を確認。
+- renderToolGuiは視点z=-1001の2D投影で描画し、GL_FOGを継承したままだった。ワールド霧によるRGBの空色置換を有力原因と判断し、GUI描画中だけGL_FOGを無効化。既存GL_ENABLE_BITとfinallyのglPopAttribで元の霧状態を復元。ワールド深度や既存の透明破棄/最前面深度仕様は変更しない。
+- 初回のみ[SuperRailBuilderX GUI] fog isolatedにworldFog/guiFog/サイズを出力。実機でworldFog=true/guiFog=falseを確認でき、再発時の調査材料にする。診断はクライアント描画スクリプト内。サーバー/Javaパッチ/共有ツールキットは変更なし。
+- 検証済み: pnpm build全4ターゲット（warningなし）、rail-patch/runtime-dispatch回帰、対象TSのPrettier/diff --check。生成JSのrenderToolGuiをローカル模擬GL状態で実行し、初期霧ON/OFF各ケースと描画例外時も色描画中の霧OFF・終了時の元霧/texture unit/属性/行列復元を確認。これは実GPUの画像検証ではない。
+- 更新SuperRailBuilderX-0.2.0-builder1-gui.zipは102ファイル、霧無効化/診断ログを確認。不要debug JSON/ユーザーgui_base.xcfは非同梱。main ZIPと両SRBXPatch JARは維持。ユーザーの画像/xcfは未追跡のまま保持し、Gitへ追加しない。
+- 未実施: 修正後Minecraft実機の昼/夕方GUI色・文字・透明部分、ツール終了後のワールド描画。更新ZIPへ置換し確認、再発時は画像とlogs/latest.log（fog isolatedを含む）を提出する手順をdocs/builder1.mdへ追記。
+- 同期: 修正1cdd292をorigin/feature/builder1-guiへpush成功。更新GUI ZIP SHA256 791d5792a383d22fa6bf971402f85d13817acbcb29eb7d7a5511d038a568ea81。
+
+## 2026-10-10 ローカルCodex: builder1 GUI状態アイコン/数値
+
+- 開発者より霧修正後のGUI描画成功を受領。ユーザー更新gui_base.pngを確認し、状態OFF(3,0)/ON(3,1)/情報背景(3,2)とグリッド(4,0)/カーブ(4,1)/レール長(4,2)を使用。
+- 右端16 px列に大アイコン枠直下y=32/48/64で背景→アイコンを重ねる。白文字をアイコン左4 pxへ右寄せ。スナップON時だけ角度、半径固定ON時だけ固定半径（MAX設定は既存仕様の∞）、選択1点以上で長さ小数2桁mを表示する。
+- renderBezierSegmentが実際に描画した3D折線長を返し、縦曲線の複数区間をrenderBezierで合計する。追加のRailMap構築や重い再サンプルを行わず、1点＋hover/2点の既存プレビュー長を再利用。概算長であり、線形候補なしは0.00 m。既存ワールド書込やサーバー/Javaパッチは変更しない。
+- 検証済み: 全4ターゲットpnpm build（warningなし）、対象TS Prettier、runtime-dispatch、diff --check。生成JSを模擬GUI/GLで実行し、3行の背景/アイコンUV・座標、ON/OFF条件、0/1/2点の文字条件、小数2桁、白色/右寄せを確認。更新PNGのZIP内内容一致、102ファイル、xcf非同梱を確認。
+- 未実施: 状態表示の実GPU/実機切替とカーソル追従、曲線/勾配長の表示確認。更新SuperRailBuilderX-0.2.0-builder1-gui.zipで確認する。ユーザーPNG更新をコミットに含め、未追跡xcf/参照画像は保持し追加しない。main ZIP/両Modは維持。
+- 同期: 状態表示8eb593dをorigin/feature/builder1-guiへpush成功。更新GUI ZIP SHA256 ee59308b8f27f24fa561cf4423a3224924097a59c0eb152598271d3cc33a9fdb。
+
+## 2026-10-10 ローカルCodex: GUI GLスタック破損対策
+
+- 開発者からPost renderのGL 1284 Stack underflow大量発生とレール描画異常の報告。保存済みlatest.logは以前のAE起動ログで、今回のエラーはユーザー提示文を根拠に調査。生ログは追加しない。
+- GUIがRTM描画の内側で投影/テクスチャ行列をPushしていた。容量の小さいスタックが満杯の場合、Push失敗後のPopがホスト側の行列を取り除き、後続描画のunderflow/異常につながる可能性がある。実機スタック深度は未取得なので、報告されたエラーの原因確定とは区別する。
+- GUIの全行列Push/Popを再利用FloatBufferへの保存/glLoadMatrix復元へ置換。文字描画用texture0行列を単位行列とし、最後に元の行列/モード/active textureを戻す。現在色も属性退避へ追加し、属性スタックに2段の空きがない場合はGUIを描かない。共有ツールキット/rtm-ts/サーバー/Javaパッチは変更なし。
+- 検証済み: 全4ターゲットpnpm build、対象TS/テストのPrettier、diff --check、rail-patch/runtime-dispatch。pnpm test:guiを追加し、ホスト行列スタックが満杯の条件、通常描画、タイル/文字描画例外、属性容量不足での見送り、元行列/モード/texture unit/霧復元、白い右寄せ数値を確認。CI回帰へ追加。実GLドライバーを実行するテストではない。
+- 更新GUI ZIPは102ファイル、ユーザーgui_base.xcf非同梱。main ZIP/両SRBXPatch JARは保持。GUI ZIP SHA256 6660e237771c414396087bfeffb4a210810babe9bfb54eec9cd45abd32d715aa。
+- 未実施: Minecraft実機でのGLエラー解消とレール描画。更新ZIPを導入し、GUI状態表示/レールプレビュー/ツール切替・終了を確認。再発時は操作手順とlogs/latest.log（fog isolatedを含む）を共有する。
+- 同期: 修正ef1f3ccをorigin/feature/builder1-guiへpush成功。
+
+## 2026-10-10 ローカルCodex: GUI GL 1284再発の段階別診断
+
+- 開発者よりGUI表示中だけGL 1284が継続するとの報告。latest.logの23:49:22でfog isolated直後からPost renderの1284が連続することを確認。前回の行列Push/Pop撤去だけでは解消せず、実機の破損箇所は未確定。
+- 必要なGUI初回ログと最初のGLエラー2回のみlogs/builder1-gui-stack-underflow-20261010.logへ抜粋。生ログ、PC情報、ユーザー名、ローカルパス、無関係なMod出力は追加しない。
+- OpenGLの属性スタックは全テクスチャユニット共通なので、texture0/lightmapの2段退避を1段へ整理。これは不要な複雑さの除去であり、2段使用が実機エラー原因だったとは断定しない。
+- build=gui-gl-state-v2を追加。GUI入場前、属性退避、行列設定、属性設定、背景/状態アイコン、ツールアイコン、タイトル、各状態文字、行列復元、属性復元でglGetErrorを確認。検出段階/コード/各行列・属性スタック深度/active textureを出力し、状態復元後にGUIだけを停止する。初回にはGUI入口/出口のGL状態も記録する。入場前エラーはGUI以前の描画として区別。
+- GLエラーを記録して消費するため、Post renderが止まるだけでは解消と扱わない。GUI表示継続かつdisabled診断なしが再検証条件。停止後はパック再読込/ゲーム再起動が必要。共有ツールキット/rtm-ts/サーバー/Javaパッチは変更なし。
+- 検証済み: 全4ターゲットbuild、GUI回帰（入場/タイル/文字/復元のGL 1284注入、段階識別、GUI停止、再描画抑止、行列/モード/霧/active texture/両ユニットの有効状態復元）、runtime-dispatch/rail-patch、対象TS/テストPrettier、diff --check。
+- 未実施: 実GPU上の原因特定とエラー解消。更新GUI ZIPでゲームを再起動し、build=gui-gl-state-v2が出ることを確認してレール生成Aを使用。GUIが消える場合も操作手順とlogs/latest.logを共有してもらう。前回版のfogログと新しい診断を区別できる。
+- 配布物: 更新GUI ZIP102ファイル、gui_base.xcf非同梱、段階別診断/属性1段退避をZIP内でも確認。SHA256 c3b281c7b125e3fd909b901a9051889396fb02824145ae3867d15a3da082cc93。main ZIP/両SRBXPatch JARは保持。
+- 同期: 診断/停止処理076cd30をorigin/feature/builder1-guiへpush成功。
+
+## 2026-10-11 ローカルCodex: GUI属性スタックを撤去
+
+- v2でGUIが消えた実機ログを受領。00:05:55に初回入口/出口の行列・属性深度は一致した後、restore-attributesで1284が3件、属性深度0を確認。アイコン/文字/行列復元のエラーは記録されていないため、glPopAttribを含む属性復元段階へ原因を絞った。復元が追加実行される実行環境側の経緯までは未確定。
+- 関連GUI診断5行だけをlogs/builder1-gui-attribute-restore-underflow-20261011.logへ保存。生ログ、ユーザー/PC情報、無関係な出力は追加しない。
+- GUIのglPushAttrib/glPopAttribを完全撤去。行列と同様に有効状態・アルファ/深度条件・RGB/alpha別ブレンド係数・色/書込マスク・両テクスチャユニットの有効状態/バインド/環境/座標を個別保存/復元する。複数回復元してもホストのスタックを消費しない。GLエラー診断/GUI停止は保持し、識別子をgui-gl-state-v3へ変更。
+- SRBXApiCompat.syncGuiGLStateと型宣言を追加。Kaiz/通常1.7.10はキャッシュ同期不要、AE/通常1.12.2はGlStateManagerの有効状態/条件/色/テクスチャキャッシュを元状態へ同期し、後続レール描画が古いキャッシュに基づいて状態変更を省略しないようにする。バージョン固有APIはcompat内に限定。共有ツールキット/rtm-ts/サーバーワールド/Java Modは変更なし。
+- 検証済み: 全4ターゲットbuild（最終版warningなし）、test:gui（GUIにネイティブスタック操作がないこと、全変更属性の復元、スタック満杯でも表示、複数回復元、描画例外、GLエラー注入と停止、1.12.2両ターゲットのSRG名/キャッシュ復元）、runtime-dispatch/rail-patch/kaizpatch/appleextended、変更TS/テストPrettier、diff --check。
+- 更新GUI ZIP102ファイルでv3/スタック操作不在/gui_base.xcf非同梱を確認。SHA256 d21cb0fe103aa2e0ccfd2a96cebd6074d9ad209ba27be14fd603536c7d113ee9。main ZIP/両SRBXPatch JARは保持。
+- 未実施: 修正後の実GPU上のGUI継続とGLエラー/レール異常の解消。ZIPを置換してゲームを再起動し、v3診断と状態表示、レールプレビュー、ツール切替/終了を確認する。GUI消失/描画異常が再発した場合は操作手順とlogs/latest.logを共有する。
+- 同期: 修正e7bb487をorigin/feature/builder1-guiへpush成功。
+
+## 2026-10-11 ローカルCodex: グリッドOFF数値/プレビュー半径/影文字
+
+- 開発者よりv3のGLエラー解消を受領。最新ログで入口/出口一致とGL ERROR/1284/disabled不在を確認。関連GUI2行をlogs/builder1-gui-stack-free-success-20261011.logへ抜粋し、生ログは追加しない。
+- グリッドOFFで角度の空行をcontinueすると数値が見えなくなる件を調査。ゲーム同梱Java 8u51のjjsで、try/finally内ループのcontinueが途中でもfinallyを実行することを再現（通常は終了時1回だが、空行1件で途中/終了の2回復元）。以前の複数glPopAttribによる1284とも整合する。数値ループをcontinueなしの条件ブロックへ変更し、後続数値の描画前にGUI投影が戻る問題を回避。
+- 半径固定OFFで1点＋hover/2点選択の線形がある場合、既存プレビューのstart.curveRadiusを再利用して半径の絶対値を整数m表示、直線は∞。選択なし/線形なしは非固定半径を隠し、固定ONの設定半径表示は維持。新たなRailMap生成やワールド書込なし。
+- ツール名/状態数値をMinecraft標準の影付き文字へ変更。1.7.10と1.12.2でshadowメソッドのSRG名が異なるためSRBXApiCompat.drawGuiTextWithShadowを全ターゲットへ追加し、対象バージョンのAPIを呼ぶ。
+- 検証済み: 全4ターゲットbuild（warningなし）、test:gui（OFF非固定半径/長さと状態復元、全4のshadow SRG名、既存GLガード）、runtime-dispatch/rail-patch、変更ファイル整形/diff --check。ゲーム実Java 8u51で生成GUIを実行するbuilder1_gui_nashorn.test.jsを追加し、OFF固定/非固定・1/2点・直線∞・ON未選択・影文字とGUI投影維持/終了時復元を確認。GL呼出は模擬、実GPU画像の検証ではない。旧jjsのためこのJSだけPrettier --trailing-comma noneを使用する。
+- 更新GUI ZIP102ファイル、影/プレビュー半径/空行回避とgui_base.xcf非同梱を確認。SHA256 b60502f2e60bfd1229c1a60c12a05410eef7294600668127aa2e5a849bdd0a2b。main ZIP/両SRBXPatch JAR、ユーザー参照画像/xcfは保持。
+- 未実施: 更新後実機でのOFF数値、選択途中/2点の非固定半径、直線∞、文字影の見え方。ZIPを置換してゲームを再起動し、状態切替/カーソル追従を確認する。再発時は操作手順とlogs/latest.logを共有する。
+- 同期: 修正ce7099cをorigin/feature/builder1-guiへpush成功。

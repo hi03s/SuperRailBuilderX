@@ -2,11 +2,11 @@
 
 このファイルは、次の作業に必要な現行情報だけを共有するための短期引継ぎ帳です。詳細な過去記録は `docs/history/` に保存し、通常は読みません。
 
-最終更新: 2026-10-10（ローカルCodex）
+最終更新: 2026-10-11（ローカルCodex、feature/builder1-gui）
 
 ## 現在の状態
 
-- 統合済みAE互換/自由点Mod/描画修正の終了ブランチをlocal/remoteから削除。未統合GUIブランチfeature/builder1-guiは保持し、最新main取り込みを同ブランチで実施する。
+- 現在feature/builder1-gui。最新main a1afeabを取り込み、自由点/SRBXPatch/AE依存修正とbuilder1使用中GUIを併用する。mainへGUIは未統合。終了ブランチ3本は整理済み。
 
 - Web側試作（`462fdb1`まで）をmainへ統合。KaizPatch/AEの全6ツールは完全自由点仕様へ戻し、暫定SRBXPatchを別途導入する。[導入/実機確認](srbx-free-endpoint-mod.md)。
 - 配布物はパックZIP、SRBXPatch-v1.0-1.7.10.jar（Kaiz 1.10.4）、SRBXPatch-v1.0-1.12.2.jar（AE 2.5.3）。デバッグ車両の登録JSONを除去し、資産/診断スクリプトは保持。
@@ -29,9 +29,11 @@
 
 ## 作業中
 
-なし。GUI最新化はfeature/builder1-gui側で実施・記録する。
+- ローカルCodex: AE実機確認済みGUIをmainへ統合し終了ブランチを削除。mainで距離/ブロックスナップとGUI表記を実装・検証する。
 
 ## 優先確認事項
+
+- v3の実機GLエラー解消を確認。Java 8u51のcontinue/finally早期復元を再現し、グリッドOFF数値欠落を条件ブロックへ変更して回避。非固定プレビュー半径/影付き文字を追加。全4build/Node回帰/実Java 8u51での生成GUI検証成功。更新GUI ZIPでOFF数値/選択途中・2点半径/直線∞/影の実機確認待ち。[仕様/手順](builder1.md)。
 
 - CrossTie Alpha14のレール分割警告は新規TEへの未読込診断の誤検出と判断。ログ内の分割6回は成功、SRBX変更不要。[調査](crosstie-split-diagnostic.md)。本番サーバーは操作しない。
 
@@ -101,7 +103,7 @@
 
 ## 直近の完了
 
-- 2026-10-10 ローカルCodex: 終了ブランチ3本削除、CrossTie分割診断を調査しSRBX変更不要と判断。Kaiz回帰成功、本番未操作。調査[45a941f](https://github.com/hi03s/SuperRailBuilderX/commit/45a941f)をorigin/mainへpush済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
+- 2026-10-11 ローカルCodex: GLエラー解消を受領。旧Nashornのcontinue/finally挙動を回避しOFF数値を修正、非固定半径/文字影を追加。全4build/実Java 8u51回帰成功、GUI ZIP更新。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[ce7099c](https://github.com/hi03s/SuperRailBuilderX/commit/ce7099c)をorigin/feature/builder1-guiへpush済み。
 
 ## 関連資料
 

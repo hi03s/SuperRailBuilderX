@@ -1,0 +1,7 @@
+﻿[23:49:22] [Client thread/INFO]: [SuperRailBuilderX GUI] fog isolated: worldFog=true, guiFog=false, size=683x384
+[23:49:22] [Client thread/ERROR]: ########## GL ERROR ##########
+[23:49:22] [Client thread/ERROR]: @ Post render
+[23:49:22] [Client thread/ERROR]: 1284: Stack underflow
+[23:49:22] [Client thread/ERROR]: ########## GL ERROR ##########
+[23:49:22] [Client thread/ERROR]: @ Post render
+[23:49:22] [Client thread/ERROR]: 1284: Stack underflow

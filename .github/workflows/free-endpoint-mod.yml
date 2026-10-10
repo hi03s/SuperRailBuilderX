@@ -63,6 +63,7 @@ jobs:
               run: |
                   pnpm test:rail-patch
                   pnpm test:runtime-dispatch
+                  pnpm test:gui
                   pnpm test:appleextended
                   pnpm test:input
                   pnpm test:kaizpatch

@@ -867,6 +867,49 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 実装コミット: `41a13ad`
 - 同期: 実装`41a13ad`・引継ぎ更新`bd939ec`を`origin/main`へ同期済み。
 
+### 2026-09-14 ローカルCodex — builder1使用中GUI試験実装
+
+- `ModelVehicle_SuperRailBuilderX_builder1.json`へ`guiScriptPath`と`guiTexture`を追加し、builder1使用中だけRTMのGUIスクリプトが呼ばれるようにした。
+- `_base.png`を512×512の16×16タイルシートとして扱い、`(0,0)`を画面上端、`(0,1)`を画面右端へ端数も含めて反復描画する。右上には`(1,0)`・`(2,0)`・`(1,1)`・`(2,1)`の4タイルを配置した。
+- 右上枠の中央では16×16の`icon_builder1.png`を別途バインドし、画面中央上部にはヘルプと同じ`レール生成A`を表示する。RTMのGUI描画が512×512固定UVを使うため、16×16アイコンはテクスチャ行列で全域へ補正した。
+- GUIテクスチャは指定どおり`textures/superrailbuilderx/gui_base.png`を使用する。初回に`gui/_base.png`と解釈した配置は、開発者の指摘を受けて修正した。`lib_hi03toolkit_1_0`は変更していない。
+- 検証済み: `pnpm gen`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、`pnpm format:check`、生成JSのGUI/SRG呼出と配布先テクスチャ確認、`git diff --check`。パス修正後にも全ターゲットの`pnpm build`と`pnpm format:check`を再実行した。
+- 未検証: Minecraft実機でのGUIスケール・画面サイズ別の配置、バーと枠の継ぎ目、builder1アイコンと日本語表示。
+- 実装コミット: `d7483ae`
+- 同期: ユーザーの明示許可後、引継ぎ更新とともに`origin/feature/builder1-gui`へ同期済み。
+
+### 2026-09-14 ローカルCodex — builder1 GUIの描画スクリプト移行
+
+- SuperRailBuilderXはツール乗車直後にプレイヤーを降車させ、ツール側をプレイヤーへ追従させるため、モデルのGUIスクリプトは乗車した瞬間しか呼ばれないことが判明した。
+- `guiScriptPath`・`guiTexture`と`gui_builder1.ts`を撤去し、ローカルプレイヤー所有のbuilder1を描画する`currentMatId=0`・`pass=0`の1回だけ、`render_builder1.ts`から2Dオーバーレイを描画する方式へ変更した。
+- MinecraftのGUIスケールとUnicode偶数倍率補正を再現して論理画面サイズを求め、投影・モデルビュー・テクスチャ行列とGL属性を退避する。描画後や例外時は`finally`で全状態を復元し、既存の3Dプレビューへ影響を残さない。
+- 512×512の`gui_base.png`と16×16の`icon_builder1.png`は、Minecraft標準`Gui`の256×256固定UVに合わせてテクスチャ行列を補正する。画面を開いている間は既存入力処理と同様にオーバーレイを表示しない。
+- 制約: 通常HUDイベントではなくワールド内の車両描画時に描くため、後から実行される天候・半透明・手持ち描画などに上書きされる可能性がある。実機で継続表示と描画順を確認する。
+- 検証済み: `pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、`pnpm format:check`、生成JSの共通SRG呼出、GUIスクリプト生成物の撤去、配布先`gui_base.png`、`git diff --check`。
+- 未検証: Minecraft実機での降車後の継続表示、GUIスケール・画面サイズ別配置、天候・半透明・手持ち描画との前後関係。
+- 実装コミット: `a8d4b03`
+- 同期: 引継ぎ更新とともに`origin/feature/builder1-gui`へ同期済み。
+
+### 2026-09-14 ローカルCodex — builder1 GUIの透明・描画順修正
+
+- 開発者実機確認で、GUIのテクスチャと文字が見えず、表示領域ではブロックが透明に見え、レール等の後続オブジェクトがGUIより上に描画された。
+- ワールド描画時の背面カリング状態を引き継いだGUI四角形が描画されないことと、深度テスト・書込みを無効にしていたため描画できた部分も後続ワールド描画に上書きされることを原因候補と判断した。
+- GUI描画中は背面カリングを無効化し、アルファテスト`GL_GREATER, 0.01`で透明テクセルを先に破棄する。不透明部分だけ`GL_ALWAYS`でnear plane直後の最前面深度へ書き、後続オブジェクトによる上書きを防ぐ。色書込みマスクも明示し、全状態は既存のPush/Popで復元する。
+- 検証済み: 独立差分レビュー、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、`pnpm format:check`、生成JSのGL呼出、`git diff --check`。
+- 未検証: Minecraft実機でのテクスチャ・文字表示、透明部分越しのブロック表示、レール等に対する最前面維持。再発時はactive texture unitとtexture environmentの残留状態を次に確認する。
+- 修正コミット: `1f9ae9d`
+- 同期: 引継ぎ更新とともに`origin/feature/builder1-gui`へ同期済み。
+
+### 2026-09-14 ローカルCodex — builder1 GUIのテクスチャ合成修正
+
+- 深度修正後の実機確認でレールがGUIより上に出る問題は解消したが、GUIはテクスチャ部分だけ背景が抜けたように見え、文字も表示されなかった。
+- アルファ形状に沿った最前面深度は書けているため画像の読込み自体は成功しており、RTMモデル描画から残るactive texture unitまたはlightmap texture environmentがRGBへ合成されていることを原因候補と判断した。
+- GUI描画前にactive texture unitを`GL_TEXTURE0`へ固定し、`GL_TEXTURE1`のライトマップを一時無効化する。ユニット0のtexture environmentを`GL_MODULATE`へ戻し、終了時は両ユニットの属性と元のactive unitを復元する。
+- 検証済み: `pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、`pnpm format:check`、生成JSのGL13・texture environment呼出、`git diff --check`。
+- 未検証: Minecraft実機でのGUIテクスチャと文字のRGB表示。透明形状だけ残る場合は、追加のtexture combine stateまたは描画先フレームバッファ状態を調査する。
+- 修正コミット: `ec1c9b8`
+- 同期: 引継ぎ更新とともに`origin/feature/builder1-gui`へ同期済み。
+
 ### 記録テンプレート
 
 ```text
