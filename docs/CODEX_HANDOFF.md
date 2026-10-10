@@ -30,7 +30,7 @@
 
 ## 作業中
 
-- ローカルCodex: GUI描画を共通化し、線路分割/線路移動/複線コピー/カント整形/分岐生成へ状態表示を追加。複線の間隔チャットを廃止し、全ターゲットを検証する。
+なし。
 
 ## 優先確認事項
 
@@ -106,7 +106,7 @@
 
 ## 直近の完了
 
-- 2026-10-11 ローカルCodex: AE確認済みGUIをmainへ統合しGUIブランチ削除。距離/ブロックスナップと白文字/「直線」表示を追加、全4build・全回帰・旧Java GUI検証成功、main ZIP更新。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[1def6f8](https://github.com/hi03s/SuperRailBuilderX/commit/1def6f8)をorigin/mainへpush済み。
+- 2026-10-11 ローカルCodex: 全6ツールへ共通状態GUIを実装。分割/移動/複線/カント/分岐の各表示とチャット方針を反映、全4build・全回帰・旧Java GUI検証成功、main ZIP更新。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[9a1f77a](https://github.com/hi03s/SuperRailBuilderX/commit/9a1f77a)をorigin/mainへpush済み。
 
 ## 関連資料
 

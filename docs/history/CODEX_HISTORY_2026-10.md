@@ -373,3 +373,4 @@
 - 検証済み: 全4ターゲットbuild（warningなし）、全package回帰スクリプト、変更TS/テスト整形、diff --check。test:guiは共通描画の全GL状態復元/エラー停止/アイコン座標/白文字、各ツールの表示値、実renderでの分割ホバー/選択/無効候補/描画pass・Minecraft画面条件、分岐の実プレビュー3D長を検証。実Java 8u51で全6ツールの生成アダプターと共通GUIの文字/空行/投影維持を実行し成功（GLは模擬）。
 - main ZIPを更新し、共通GUIと全6ツールの呼出、gui_base.xcf非同梱を確認（103ファイル）。SHA256 d584a613d1d2385d3991fc30dc9caddb6cf343bd22c418ef7ac1aef6ef9cf678。
 - 未実施: KaizPatch/AEでの実GPU・実ワールド表示確認。更新ZIPへ置換して再起動し、全ツールの設定変更/選択/解除、別画面開閉、ツール切替/終了、GLエラーとレール描画の正常性を確認する。異常時はツール名、操作、logs/latest.logを共有。[共通GUI仕様/手順](../tool-gui.md)。
+- 同期: 実装9a1f77aをorigin/mainへpush成功。完了項目を引継ぎ帳の作業中から除去。
