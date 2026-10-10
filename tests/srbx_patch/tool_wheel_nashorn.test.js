@@ -98,3 +98,14 @@ if (mc.field_71462_r !== null) throw new Error("Screen did not close");
 print(
 	"Legacy Java 8 Nashorn Java.extend SRG screen dispatch, arrows, release and non-pausing behavior passed"
 );
+SRBXToolWheel.update(entity, true);
+tab = true;
+SRBXToolWheel.update(entity, true);
+screen = mc.field_71462_r;
+screen.click(287, 200, 0);
+if (
+	values.srbxToolSwitchRequest !== "SuperRailBuilderX_RailMover" ||
+	mc.field_71462_r !== null
+)
+	throw new Error("SRG left-click callback failed");
+print("Legacy Nashorn left-click decision and SRG screen dimensions passed");

@@ -57,6 +57,8 @@ function setup() {
 		Java: {
 			extend: (type, overrides) =>
 				function () {
+					this.field_146294_l = 400;
+					this.field_146295_m = 300;
 					Object.assign(this, overrides);
 				},
 		},
@@ -143,6 +145,63 @@ assert.equal(s.selected(), 2, "Mouse selects clockwise rail mover sector");
 s.held.delete("TAB");
 screen.func_73876_c();
 assert.equal(s.values.srbxToolSwitchRequest, "SuperRailBuilderX_RailMover");
+s = setup();
+screen = s.open();
+screen.func_73864_a(287, 200, 1);
+assert.equal(s.mc.field_71462_r, screen, "Right click does not confirm");
+screen.func_73864_a(287, 200, 0);
+assert.equal(
+	s.values.srbxToolSwitchRequest,
+	"SuperRailBuilderX_RailMover",
+	"Left click chooses the click coordinates before another draw",
+);
+assert.equal(s.mc.field_71462_r, null);
+screen.func_73864_a(200, 50, 0);
+screen.func_73876_c();
+assert.equal(s.focused(), 1, "Click and release cannot decide twice");
+assert(
+	s.context.SRBXToolWheel.update(s.entity, true),
+	"Held TAB after click cannot reopen",
+);
+s = setup();
+s.compat.getToolModel = () => "SuperRailBuilderX_CantFormatter";
+screen = s.open();
+screen.func_73863_a(287, 200, 0);
+assert.equal(s.selected(), 2);
+screen.func_73863_a(205, 155, 0);
+assert.equal(
+	s.selected(),
+	4,
+	"Returning to the hole selects the original tool",
+);
+s.held.clear();
+screen.func_73876_c();
+assert.equal(
+	s.values.srbxToolSwitchRequest,
+	undefined,
+	"Center release leaves the tool unchanged",
+);
+s = setup();
+screen = s.open();
+screen.func_73869_a("", "RIGHT");
+screen.func_73864_a(200, 150, 0);
+assert.equal(
+	s.values.srbxToolSwitchRequest,
+	undefined,
+	"Clicking the hole cancels even after arrow selection",
+);
+for (const [width, height] of [
+	[320, 240],
+	[400, 300],
+	[1920, 1080],
+]) {
+	const layout = s.context.wheelLayout(width, height);
+	assert.equal(s.context.wheelIndex(layout.inner, 0, 4, layout.inner), 4);
+	assert.equal(
+		s.context.wheelIndex(layout.inner + 0.01, 0, 4, layout.inner),
+		2,
+	);
+}
 s = setup();
 s.values.srbxWheelInputBlocked = true;
 s.context.Mouse.isButtonDown = () => true;

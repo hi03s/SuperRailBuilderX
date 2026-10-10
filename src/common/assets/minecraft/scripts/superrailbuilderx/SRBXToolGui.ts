@@ -7,7 +7,7 @@ import { ResourceLocation } from "net.minecraft.util";
 import { GL11, GL13, GL14 } from "org.lwjgl.opengl";
 import { BufferUtils } from "org.lwjgl";
 import { SRBXApiCompat } from "@target/assets/minecraft/scripts/superrailbuilderx/SRBXApiCompat";
-import { SRBX_TOOLS } from "./SRBXTools";
+import { SRBX_TOOLS, wheelLayout } from "./SRBXTools";
 
 export type SRBXGuiRow = {
 	iconX: number;
@@ -60,6 +60,58 @@ function drawGuiRect(
 		GL11.glVertex3f(right, bottom, 0);
 		GL11.glVertex3f(right, top, 0);
 		GL11.glVertex3f(left, top, 0);
+	} finally {
+		GL11.glEnd();
+		GL11.glEnable(GL11.GL_TEXTURE_2D);
+		GL11.glColor4f(1, 1, 1, 1);
+	}
+}
+
+function drawWheelSector(
+	cx: number,
+	cy: number,
+	inner: number,
+	outer: number,
+	start: number,
+	end: number,
+	color: number,
+): void {
+	const steps = Math.max(1, Math.ceil((end - start) / (Math.PI / 36)));
+	GL11.glDisable(GL11.GL_TEXTURE_2D);
+	GL11.glEnable(GL11.GL_BLEND);
+	GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+	GL11.glColor4f(
+		((color >> 16) & 255) / 255,
+		((color >> 8) & 255) / 255,
+		(color & 255) / 255,
+		((color >>> 24) & 255) / 255,
+	);
+	GL11.glBegin(GL11.GL_QUADS);
+	try {
+		for (let i = 0; i < steps; i++) {
+			const a = start + ((end - start) * i) / steps;
+			const b = start + ((end - start) * (i + 1)) / steps;
+			GL11.glVertex3f(
+				cx + Math.sin(a) * inner,
+				cy - Math.cos(a) * inner,
+				0,
+			);
+			GL11.glVertex3f(
+				cx + Math.sin(a) * outer,
+				cy - Math.cos(a) * outer,
+				0,
+			);
+			GL11.glVertex3f(
+				cx + Math.sin(b) * outer,
+				cy - Math.cos(b) * outer,
+				0,
+			);
+			GL11.glVertex3f(
+				cx + Math.sin(b) * inner,
+				cy - Math.cos(b) * inner,
+				0,
+			);
+		}
 	} finally {
 		GL11.glEnd();
 		GL11.glEnable(GL11.GL_TEXTURE_2D);
@@ -461,21 +513,59 @@ export class SRBXToolGui {
 			(width, height) => {
 				selected = choose(width, height);
 				drawGuiRect(0, 0, width, height, -2013265920);
-				const radius = Math.max(48, Math.min(85, height / 2 - 36));
+				const layout = wheelLayout(width, height);
+				const cx = width / 2,
+					cy = height / 2;
+				for (let i = 0; i < SRBX_TOOLS.length; i++) {
+					const start = ((i - 0.5) * Math.PI) / 3;
+					drawWheelSector(
+						cx,
+						cy,
+						layout.inner,
+						layout.outer,
+						start,
+						start + Math.PI / 3,
+						i === selected ? -1440088065 : -1728053248,
+					);
+				}
+				// Inner/outer circular outlines and six radial dividers.
+				drawWheelSector(
+					cx,
+					cy,
+					layout.inner,
+					layout.inner + 1,
+					0,
+					Math.PI * 2,
+					0x66ffffff,
+				);
+				drawWheelSector(
+					cx,
+					cy,
+					layout.outer - 1,
+					layout.outer,
+					0,
+					Math.PI * 2,
+					0x66ffffff,
+				);
+				for (let i = 0; i < SRBX_TOOLS.length; i++) {
+					const angle = ((i - 0.5) * Math.PI) / 3;
+					drawWheelSector(
+						cx,
+						cy,
+						layout.inner,
+						layout.outer,
+						angle - 0.006,
+						angle + 0.006,
+						0x66ffffff,
+					);
+				}
 				const font = NGTUtilClient.getMinecraft().fontRenderer;
 				for (let i = 0; i < SRBX_TOOLS.length; i++) {
 					const angle = (i * Math.PI) / 3;
-					const x = Math.round(width / 2 + Math.sin(angle) * radius);
-					const y = Math.round(height / 2 - Math.cos(angle) * radius);
+					const x = Math.round(cx + Math.sin(angle) * layout.label);
+					const y = Math.round(cy - Math.cos(angle) * layout.label);
 					const item = SRBX_TOOLS[i];
 					const textWidth = font.getStringWidth(item.name);
-					drawGuiRect(
-						x - Math.max(20, textWidth / 2 + 6),
-						y - 15,
-						x + Math.max(20, textWidth / 2 + 6),
-						y + 25,
-						i === selected ? -1440088065 : -1728053248,
-					);
 					drawToolGuiIcon(
 						width,
 						new ResourceLocation(
@@ -492,7 +582,14 @@ export class SRBXToolGui {
 						i === selected ? 0xffff55 : 0xffffff,
 					);
 				}
-				const hint = "TABを離して決定 / マウス・←→で選択";
+				const centerLabel = "変更なし";
+				SRBXApiCompat.drawGuiTextWithShadow(
+					centerLabel,
+					Math.round(cx - font.getStringWidth(centerLabel) / 2),
+					Math.round(cy - 4),
+					0xffffff,
+				);
+				const hint = "左クリック・TAB解除で決定 / マウス・←→で選択";
 				SRBXApiCompat.drawGuiTextWithShadow(
 					hint,
 					Math.round((width - font.getStringWidth(hint)) / 2),
@@ -506,7 +603,7 @@ export class SRBXToolGui {
 	static helpFooter(sender: ICommandSender): void {
 		NGTLog.sendChatMessage(
 			sender,
-			"[TAB長押し] ツール切り替え（マウス・←→で選択、離して決定）",
+			"[TAB長押し] ツール切り替え（マウス・←→で選択、左クリック/離して決定）",
 		);
 		NGTLog.sendChatMessage(
 			sender,

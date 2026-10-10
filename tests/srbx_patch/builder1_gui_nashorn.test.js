@@ -257,11 +257,13 @@ GL11.glBegin = function () {};
 GL11.glVertex3f = function () {};
 GL11.glEnd = function () {};
 eval(source.slice(rectStart, source.indexOf("\n}", rectStart) + 2));
+var sectorStart = source.indexOf("function drawWheelSector(");
+eval(source.slice(sectorStart, source.indexOf("\n}", sectorStart) + 2));
 labels = [];
 SRBXToolGui.renderWheel(4, function () {
 	return 4;
 });
-if (labels.length !== 7 || projected)
+if (labels.length !== 8 || projected)
 	throw new Error("Wheel GUI restoration failed");
 print(
 	"Legacy Nashorn wheel icons/names and shared GL projection restoration passed"

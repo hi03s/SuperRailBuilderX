@@ -67,6 +67,8 @@ for (const failure of [
 		tiles = [],
 		labels = [],
 		diagnostics = [];
+	const primitives = [];
+	let vertices = [];
 	const query = {
 		GL_ALPHA_TEST_FUNC: "alphaFunc",
 		GL_ALPHA_TEST_REF: "alphaRef",
@@ -77,6 +79,15 @@ for (const failure of [
 	};
 	const gl = new Proxy(
 		{
+			glBegin() {
+				vertices = [];
+			},
+			glVertex3f(x, y, z) {
+				vertices.push([x, y, z]);
+			},
+			glEnd() {
+				primitives.push(vertices);
+			},
 			GL_PROJECTION: "projection",
 			GL_MODELVIEW: "modelview",
 			GL_TEXTURE: "texture",
@@ -300,12 +311,18 @@ for (const failure of [
 	);
 	const rectStart = source.indexOf("function drawGuiRect(");
 	const rect = source.slice(rectStart, source.indexOf("\n}", rectStart) + 2);
+	const sectorStart = source.indexOf("function drawWheelSector(");
+	const sector = source.slice(
+		sectorStart,
+		source.indexOf("\n}", sectorStart) + 2,
+	);
 	vm.runInNewContext(
 		fs.readFileSync(
 			"dist/assets/minecraft/scripts/superrailbuilderx/SRBXTools.js",
 			"utf8",
 		) +
 			rect +
+			sector +
 			save +
 			draw +
 			adapter,
@@ -335,15 +352,33 @@ for (const failure of [
 	assert.equal(mode, "texture");
 	assert.equal(active, 1);
 	if (failure === "wheel") {
+		assert.equal(
+			primitives.length,
+			15,
+			"One dimming rectangle, six sectors, two circles and six dividers",
+		);
+		const layout = context.wheelLayout(320, 240);
+		for (const shape of primitives.slice(1)) {
+			assert.equal(shape.length % 4, 0);
+			for (const [x, y] of shape) {
+				const radius = Math.hypot(x - 160, y - 120);
+				assert(
+					radius >= layout.inner - 1e-6 &&
+						radius <= layout.outer + 1e-6,
+					"Ring geometry stays outside the empty center",
+				);
+			}
+		}
 		assert.equal(tiles.length, 6, "Wheel draws six tool icons");
 		assert.equal(
 			labels.length,
-			7,
-			"Wheel shows six names and instructions",
+			8,
+			"Wheel shows six names, hole label and instructions",
 		);
 		assert.equal(labels[0].s, "レール生成A");
 		assert.equal(labels[2].color, 0xffff55, "Selected tool name is yellow");
-		assert(labels[6].s.includes("TAB"));
+		assert.equal(labels[6].s, "変更なし");
+		assert(labels[7].s.includes("TAB"));
 	}
 	if (failure && failure.endsWith("-gl")) {
 		assert.equal(context.guiRenderingDisabled, true);

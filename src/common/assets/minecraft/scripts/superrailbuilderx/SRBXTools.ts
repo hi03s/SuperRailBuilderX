@@ -47,8 +47,21 @@ export function toolIndex(model: string): number {
 	return -1;
 }
 
-export function wheelIndex(dx: number, dy: number, current: number): number {
-	if (dx * dx + dy * dy < 12 * 12) return current;
+export function wheelLayout(
+	width: number,
+	height: number,
+): { outer: number; inner: number; label: number } {
+	const outer = Math.max(48, Math.min(132, width / 2 - 12, height / 2 - 24));
+	return { outer, inner: outer * 0.32, label: outer * 0.72 };
+}
+
+export function wheelIndex(
+	dx: number,
+	dy: number,
+	current: number,
+	inner: number = 32,
+): number {
+	if (dx * dx + dy * dy <= inner * inner) return current;
 	const angle = Math.atan2(dx, -dy);
 	return (Math.round(angle / (Math.PI / 3)) + 6) % 6;
 }

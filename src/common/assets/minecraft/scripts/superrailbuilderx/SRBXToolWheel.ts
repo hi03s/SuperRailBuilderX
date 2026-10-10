@@ -9,6 +9,7 @@ import {
 	SRBX_TOOL_REQUESTS,
 	toolIndex,
 	wheelIndex,
+	wheelLayout,
 } from "./SRBXTools";
 import { SRBXApiCompat } from "@target/assets/minecraft/scripts/superrailbuilderx/SRBXApiCompat";
 
@@ -48,6 +49,7 @@ export class SRBXToolWheel {
 		const current = toolIndex(SRBXApiCompat.getToolModel(entity));
 		if (current < 0) return false;
 		let selected = current;
+		let screen: GuiScreen = null;
 		let done = false;
 		const finish = (apply: boolean): void => {
 			if (done) return;
@@ -74,7 +76,8 @@ export class SRBXToolWheel {
 							selected = wheelIndex(
 								mouseX - width / 2,
 								mouseY - height / 2,
-								selected,
+								current,
+								wheelLayout(width, height).inner,
 							);
 						oldX = mouseX;
 						oldY = mouseY;
@@ -107,6 +110,20 @@ export class SRBXToolWheel {
 			else if (code === Keyboard.KEY_LEFT) selected = (selected + 5) % 6;
 			else if (code === Keyboard.KEY_RIGHT) selected = (selected + 1) % 6;
 		};
+		const click = (
+			mouseX: number,
+			mouseY: number,
+			button: number,
+		): void => {
+			if (button !== 0 || done || !screen) return;
+			selected = wheelIndex(
+				mouseX - screen.width / 2,
+				mouseY - screen.height / 2,
+				current,
+				wheelLayout(screen.width, screen.height).inner,
+			);
+			finish(true);
+		};
 		try {
 			// Both mapped development and SRG runtime names use the same signatures.
 			const Screen = Java.extend(GuiScreen, {
@@ -116,6 +133,8 @@ export class SRBXToolWheel {
 				func_73876_c: tick,
 				keyTyped: key,
 				func_73869_a: key,
+				mouseClicked: click,
+				func_73864_a: click,
 				doesGuiPauseGame: () => false,
 				func_73868_f: () => false,
 				onGuiClosed: () => {
@@ -129,7 +148,8 @@ export class SRBXToolWheel {
 			});
 			wheelActive = true;
 			data.setBoolean("srbxWheelInputBlocked", true, 0);
-			mc.displayGuiScreen(new Screen());
+			screen = new Screen();
+			mc.displayGuiScreen(screen);
 			Mouse.setCursorPosition(
 				Math.floor(mc.displayWidth / 2),
 				Math.floor(mc.displayHeight / 2),
