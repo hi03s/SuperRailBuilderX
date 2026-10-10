@@ -11,3 +11,5 @@ artifacts/
 
 __pycache__/
 *.pyc
+
+/logs/fml-server-latest*.log

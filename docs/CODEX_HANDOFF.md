@@ -6,6 +6,8 @@
 
 ## 現在の状態
 
+- 統合済みAE互換/自由点Mod/描画修正の終了ブランチをlocal/remoteから削除。未統合GUIブランチfeature/builder1-guiは保持し、最新main取り込みを同ブランチで実施する。
+
 - Web側試作（`462fdb1`まで）をmainへ統合。KaizPatch/AEの全6ツールは完全自由点仕様へ戻し、暫定SRBXPatchを別途導入する。[導入/実機確認](srbx-free-endpoint-mod.md)。
 - 配布物はパックZIP、SRBXPatch-v1.0-1.7.10.jar（Kaiz 1.10.4）、SRBXPatch-v1.0-1.12.2.jar（AE 2.5.3）。デバッグ車両の登録JSONを除去し、資産/診断スクリプトは保持。
 
@@ -23,13 +25,15 @@
 - `v*`タグpushで型生成・multi-targetビルド・ZIPと2 JAR付きDraft Releaseを作成。Java 25、生成前のGradle cacheキーはpnpm-lock.yaml/rtmx.jsonを使用。公開はDraft確認後に手動実行する。
 - レール生成・自由点移動の構造は `docs/rail-generation-and-free-positioning.md`、各ツールの仕様と検証方法は下記「関連資料」を参照する。
 - `AGENTS.md`へ、親モデルを途中変更するのではなく、限定作業だけを軽量・バランス型サブエージェントへ委譲するモデル運用規則を追加済み。
-- KaizPatchX / AppleExtended向けの分岐レール描画runtime compatibility patchを`main`へ統合済み。KaizPatchXの描画は実機確認済みで、AppleExtended確認待ちのため`fix/rail-render-offset-compat-patch`は保持する。通常RTMはno-op。
+- KaizPatchX / AppleExtended向けの分岐レール描画runtime compatibility patchを`main`へ統合済み。KaizPatchXの描画は実機確認済みで、AppleExtended確認待ち。統合済み描画修正ブランチは整理済み。通常RTMはno-op。
 
 ## 作業中
 
-なし。
+なし。GUI最新化はfeature/builder1-gui側で実施・記録する。
 
 ## 優先確認事項
+
+- CrossTie Alpha14のレール分割警告は新規TEへの未読込診断の誤検出と判断。ログ内の分割6回は成功、SRBX変更不要。[調査](crosstie-split-diagnostic.md)。本番サーバーは操作しない。
 
 ### 完全自由点とSRBXPatch
 

@@ -277,3 +277,10 @@
 - パック/TypeScript/Kaiz JARは変更なしのため再ビルド不要。rawログはGitへ入れず、必要診断のみlogs/srbxpatch-ae-dependency-startup-failure-20261010.logへ抜粋し個人パス/無関係Modログを除外。AE本体のmulti-release module-info読込警告等もあるが、今回の直接停止原因はSRBXPatch依存宣言。第三者Modは変更しない。
 - 未実施: 修正版AEのMinecraft起動/自由点両方向微速走行。旧JAR置換とhook installed確認、問題時logs/latest.log提出を依頼する。
 - 同期: 修正e240d3aをorigin/mainへpush成功。同期記録を含め既存自由点ブランチもfast-forwardで更新する。
+
+## 2026-10-10 ローカルCodex: 終了ブランチ整理、CrossTie分割診断、GUI最新化
+
+- mainに全コミットが含まれることを確認し、feature/appleextended-compat（77139ef）、feature/kaizpatch-free-endpoint-mod（2defa0c）、fix/rail-render-offset-compat-patch（08756a7）をremote/localで削除。GUIブランチは未統合コミットがあるので保持。
+- 保存済みfml-server-latest - コピー.logをcp932で解析。CrossTie Alpha14のNBT未読込警告26件、分割6回はいずれもresult=ok。公開Alpha14タグcf3ce92の診断とSRBX生成/同期コードを照合し、新規setter初期化TEのreadFromNBT未通過による誤検出と判断。SRBX変更不要。詳細docs/crosstie-split-diagnostic.mdと個人情報除去済み抜粋へ保存。生サーバーログはignoreへ追加。
+- 本番サーバーへ接続/変更/再起動/テストは一切行わない。必要な再読込/走行試験は本番以外のバックアップワールドで行う手順を残す。
+- CI対象の削除済み自由点ブランチをGUIブランチへ置換し、GUIでも最新mainの回帰と配布物ビルドを行う。

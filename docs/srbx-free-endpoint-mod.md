@@ -42,7 +42,7 @@ Gradle用JDKは`.npmrc`または`npm_config_gradle_java_home`で指定する。J
 python3 mod/build.py --test --kaizpatch-jar /path/to/KaizPatchX.jar --appleextended-jar /path/to/AppleExtended.jar
 ```
 
-ローカルでは全4build、スクリプト回帰、両Java挙動テスト、実Kaiz 1.10.4/AE 2.5.3へのASM BasicVerifier検証に成功。Java8形式、資産/依存/テスト非同梱、テストあり/なしビルドの再現性も確認済み。GitHub Actionsはmain/専用ブランチpushでZIPと2 JARを生成し、タグのworkflowは3ファイルをDraftへ添付する。Publishは手動。
+ローカルでは全4build、スクリプト回帰、両Java挙動テスト、実Kaiz 1.10.4/AE 2.5.3へのASM BasicVerifier検証に成功。Java8形式、資産/依存/テスト非同梱、テストあり/なしビルドの再現性も確認済み。GitHub Actionsはmain/GUIブランチpushでZIPと2 JARを生成し、タグのworkflowは3ファイルをDraftへ添付する。Publishは手動。
 
 ## 実機確認
 
