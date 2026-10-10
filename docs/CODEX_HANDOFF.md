@@ -30,7 +30,7 @@
 
 ## 作業中
 
-- ローカルCodex: CTRL中の移動ホバー抑止、カント整形の論理レール選択/分割廃止/速度操作、分岐スナップ、全ツールヘルプを実装・検証する。コミットは日本語表記。
+- なし。
 
 ## 優先確認事項
 
@@ -108,7 +108,7 @@
 
 ## 直近の完了
 
-- 2026-10-11 ローカルCodex: 全6ツールへ共通状態GUIを実装。分割/移動/複線/カント/分岐の各表示とチャット方針を反映、全4build・全回帰・旧Java GUI検証成功、main ZIP更新。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[9a1f77a](https://github.com/hi03s/SuperRailBuilderX/commit/9a1f77a)をorigin/mainへpush済み。
+- 2026-10-11 ローカルCodex: カントの論理レール両端整形、移動CTRLホバー抑止、分岐3種スナップ、全ツールヘルプを実装。全4build・回帰・旧Java GUI成功、ZIP更新、実機未確認。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[25ad162](https://github.com/hi03s/SuperRailBuilderX/commit/25ad162)をorigin/mainへpush済み。
 
 ## 関連資料
 

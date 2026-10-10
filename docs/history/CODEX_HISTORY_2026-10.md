@@ -385,3 +385,4 @@
 - 検証済み: 全4ターゲットbuild（warningなし）、全package回帰スクリプト、新規rail_tool_controlsテスト（論理選択/両端/速度0と±50/影響色/サーバー拒否とUndo再試行/分岐座標/CTRLホバー/全ヘルプ）、GUI行テスト、ゲーム同梱Java 8u51の全ツール生成GUI（GL模擬）、変更ソースのPrettier、diff --check。
 - ZIPを更新し103ファイル、共通GUI/新しい生成スクリプト、gui_base.xcf非同梱を確認。SHA256 241cb65d7ffd1ae3f6221c437500104cbcdf9cfba9d09528e480657952256479。編集用xcfと参照画像、生ログは追加しない。
 - 未実施: KaizPatch/AEの実GPU・実ワールド。更新ZIPへ置換して再起動し、レール選択/解除、両端と接続先のカント/水平化/Undo、移動CTRL、分岐スナップとGUI、Hヘルプを確認する。異常時はツール名、操作順、logs/latest.logを共有する。本番サーバーは操作していない。
+- 同期: 実装25ad162をorigin/mainへpush成功。完了した作業中項目を削除し、実機確認を優先確認事項へ残した。
