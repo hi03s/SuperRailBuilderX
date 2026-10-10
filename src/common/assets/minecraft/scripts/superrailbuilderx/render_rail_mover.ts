@@ -1,3 +1,5 @@
+import { SRBXToolGui } from "./SRBXToolGui";
+import { ResourceLocation } from "net.minecraft.util";
 import { SRBXRailBoundary } from "./SRBXRailBoundary";
 import { SRBXRailHighlight } from "./SRBXRailHighlight";
 import { NGTLog } from "jp.ngt.ngtlib.io";
@@ -33,6 +35,10 @@ import {
 } from "./server_rail_mover";
 
 declare const renderer: VehiclePartsRenderer;
+const GUI_TOOL_ICON = new ResourceLocation(
+	"minecraft",
+	"textures/superrailbuilderx/icon_rail_mover.png",
+);
 
 const VERSION = "0.2.0";
 const SEARCH_RADIUS = 1.05;
@@ -1458,6 +1464,12 @@ function handleInput(
 	}
 }
 
+function renderToolGui(state: EditorState): void {
+	SRBXToolGui.render("線路移動", GUI_TOOL_ICON, [
+		{ iconX: 4, iconY: 0, enabled: state.snapEnabled },
+	]);
+}
+
 function render(
 	entity: EntityVehicle,
 	pass: number,
@@ -1562,7 +1574,7 @@ function render(
 	if (left !== prevLeft) dataMap.setBoolean("prevIsLeftClick", left, 0);
 	if (right !== prevRight) dataMap.setBoolean("prevIsRightClick", right, 0);
 	if (renderer.currentMatId === 0 && pass === 0) keys.update();
-	if (!isOpenGUI && renderer.currentMatId === 0 && pass === 0)
+	if (!isOpenGUI && renderer.currentMatId === 0 && pass === 0) {
 		handleInput(
 			host,
 			entity,
@@ -1570,4 +1582,6 @@ function render(
 			!prevRight && right,
 			!prevLeft && left,
 		);
+		renderToolGui(state);
+	}
 }

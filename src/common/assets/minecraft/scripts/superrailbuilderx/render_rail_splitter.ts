@@ -1,3 +1,5 @@
+import { SRBXToolGui } from "./SRBXToolGui";
+import { ResourceLocation } from "net.minecraft.util";
 import { SRBXRailBoundary } from "./SRBXRailBoundary";
 import { SRBXRailHighlight } from "./SRBXRailHighlight";
 import { NGTLog } from "jp.ngt.ngtlib.io";
@@ -22,6 +24,10 @@ import {
 } from "./server_rail_splitter";
 
 declare const renderer: VehiclePartsRenderer;
+const GUI_TOOL_ICON = new ResourceLocation(
+	"minecraft",
+	"textures/superrailbuilderx/icon_rail_splitter.png",
+);
 
 const MIN_RESULT_LENGTH = 3;
 const MIN_SPLITTABLE_LENGTH = 6;
@@ -416,6 +422,25 @@ function handleInput(
 	handleResult(sender, entity, state);
 }
 
+function renderToolGui(target: SplitTarget | null): void {
+	SRBXToolGui.render("線路分割", GUI_TOOL_ICON, [
+		{
+			iconX: 4,
+			iconY: 2,
+			label: SRBXToolGui.formatLength(
+				target ? target.length * target.ratio : null,
+			),
+		},
+		{
+			iconX: 4,
+			iconY: 2,
+			label: SRBXToolGui.formatLength(
+				target ? target.length * (1 - target.ratio) : null,
+			),
+		},
+	]);
+}
+
 function render(
 	entity: EntityVehicle,
 	pass: number,
@@ -437,9 +462,11 @@ function render(
 	SRBXApiCompat.doFollowing(entity, host);
 	const state = getState(entity);
 	const target = state.selected || findHoverTarget(entity, partialTicks);
+	let guiTarget: SplitTarget | null = null;
 	if (target) {
 		const map = resolveMap(entity, target);
 		if (map) {
+			if (target.splittable) guiTarget = target;
 			renderRailHighlight(
 				entity,
 				partialTicks,
@@ -488,7 +515,7 @@ function render(
 	if (left !== prevLeft) dataMap.setBoolean("prevIsLeftClick", left, 0);
 	if (right !== prevRight) dataMap.setBoolean("prevIsRightClick", right, 0);
 	if (renderer.currentMatId === 0 && pass === 0) keys.update();
-	if (!isOpenGUI && renderer.currentMatId === 0 && pass === 0)
+	if (!isOpenGUI && renderer.currentMatId === 0 && pass === 0) {
 		handleInput(
 			host,
 			entity,
@@ -496,4 +523,6 @@ function render(
 			!prevRight && right,
 			!prevLeft && left,
 		);
+		renderToolGui(guiTarget);
+	}
 }

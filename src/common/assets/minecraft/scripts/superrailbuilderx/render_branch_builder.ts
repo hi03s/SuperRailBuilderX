@@ -1,3 +1,5 @@
+import { SRBXToolGui } from "./SRBXToolGui";
+import { ResourceLocation } from "net.minecraft.util";
 import { SRBXRailBoundary } from "./SRBXRailBoundary";
 import { SRBXRailHighlight } from "./SRBXRailHighlight";
 import { NGTLog } from "jp.ngt.ngtlib.io";
@@ -25,6 +27,10 @@ import { SRBXMath, SRBXVec3 } from "./SRBXMath";
 import { BranchBuilderRequest } from "./server_branch_builder";
 
 declare const renderer: VehiclePartsRenderer;
+const GUI_TOOL_ICON = new ResourceLocation(
+	"minecraft",
+	"textures/superrailbuilderx/icon_branch_builder.png",
+);
 const MIN_LENGTH = 3,
 	MAX_RADIUS = 10000,
 	DEFAULT_HEIGHT = 1 / 16;
@@ -576,6 +582,7 @@ function preview(
 			b.anchorLength,
 		);
 	let previous = a.position;
+	let length = 0;
 	for (let i = 1; i <= 48; i++) {
 		const p = SRBXMath.cubicBezierPoint(
 			a.position,
@@ -585,8 +592,10 @@ function preview(
 			i / 48,
 		);
 		segment(e, pt, previous, p);
+		length += SRBXMath.distance(previous, p);
 		previous = p;
 	}
+	return length;
 }
 function radiusPanel(
 	e: EntityVehicle,
@@ -913,6 +922,36 @@ function input(
 		send(e, s, { action: "undo" });
 	handleResult(sender, e, s);
 }
+function renderToolGui(
+	s: State,
+	previewLength: number | null,
+	previewRadius: number | null,
+): void {
+	SRBXToolGui.render("分岐生成", GUI_TOOL_ICON, [
+		{
+			iconX: 4,
+			iconY: 1,
+			enabled: s.locked,
+			label: SRBXToolGui.formatRadius(
+				s.locked
+					? s.radius >= MAX_RADIUS
+						? Infinity
+						: s.radius
+					: s.split
+						? previewRadius
+						: null,
+			),
+		},
+		{
+			iconX: 4,
+			iconY: 2,
+			label: SRBXToolGui.formatLength(
+				s.split ? (previewLength === null ? 0 : previewLength) : null,
+			),
+		},
+	]);
+}
+
 function render(e: EntityVehicle, pass: number, pt: number): void {
 	if (!e) {
 		body.render(renderer);
@@ -930,6 +969,8 @@ function render(e: EntityVehicle, pass: number, pt: number): void {
 	SRBXApiCompat.doFollowing(e, host);
 	const s = getState(e),
 		split = s.split || findSplit(e, pt);
+	let previewLength: number | null = null;
+	let previewRadius: number | null = null;
 	if (split) {
 		if (split.endpoint && !s.awaiting)
 			renderEndpointHoverHighlights(e, pt, split, !!s.split, !s.end);
@@ -964,7 +1005,7 @@ function render(e: EntityVehicle, pass: number, pt: number): void {
 			const p = plan(s, end);
 			renderAt(e, pt, end.position, s.end ? selectedCursor : hoverCursor);
 			renderAt(e, pt, end.markerPosition, markers[end.direction & 7]);
-			preview(e, pt, p[0], p[1]);
+			previewLength = preview(e, pt, p[0], p[1]);
 			const displayedRadius = s.locked
 				? s.radius
 				: p[0].curveRadius === undefined
@@ -985,6 +1026,7 @@ function render(e: EntityVehicle, pass: number, pt: number): void {
 							p[1].position,
 						)
 					: p[0].curveRadius;
+			previewRadius = displayedRadius;
 			radiusPanel(
 				e,
 				pt,
@@ -1005,6 +1047,8 @@ function render(e: EntityVehicle, pass: number, pt: number): void {
 	if (left !== pl) d.setBoolean("prevIsLeftClick", left, 0);
 	if (right !== pr) d.setBoolean("prevIsRightClick", right, 0);
 	if (renderer.currentMatId === 0 && pass === 0) keys.update();
-	if (!gui && renderer.currentMatId === 0 && pass === 0)
+	if (!gui && renderer.currentMatId === 0 && pass === 0) {
 		input(host, e, pt, !pr && right, !pl && left);
+		renderToolGui(s, previewLength, previewRadius);
+	}
 }

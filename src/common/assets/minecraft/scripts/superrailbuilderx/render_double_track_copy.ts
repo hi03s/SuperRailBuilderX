@@ -1,3 +1,5 @@
+import { SRBXToolGui } from "./SRBXToolGui";
+import { ResourceLocation } from "net.minecraft.util";
 import { SRBXRailBoundary } from "./SRBXRailBoundary";
 import { SRBXRailHighlight } from "./SRBXRailHighlight";
 import { NGTLog } from "jp.ngt.ngtlib.io";
@@ -29,6 +31,10 @@ import {
 } from "./server_double_track_copy";
 
 declare const renderer: VehiclePartsRenderer;
+const GUI_TOOL_ICON = new ResourceLocation(
+	"minecraft",
+	"textures/superrailbuilderx/icon_double_track_copy.png",
+);
 
 const DEFAULT_SPACING = 4;
 const SPACING_STEP = 0.1;
@@ -680,13 +686,6 @@ function repeatedKey(state: CopyState, name: string): boolean {
 	return true;
 }
 
-function showSpacing(sender: ICommandSender, state: CopyState): void {
-	NGTLog.sendChatMessage(
-		sender,
-		`[SuperRailBuilderX] 複線間隔: ${state.spacing.toFixed(1)} m`,
-	);
-}
-
 function showHelp(sender: ICommandSender): void {
 	if (SRBXApiCompat.requiresRailBoundarySnap())
 		NGTLog.sendChatMessage(
@@ -894,7 +893,6 @@ function handleInput(
 	if (spacingChanged) {
 		state.placementLocked = false;
 		state.lockedPlans = [];
-		showSpacing(sender, state);
 	}
 	if (!state.awaitingResult && keys.pressed("clear")) {
 		state.selected = [];
@@ -905,7 +903,6 @@ function handleInput(
 		state.lockedPlans = [];
 		state.placementLocked = false;
 		state.keyRepeatAt = {};
-		showSpacing(sender, state);
 	}
 	if (
 		!state.awaitingResult &&
@@ -936,6 +933,12 @@ function handleInput(
 		NGTLog.sendChatMessage(sender, "[SuperRailBuilderX] Undo...");
 	}
 	handleResult(sender, entity, state);
+}
+
+function renderToolGui(state: CopyState): void {
+	SRBXToolGui.render("複線コピー", GUI_TOOL_ICON, [
+		{ iconX: 4, iconY: 2, label: `間隔:${state.spacing.toFixed(1)}m` },
+	]);
 }
 
 function render(
@@ -1037,7 +1040,7 @@ function render(
 	if (left !== prevLeft) dataMap.setBoolean("prevIsLeftClick", left, 0);
 	if (right !== prevRight) dataMap.setBoolean("prevIsRightClick", right, 0);
 	if (renderer.currentMatId === 0 && pass === 0) keys.update();
-	if (!isOpenGUI && renderer.currentMatId === 0 && pass === 0)
+	if (!isOpenGUI && renderer.currentMatId === 0 && pass === 0) {
 		handleInput(
 			host,
 			entity,
@@ -1045,4 +1048,6 @@ function render(
 			!prevRight && right,
 			!prevLeft && left,
 		);
+		renderToolGui(state);
+	}
 }

@@ -2,7 +2,7 @@ const fs = require("fs");
 const vm = require("vm");
 const assert = require("assert");
 const source = fs.readFileSync(
-	"dist/assets/minecraft/scripts/superrailbuilderx/render_builder1.js",
+	"dist/assets/minecraft/scripts/superrailbuilderx/SRBXToolGui.js",
 	"utf8",
 );
 const start = source.indexOf("function saveGuiMatrix(");
@@ -12,7 +12,7 @@ const save = source.slice(
 );
 const draw = source.slice(
 	source.indexOf("function drawGuiTile("),
-	source.indexOf("function resultMessage("),
+	source.length,
 );
 assert(
 	!/gl(Push|Pop)(Attrib|Matrix)\(/.test(draw),
@@ -285,7 +285,15 @@ for (const failure of [
 				return this.data[i];
 			},
 		};
-	vm.runInNewContext(save + draw, context);
+	const builder = fs.readFileSync(
+		"dist/assets/minecraft/scripts/superrailbuilderx/render_builder1.js",
+		"utf8",
+	);
+	const adapter = builder.slice(
+		builder.indexOf("function renderToolGui("),
+		builder.indexOf("function resultMessage("),
+	);
+	vm.runInNewContext(save + draw + adapter, context);
 	const render = () =>
 		context.renderToolGui(
 			{
@@ -380,6 +388,51 @@ for (const failure of [
 			);
 			assert.equal(JSON.stringify({ matrices, attrs }), before);
 		}
+		labels.length = 0;
+		tiles.length = 0;
+		context.SRBXToolGui.render("tool", "icon", [
+			{ iconX: 5, iconY: 0, label: "設計速度:100km/h" },
+			{ iconX: 4, iconY: 2, label: "種類:1067mm" },
+		]);
+		assert.deepStrictEqual(
+			labels.map((l) => l.s),
+			["tool", "設計速度:100km/h", "種類:1067mm"],
+		);
+		assert(
+			tiles.some(
+				(t) =>
+					JSON.stringify(t) ===
+					JSON.stringify([304, 32, 80, 0, 16, 16]),
+			),
+			"Speed icon at atlas (5,0)",
+		);
+		assert(
+			tiles.some(
+				(t) =>
+					JSON.stringify(t) ===
+					JSON.stringify([304, 48, 64, 32, 16, 16]),
+			),
+			"Rail icon on second row",
+		);
+		assert(
+			tiles.some(
+				(t) =>
+					JSON.stringify(t) ===
+					JSON.stringify([304, 32, 48, 32, 16, 16]),
+			),
+			"Informational background at atlas (3,2)",
+		);
+		assert.equal(JSON.stringify({ matrices, attrs }), before);
+		labels.length = 0;
+		context.SRBXToolGui.render("tool", "icon", [
+			{ iconX: 4, iconY: 0, enabled: false },
+		]);
+		assert.deepStrictEqual(
+			labels.map((l) => l.s),
+			["tool"],
+			"Mover has no status text",
+		);
+		assert.equal(JSON.stringify({ matrices, attrs }), before);
 	}
 }
 

@@ -1,3 +1,5 @@
+import { SRBXToolGui } from "./SRBXToolGui";
+import { ResourceLocation } from "net.minecraft.util";
 import { SRBXRailBoundary } from "./SRBXRailBoundary";
 import { SRBXRailHighlight } from "./SRBXRailHighlight";
 import { NGTLog } from "jp.ngt.ngtlib.io";
@@ -24,6 +26,10 @@ import { SRBXMath } from "./SRBXMath";
 import { CantFormatterRequest } from "./server_cant_formatter";
 
 declare const renderer: VehiclePartsRenderer;
+const GUI_TOOL_ICON = new ResourceLocation(
+	"minecraft",
+	"textures/superrailbuilderx/icon_cant_formatter.png",
+);
 type Gauge = { gauge: number; name: string; maxCant: number };
 const GAUGES: Gauge[] = [
 	{ gauge: 1067, name: "1067mm", maxCant: 105 },
@@ -561,6 +567,13 @@ function collectAffectedRails(
 			}
 }
 
+function renderToolGui(s: State): void {
+	SRBXToolGui.render("カント整形", GUI_TOOL_ICON, [
+		{ iconX: 5, iconY: 0, label: `設計速度:${s.speed}km/h` },
+		{ iconX: 4, iconY: 2, label: `種類:${GAUGES[s.gaugeIndex].name}` },
+	]);
+}
+
 function render(entity: EntityVehicle, pass: number, pt: number): void {
 	if (!entity) {
 		body.render(renderer);
@@ -626,6 +639,8 @@ function render(entity: EntityVehicle, pass: number, pt: number): void {
 	if (left !== pl) d.setBoolean("prevIsLeftClick", left, 0);
 	if (right !== pr) d.setBoolean("prevIsRightClick", right, 0);
 	if (renderer.currentMatId === 0 && pass === 0) keys.update();
-	if (!gui && renderer.currentMatId === 0 && pass === 0)
+	if (!gui && renderer.currentMatId === 0 && pass === 0) {
 		input(host, entity, pt, !pr && right, !pl && left);
+		renderToolGui(s);
+	}
 }

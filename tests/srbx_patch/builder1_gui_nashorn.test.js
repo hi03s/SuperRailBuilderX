@@ -1,15 +1,12 @@
 // Run with the game's jjs -scripting (Java 8u51) after pnpm build.
 // Driver calls are mocked; the actual legacy JS engine executes the GUI code.
 var source = readFully(
-	"dist/assets/minecraft/scripts/superrailbuilderx/render_builder1.js"
+	"dist/assets/minecraft/scripts/superrailbuilderx/SRBXToolGui.js"
 );
 var start = source.indexOf("function saveGuiMatrix(");
 var code =
 	source.slice(start, start + source.slice(start).indexOf("\n}") + 2) +
-	source.slice(
-		source.indexOf("function drawGuiTile("),
-		source.indexOf("function resultMessage(")
-	);
+	source.slice(source.indexOf("function drawGuiTile("), source.length);
 var GL11 = {},
 	GL13 = GL11,
 	GL14 = GL11,
@@ -123,6 +120,13 @@ var RTMX_COMPAT_scripts_superrailbuilderx_SRBXApiCompat_1js5ute = {
 		}
 	}
 };
+var builder = readFully(
+	"dist/assets/minecraft/scripts/superrailbuilderx/render_builder1.js"
+);
+code += builder.slice(
+	builder.indexOf("function renderToolGui("),
+	builder.indexOf("function resultMessage(")
+);
 eval(code);
 var cases = [
 	["off", true, 1, 250, 500.6, ["250 m", "12.35 m"]],
@@ -151,4 +155,70 @@ for (var c = 0; c < cases.length; c++) {
 }
 print(
 	"Legacy Nashorn GUI OFF/ON, preview radius, straight radius, shadow labels and projection restoration passed"
+);
+
+// Execute all five adapters through the same legacy engine and shared GL renderer.
+var otherCases = [
+	["rail_splitter", [null], ["\u7dda\u8def\u5206\u5272"]],
+	[
+		"rail_splitter",
+		[{ length: 100, ratio: 0.25 }],
+		["\u7dda\u8def\u5206\u5272", "25.00 m", "75.00 m"]
+	],
+	["rail_mover", [{ snapEnabled: false }], ["\u7dda\u8def\u79fb\u52d5"]],
+	[
+		"double_track_copy",
+		[{ spacing: 4 }],
+		["\u8907\u7dda\u30b3\u30d4\u30fc", "\u9593\u9694:4.0m"]
+	],
+	[
+		"cant_formatter",
+		[{ speed: 100, gaugeIndex: 0 }],
+		[
+			"\u30ab\u30f3\u30c8\u6574\u5f62",
+			"\u8a2d\u8a08\u901f\u5ea6:100km/h",
+			"\u7a2e\u985e:1067mm"
+		]
+	],
+	[
+		"branch_builder",
+		[{ locked: false, split: {} }, 12.345, Infinity],
+		["\u5206\u5c90\u751f\u6210", "\u76f4\u7dda", "12.35 m"]
+	],
+	[
+		"branch_builder",
+		[{ locked: true, radius: 10000, split: null }, null, null],
+		["\u5206\u5c90\u751f\u6210", "\u76f4\u7dda"]
+	]
+];
+var MAX_RADIUS = 10000;
+for (var n = 0; n < otherCases.length; n++) {
+	var testCase = otherCases[n];
+	var toolSource = readFully(
+		"dist/assets/minecraft/scripts/superrailbuilderx/render_" +
+			testCase[0] +
+			".js"
+	);
+	if (testCase[0] === "cant_formatter")
+		eval(
+			toolSource.slice(
+				toolSource.indexOf("var GAUGES ="),
+				toolSource.indexOf("var states =")
+			)
+		);
+	var adapterStart = toolSource.indexOf("function renderToolGui(");
+	eval(
+		toolSource.slice(
+			adapterStart,
+			toolSource.indexOf("\n}", adapterStart) + 2
+		)
+	);
+	labels = [];
+	renderToolGui.apply(null, testCase[1]);
+	if (JSON.stringify(labels) !== JSON.stringify(testCase[2]))
+		throw new Error("Tool label mismatch: " + JSON.stringify(labels));
+	if (projected) throw new Error("Tool projection not restored");
+}
+print(
+	"Legacy Nashorn all five tool adapters, empty rows and shared projection restoration passed"
 );
