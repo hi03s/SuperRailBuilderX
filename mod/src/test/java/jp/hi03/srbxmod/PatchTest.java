@@ -1,0 +1,117 @@
+package jp.hi03.srbxmod;
+
+import java.lang.reflect.Method;
+import org.objectweb.asm.*;
+
+/** Behavioral tests plus JVM verification/execution of transformed bytecode. */
+public final class PatchTest {
+    public static class RP {
+        public double posX = 0.3, posZ;
+        RP(double z) { posZ = z; }
+    }
+    public static class Map {
+        public RP start = new RP(0.2), end = new RP(10.2);
+        public Object getStartRP() { return start; }
+        public Object getEndRP() { return end; }
+        public float getRailYaw(int split, int index) { return 0; }
+        public double[] getRailPos(int split, int index) { return new double[]{start.posZ + (end.posZ-start.posZ)*index/split, 0.3}; }
+        public double getRailHeight(int split, int index) { return 4.0625; }
+    }
+    public static class Core {
+        public int xCoord, yCoord = 4, zCoord;
+        public Map map = new Map();
+        public Object[] getAllRailMaps() { return new Object[]{map}; }
+    }
+    public static class World {
+        public boolean isRemote, loaded = true;
+        public Object core;
+        public boolean blockExists(int x, int y, int z) { return loaded; }
+        public Object getTileEntity(int x, int y, int z) { return core; }
+    }
+    public static class Bogie {
+        public World worldObj = new World();
+        public Object currentRailObj;
+        public Map currentRailMap;
+        public int split = 3600, prevPosIndex = 18;
+        public double posX = 0.3, posZ = 0.25;
+        public float yOffset;
+        public Bogie() {
+            Core core = new Core();
+            currentRailObj = core; currentRailMap = core.map; worldObj.core = core;
+        }
+    }
+    private static void expect(boolean condition, String name) {
+        if (!condition) throw new AssertionError(name);
+    }
+    public static void main(String[] args) throws Exception {
+        Bogie b = new Bogie();
+        expect(FreeEndpointHook.retainCurrent(b, 0.3, 4.0625, 0.26) == b.currentRailObj, "same-cell old roadbed must not win");
+        expect(FreeEndpointHook.retainCurrent(b, 0.3, 4.0625, 0.19) == null, "reverse exit delegates");
+        b.prevPosIndex = 3582; b.posZ = 10.15;
+        expect(FreeEndpointHook.retainCurrent(b, 0.3, 4.0625, 10.16) == b.currentRailObj, "near end interior");
+        expect(FreeEndpointHook.retainCurrent(b, 0.3, 4.0625, 10.21) == null, "forward exit delegates");
+        expect(FreeEndpointHook.retainCurrent(b, 0.7, 4.0625, 10.16) == null, "parallel track is not retained");
+        expect(FreeEndpointHook.retainCurrent(b, 0.3, 6.0, 10.16) == null, "different vertical track");
+        b.worldObj.isRemote = true;
+        expect(FreeEndpointHook.retainCurrent(b, 0.3, 4.0625, 10.16) == null, "logical client no-op");
+        b.worldObj.isRemote = false; b.worldObj.loaded = false;
+        expect(FreeEndpointHook.retainCurrent(b, 0.3, 4.0625, 10.16) == null, "unloaded core");
+        b.worldObj.loaded = true; b.worldObj.core = new Core();
+        expect(FreeEndpointHook.retainCurrent(b, 0.3, 4.0625, 10.16) == null, "removed/replaced core");
+        b = new Bogie(); b.currentRailMap = new Map();
+        expect(FreeEndpointHook.retainCurrent(b, 0.3, 4.0625, 0.26) == null, "rebuilt map is not pinned");
+        b = new Bogie(); b.currentRailMap.start.posZ = 0; b.currentRailMap.end.posZ = 10;
+        expect(FreeEndpointHook.retainCurrent(b, 0.3, 4.0625, 0.26) == null, "standard boundary map unchanged");
+        b = new Bogie(); b.currentRailMap.end.posZ = 0.4; b.split = 72; b.prevPosIndex = 18;
+        expect(FreeEndpointHook.retainCurrent(b, 0.3, 4.0625, 0.26) == b.currentRailObj, "0.2m section");
+        expect(FreeEndpointHook.retainCurrent(b, 0.3, 4.0625, 0.41) == null, "short-section exit");
+        expect(FreeEndpointHook.retainCurrent(b, Double.NaN, 4, 0.26) == null, "nonfinite rejected");
+        verifyTransformer();
+        System.out.println("SRBXMod behavioral and bytecode tests passed");
+    }
+    private static byte[] type(String name, String parent, boolean bogie, boolean resolver) {
+        ClassWriter w = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        w.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, name, null, parent, null);
+        MethodVisitor m = w.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
+        m.visitCode(); m.visitVarInsn(Opcodes.ALOAD, 0); m.visitMethodInsn(Opcodes.INVOKESPECIAL, parent, "<init>", "()V", false);
+        m.visitInsn(Opcodes.RETURN); m.visitMaxs(0,0); m.visitEnd();
+        String ret = "Ljp/ngt/rtm/rail/TileEntityLargeRailCore;";
+        if (resolver) for (String method : new String[]{"findCrossedConnectedCore", "keepCurrentSectionCore"}) {
+            m = w.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, method, "()"+ret, null, null);
+            m.visitCode(); m.visitInsn(Opcodes.ACONST_NULL); m.visitInsn(Opcodes.ARETURN); m.visitMaxs(0,0); m.visitEnd();
+        }
+        if (bogie) {
+            m = w.visitMethod(Opcodes.ACC_PUBLIC, "getRail", "(DDD)"+ret, null, null);
+            m.visitCode();
+            m.visitMethodInsn(Opcodes.INVOKESTATIC, "jp/kaiz/kaizpatch/rtm/rail/util/RailTransitionResolver", "findCrossedConnectedCore", "()"+ret, false);
+            m.visitInsn(Opcodes.POP);
+            m.visitMethodInsn(Opcodes.INVOKESTATIC, "jp/kaiz/kaizpatch/rtm/rail/util/RailTransitionResolver", "keepCurrentSectionCore", "()"+ret, false);
+            m.visitInsn(Opcodes.ARETURN); m.visitMaxs(0,0); m.visitEnd();
+        }
+        w.visitEnd(); return w.toByteArray();
+    }
+    private static final class Loader extends ClassLoader {
+        Class<?> define(String name, byte[] code) { return defineClass(name, code, 0, code.length); }
+    }
+    private static void verifyTransformer() throws Exception {
+        Loader l = new Loader();
+        String coreName = "jp.ngt.rtm.rail.TileEntityLargeRailCore";
+        Class<?> coreType = l.define(coreName, type(coreName.replace('.', '/'), "jp/hi03/srbxmod/PatchTest$Core", false, false));
+        String resolver = "jp.kaiz.kaizpatch.rtm.rail.util.RailTransitionResolver";
+        l.define(resolver, type(resolver.replace('.', '/'), "java/lang/Object", false, true));
+        String name = "jp.ngt.rtm.entity.train.EntityBogie";
+        byte[] original = type(name.replace('.', '/'), "jp/hi03/srbxmod/PatchTest$Bogie", true, false);
+        BogieTransformer t = new BogieTransformer();
+        byte[] patched = t.transform(name, name, original);
+        expect(java.util.Arrays.equals(patched, t.transform(name,name,patched)), "idempotence");
+        Class<?> clazz = l.define(name, patched);
+        Bogie b = (Bogie) clazz.newInstance();
+        Core core = (Core) coreType.newInstance();
+        b.currentRailObj = core; b.currentRailMap = core.map; b.worldObj.core = core;
+        Method get = clazz.getMethod("getRail", double.class,double.class,double.class);
+        expect(get.invoke(b,0.3,4.0625,0.26) == core, "transformed class returns retained core");
+        expect(get.invoke(b,0.3,4.0625,0.19) == null, "transformed class executes native fallback");
+        b.worldObj.isRemote = true;
+        expect(get.invoke(b,0.3,4.0625,0.26) == null, "transformed client behavior preserved");
+    }
+}

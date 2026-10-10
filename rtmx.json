@@ -1,5 +1,5 @@
 {
-	"name": "SuperRailBuilderX-0.2.0",
+	"name": "SuperRailBuilderX-free-endpoint-experimental",
 	"outDir": "dist",
 	"commonApiPolicy": "allow",
 	"targets": {
@@ -13,7 +13,7 @@
 				"forgeVersion": "10.13.4.1614",
 				"channel": "stable",
 				"mappingsVersion": "12",
-				"mods": ["com.github.Kai-Z-JP:KaizPatchX:v1.10.3"],
+				"mods": ["com.github.Kai-Z-JP:KaizPatchX:v1.10.4"],
 				"packages": [
 					"net.minecraft",
 					"net.minecraftforge",

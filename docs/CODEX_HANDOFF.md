@@ -24,7 +24,7 @@
 
 ## 作業中
 
-- なし。
+- Web側Codex / 2026-10-10: `feature/kaizpatch-free-endpoint-mod`でKaizPatch 1.10.4専用サーバーcoremodとSRBX内包JARを実装・ビルド中。AEは保留。CrossTieのgetRailチャンク読込redirectとresolver探索overwriteを維持する。
 
 ## 優先確認事項
 

@@ -1,0 +1,54 @@
+name: Build experimental SRBX server mod
+
+on:
+    push:
+        branches: [feature/kaizpatch-free-endpoint-mod]
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: pnpm/action-setup@v4
+              with:
+                  version: 10.33.2
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22.17.0
+                  cache: pnpm
+            - uses: actions/setup-java@v4
+              with:
+                  distribution: temurin
+                  java-version: "25"
+                  cache: gradle
+                  cache-dependency-path: |
+                      pnpm-lock.yaml
+                      rtmx.json
+            - name: Build and test coremod (Java 8 bytecode)
+              run: python3 mod/build.py --core-only --test
+            - name: Install and generate model pack types
+              run: |
+                  pnpm install --frozen-lockfile
+                  npm_config_gradle_java_home="$JAVA_HOME" pnpm exec rtmx generate
+            - name: Build embedded SRBX model pack
+              run: pnpm exec rtmx build
+            - name: Regression tests
+              run: |
+                  pnpm test:rail-patch
+                  pnpm test:runtime-dispatch
+                  pnpm test:appleextended
+                  pnpm test:input
+                  pnpm test:kaizpatch
+                  pnpm test:rail-boundary
+                  pnpm test:train-debug
+            - name: Package SRBX with server patch
+              run: python3 mod/build.py
+            - uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: SRBXMod-experimental-${{ github.sha }}
+                  path: artifacts/*.jar
