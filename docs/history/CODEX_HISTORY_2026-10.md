@@ -407,3 +407,4 @@
 - 検証済み: pnpm build（全4ターゲット）、pnpm test:input、pnpm test:gui。Java 8u51でGUIのGL模擬復元と実際のJava.extend/SRGクリックコールバック・座標フィールドを検証。リング頂点の内外径と画面サイズ別の中央判定も確認。
 - 実GPU、実Minecraft画面、KaizPatch/AE実機、マルチプレイのリスト非表示は未検証。更新ZIPでリング・左クリック・中央取消・押しっぱなし動作を確認し、不具合時は操作手順とlogs/latest.logを共有する（docs/tool-wheel.md）。
 - ZIP更新: artifacts/SuperRailBuilderX-0.2.0.zip（106ファイル）、SHA256: 9732C8C5D7DAAAE2AD6536D09DEEEE9AFD3E9F44465B0356A84A717C22116B1A。ユーザーのgui_base.xcfは変更せず、生成先コピーのみZIPから除外。従来のbutton_template.xcfは維持。
+- 同期: d51c996（ホイールを中央取消付きリングへ変更し左クリック決定を追加）をorigin/mainへpush完了。
