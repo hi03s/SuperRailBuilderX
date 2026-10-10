@@ -289,3 +289,12 @@
 - GUI検証: pnpm build全4ターゲット（warningなし）、rail-patch/runtime-dispatch/appleextended/input/kaizpatch/rail-boundary/free-endpoint/train-debug全成功、render_builder1.tsのPrettier確認成功。GUIテクスチャとrenderToolGuiが入ったZIP102ファイル、include欠落なし、不要JSON/gui_base.xcfなし。既存main ZIPを保持し、GUI成果物はSuperRailBuilderX-0.2.0-builder1-gui.zipへ別名保存。
 - 未実施: GUIの画面/スケール/色/透過/3D表示の実機再確認、本番での実行。既存mainの両ModはJava変更なしで再利用する。ユーザーの未追跡gui_base.xcfは保持しGitへ追加しない。
 - GUI同期: merge df0d3d8をorigin/feature/builder1-guiへpush成功（963f30e→df0d3d8）。整形後に全4build/ZIPを再生成し、最終GUI ZIP SHA256 9e75847362539aa34b77035aa43b68261357a0be595bd04a3661e341daf5b84d。現在のチェックアウトはGUIブランチ。本番未操作。
+
+## 2026-10-10 ローカルCodex: builder1 GUIの空色描画とワールド霧の分離
+
+- references/picの2026-10-10_22.37.02.png/22.37.07.pngを視認。上端/右端/枠の形で空色が表示され、昼と夕方の背景色に追従。GUI色だけ失われ深度形状が残る症状を確認。
+- renderToolGuiは視点z=-1001の2D投影で描画し、GL_FOGを継承したままだった。ワールド霧によるRGBの空色置換を有力原因と判断し、GUI描画中だけGL_FOGを無効化。既存GL_ENABLE_BITとfinallyのglPopAttribで元の霧状態を復元。ワールド深度や既存の透明破棄/最前面深度仕様は変更しない。
+- 初回のみ[SuperRailBuilderX GUI] fog isolatedにworldFog/guiFog/サイズを出力。実機でworldFog=true/guiFog=falseを確認でき、再発時の調査材料にする。診断はクライアント描画スクリプト内。サーバー/Javaパッチ/共有ツールキットは変更なし。
+- 検証済み: pnpm build全4ターゲット（warningなし）、rail-patch/runtime-dispatch回帰、対象TSのPrettier/diff --check。生成JSのrenderToolGuiをローカル模擬GL状態で実行し、初期霧ON/OFF各ケースと描画例外時も色描画中の霧OFF・終了時の元霧/texture unit/属性/行列復元を確認。これは実GPUの画像検証ではない。
+- 更新SuperRailBuilderX-0.2.0-builder1-gui.zipは102ファイル、霧無効化/診断ログを確認。不要debug JSON/ユーザーgui_base.xcfは非同梱。main ZIPと両SRBXPatch JARは維持。ユーザーの画像/xcfは未追跡のまま保持し、Gitへ追加しない。
+- 未実施: 修正後Minecraft実機の昼/夕方GUI色・文字・透明部分、ツール終了後のワールド描画。更新ZIPへ置換し確認、再発時は画像とlogs/latest.log（fog isolatedを含む）を提出する手順をdocs/builder1.mdへ追記。

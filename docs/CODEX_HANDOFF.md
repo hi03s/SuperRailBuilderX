@@ -33,7 +33,7 @@
 
 ## 優先確認事項
 
-- builder1使用中GUIは降車後も上端/右端バー、右上枠/アイコン、中央上のツール名を表示する試験実装。GUIスケール/色/透明部分/3Dプレビューの実機再確認待ち。[描画仕様](builder1.md)。
+- builder1使用中GUIは降車後も上端/右端バー、右上枠/アイコン、中央上のツール名を表示する試験実装。実機画像で空色になる症状を受領し、GUI中のワールド霧を無効化。全4build/状態復元確認成功、修正後の昼/夕方の色・文字・透明部分・終了後3D描画の実機再確認待ち。再発時は画像とlogs/latest.log内の[SuperRailBuilderX GUI] fog isolatedを共有する。[描画仕様](builder1.md)。
 
 - CrossTie Alpha14のレール分割警告は新規TEへの未読込診断の誤検出と判断。ログ内の分割6回は成功、SRBX変更不要。[調査](crosstie-split-diagnostic.md)。本番サーバーは操作しない。
 
@@ -103,7 +103,7 @@
 
 ## 直近の完了
 
-- 2026-10-10 ローカルCodex: GUIブランチへmain a1afeabを取り込み、最新自由点/SRBXPatch/AE修正とGUIを併用。全4build/回帰・GUIソース整形・ZIP参照検証成功、実機GUI未確認。調査45a941fはorigin/main同期済み。GUIマージ[df0d3d8](https://github.com/hi03s/SuperRailBuilderX/commit/df0d3d8)をorigin/feature/builder1-guiへpush済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
+- 2026-10-10 ローカルCodex: GUI空色症状に対しワールド霧を隔離、初回診断ログを追加。全4build/描画関連回帰/整形/状態復元検証成功、更新GUI ZIP生成。実機再確認待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。同期結果はコミット後に記載。
 
 ## 関連資料
 

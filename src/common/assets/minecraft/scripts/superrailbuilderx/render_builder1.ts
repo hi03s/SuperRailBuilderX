@@ -54,6 +54,7 @@ const GUI_TOOL_ICON = new ResourceLocation(
 	"textures/superrailbuilderx/icon_builder1.png",
 );
 const toolGui = new Gui();
+let guiFogDiagnosticReported = false;
 
 type BuilderState = {
 	selected: SRBXBuilderPoint[];
@@ -1290,6 +1291,7 @@ function renderToolGui(): void {
 	const size = getScaledGuiSize(mc);
 	const width = size[0];
 	const height = size[1];
+	const worldFog = GL11.glIsEnabled(GL11.GL_FOG);
 	const previousActiveTexture = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
 	GL13.glActiveTexture(GL13.GL_TEXTURE1);
 	GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_TEXTURE_BIT);
@@ -1312,6 +1314,16 @@ function renderToolGui(): void {
 	GL11.glTranslatef(0, 0, -1001);
 	try {
 		GL11.glDisable(GL11.GL_LIGHTING);
+		// This screen projection uses eye-space z=-1001. World fog would
+		// replace GUI RGB with the sky color while still writing its depth.
+		// GL_ENABLE_BIT restores the world's fog setting on glPopAttrib.
+		GL11.glDisable(GL11.GL_FOG);
+		if (!guiFogDiagnosticReported) {
+			guiFogDiagnosticReported = true;
+			NGTLog.debug(
+				`[SuperRailBuilderX GUI] fog isolated: worldFog=${worldFog}, guiFog=${GL11.glIsEnabled(GL11.GL_FOG)}, size=${width}x${height}`,
+			);
+		}
 		GL11.glDisable(GL11.GL_CULL_FACE);
 		GL11.glEnable(GL11.GL_ALPHA_TEST);
 		GL11.glAlphaFunc(GL11.GL_GREATER, 0.01);
