@@ -228,3 +228,13 @@
 - 最終レビュー: endpoint Undoのサーバー記録へoriginalPointを追加し、変更前owner/directionをKaiz通常/分岐とAEへ渡して復元。AEの公開compat経由で復元flag/snapshotが届く回帰ケースも追加。縦区間長は共有点snap前に保存してアンカー比補正し、短区間のクライアント配列参照を防止。追加修正後もbuild/境界/AE11本/Kaiz/描画/include/入力等が成功。
 
 - 同期: 実装コミット `f8ecee4` をorigin/mainへpush成功。引継ぎ帳は現行状態と実機確認待ちへ更新。
+
+## 2026-10-10 Web側Codex: 完全自由点サーバーModの実験ブランチ
+
+- main `01e5197`から`feature/kaizpatch-free-endpoint-mod`を作成。AEは保留。新repo/fork/Issue/PR/commentを行わないユーザー制約をAGENTS.mdへ追記。
+- KaizPatchX 1.10.4のEntityBogie#getRail先頭へ、存続する現在mapの自由端点内側・線形近傍でのみ現在コアを維持するASM hookを実装。端点越え・未対応条件はnativeへ戻す。元呼出し・frameとCrossTieの探索overwrite/チャンクredirectを保持。
+- FMLサーバーMod（クライアント任意）、SRBX資産内包JAR、JavaパッチなしのクライアントZIP、固定依存SHA検証・Java8バイトコードの再現可能ビルドを追加。
+- KaizPatch compatだけ境界snapを解除。hook能力を確認できない生成・移動・分割・カント・分岐はワールド変更前に拒否。AEは境界制約のまま。
+- ローカルでJava単体の行動テスト、合成クラスの-Xverify:all、実KaizPatchX 1.10.4 getRailのASM BasicVerifierとnative呼出し保持検証に成功。Prettier/diff確認済み。ローカルpnpm genはJavaからGradle配布サイトへ到達できず、既存GitHub Actionsで内包ビルドを検証中。
+- 実機走行、CrossTie併用、JavaModなしクライアントの接続は未実施。詳細と確認手順は`srbx-free-endpoint-mod.md`。
+- 引継ぎ帳の9月完了連絡は9月履歴へ移管し105行へ整理。

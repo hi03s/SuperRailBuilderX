@@ -341,8 +341,8 @@ const angledBoundary = {
 const freshBoundary = api.createBuilderFreePoint(angledBoundary);
 assert.equal(
 	freshBoundary.direction,
-	2,
-	"A single X face must use native east/west direction even with diagonal tangent",
+	1,
+	"Free-point policy uses the tangent direction without imposing a block face",
 );
 assert.equal(
 	freshBoundary.anchorYaw,

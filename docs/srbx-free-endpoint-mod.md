@@ -36,8 +36,9 @@ pnpm zip
 
 `.npmrc`のgradle-java-homeを実在するJDKへ設定するか、`npm_config_gradle_java_home`で上書きする。
 Javaパッチだけの検証は`python3 mod/build.py --core-only --test`。core-only JARにはSRBX資産がなく、配布用JARとは区別する。
-ビルドは固定版ECJとSHA-256検証済みForge/LaunchWrapper/ASM依存を使い、Java 8バイトコードを出力する。依存ModのクラスはJARへ同梱しない。
-GitHub Actions `free-endpoint-mod.yml`はブランチpushごとに全ターゲット生成・ビルド・回帰・内包JARを生成する。
+ビルドはJDKのjavac（なければ固定版ECJ）とSHA-256検証済みForge/LaunchWrapper/ASM依存を使い、Java 8バイトコードを出力する。依存ModのクラスはJARへ同梱しない。
+GitHub Actions `free-endpoint-mod.yml`は対象コードのブランチpushまたは手動実行で全ターゲット生成・ビルド・回帰・内包JAR・クライアントZIPを生成する。
+実KaizPatch JARの変換検証は`python3 mod/build.py --core-only --test --kaizpatch-jar /path/to/KaizPatchX.jar`で行う。
 
 ## 実機確認
 

@@ -2,7 +2,7 @@
 
 このファイルは、次の作業に必要な現行情報だけを共有するための短期引継ぎ帳です。詳細な過去記録は `docs/history/` に保存し、通常は読みません。
 
-最終更新: 2026-10-10（ローカルCodex）
+最終更新: 2026-10-10（Web側Codex）
 
 ## 現在の状態
 
@@ -39,7 +39,7 @@
 - KaizPatch/AEの全6ツールへブロック境界端点・面に応じたdirection/ownerを適用。円弧交点、縦曲線共有点、接続移動とUndoを対応。ビルド/回帰テスト成功、両Modの低速走行実機確認待ち。[実装・検証手順](rail-boundary-endpoints.md)。既存線の自動一括修正はしない。
 - 内側自由端点ではAE停止/位置補正、Kaiz新旧map往復を確認済み。Kaiz [Issue #534](https://github.com/Kai-Z-JP/KaizPatchX/issues/534)は端点のブロック端保証をスクリプト責務と回答。[Kaiz報告](kaizpatch-free-endpoint-transition-report.md)・[AE報告](appleextended-free-endpoint-transition-report.md)。
 - [自由化の導入意図](rail-position-free-endpoint-intent.md): Kaizはチャンク境界上の精密分割点を扱う目的でoffset/setPositionを追加し、導入時からブロック端保証は設定側の責務。AEの導入も座標/保存/描画対応で、任意点走行接続保証は確認できない。
-- [遷移パッチ実現性](free-endpoint-transition-patch-feasibility.md): Java探索の直接差替えは補助Mod/coremod候補。今回の依頼は追加JARなしの境界端点制約を採用し、任意内側端点の走行保証は対象外。
+- [遷移パッチ実現性](free-endpoint-transition-patch-feasibility.md): Java探索の直接差替えは補助Mod/coremod候補。mainは追加JARなしの境界端点制約を維持。今回の完全自由点は専用ブランチのサーバーModとして検証する。
 - デバッグ車両 `SuperRailBuilderX_TrainDebug` はAE/KaizPatchX 1.10.4の読み込み・走行ログ取得を確認済み。[走行診断](train-debug-vehicle.md)。
 - KaizPatch/AEのSRBX敷設は既存通常道床を保持。標準マーカーは同じ通常道床の所有先を変更する。[道床の比較](roadbed-ownership-investigation.md)。AEログは当初敷設の履歴なし。Kaiz追加ログでは新短区間のadded=0/retained=0と接続セルの旧所有先保持を確認。
 
@@ -81,55 +81,9 @@
   関連ファイルまたはIssue:
 ```
 
-- 2026-09-06 hi03:
-    - usage.mdの文章を修正。
-
 ### Codexから開発者・ローカルCodexへ
 
-- 2026-09-06 ローカルCodex:
-    - 分割失敗を、前半終端道床と後半通常コアが共有分割点の同一ブロックを使う`section_core_conflict`と特定し、共有点だけを安全にコアへ置換するよう修正した。builder1の複数勾配区間にも接続先モデルを引き継ぎ、端点ホバーは`snapCursorMarker`へ変更した。
-    - レール移動へ前後接続端点の連動、片側接続時の形状維持、両側接続優先、Ctrl+Z Undoを追加した。生ログは除外し、必要箇所だけ`logs/rail-tools-retest-20260906-7.log`へ保存した。実装コミット`5eea584`は`origin/main`へ同期済み。
-
-- 2026-09-06 Web側Codex:
-    - Work側とVS Code側のモデル運用を公式資料で確認し、軽量モデルへの委譲が総使用量を減らす場合だけ利用する規則を`AGENTS.md`へ追加した。
-
-- 2026-09-06 ローカルCodex:
-    - ログから、複線・builder1の失敗は接続マーカーではなく、直前レールの通常コアと次レールの内部セクションコア候補が同じブロックを要求したことが原因と特定し、64 m以下では通常レールへ切り替えるよう修正した。
-    - builder1の候補マーカー・接続先モデル継承・Iキー±1ブロック探索と、レール移動の端部2 m道床保護・単一RailMap平行移動を実装した。生ログは除外し、必要箇所だけ`logs/rail-tools-retest-20260906-6.log`へ保存した。実装コミット`7434eec`は`origin/main`へ同期済み。
-
-- 2026-09-06 ローカルCodex:
-    - 複線生成失敗、短区間分割・Undo失敗をログから修正し、builder1の実視点マーカーとIキー地上高合わせを追加した。RailPosition検証ツールは正式なレール移動ツールへ改名し、重複道床の所有規則を反映した。
-    - 生ログは除外し、必要箇所だけ`logs/rail-tools-retest-20260906-5.log`へ保存した。実装コミット`85e3572`は`origin/main`へ同期済み。
-
-- 2026-09-06 ローカルCodex:
-    - 複線Undoゴーストと曲率中心越え、全長6 m以下の再分割、builder1の3×3マーカー、RailPosition移動の高さ・外観・Pスナップ・描画同期を修正した。
-    - 生ログは除外し、必要箇所だけ`logs/rail-tools-retest-20260906-4.log`へ保存した。実装コミット`e40f361`は`origin/main`へ同期済み。
-
-- 2026-09-06 ローカルCodex:
-    - 追加実機ログから複線コピーの曲率中心越え、分割時の内部/接続先コア衝突、カント高さ二重加算を特定して修正した。builder1へ通常交差の64 m制限・チャット表示・スナップマーカーを追加し、RailPosition移動をbuilder1生成規則へ統合した。
-    - 生ログは除外し、必要箇所だけ`logs/rail-tools-retest-20260906-3.log`へ保存した。実装コミット`eeb7988`は`origin/main`へ同期済み。
-
-- 2026-09-06 ローカルCodex:
-    - 実機結果を受領し、強調表示・複線Undo選択・分割モデル/距離/最小長を修正。生成衝突、低速遷移、Undo失敗の診断を追加した。
-    - 生ログは必要箇所だけ `logs/rail-tools-retest-20260906-client.log` へ抜粋した。上記「次に行うこと」をバックアップ済みワールドで再確認する。
-    - 修正コミット `74c287f` は`origin/main`へ同期済み。
-
-- 2026-09-04 Web側Codex:
-    - 複線コピーツールを実装コミット `0e2b30e` でGitHubへ同期済み。
-    - Web側の静的検証は成功。型生成・ビルド・実機確認は上記「次に行うこと」に従って引き継ぐ。
-- 2026-09-04 ローカルCodex:
-    - `pnpm gen`は成功。mc1710にない`RailMap#getRailYaw`の直接呼び出しを既存compat経由へ修正し、`pnpm build`も全3ターゲットで成功した。
-    - 修正コミット `d8fe798` は`origin/main`へ同期済み。
-    - 次はバックアップ済みワールドで`docs/double-track-copy.md`の実機確認を行う。
-
-- 2026-09-03 Web側Codex:
-    - 線路分割ツールをコミット `70fe67e` でGitHubへ同期済み。
-    - Web側ではTypeScript構文変換、Prettier、JSON解析、`git diff --check`まで成功。
-    - `pnpm gen`以降と実機確認は上記「次に行うこと」に従って引き継ぐ。
-- 2026-09-03 ローカルCodex:
-    - 最新`main`で`pnpm gen`と`pnpm build`が成功。コード修正は不要だった。
-    - 検証記録コミット `3de4133` は`origin/main`へ同期済み。
-    - 次はバックアップ済みワールドで`docs/rail-splitter.md`の実機確認を行う。
+- 2026-10-10 Web側Codex: 完全自由点Modは専用ブランチで作業中。main/AEの境界ポリシーは変更しない。新規repo・fork・Issue・PR・コメントは禁止（開発者指示）。実機確認は[srbx-free-endpoint-mod.md](srbx-free-endpoint-mod.md)を参照。
 
 ## 直近の完了
 

@@ -121,6 +121,8 @@
 
 ## GitHubの使い分け
 
+- ユーザーの指示（2026-10-10）: 新しいリポジトリ・フォークの作成、Issue・Pull Request・コメントの投稿など、第三者が絡む操作は行わない。作業は既存SuperRailBuilderXのブランチとコミット・push・ビルドに限定する。
+
 - `docs/CODEX_HANDOFF.md`: 現在の作業状態や短期的な引継ぎ。
 - `docs/history/CODEX_HISTORY_YYYY-MM.md`: 完了済み作業、過去の調査・実機結果・連絡履歴。通常の開始時には読まない。
 - GitHub Issue: 不具合、仕様検討、複数コミットにまたがる作業。
