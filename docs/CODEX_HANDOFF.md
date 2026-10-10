@@ -2,11 +2,11 @@
 
 このファイルは、次の作業に必要な現行情報だけを共有するための短期引継ぎ帳です。詳細な過去記録は `docs/history/` に保存し、通常は読みません。
 
-最終更新: 2026-10-11（ローカルCodex、feature/builder1-gui）
+最終更新: 2026-10-11（ローカルCodex、main）
 
 ## 現在の状態
 
-- 現在feature/builder1-gui。最新main a1afeabを取り込み、自由点/SRBXPatch/AE依存修正とbuilder1使用中GUIを併用する。mainへGUIは未統合。終了ブランチ3本は整理済み。
+- 現在main。KaizPatch/AE実機確認済みbuilder1 GUIを791d2a5で統合してpush済み。feature/builder1-guiはローカル/リモートとも削除済み。距離/ブロックスナップと「直線」表示をmainへ追加。
 
 - Web側試作（`462fdb1`まで）をmainへ統合。KaizPatch/AEの全6ツールは完全自由点仕様へ戻し、暫定SRBXPatchを別途導入する。[導入/実機確認](srbx-free-endpoint-mod.md)。
 - 配布物はパックZIP、SRBXPatch-v1.0-1.7.10.jar（Kaiz 1.10.4）、SRBXPatch-v1.0-1.12.2.jar（AE 2.5.3）。デバッグ車両の登録JSONを除去し、資産/診断スクリプトは保持。
@@ -33,7 +33,7 @@
 
 ## 優先確認事項
 
-- v3の実機GLエラー解消を確認。Java 8u51のcontinue/finally早期復元を再現し、グリッドOFF数値欠落を条件ブロックへ変更して回避。非固定プレビュー半径/影付き文字を追加。全4build/Node回帰/実Java 8u51での生成GUI検証成功。更新GUI ZIPでOFF数値/選択途中・2点半径/直線∞/影の実機確認待ち。[仕様/手順](builder1.md)。
+- KaizPatch/AEで既存GUIの実機確認を受領してmainへ統合済み。新しい距離/ブロックスナップ、ツール名の影付き白文字、「直線」表示は実機確認待ち。PでOFF→距離→ブロック、Ctrl+Pは距離の角度設定。main ZIPを置換して再起動し、自由点/既設端接続とGUI切替を確認する。異常時は操作手順とlogs/latest.logを共有。[仕様/手順](builder1.md)。
 
 - CrossTie Alpha14のレール分割警告は新規TEへの未読込診断の誤検出と判断。ログ内の分割6回は成功、SRBX変更不要。[調査](crosstie-split-diagnostic.md)。本番サーバーは操作しない。
 
@@ -81,7 +81,7 @@
 
 ## 次に行うこと
 
-1. AEの修正版SRBXPatch-v1.0-1.12.2.jarへ置き換え、起動後のhook installedと自由点接続の両方向微速走行を確認する。起動/走行不具合はlogs/latest.logを共有する（srbx-free-endpoint-mod.md）。
+1. 更新main ZIPでPの3種類切替、ブロック格子（Yは通常レール高1/16 m込み）、影付き白文字/「直線」をKaizPatch/AEで確認する。暫定SRBXPatchは継続導入する（builder1.md、srbx-free-endpoint-mod.md）。
 2. KaizPatch/AEで自由端点の接続を新規生成し、通常車両の両方向低速走行・移動・Undoを確認する（srbx-free-endpoint-mod.md）。
 3. AppleExtended v2.5.3で分岐描画patchのBootstrapログとoffsetあり/なし描画を確認する。
 4. レール移動・カント任意点分割・分岐Undoと、AE自動分割レールの生成・分割・分岐・走行・Undoをバックアップ済みワールドで確認する。

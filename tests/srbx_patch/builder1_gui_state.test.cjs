@@ -289,7 +289,7 @@ for (const failure of [
 	const render = () =>
 		context.renderToolGui(
 			{
-				snapEnabled: true,
+				snapMode: "distance",
 				snapAngleIndex: 1,
 				curveRadiusLocked: true,
 				curveRadius: 250,
@@ -329,7 +329,11 @@ for (const failure of [
 			labels.map((l) => l.s),
 			["tool", "5°", "250 m", "12.35 m"],
 		);
-		assert.equal(labels[0].color, 0xffffff, "Tool title is white with shadow");
+		assert.equal(
+			labels[0].color,
+			0xffffff,
+			"Tool title is white with shadow",
+		);
 		for (const l of labels.slice(1)) {
 			assert.equal(l.color, 0xffffff);
 			assert.equal(l.x + l.s.length * 6, 300);
@@ -344,7 +348,7 @@ for (const failure of [
 		labels.length = 0;
 		context.renderToolGui(
 			{
-				snapEnabled: false,
+				snapMode: "off",
 				snapAngleIndex: 1,
 				curveRadiusLocked: false,
 				selected: [{}],
@@ -357,6 +361,25 @@ for (const failure of [
 			["tool", "501 m", "12.35 m"],
 		);
 		assert.equal(JSON.stringify({ matrices, attrs }), before);
+		for (const locked of [false, true]) {
+			labels.length = 0;
+			context.renderToolGui(
+				{
+					snapMode: "block",
+					snapAngleIndex: 0,
+					curveRadiusLocked: locked,
+					curveRadius: 10000,
+					selected: [{}],
+				},
+				12.345,
+				Infinity,
+			);
+			assert.deepStrictEqual(
+				labels.map((l) => l.s),
+				["tool", "ブロック", "直線", "12.35 m"],
+			);
+			assert.equal(JSON.stringify({ matrices, attrs }), before);
+		}
 	}
 }
 

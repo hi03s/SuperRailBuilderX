@@ -75,7 +75,7 @@ function saveGuiMatrix(matrix: number, buffer: java.nio.FloatBuffer): void {
 type BuilderState = {
 	selected: SRBXBuilderPoint[];
 	lastBuiltSelection: SRBXBuilderPoint[] | null;
-	snapEnabled: boolean;
+	snapMode: "off" | "distance" | "block";
 	snapAngleIndex: number;
 	heightOffsetSixteenths: number;
 	curveRadiusLocked: boolean;
@@ -127,8 +127,13 @@ function init(par1: ModelSetVehicle, par2: ModelObject): void {
 	keys.register("build", Keyboard.KEY_RETURN, false, "レールを生成");
 	keys.register("clear", Keyboard.KEY_C, false, "選択を全解除");
 	keys.register("reset", Keyboard.KEY_C, true, "全状態をリセット");
-	keys.register("snap", Keyboard.KEY_P, false, "スナップON/OFF");
-	keys.register("snapAngle", Keyboard.KEY_P, true, "スナップ角度を変更");
+	keys.register("snap", Keyboard.KEY_P, false, "スナップOFF→距離→ブロック");
+	keys.register(
+		"snapAngle",
+		Keyboard.KEY_P,
+		true,
+		"距離スナップの角度を変更",
+	);
 	keys.register("radiusLock", Keyboard.KEY_O, false, "曲線半径固定ON/OFF");
 	keys.register("radiusIncrease", Keyboard.KEY_RIGHT, false, "曲線半径+1m");
 	keys.register("radiusDecrease", Keyboard.KEY_LEFT, false, "曲線半径-1m");
@@ -203,7 +208,7 @@ function createDefaultState(): BuilderState {
 	return {
 		selected: [],
 		lastBuiltSelection: null,
-		snapEnabled: false,
+		snapMode: "off",
 		snapAngleIndex: 1,
 		heightOffsetSixteenths: 0,
 		curveRadiusLocked: false,
@@ -232,7 +237,7 @@ function resetState(state: BuilderState): void {
 	const lastBuiltSelection = state.lastBuiltSelection;
 	state.selected = reset.selected;
 	state.lastBuiltSelection = lastBuiltSelection;
-	state.snapEnabled = reset.snapEnabled;
+	state.snapMode = reset.snapMode;
 	state.snapAngleIndex = reset.snapAngleIndex;
 	state.heightOffsetSixteenths = reset.heightOffsetSixteenths;
 	state.curveRadiusLocked = reset.curveRadiusLocked;
@@ -280,13 +285,27 @@ function getFreeCursorPosition(
 ): SRBXVec3 | null {
 	const looking = NGTOBuilderUtilClient.getLookingPos(partialTicks);
 	if (!looking) return null;
+	// Snap the support surface on the world grid, retaining the normal rail height.
+	// Block mode bypasses endpoint pitch and polar angle/distance snapping.
+	if (state.snapMode === "block") {
+		const position = SRBXMath.roundPosition(
+			[
+				looking.posX,
+				looking.posY + state.heightOffsetSixteenths / 16,
+				looking.posZ,
+			],
+			0.5,
+		);
+		position[1] += DEFAULT_RAIL_HEIGHT;
+		return position;
+	}
 	const raw = [
 		looking.posX,
 		looking.posY + DEFAULT_RAIL_HEIGHT,
 		looking.posZ,
 	] as SRBXVec3;
 	let result: SRBXVec3;
-	if (!state.snapEnabled) result = SRBXMath.roundPosition(raw, 0.001);
+	if (state.snapMode === "off") result = SRBXMath.roundPosition(raw, 0.001);
 	else {
 		const start = state.selected.length > 0 ? state.selected[0] : null;
 		if (!start || start.kind !== "free") {
@@ -1284,7 +1303,11 @@ function drawToolGuiBase(
 			const background =
 				row === 2
 					? 2
-					: (row === 0 ? state.snapEnabled : state.curveRadiusLocked)
+					: (
+								row === 0
+									? state.snapMode !== "off"
+									: state.curveRadiusLocked
+						  )
 						? 1
 						: 0;
 			drawGuiTile(statusX, y, 3, background);
@@ -1536,15 +1559,19 @@ function renderToolGui(
 		SRBXApiCompat.drawGuiTextWithShadow(GUI_TOOL_NAME, textX, 4, 0xffffff);
 		if (stopGuiOnGLError("tool-title")) return;
 		const labels = [
-			state.snapEnabled ? `${snapAngles[state.snapAngleIndex]}°` : "",
+			state.snapMode === "block"
+				? "ブロック"
+				: state.snapMode === "distance"
+					? `${snapAngles[state.snapAngleIndex]}°`
+					: "",
 			state.curveRadiusLocked
 				? state.curveRadius >= MAX_CURVE_RADIUS
-					? "∞"
+					? "直線"
 					: `${state.curveRadius} m`
 				: state.selected.length > 0 && previewRadius !== null
 					? isFinite(previewRadius)
 						? `${Math.round(Math.abs(previewRadius))} m`
-						: "∞"
+						: "直線"
 					: "",
 			state.selected.length > 0 &&
 			previewLength !== null &&
@@ -1855,10 +1882,15 @@ function handleInput(
 		);
 	}
 	if (keys.pressed("snap")) {
-		state.snapEnabled = !state.snapEnabled;
+		state.snapMode =
+			state.snapMode === "off"
+				? "distance"
+				: state.snapMode === "distance"
+					? "block"
+					: "off";
 		NGTLog.sendChatMessage(
 			sender,
-			`[SuperRailBuilderX] スナップ: ${state.snapEnabled ? "ON" : "OFF"}`,
+			`[SuperRailBuilderX] スナップ: ${state.snapMode === "off" ? "OFF" : state.snapMode === "distance" ? "距離" : "ブロック"}`,
 		);
 	}
 	if (keys.pressed("snapAngle")) {

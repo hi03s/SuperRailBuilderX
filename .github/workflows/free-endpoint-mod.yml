@@ -2,7 +2,7 @@ name: Build SRBX pack and temporary patches
 
 on:
     push:
-        branches: [main, feature/builder1-gui]
+        branches: [main]
         paths:
             [
                 "mod/**",

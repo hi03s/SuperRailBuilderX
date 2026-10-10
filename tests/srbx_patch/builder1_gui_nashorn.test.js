@@ -125,17 +125,18 @@ var RTMX_COMPAT_scripts_superrailbuilderx_SRBXApiCompat_1js5ute = {
 };
 eval(code);
 var cases = [
-	[false, true, 1, 250, 500.6, ["250 m", "12.35 m"]],
-	[false, false, 1, 250, 500.6, ["501 m", "12.35 m"]],
-	[false, false, 2, 250, Infinity, ["\u221e", "12.35 m"]],
-	[true, false, 0, 250, null, ["5\u00b0"]]
+	["off", true, 1, 250, 500.6, ["250 m", "12.35 m"]],
+	["off", false, 1, 250, 500.6, ["501 m", "12.35 m"]],
+	["off", false, 2, 250, Infinity, ["\u76f4\u7dda", "12.35 m"]],
+	["distance", false, 0, 250, null, ["5\u00b0"]],
+	["block", false, 0, 250, null, ["\u30d6\u30ed\u30c3\u30af"]]
 ];
 for (var c = 0; c < cases.length; c++) {
 	var test = cases[c];
 	labels = [];
 	renderToolGui(
 		{
-			snapEnabled: test[0],
+			snapMode: test[0],
 			snapAngleIndex: 1,
 			curveRadiusLocked: test[1],
 			curveRadius: test[3],
