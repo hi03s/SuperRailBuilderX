@@ -878,7 +878,7 @@ function renderBezierSegment(
 	partialTicks: number,
 	start: SRBXBuilderPoint,
 	end: SRBXBuilderPoint,
-): void {
+): number {
 	const startHorizontalControl = SRBXMath.pointAtYawPitchDistance(
 		start.position,
 		start.anchorYaw,
@@ -919,6 +919,7 @@ function renderBezierSegment(
 		),
 	);
 	let previous = start.position;
+	let length = 0;
 	for (let i = 1; i <= split; i++) {
 		const current = SRBXMath.cubicBezierPoint(
 			start.position,
@@ -928,8 +929,10 @@ function renderBezierSegment(
 			i / split,
 		);
 		renderLine(entity, partialTicks, previous, current);
+		length += SRBXMath.distance(previous, current);
 		previous = current;
 	}
+	return length;
 }
 
 function boundaryPlanError(
@@ -1003,14 +1006,15 @@ function renderBezier(
 	partialTicks: number,
 	start: SRBXBuilderPoint,
 	end: SRBXBuilderPoint,
-): void {
+): number {
 	const segments = SRBXMath.planVerticalRailSegments(
 		start,
 		end,
 		SRBXApiCompat.requiresRailBoundarySnap(),
 	);
+	let length = 0;
 	for (let i = 0; i < segments.length; i++)
-		renderBezierSegment(
+		length += renderBezierSegment(
 			entity,
 			partialTicks,
 			segments[i][0],
@@ -1032,6 +1036,7 @@ function renderBezier(
 		cantLine.render(renderer);
 		GL11.glPopMatrix();
 	}
+	return length;
 }
 
 function orientPanelToPlayer(
@@ -1223,7 +1228,11 @@ function drawGuiTile(
 	);
 }
 
-function drawToolGuiBase(width: number, height: number): void {
+function drawToolGuiBase(
+	width: number,
+	height: number,
+	state: BuilderState,
+): void {
 	NGTUtilClient.bindTexture(GUI_BASE_TEXTURE);
 	GL11.glMatrixMode(GL11.GL_TEXTURE);
 	GL11.glPushMatrix();
@@ -1252,6 +1261,18 @@ function drawToolGuiBase(width: number, height: number): void {
 		drawGuiTile(frameX + GUI_TILE_SIZE, 0, 2, 0);
 		drawGuiTile(frameX, GUI_TILE_SIZE, 1, 1);
 		drawGuiTile(frameX + GUI_TILE_SIZE, GUI_TILE_SIZE, 2, 1);
+		const statusX = Math.max(0, width - GUI_TILE_SIZE);
+		for (let row = 0; row < 3; row++) {
+			const y = GUI_TOOL_FRAME_SIZE + row * GUI_TILE_SIZE;
+			const background =
+				row === 2
+					? 2
+					: (row === 0 ? state.snapEnabled : state.curveRadiusLocked)
+						? 1
+						: 0;
+			drawGuiTile(statusX, y, 3, background);
+			drawGuiTile(statusX, y, 4, row);
+		}
 	} finally {
 		GL11.glMatrixMode(GL11.GL_TEXTURE);
 		GL11.glPopMatrix();
@@ -1286,7 +1307,10 @@ function drawToolGuiIcon(width: number): void {
 	}
 }
 
-function renderToolGui(): void {
+function renderToolGui(
+	state: BuilderState,
+	previewLength: number | null,
+): void {
 	const mc = NGTUtilClient.getMinecraft();
 	const size = getScaledGuiSize(mc);
 	const width = size[0];
@@ -1340,13 +1364,35 @@ function renderToolGui(): void {
 		GL11.glEnable(GL11.GL_BLEND);
 		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		GL11.glColor4f(1, 1, 1, 1);
-		drawToolGuiBase(width, height);
+		drawToolGuiBase(width, height, state);
 		drawToolGuiIcon(width);
 		const font = mc.fontRenderer;
 		const textX = Math.floor(
 			(width - font.getStringWidth(GUI_TOOL_NAME)) / 2,
 		);
 		font.drawString(GUI_TOOL_NAME, textX, 4, 0x202020);
+		const labels = [
+			state.snapEnabled ? `${snapAngles[state.snapAngleIndex]}°` : "",
+			state.curveRadiusLocked
+				? state.curveRadius >= MAX_CURVE_RADIUS
+					? "∞"
+					: `${state.curveRadius} m`
+				: "",
+			state.selected.length > 0 &&
+			previewLength !== null &&
+			isFinite(previewLength)
+				? `${previewLength.toFixed(2)} m`
+				: "",
+		];
+		for (let row = 0; row < labels.length; row++) {
+			if (!labels[row]) continue;
+			font.drawString(
+				labels[row],
+				width - GUI_TILE_SIZE - 4 - font.getStringWidth(labels[row]),
+				GUI_TOOL_FRAME_SIZE + row * GUI_TILE_SIZE + 4,
+				0xffffff,
+			);
+		}
 	} finally {
 		GL11.glMatrixMode(GL11.GL_MODELVIEW);
 		GL11.glPopMatrix();
@@ -1797,8 +1843,14 @@ function render(
 	}
 	for (let i = 0; i < state.selected.length; i++)
 		renderSelectedPoint(entity, partialTicks, displayPoints[i]);
+	let previewLength: number | null = state.selected.length > 0 ? 0 : null;
 	if (state.selected.length >= 1 && displayPoints.length >= 2)
-		renderBezier(entity, partialTicks, displayPoints[0], displayPoints[1]);
+		previewLength = renderBezier(
+			entity,
+			partialTicks,
+			displayPoints[0],
+			displayPoints[1],
+		);
 	if (state.selected.length >= 1 && displayPoints.length >= 2)
 		renderCurveRadius(
 			entity,
@@ -1836,6 +1888,6 @@ function render(
 			!prevRight && right,
 			!prevLeft && left,
 		);
-		renderToolGui();
+		renderToolGui(state, previewLength);
 	}
 }

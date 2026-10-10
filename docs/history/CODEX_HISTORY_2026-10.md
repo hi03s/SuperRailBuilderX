@@ -299,3 +299,11 @@
 - 更新SuperRailBuilderX-0.2.0-builder1-gui.zipは102ファイル、霧無効化/診断ログを確認。不要debug JSON/ユーザーgui_base.xcfは非同梱。main ZIPと両SRBXPatch JARは維持。ユーザーの画像/xcfは未追跡のまま保持し、Gitへ追加しない。
 - 未実施: 修正後Minecraft実機の昼/夕方GUI色・文字・透明部分、ツール終了後のワールド描画。更新ZIPへ置換し確認、再発時は画像とlogs/latest.log（fog isolatedを含む）を提出する手順をdocs/builder1.mdへ追記。
 - 同期: 修正1cdd292をorigin/feature/builder1-guiへpush成功。更新GUI ZIP SHA256 791d5792a383d22fa6bf971402f85d13817acbcb29eb7d7a5511d038a568ea81。
+
+## 2026-10-10 ローカルCodex: builder1 GUI状態アイコン/数値
+
+- 開発者より霧修正後のGUI描画成功を受領。ユーザー更新gui_base.pngを確認し、状態OFF(3,0)/ON(3,1)/情報背景(3,2)とグリッド(4,0)/カーブ(4,1)/レール長(4,2)を使用。
+- 右端16 px列に大アイコン枠直下y=32/48/64で背景→アイコンを重ねる。白文字をアイコン左4 pxへ右寄せ。スナップON時だけ角度、半径固定ON時だけ固定半径（MAX設定は既存仕様の∞）、選択1点以上で長さ小数2桁mを表示する。
+- renderBezierSegmentが実際に描画した3D折線長を返し、縦曲線の複数区間をrenderBezierで合計する。追加のRailMap構築や重い再サンプルを行わず、1点＋hover/2点の既存プレビュー長を再利用。概算長であり、線形候補なしは0.00 m。既存ワールド書込やサーバー/Javaパッチは変更しない。
+- 検証済み: 全4ターゲットpnpm build（warningなし）、対象TS Prettier、runtime-dispatch、diff --check。生成JSを模擬GUI/GLで実行し、3行の背景/アイコンUV・座標、ON/OFF条件、0/1/2点の文字条件、小数2桁、白色/右寄せを確認。更新PNGのZIP内内容一致、102ファイル、xcf非同梱を確認。
+- 未実施: 状態表示の実GPU/実機切替とカーソル追従、曲線/勾配長の表示確認。更新SuperRailBuilderX-0.2.0-builder1-gui.zipで確認する。ユーザーPNG更新をコミットに含め、未追跡xcf/参照画像は保持し追加しない。main ZIP/両Modは維持。
