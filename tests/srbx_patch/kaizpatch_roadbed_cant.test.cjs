@@ -238,6 +238,7 @@ console.log(
 	"KaizPatch roadbed ownership and reversed endpoint cant tests passed",
 );
 
+context.Packages.jp.ngt.rtm.rail.TileEntityLargeRailSwitchCore = class {};
 // Experimental branch requires the server hook before any world mutation.
 assert.equal(api.requiresRailBoundarySnap(), false);
 assert.equal(
