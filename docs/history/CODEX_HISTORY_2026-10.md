@@ -329,3 +329,4 @@
 - 検証済み: 全4ターゲットbuild、GUI回帰（入場/タイル/文字/復元のGL 1284注入、段階識別、GUI停止、再描画抑止、行列/モード/霧/active texture/両ユニットの有効状態復元）、runtime-dispatch/rail-patch、対象TS/テストPrettier、diff --check。
 - 未実施: 実GPU上の原因特定とエラー解消。更新GUI ZIPでゲームを再起動し、build=gui-gl-state-v2が出ることを確認してレール生成Aを使用。GUIが消える場合も操作手順とlogs/latest.logを共有してもらう。前回版のfogログと新しい診断を区別できる。
 - 配布物: 更新GUI ZIP102ファイル、gui_base.xcf非同梱、段階別診断/属性1段退避をZIP内でも確認。SHA256 c3b281c7b125e3fd909b901a9051889396fb02824145ae3867d15a3da082cc93。main ZIP/両SRBXPatch JARは保持。
+- 同期: 診断/停止処理076cd30をorigin/feature/builder1-guiへpush成功。

@@ -103,7 +103,7 @@
 
 ## 直近の完了
 
-- 2026-10-10 ローカルCodex: GL 1284再発ログを保存し、GUI属性退避を1段へ整理、段階別診断/エラー時GUI停止を追加。全4build/復元・GLエラー注入回帰成功、実機原因特定待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。同期結果はコミット後に記載。
+- 2026-10-10 ローカルCodex: GL 1284再発ログを保存し、GUI属性退避を1段へ整理、段階別診断/エラー時GUI停止を追加。全4build/復元・GLエラー注入回帰成功、実機原因特定待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[076cd30](https://github.com/hi03s/SuperRailBuilderX/commit/076cd30)をorigin/feature/builder1-guiへpush済み。
 
 ## 関連資料
 
