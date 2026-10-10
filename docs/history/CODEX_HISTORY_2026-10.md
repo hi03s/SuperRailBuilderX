@@ -308,3 +308,12 @@
 - 検証済み: 全4ターゲットpnpm build（warningなし）、対象TS Prettier、runtime-dispatch、diff --check。生成JSを模擬GUI/GLで実行し、3行の背景/アイコンUV・座標、ON/OFF条件、0/1/2点の文字条件、小数2桁、白色/右寄せを確認。更新PNGのZIP内内容一致、102ファイル、xcf非同梱を確認。
 - 未実施: 状態表示の実GPU/実機切替とカーソル追従、曲線/勾配長の表示確認。更新SuperRailBuilderX-0.2.0-builder1-gui.zipで確認する。ユーザーPNG更新をコミットに含め、未追跡xcf/参照画像は保持し追加しない。main ZIP/両Modは維持。
 - 同期: 状態表示8eb593dをorigin/feature/builder1-guiへpush成功。更新GUI ZIP SHA256 ee59308b8f27f24fa561cf4423a3224924097a59c0eb152598271d3cc33a9fdb。
+
+## 2026-10-10 ローカルCodex: GUI GLスタック破損対策
+
+- 開発者からPost renderのGL 1284 Stack underflow大量発生とレール描画異常の報告。保存済みlatest.logは以前のAE起動ログで、今回のエラーはユーザー提示文を根拠に調査。生ログは追加しない。
+- GUIがRTM描画の内側で投影/テクスチャ行列をPushしていた。容量の小さいスタックが満杯の場合、Push失敗後のPopがホスト側の行列を取り除き、後続描画のunderflow/異常につながる可能性がある。実機スタック深度は未取得なので、報告されたエラーの原因確定とは区別する。
+- GUIの全行列Push/Popを再利用FloatBufferへの保存/glLoadMatrix復元へ置換。文字描画用texture0行列を単位行列とし、最後に元の行列/モード/active textureを戻す。現在色も属性退避へ追加し、属性スタックに2段の空きがない場合はGUIを描かない。共有ツールキット/rtm-ts/サーバー/Javaパッチは変更なし。
+- 検証済み: 全4ターゲットpnpm build、対象TS/テストのPrettier、diff --check、rail-patch/runtime-dispatch。pnpm test:guiを追加し、ホスト行列スタックが満杯の条件、通常描画、タイル/文字描画例外、属性容量不足での見送り、元行列/モード/texture unit/霧復元、白い右寄せ数値を確認。CI回帰へ追加。実GLドライバーを実行するテストではない。
+- 更新GUI ZIPは102ファイル、ユーザーgui_base.xcf非同梱。main ZIP/両SRBXPatch JARは保持。GUI ZIP SHA256 6660e237771c414396087bfeffb4a210810babe9bfb54eec9cd45abd32d715aa。
+- 未実施: Minecraft実機でのGLエラー解消とレール描画。更新ZIPを導入し、GUI状態表示/レールプレビュー/ツール切替・終了を確認。再発時は操作手順とlogs/latest.log（fog isolatedを含む）を共有する。

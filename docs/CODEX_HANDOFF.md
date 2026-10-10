@@ -33,7 +33,7 @@
 
 ## 優先確認事項
 
-- 開発者が霧分離後のGUI描画成功を確認。更新テクスチャで大アイコンの下にグリッド/カーブ/レール長の状態行と白い右寄せ数値を追加。全4build/模擬描画確認成功、状態切替/角度/半径/1点カーソル追従長/2点長の実機確認待ち。[描画仕様](builder1.md)。
+- GUI状態表示後にGL 1284/レール描画異常を受領。GUI行列のPush/Popを直接保存/復元へ変更し、属性スタック容量も検査。全4build/満杯スタック・例外復元の回帰成功。更新`SuperRailBuilderX-0.2.0-builder1-gui.zip`でGLエラー解消と状態表示/レール描画の実機確認待ち。[描画仕様/手順](builder1.md)。
 
 - CrossTie Alpha14のレール分割警告は新規TEへの未読込診断の誤検出と判断。ログ内の分割6回は成功、SRBX変更不要。[調査](crosstie-split-diagnostic.md)。本番サーバーは操作しない。
 
@@ -103,7 +103,7 @@
 
 ## 直近の完了
 
-- 2026-10-10 ローカルCodex: GUI描画成功を受領し、グリッド/カーブ/レール長の状態表示を追加。更新PNG同梱、全4build/整形/表示条件の模擬検証成功。実機状態表示未確認。[10月履歴](history/CODEX_HISTORY_2026-10.md)。実装[8eb593d](https://github.com/hi03s/SuperRailBuilderX/commit/8eb593d)をorigin/feature/builder1-guiへpush済み。
+- 2026-10-10 ローカルCodex: GL 1284対策でGUI行列を直接保存/復元し、満杯スタック/例外復元の回帰を追加。全4build成功、GUI ZIP更新、実機再確認待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。同期結果はコミット後に記載。
 
 ## 関連資料
 

@@ -18,6 +18,7 @@ import { System } from "java.lang";
 import { WeakHashMap } from "java.util";
 import { Keyboard, Mouse } from "org.lwjgl.input";
 import { GL11, GL13 } from "org.lwjgl.opengl";
+import { BufferUtils } from "org.lwjgl";
 import { ErrorLogger } from "../lib_hi03toolkit_1_0/lib_ErrorLogger";
 import { SRBXInputManager as InputManager } from "./SRBXInputManager";
 import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
@@ -55,6 +56,17 @@ const GUI_TOOL_ICON = new ResourceLocation(
 );
 const toolGui = new Gui();
 let guiFogDiagnosticReported = false;
+const guiProjectionMatrix = BufferUtils.createFloatBuffer(16);
+const guiModelViewMatrix = BufferUtils.createFloatBuffer(16);
+const guiTextureMatrix = BufferUtils.createFloatBuffer(16);
+const guiTileTextureMatrix = BufferUtils.createFloatBuffer(16);
+const guiIconTextureMatrix = BufferUtils.createFloatBuffer(16);
+
+function saveGuiMatrix(matrix: number, buffer: java.nio.FloatBuffer): void {
+	buffer.clear();
+	GL11.glGetFloat(matrix, buffer);
+	buffer.rewind();
+}
 
 type BuilderState = {
 	selected: SRBXBuilderPoint[];
@@ -1234,8 +1246,9 @@ function drawToolGuiBase(
 	state: BuilderState,
 ): void {
 	NGTUtilClient.bindTexture(GUI_BASE_TEXTURE);
+	GL13.glActiveTexture(GL13.GL_TEXTURE0);
+	saveGuiMatrix(GL11.GL_TEXTURE_MATRIX, guiTileTextureMatrix);
 	GL11.glMatrixMode(GL11.GL_TEXTURE);
-	GL11.glPushMatrix();
 	try {
 		GL11.glLoadIdentity();
 		GL11.glScalef(
@@ -1274,16 +1287,18 @@ function drawToolGuiBase(
 			drawGuiTile(statusX, y, 4, row);
 		}
 	} finally {
+		GL13.glActiveTexture(GL13.GL_TEXTURE0);
 		GL11.glMatrixMode(GL11.GL_TEXTURE);
-		GL11.glPopMatrix();
+		GL11.glLoadMatrix(guiTileTextureMatrix);
 		GL11.glMatrixMode(GL11.GL_MODELVIEW);
 	}
 }
 
 function drawToolGuiIcon(width: number): void {
 	NGTUtilClient.bindTexture(GUI_TOOL_ICON);
+	GL13.glActiveTexture(GL13.GL_TEXTURE0);
+	saveGuiMatrix(GL11.GL_TEXTURE_MATRIX, guiIconTextureMatrix);
 	GL11.glMatrixMode(GL11.GL_TEXTURE);
-	GL11.glPushMatrix();
 	try {
 		GL11.glLoadIdentity();
 		GL11.glScalef(
@@ -1301,8 +1316,9 @@ function drawToolGuiIcon(width: number): void {
 			GUI_TILE_SIZE,
 		);
 	} finally {
+		GL13.glActiveTexture(GL13.GL_TEXTURE0);
 		GL11.glMatrixMode(GL11.GL_TEXTURE);
-		GL11.glPopMatrix();
+		GL11.glLoadMatrix(guiIconTextureMatrix);
 		GL11.glMatrixMode(GL11.GL_MODELVIEW);
 	}
 }
@@ -1317,25 +1333,39 @@ function renderToolGui(
 	const height = size[1];
 	const worldFog = GL11.glIsEnabled(GL11.GL_FOG);
 	const previousActiveTexture = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
+	const previousMatrixMode = GL11.glGetInteger(GL11.GL_MATRIX_MODE);
+	// A failed attribute push must never be followed by a pop of RTM's frame.
+	if (
+		GL11.glGetInteger(GL11.GL_ATTRIB_STACK_DEPTH) + 2 >
+		GL11.glGetInteger(GL11.GL_MAX_ATTRIB_STACK_DEPTH)
+	)
+		return;
+	// Projection/texture stacks can already be full inside RTM's renderer.
+	// Snapshot matrices without pushing onto (or popping) its stacks.
+	saveGuiMatrix(GL11.GL_PROJECTION_MATRIX, guiProjectionMatrix);
+	saveGuiMatrix(GL11.GL_MODELVIEW_MATRIX, guiModelViewMatrix);
 	GL13.glActiveTexture(GL13.GL_TEXTURE1);
 	GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_TEXTURE_BIT);
 	GL11.glDisable(GL11.GL_TEXTURE_2D);
 	GL13.glActiveTexture(GL13.GL_TEXTURE0);
+	saveGuiMatrix(GL11.GL_TEXTURE_MATRIX, guiTextureMatrix);
 	GL11.glPushAttrib(
 		GL11.GL_ENABLE_BIT |
+			GL11.GL_CURRENT_BIT |
 			GL11.GL_COLOR_BUFFER_BIT |
 			GL11.GL_DEPTH_BUFFER_BIT |
 			GL11.GL_TEXTURE_BIT |
 			GL11.GL_TRANSFORM_BIT,
 	);
 	GL11.glMatrixMode(GL11.GL_PROJECTION);
-	GL11.glPushMatrix();
 	GL11.glLoadIdentity();
 	GL11.glOrtho(0, width, height, 0, 1000, 3000);
 	GL11.glMatrixMode(GL11.GL_MODELVIEW);
-	GL11.glPushMatrix();
 	GL11.glLoadIdentity();
 	GL11.glTranslatef(0, 0, -1001);
+	GL11.glMatrixMode(GL11.GL_TEXTURE);
+	GL11.glLoadIdentity();
+	GL11.glMatrixMode(GL11.GL_MODELVIEW);
 	try {
 		GL11.glDisable(GL11.GL_LIGHTING);
 		// This screen projection uses eye-space z=-1001. World fog would
@@ -1395,14 +1425,17 @@ function renderToolGui(
 		}
 	} finally {
 		GL11.glMatrixMode(GL11.GL_MODELVIEW);
-		GL11.glPopMatrix();
+		GL11.glLoadMatrix(guiModelViewMatrix);
 		GL11.glMatrixMode(GL11.GL_PROJECTION);
-		GL11.glPopMatrix();
+		GL11.glLoadMatrix(guiProjectionMatrix);
 		GL13.glActiveTexture(GL13.GL_TEXTURE0);
+		GL11.glMatrixMode(GL11.GL_TEXTURE);
+		GL11.glLoadMatrix(guiTextureMatrix);
 		GL11.glPopAttrib();
 		GL13.glActiveTexture(GL13.GL_TEXTURE1);
 		GL11.glPopAttrib();
 		GL13.glActiveTexture(previousActiveTexture);
+		GL11.glMatrixMode(previousMatrixMode);
 	}
 }
 
