@@ -1,3 +1,4 @@
+import { SRBXToolSwitchServer } from "./SRBXToolSwitchServer";
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { EntityVehicle } from "jp.ngt.rtm.entity.vehicle";
 import { ScriptExecuter } from "jp.ngt.rtm.modelpack";
@@ -138,6 +139,7 @@ function onUpdate(entity: EntityVehicle, scriptExecuter: ScriptExecuter): void {
 		entity.setDead();
 		return;
 	}
+	if (SRBXToolSwitchServer.update(entity, host)) return;
 	const undoStack = undoRecords.get(entity),
 		canUndo = undoStack !== null && undoStack.length > 0;
 	if (dataMap.getBoolean("cantFormatterCanUndo") !== canUndo)

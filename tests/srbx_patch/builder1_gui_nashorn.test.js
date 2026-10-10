@@ -245,3 +245,24 @@ for (var n = 0; n < otherCases.length; n++) {
 print(
 	"Legacy Nashorn all five tool adapters, empty rows and shared projection restoration passed"
 );
+
+eval(readFully("dist/assets/minecraft/scripts/superrailbuilderx/SRBXTools.js"));
+var Gui = { func_73734_a: function () {} };
+var ResourceLocation = function (domain, path) {
+	return path;
+};
+var rectStart = source.indexOf("function drawGuiRect(");
+GL11.GL_QUADS = "GL_QUADS";
+GL11.glBegin = function () {};
+GL11.glVertex3f = function () {};
+GL11.glEnd = function () {};
+eval(source.slice(rectStart, source.indexOf("\n}", rectStart) + 2));
+labels = [];
+SRBXToolGui.renderWheel(4, function () {
+	return 4;
+});
+if (labels.length !== 7 || projected)
+	throw new Error("Wheel GUI restoration failed");
+print(
+	"Legacy Nashorn wheel icons/names and shared GL projection restoration passed"
+);

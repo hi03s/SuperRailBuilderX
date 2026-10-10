@@ -149,6 +149,7 @@ Object.assign(context, {
 	NGTUtilClient: { getMinecraft: () => ({ field_71462_r: null }) },
 	body: { render: () => {} },
 	renderer: { currentMatId: 0 },
+	SRBXToolWheel: { update: () => false },
 	keys: { update: () => {} },
 	Mouse: { isButtonDown: () => false },
 	renderAt: () => {},
@@ -175,6 +176,18 @@ context.candidate = () => null;
 context.render(entity, 0, 0);
 assert(highlights.includes("99ff00"));
 assert(!client.includes("curveDigits"), "Cursor speed panel is removed");
+highlights = [];
+context.candidate = () => first;
+context.render(entity, 0, 0);
+assert(
+	highlights.includes("009999"),
+	"Selected rail hover indicates deselection",
+);
+assert(!highlights.includes("ffff00"));
+assert(
+	!client.includes("hoverCursor") && !client.includes("selectedCursor"),
+	"Rail pointing cursors are removed",
+);
 // Server rejects old splitting/center requests and retains failed Undo for retry.
 const server = read("server_cant_formatter"),
 	records = new Map();

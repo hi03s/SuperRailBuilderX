@@ -7,6 +7,7 @@ import { ResourceLocation } from "net.minecraft.util";
 import { GL11, GL13, GL14 } from "org.lwjgl.opengl";
 import { BufferUtils } from "org.lwjgl";
 import { SRBXApiCompat } from "@target/assets/minecraft/scripts/superrailbuilderx/SRBXApiCompat";
+import { SRBX_TOOLS } from "./SRBXTools";
 
 export type SRBXGuiRow = {
 	iconX: number;
@@ -34,6 +35,37 @@ const guiTileTextureMatrix = BufferUtils.createFloatBuffer(16);
 const guiIconTextureMatrix = BufferUtils.createFloatBuffer(16);
 const guiColorBuffer = BufferUtils.createFloatBuffer(16);
 const guiColorMaskBuffer = BufferUtils.createByteBuffer(16);
+
+function drawGuiRect(
+	left: number,
+	top: number,
+	right: number,
+	bottom: number,
+	color: number,
+): void {
+	// Gui.drawRect changes the GlStateManager cache and leaves blending disabled.
+	// Use the already isolated GUI attributes and restore white textured drawing.
+	GL11.glDisable(GL11.GL_TEXTURE_2D);
+	GL11.glEnable(GL11.GL_BLEND);
+	GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+	GL11.glColor4f(
+		((color >> 16) & 255) / 255,
+		((color >> 8) & 255) / 255,
+		(color & 255) / 255,
+		((color >>> 24) & 255) / 255,
+	);
+	GL11.glBegin(GL11.GL_QUADS);
+	try {
+		GL11.glVertex3f(left, bottom, 0);
+		GL11.glVertex3f(right, bottom, 0);
+		GL11.glVertex3f(right, top, 0);
+		GL11.glVertex3f(left, top, 0);
+	} finally {
+		GL11.glEnd();
+		GL11.glEnable(GL11.GL_TEXTURE_2D);
+		GL11.glColor4f(1, 1, 1, 1);
+	}
+}
 
 function saveGuiMatrix(matrix: number, buffer: java.nio.FloatBuffer): void {
 	buffer.clear();
@@ -129,7 +161,12 @@ function drawToolGuiBase(
 	}
 }
 
-function drawToolGuiIcon(width: number, icon: ResourceLocation): void {
+function drawToolGuiIcon(
+	width: number,
+	icon: ResourceLocation,
+	x?: number,
+	y?: number,
+): void {
 	NGTUtilClient.bindTexture(icon);
 	GL13.glActiveTexture(GL13.GL_TEXTURE0);
 	saveGuiMatrix(GL11.GL_TEXTURE_MATRIX, guiIconTextureMatrix);
@@ -143,8 +180,10 @@ function drawToolGuiIcon(width: number, icon: ResourceLocation): void {
 		);
 		GL11.glMatrixMode(GL11.GL_MODELVIEW);
 		toolGui.drawTexturedModalRect(
-			Math.max(0, width - GUI_TOOL_FRAME_SIZE) + GUI_TILE_SIZE / 2,
-			GUI_TILE_SIZE / 2,
+			x === undefined
+				? Math.max(0, width - GUI_TOOL_FRAME_SIZE) + GUI_TILE_SIZE / 2
+				: x,
+			y === undefined ? GUI_TILE_SIZE / 2 : y,
 			0,
 			0,
 			GUI_TILE_SIZE,
@@ -297,6 +336,7 @@ function renderSharedGui(
 	toolName: string,
 	icon: ResourceLocation,
 	rows: SRBXGuiRow[],
+	overlay?: (width: number, height: number) => void,
 ): void {
 	if (guiRenderingDisabled) return;
 	guiToolName = toolName;
@@ -359,6 +399,11 @@ function renderSharedGui(
 		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		GL11.glColor4f(1, 1, 1, 1);
 		if (stopGuiOnGLError("setup-attributes")) return;
+		if (overlay) {
+			overlay(width, height);
+			stopGuiOnGLError("wheel");
+			return;
+		}
 		drawToolGuiBase(width, height, rows);
 		if (stopGuiOnGLError("base-and-status-icons")) return;
 		drawToolGuiIcon(width, icon);
@@ -405,7 +450,64 @@ function renderSharedGui(
 }
 
 export class SRBXToolGui {
+	static renderWheel(
+		selected: number,
+		choose: (width: number, height: number) => number,
+	): boolean {
+		renderSharedGui(
+			"ツール切り替え",
+			GUI_BASE_TEXTURE,
+			[],
+			(width, height) => {
+				selected = choose(width, height);
+				drawGuiRect(0, 0, width, height, -2013265920);
+				const radius = Math.max(48, Math.min(85, height / 2 - 36));
+				const font = NGTUtilClient.getMinecraft().fontRenderer;
+				for (let i = 0; i < SRBX_TOOLS.length; i++) {
+					const angle = (i * Math.PI) / 3;
+					const x = Math.round(width / 2 + Math.sin(angle) * radius);
+					const y = Math.round(height / 2 - Math.cos(angle) * radius);
+					const item = SRBX_TOOLS[i];
+					const textWidth = font.getStringWidth(item.name);
+					drawGuiRect(
+						x - Math.max(20, textWidth / 2 + 6),
+						y - 15,
+						x + Math.max(20, textWidth / 2 + 6),
+						y + 25,
+						i === selected ? -1440088065 : -1728053248,
+					);
+					drawToolGuiIcon(
+						width,
+						new ResourceLocation(
+							"minecraft",
+							"textures/superrailbuilderx/" + item.icon,
+						),
+						x - 8,
+						y - 11,
+					);
+					SRBXApiCompat.drawGuiTextWithShadow(
+						item.name,
+						Math.round(x - textWidth / 2),
+						y + 10,
+						i === selected ? 0xffff55 : 0xffffff,
+					);
+				}
+				const hint = "TABを離して決定 / マウス・←→で選択";
+				SRBXApiCompat.drawGuiTextWithShadow(
+					hint,
+					Math.round((width - font.getStringWidth(hint)) / 2),
+					height - 17,
+					0xffffff,
+				);
+			},
+		);
+		return !guiRenderingDisabled;
+	}
 	static helpFooter(sender: ICommandSender): void {
+		NGTLog.sendChatMessage(
+			sender,
+			"[TAB長押し] ツール切り替え（マウス・←→で選択、離して決定）",
+		);
 		NGTLog.sendChatMessage(
 			sender,
 			"チャット欄を開いてスクロールすると、説明文の全文を確認できます。",

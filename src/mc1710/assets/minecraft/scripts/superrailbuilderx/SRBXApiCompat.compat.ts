@@ -1,3 +1,4 @@
+import { ModelPackManager } from "jp.ngt.rtm.modelpack";
 import {
 	TileEntityLargeRailBase,
 	TileEntityLargeRailCore,
@@ -8,6 +9,22 @@ import { EntityPlayer } from "net.minecraft.entity.player";
 import { SRBXGuiGLState } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXGuiGLState";
 import { NGTUtilClient } from "jp.ngt.ngtlib.util";
 export class SRBXApiCompat {
+	static getToolModel(entity: unknown): string {
+		return (
+			entity as jp.ngt.rtm.entity.vehicle.EntityVehicle
+		).getModelName();
+	}
+	static switchToolModel(entity: unknown, model: string): boolean {
+		const vehicle = entity as jp.ngt.rtm.entity.vehicle.EntityVehicle;
+		const set = ModelPackManager.INSTANCE.getModelSet(
+			vehicle.getModelType(),
+			model,
+		) as jp.ngt.rtm.modelpack.modelset.ModelSetBase;
+		if (!set || set.isDummy()) return false;
+		vehicle.setModelName(model);
+		vehicle.getModelSet();
+		return true;
+	}
 	static drawGuiTextWithShadow(
 		text: string,
 		x: number,

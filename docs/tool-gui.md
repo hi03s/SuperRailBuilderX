@@ -19,6 +19,8 @@
 
 ## 検証
 
+ツール切り替え用のTABホイールは[専用仕様・実機手順](tool-wheel.md)を参照する。
+
 - `pnpm build`で全ターゲットをビルドし、`pnpm test:gui`で描画状態復元、アイコン座標、各設定文字、分割のホバー/選択/非候補、表示pass、分岐の3D長を確認する。
 - ゲーム同梱Javaの`jjs -scripting tests/srbx_patch/builder1_gui_nashorn.test.js`で全6ツールの生成GUIを実行する。GL呼出は模擬であり、実GPUの検証とは区別する。
 - 実機では更新ZIPへ置換して再起動し、KaizPatch/AEで全ツールの表示、設定変更、選択/解除、別画面の開閉、ツール終了とレール描画を確認する。異常時はツール名、操作手順、`logs/latest.log`を共有する。

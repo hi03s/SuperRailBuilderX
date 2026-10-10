@@ -1,4 +1,5 @@
 import { SRBXToolGui } from "./SRBXToolGui";
+import { SRBXToolWheel } from "./SRBXToolWheel";
 import { ResourceLocation } from "net.minecraft.util";
 import { SRBXRailBoundary } from "./SRBXRailBoundary";
 import { SRBXRailHighlight } from "./SRBXRailHighlight";
@@ -1002,6 +1003,8 @@ function render(e: EntityVehicle, pass: number, pt: number): void {
 			: null;
 	if (!host || host !== player) return;
 	SRBXApiCompat.doFollowing(e, host);
+	if (SRBXToolWheel.update(e, renderer.currentMatId === 0 && pass === 0))
+		return;
 	const s = getState(e),
 		split = s.split || findSplit(e, pt);
 	let previewLength: number | null = null;

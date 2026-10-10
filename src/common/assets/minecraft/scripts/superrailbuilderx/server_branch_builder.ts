@@ -1,3 +1,4 @@
+import { SRBXToolSwitchServer } from "./SRBXToolSwitchServer";
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { EntityVehicle } from "jp.ngt.rtm.entity.vehicle";
 import { ScriptExecuter } from "jp.ngt.rtm.modelpack";
@@ -71,6 +72,7 @@ function onUpdate(entity: EntityVehicle, executer: ScriptExecuter): void {
 		entity.setDead();
 		return;
 	}
+	if (SRBXToolSwitchServer.update(entity, host)) return;
 	d.setBoolean("branchBuilderCanUndo", undos.get(entity) !== null, 1);
 	const request = NGTOBuilderUtil.getJsonData<BranchBuilderRequest>(
 		d,

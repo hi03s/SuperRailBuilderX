@@ -21,6 +21,7 @@ assert(
 let snapshot;
 for (const failure of [
 	null,
+	"wheel",
 	"tile",
 	"font",
 	"attrib-full",
@@ -234,6 +235,10 @@ for (const failure of [
 	};
 	font.func_78261_a = font.func_78276_b;
 	const context = {
+		Gui: { func_73734_a: () => {} },
+		ResourceLocation: function (domain, path) {
+			return path;
+		},
 		GL11: gl,
 		GL13: gl,
 		GL14: gl,
@@ -293,18 +298,32 @@ for (const failure of [
 		builder.indexOf("function renderToolGui("),
 		builder.indexOf("function resultMessage("),
 	);
-	vm.runInNewContext(save + draw + adapter, context);
+	const rectStart = source.indexOf("function drawGuiRect(");
+	const rect = source.slice(rectStart, source.indexOf("\n}", rectStart) + 2);
+	vm.runInNewContext(
+		fs.readFileSync(
+			"dist/assets/minecraft/scripts/superrailbuilderx/SRBXTools.js",
+			"utf8",
+		) +
+			rect +
+			save +
+			draw +
+			adapter,
+		context,
+	);
 	const render = () =>
-		context.renderToolGui(
-			{
-				snapMode: "distance",
-				snapAngleIndex: 1,
-				curveRadiusLocked: true,
-				curveRadius: 250,
-				selected: [{}],
-			},
-			12.345,
-		);
+		failure === "wheel"
+			? context.SRBXToolGui.renderWheel(2, () => 2)
+			: context.renderToolGui(
+					{
+						snapMode: "distance",
+						snapAngleIndex: 1,
+						curveRadiusLocked: true,
+						curveRadius: 250,
+						selected: [{}],
+					},
+					12.345,
+				);
 	if (failure === "tile" || failure === "font")
 		assert.throws(render, new RegExp(failure + " failure"));
 	else render();
@@ -315,6 +334,17 @@ for (const failure of [
 	);
 	assert.equal(mode, "texture");
 	assert.equal(active, 1);
+	if (failure === "wheel") {
+		assert.equal(tiles.length, 6, "Wheel draws six tool icons");
+		assert.equal(
+			labels.length,
+			7,
+			"Wheel shows six names and instructions",
+		);
+		assert.equal(labels[0].s, "レール生成A");
+		assert.equal(labels[2].color, 0xffff55, "Selected tool name is yellow");
+		assert(labels[6].s.includes("TAB"));
+	}
 	if (failure && failure.endsWith("-gl")) {
 		assert.equal(context.guiRenderingDisabled, true);
 		const stage = {

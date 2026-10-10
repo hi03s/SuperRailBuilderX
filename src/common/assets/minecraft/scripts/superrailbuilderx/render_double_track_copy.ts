@@ -1,3 +1,4 @@
+import { SRBXToolWheel } from "./SRBXToolWheel";
 import { SRBXToolGui } from "./SRBXToolGui";
 import { ResourceLocation } from "net.minecraft.util";
 import { SRBXRailBoundary } from "./SRBXRailBoundary";
@@ -961,6 +962,8 @@ function render(
 		: null;
 	if (!host || host !== player) return;
 	SRBXApiCompat.doFollowing(entity, host);
+	if (SRBXToolWheel.update(entity, renderer.currentMatId === 0 && pass === 0))
+		return;
 	const state = getState(entity);
 	const hover = findHoverRail(entity, partialTicks);
 	let hoverSelected = false;

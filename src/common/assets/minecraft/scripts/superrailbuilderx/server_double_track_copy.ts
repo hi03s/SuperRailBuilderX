@@ -1,3 +1,4 @@
+import { SRBXToolSwitchServer } from "./SRBXToolSwitchServer";
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { EntityVehicle } from "jp.ngt.rtm.entity.vehicle";
 import { ScriptExecuter } from "jp.ngt.rtm.modelpack";
@@ -191,6 +192,7 @@ function onUpdate(entity: EntityVehicle, scriptExecuter: ScriptExecuter): void {
 		entity.setDead();
 		return;
 	}
+	if (SRBXToolSwitchServer.update(entity, host)) return;
 	const canUndo = undoRecords.get(entity) !== null;
 	if (dataMap.getBoolean("doubleTrackCopyCanUndo") !== canUndo)
 		dataMap.setBoolean("doubleTrackCopyCanUndo", canUndo, 1);

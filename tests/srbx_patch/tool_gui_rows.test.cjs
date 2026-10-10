@@ -51,6 +51,7 @@ const compat = {
 	doFollowing: () => {},
 };
 Object.assign(context, {
+	SRBXToolWheel: { update: () => false },
 	RTMX_COMPAT_scripts_superrailbuilderx_SRBXApiCompat_1js5ute: {
 		SRBXApiCompat: compat,
 	},

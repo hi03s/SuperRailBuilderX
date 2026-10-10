@@ -1,3 +1,4 @@
+import { SRBXToolWheel } from "./SRBXToolWheel";
 import { SRBXToolGui } from "./SRBXToolGui";
 import { SRBXRailBoundary } from "./SRBXRailBoundary";
 import { NGTLog } from "jp.ngt.ngtlib.io";
@@ -1678,6 +1679,8 @@ function render(
 		: null;
 	if (!host || host !== player) return;
 	SRBXApiCompat.doFollowing(entity, host);
+	if (SRBXToolWheel.update(entity, renderer.currentMatId === 0 && pass === 0))
+		return;
 	const state = getState(entity);
 	const hover =
 		state.selected.length < 2

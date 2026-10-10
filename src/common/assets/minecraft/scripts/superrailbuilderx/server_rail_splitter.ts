@@ -1,3 +1,4 @@
+import { SRBXToolSwitchServer } from "./SRBXToolSwitchServer";
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { EntityVehicle } from "jp.ngt.rtm.entity.vehicle";
 import { ScriptExecuter } from "jp.ngt.rtm.modelpack";
@@ -97,6 +98,7 @@ function onUpdate(entity: EntityVehicle, scriptExecuter: ScriptExecuter): void {
 		entity.setDead();
 		return;
 	}
+	if (SRBXToolSwitchServer.update(entity, host)) return;
 	const canUndo = undoTokens.get(entity) !== null;
 	if (dataMap.getBoolean("railSplitterCanUndo") !== canUndo)
 		dataMap.setBoolean("railSplitterCanUndo", canUndo, 1);

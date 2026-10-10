@@ -1,3 +1,4 @@
+import { SRBXToolWheel } from "./SRBXToolWheel";
 import { SRBXToolGui } from "./SRBXToolGui";
 import { ResourceLocation } from "net.minecraft.util";
 import { SRBXRailHighlight } from "./SRBXRailHighlight";
@@ -61,7 +62,7 @@ type State = {
 };
 const states: WeakHashMap<EntityVehicle, State> = new WeakHashMap();
 let keys: InputManager;
-let body: Parts, hoverCursor: Parts, selectedCursor: Parts, cantMM: Parts;
+let body: Parts, cantMM: Parts;
 let cantDigits: Parts[] = [];
 
 function init(a: ModelSetVehicle, b: ModelObject): void {
@@ -74,8 +75,6 @@ function init(a: ModelSetVehicle, b: ModelObject): void {
 	keys.register("apply", Keyboard.KEY_RETURN, false, "カントを適用");
 	keys.register("undo", Keyboard.KEY_Z, true, "直前の適用を取り消す");
 	body = renderer.registerParts(new Parts("body"));
-	hoverCursor = renderer.registerParts(new Parts("selectCursor"));
-	selectedCursor = renderer.registerParts(new Parts("selectedCursor"));
 	cantMM = renderer.registerParts(new Parts("cantPanel_mm"));
 	for (let i = 0; i <= 9; i++) {
 		cantDigits.push(renderer.registerParts(new Parts(`cantPanel_${i}`)));
@@ -210,18 +209,6 @@ function candidate(
 		};
 	}
 	return best;
-}
-function renderAt(
-	entity: EntityVehicle,
-	pt: number,
-	p: [number, number, number],
-	part: Parts,
-) {
-	const o = NGTOBuilderUtilClient.getInterpolatedPos(entity, pt);
-	GL11.glPushMatrix();
-	GL11.glTranslatef(p[0] - o[0], p[1] - o[1], p[2] - o[2]);
-	part.render(renderer);
-	GL11.glPopMatrix();
 }
 function panel(
 	entity: EntityVehicle,
@@ -510,6 +497,8 @@ function render(entity: EntityVehicle, pass: number, pt: number): void {
 			: null;
 	if (!host || host !== player) return;
 	SRBXApiCompat.doFollowing(entity, host);
+	if (SRBXToolWheel.update(entity, renderer.currentMatId === 0 && pass === 0))
+		return;
 	const s = state(entity),
 		hover = candidate(entity, pt);
 	const selected: { [key: string]: RailMap } = {},
@@ -536,7 +525,6 @@ function render(entity: EntityVehicle, pass: number, pt: number): void {
 		collectAffectedRails(entity, target, affected);
 		for (let j = 0; j < target.endpoints.length; j++) {
 			const end = target.endpoints[j];
-			renderAt(entity, pt, end.position, selectedCursor);
 			panel(entity, pt, end.position, end.height, cantDigits, cantMM);
 		}
 	}
@@ -565,8 +553,13 @@ function render(entity: EntityVehicle, pass: number, pt: number): void {
 		const core =
 			tile instanceof TileEntityLargeRailBase ? tile.getRailCore() : null;
 		const map = core ? SRBXApiCompat.getLogicalRailMap(core) : null;
-		if (map) renderRailHighlight(entity, pt, map, "ffff00");
-		renderAt(entity, pt, hover.position, hoverCursor);
+		if (map)
+			renderRailHighlight(
+				entity,
+				pt,
+				map,
+				selected[hover.railKey] ? "009999" : "ffff00",
+			);
 	}
 
 	const gui = NGTUtilClient.getMinecraft().currentScreen !== null,
