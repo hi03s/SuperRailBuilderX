@@ -1760,6 +1760,7 @@ export class SRBXApiCompat {
 		z: number,
 		preserveEndpointGeometry = false,
 	): string {
+		if (!this.hasFreeEndpointPatch()) return "srbxmod_required";
 		if (!this.canMoveRailPosition(core)) return "unsupported";
 		const positions = this.getEditableRailPositions(core);
 		if (!positions || index < 0 || index >= positions.length)

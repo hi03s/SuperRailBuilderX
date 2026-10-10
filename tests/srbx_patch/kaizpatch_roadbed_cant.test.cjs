@@ -78,6 +78,10 @@ vm.runInContext(
 );
 const directory =
 	"dist/assets/minecraft/__targets__/kaizpatch/scripts/superrailbuilderx";
+vm.runInContext(
+	fs.readFileSync(path.join(directory, "SRBXFreeEndpointPolicy.js"), "utf8"),
+	context,
+);
 const file = fs
 	.readdirSync(directory)
 	.find(
@@ -234,7 +238,15 @@ console.log(
 	"KaizPatch roadbed ownership and reversed endpoint cant tests passed",
 );
 
-// Boundary preflight must reject before either rebuilding or touching the world.
+// Experimental branch requires the server hook before any world mutation.
+assert.equal(api.requiresRailBoundarySnap(), false);
+assert.equal(
+	api.validateRailPositionMove({}, 0, 0, 0, 0, 0, 0, 0),
+	"srbxmod_required",
+);
+assert.equal(api.createBuilderRail({}, {}, {}, {}).status, "srbxmod_required");
+api.hasFreeEndpointPatch = () => true;
+// Interior points are preserved after capability validation.
 api.canMoveRailPosition = () => true;
 api.isSectionCore = () => false;
 context.Packages.jp.ngt.rtm.rail.TileEntityLargeRailSwitchCore = class {};
@@ -253,6 +265,7 @@ const boundaryPositions = [0, 1].map((i) =>
 api.getEditableRailPositions = () => boundaryPositions;
 api.validateBuilderMovePath = (_, positions) => {
 	assert.equal(positions[0].blockZ, 2);
+	assert.equal(positions[0].posZ === 2 || positions[0].posZ === 2.3, true);
 	return "ok";
 };
 const movable = { isLogicalRailOccupied: () => false };
@@ -271,7 +284,7 @@ assert.equal(
 		4.0625,
 		2.3,
 	),
-	"endpoint_not_on_block_boundary",
+	"ok",
 );
 api.validateBuilderMovePath = () => "ok";
 assert.equal(
@@ -304,12 +317,16 @@ const freePoint = {
 	kind: "free",
 	position: [0.35, 4.0625, 20.3],
 };
+api.hasFreeEndpointPatch = () => false;
 assert.equal(
 	api.createBuilderRail({}, {}, railPoint, freePoint).status,
-	"endpoint_not_on_block_boundary",
-	"Existing connections must not be snapped on only one side",
+	"srbxmod_required",
+	"Missing server hook blocks free-point creation before writes",
 );
-console.log("KaizPatch boundary validation and restore bypass tests passed");
+api.hasFreeEndpointPatch = () => true;
+console.log(
+	"KaizPatch free-point validation and capability guard tests passed",
+);
 
 const angledBoundary = {
 	kind: "free",
