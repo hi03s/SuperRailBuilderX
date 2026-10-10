@@ -103,7 +103,7 @@
 
 ## 直近の完了
 
-- 2026-10-11 ローカルCodex: GUI停止原因を属性復元の1284へ絞り、GUIの全スタック操作を撤去。AEキャッシュ同期/複数回復元回帰を追加、全4build成功、GUI ZIP更新。[10月履歴](history/CODEX_HISTORY_2026-10.md)。同期結果はコミット後に記載。
+- 2026-10-11 ローカルCodex: GUI停止原因を属性復元の1284へ絞り、GUIの全スタック操作を撤去。AEキャッシュ同期/複数回復元回帰を追加、全4build成功、GUI ZIP更新。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[e7bb487](https://github.com/hi03s/SuperRailBuilderX/commit/e7bb487)をorigin/feature/builder1-guiへpush済み。
 
 ## 関連資料
 

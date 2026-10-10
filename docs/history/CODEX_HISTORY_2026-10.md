@@ -340,3 +340,4 @@
 - 検証済み: 全4ターゲットbuild（最終版warningなし）、test:gui（GUIにネイティブスタック操作がないこと、全変更属性の復元、スタック満杯でも表示、複数回復元、描画例外、GLエラー注入と停止、1.12.2両ターゲットのSRG名/キャッシュ復元）、runtime-dispatch/rail-patch/kaizpatch/appleextended、変更TS/テストPrettier、diff --check。
 - 更新GUI ZIP102ファイルでv3/スタック操作不在/gui_base.xcf非同梱を確認。SHA256 d21cb0fe103aa2e0ccfd2a96cebd6074d9ad209ba27be14fd603536c7d113ee9。main ZIP/両SRBXPatch JARは保持。
 - 未実施: 修正後の実GPU上のGUI継続とGLエラー/レール異常の解消。ZIPを置換してゲームを再起動し、v3診断と状態表示、レールプレビュー、ツール切替/終了を確認する。GUI消失/描画異常が再発した場合は操作手順とlogs/latest.logを共有する。
+- 同期: 修正e7bb487をorigin/feature/builder1-guiへpush成功。
