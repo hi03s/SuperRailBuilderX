@@ -8,27 +8,41 @@ import org.objectweb.asm.tree.analysis.*;
 /** Behavioral tests plus JVM verification/execution of transformed bytecode. */
 public final class PatchTest {
     public static class RP {
-        public double posX = 0.3, posZ;
+        public double posX = 0.3, posZ, posY = 4.0625;
+        public byte direction;
+        public int[] getNeighborPos() { return new int[]{(int)Math.floor(posX),4,(int)Math.floor(posZ+(direction==4?0.5:-0.5))}; }
         RP(double z) { posZ = z; }
     }
     public static class Map {
         public RP start = new RP(0.2), end = new RP(10.2);
+        public int samples;
+        public Map() { end.direction=4; }
+        public boolean canConnect(Object other) { return other instanceof Map; }
         public Object getStartRP() { return start; }
         public Object getEndRP() { return end; }
         public float getRailYaw(int split, int index) { return 0; }
-        public double[] getRailPos(int split, int index) { return new double[]{start.posZ + (end.posZ-start.posZ)*index/split, 0.3}; }
+        public double[] getRailPos(int split, int index) { samples++; return new double[]{start.posZ + (end.posZ-start.posZ)*index/split, 0.3}; }
         public double getRailHeight(int split, int index) { return 4.0625; }
     }
     public static class Core {
         public int xCoord, yCoord = 4, zCoord;
         public Map map = new Map();
+        public boolean section;
+        public boolean isRailSection() { return section; }
+        public boolean isSameLogicalRail(Object other) { return false; }
         public Object[] getAllRailMaps() { return new Object[]{map}; }
     }
     public static class World {
         public boolean isRemote, loaded = true;
-        public Object core;
+        public Object core, neighbor;
+        public int neighborZ = 10, tileReads;
+        public static class Tile {
+            public Object core;
+            Tile(Object core) { this.core=core; }
+            public Object getRailCore() { return core; }
+        }
         public boolean blockExists(int x, int y, int z) { return loaded; }
-        public Object getTileEntity(int x, int y, int z) { return core; }
+        public Object getTileEntity(int x, int y, int z) { tileReads++; return neighbor!=null && z==neighborZ ? neighbor : core; }
     }
     public static class Bogie {
         public World worldObj = new World();
@@ -72,9 +86,30 @@ public final class PatchTest {
         expect(!EndpointGeometry.freeInteriorEndpoint(0, 0.3, 90), "crossed block face is standard");
         b = new Bogie(); b.currentRailMap.start.posZ = 0;
         expect(FreeEndpointHook.retainCurrent(b, 0.3, 4.0625, 0.26) == null, "distant free end does not affect normal start");
+        verifyLookupWork();
         verifyTransformer();
         if (args.length > 0) verifyRealJar(args[0]);
         System.out.println("SRBXMod behavioral and bytecode tests passed");
+    }
+    private static void verifyLookupWork() {
+        Bogie middle=new Bogie();middle.prevPosIndex=1800;middle.posZ=5.2;
+        expect(FreeEndpointHook.retainCurrent(middle,0.3,4.0625,5.21)==null,"middle delegates early");
+        expect(middle.worldObj.tileReads==0 && middle.currentRailMap.samples==0,"middle avoids tile/map lookup");
+        Bogie b=new Bogie();
+        expect(FreeEndpointHook.retainCurrent(b,0.3,4.0625,0.26)==b.currentRailObj,"projected retention");
+        expect(b.currentRailMap.samples==2,"projected path uses two position samples");
+        Bogie curve=new Bogie();
+        Map uneven=new Map(){public double[] getRailPos(int split,int index){samples++;double t=(double)index/split;return new double[]{0.2+10*t*t,0.3};}};
+        ((Core)curve.currentRailObj).map=uneven;curve.currentRailMap=uneven;curve.posZ=0.20025;
+        expect(FreeEndpointHook.retainCurrent(curve,0.3,4.0625,0.21)==curve.currentRailObj,"nonuniform parameter uses dense fallback");
+        expect(uneven.samples>2,"projection miss keeps dense search");
+        System.out.println("Lookup work: interior position samples old=114 new="+b.currentRailMap.samples);
+        b=new Bogie();b.prevPosIndex=3582;b.posZ=10.15;
+        Core next=new Core();next.map.start.posZ=10.2;
+        b.worldObj.neighbor=new World.Tile(next);
+        expect(FreeEndpointHook.retainCurrent(b,0.3,4.0625,10.21)==null,"native neighbor path retained");
+        expect(b.currentRailMap.samples==0 && b.worldObj.tileReads==1,"crossing delegates without additional tile search");
+        System.out.println("Lookup work: crossing rail samples=0 additional neighbor tile probes=0");
     }
     private static byte[] type(String name, String parent, boolean bogie, boolean resolver) {
         ClassWriter w = new ClassWriter(ClassWriter.COMPUTE_MAXS);

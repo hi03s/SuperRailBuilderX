@@ -15,6 +15,8 @@
 
 ## 仕組みとCrossTie互換性
 
+探索の役割、Direction方式との比較、採用した軽量化は[台車探索の比較](rail-lookup-performance.md)を参照する。
+
 `EntityBogie.getRail(DDD)`の先頭へ小さなhookを追加する。現在コアとmapが存続し、予測位置が現在mapの端点内側・線形近傍にある場合だけ現在コアを維持する。
 端点を越えた場合はKaizPatchの`findCrossedConnectedCore`・分岐選択・セクション接続・`resetRailObj`へ戻す。道床所有先、台車フィールド、パケット、コントローラーを上書きしない。
 削除・再生成済みmap、未ロードコア、遠い線形、異なる高さ、非有限座標、未対応バイトコードでは標準処理へ戻る。

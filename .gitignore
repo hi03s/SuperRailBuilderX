@@ -8,3 +8,6 @@ artifacts/
 /docs/instructions/
 /logs/crash-*.txt
 /logs/fml-client-latest.log
+
+__pycache__/
+*.pyc

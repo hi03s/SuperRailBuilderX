@@ -245,3 +245,11 @@
 - Java.lang.Objectのscanner宣言に依存した型エラーはClass.forNameで解消。境界端点はnative directionを保持し、内部自由点は接線方向を使用。生成API型のcacheをビルド失敗前に保存し、再生成コストを削減。
 - Artifacts #11652378368を取得し、manifest、Java8 major52、依存/テストクラス非同梱、102個の資産とクライアントZIPのバイト一致を検証。JAR SHA256: 941ad37c8d6cfe98d0a038d7120e4e59155604bea144e365423b2740dd9de6dd。
 - 実機起動/走行・CrossTie併用・JavaModなしクライアント接続は未実施。確認手順とパッチの限界をsrbx-free-endpoint-mod.mdへ記載し、短期引継ぎ帳を更新。main/AEは変更せず、新repo/fork/Issue/PR/comment/Releaseは作成していない。
+
+## 2026-10-10 Web側Codex: 台車探索方式の比較と軽量化
+
+- 既存hookは遷移先探索ではなく自由点内側の現コア保持と説明。KaizPatch v1.10.4はgetNeighborPosを既に最優先に探索。Directionの背合わせだけでは自由点/旧道床所有/セクション配置から遷移先を一意決定できない。
+- 同JVMの旧hookとの模擬比較で内側照合を114サンプル→2へ削減、中央値215.344ms→86.453ms（50,000回×7）。中央部はtile読出し前に除外。投影が外れたmapでは元の全候補照合へ戻す。
+- Direction＋精密XYZの反射直接探索はnative通常探索のJava模擬より118.691ms→170.934msと遅く不採用。実MC/Kotlin/CrossTie/チャンクI/Oの速度ではない。試作はbenchmarksのpatchに限定し配布クラスへ入れない。
+- mod/benchmark.pyで旧実装と試作を.cacheへ展開して再比較できる。採用コードはnative/CrossTieの隣接セル優先・探索範囲・loadChunk・resetRailObjを維持。
+- Java回帰で2サンプル、中央早期除外、非線形mapの全照合fallbackと従来ケースを検証。資料はrail-lookup-performance.md。実機TPS測定は未実施。

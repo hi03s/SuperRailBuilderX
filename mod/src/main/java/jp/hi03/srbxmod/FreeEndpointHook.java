@@ -23,6 +23,12 @@ public final class FreeEndpointHook {
             int split = ((Number) field(bogie, "split")).intValue();
             int previous = ((Number) field(bogie, "prevPosIndex")).intValue();
             if (core == null || map == null || split <= 0 || previous < 0 || previous > split) return null;
+            double bx = number(bogie, "posX", "field_70165_t").doubleValue();
+            double bz = number(bogie, "posZ", "field_70161_v").doubleValue();
+            double movement = Math.hypot(x - bx, z - bz);
+            if (!EndpointGeometry.finite(movement) || movement > 10.0) return null;
+            int margin = (int) Math.ceil((movement + 1.0) * 360.0);
+            if (previous > margin && split - previous > margin) return null;
             int cx = number(core, "xCoord", "field_145851_c").intValue();
             int cy = number(core, "yCoord", "field_145848_d").intValue();
             int cz = number(core, "zCoord", "field_145849_e").intValue();
@@ -35,12 +41,6 @@ public final class FreeEndpointHook {
             Object start = call(map, "getStartRP"), end = call(map, "getEndRP");
             double sx = number(start, "posX").doubleValue(), sz = number(start, "posZ").doubleValue();
             double ex = number(end, "posX").doubleValue(), ez = number(end, "posZ").doubleValue();
-            double bx = number(bogie, "posX", "field_70165_t").doubleValue();
-            double bz = number(bogie, "posZ", "field_70161_v").doubleValue();
-            double movement = Math.hypot(x - bx, z - bz);
-            if (!EndpointGeometry.finite(movement) || movement > 10.0) return null;
-            int margin = (int) Math.ceil((movement + 1.0) * 360.0);
-            if (previous > margin && split - previous > margin) return null;
             double sy = ((Number) call(map, "getRailYaw", split, Math.min(1, split))).doubleValue();
             double ey = ((Number) call(map, "getRailYaw", split, Math.max(0, split - 1))).doubleValue();
             if (!EndpointGeometry.finite(sy) || !EndpointGeometry.finite(ey)) return null;
@@ -48,8 +48,10 @@ public final class FreeEndpointHook {
             boolean freeEnd = split - previous <= margin && EndpointGeometry.freeInteriorEndpoint(ex, ez, ey);
             if (!freeStart && !freeEnd) return null;
             // Test only the nearby endpoint planes. A distant curve may cross its own tangent plane.
-            if (previous <= margin && !EndpointGeometry.interior(x, z, sx, sz, x, z, sy, ey)) return null;
-            if (split - previous <= margin && !EndpointGeometry.interior(x, z, x, z, ex, ez, sy, ey)) return null;
+            if (previous <= margin && !EndpointGeometry.interior(x, z, sx, sz, x, z, sy, ey))
+                return null;
+            if (split - previous <= margin && !EndpointGeometry.interior(x, z, x, z, ex, ez, sy, ey))
+                return null;
             int search = (int) Math.ceil((movement + 0.25) * 360.0);
             int low = Math.max(0, previous - search), high = Math.min(split, previous + search);
             double best = Double.MAX_VALUE;
@@ -57,6 +59,16 @@ public final class FreeEndpointHook {
             Method sample = members.get(map.getClass()).method("getRailPos", 2);
             double[] previousPoint = (double[]) sample.invoke(map, split, previous);
             if (Math.hypot(bx - previousPoint[1], bz - previousPoint[0]) > 0.25) return null;
+            // Try the projected sample first. Dense lookup remains the conservative fallback.
+            double tangent = Math.toRadians(previous <= margin ? sy : ey);
+            int projected = Math.max(low, Math.min(high, previous + (int) Math.round(
+                ((x-bx)*Math.sin(tangent) + (z-bz)*Math.cos(tangent))*360.0)));
+            double[] predicted = (double[]) sample.invoke(map, split, projected);
+            double pdx = x-predicted[1], pdz = z-predicted[0];
+            double projectedDistance = pdx*pdx + pdz*pdz;
+            // Within one sampling step: no tile search and no redundant dense scan.
+            if (projectedDistance <= 1.0/(360.0*360.0) && validHeight(map, bogie, split, projected, y))
+                return core;
             for (int i = low; i <= high; i++) {
                 double[] point = (double[]) sample.invoke(map, split, i);
                 double dx = x - point[1], dz = z - point[0];
@@ -64,9 +76,7 @@ public final class FreeEndpointHook {
                 if (distance < best) { best = distance; nearest = i; }
             }
             if (best > 0.015625) return null; // 0.125m maximum horizontal deviation
-            double railY = ((Number) call(map, "getRailHeight", split, nearest)).doubleValue();
-            double offset = number(bogie, "yOffset", "field_70129_M").doubleValue();
-            if (!EndpointGeometry.finite(railY) || Math.abs(y - (railY + offset)) > 0.75) return null;
+            if (!validHeight(map, bogie, split, nearest, y)) return null;
             return core;
         } catch (ReflectiveOperationException | RuntimeException error) {
             healthy = false;
@@ -74,6 +84,13 @@ public final class FreeEndpointHook {
                 System.err.println("[SRBXMod] hook unavailable; delegating to KaizPatch: " + error);
             return null;
         }
+    }
+    private static boolean validHeight(Object map, Object bogie, int split, int index, double y)
+            throws ReflectiveOperationException {
+        double railY = ((Number) call(map, "getRailHeight", split, index)).doubleValue();
+        double offset = number(bogie, "yOffset", "field_70129_M").doubleValue();
+        return EndpointGeometry.finite(railY) && EndpointGeometry.finite(offset)
+            && Math.abs(y - (railY + offset)) <= 0.75;
     }
     private static Number number(Object object, String... names) throws ReflectiveOperationException {
         return (Number) field(object, names);

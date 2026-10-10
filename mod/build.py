@@ -76,7 +76,7 @@ def main():
             jar.writestr(info, data)
         put("META-INF/MANIFEST.MF", manifest)
         for path in sorted((classes / "jp/hi03/srbxmod").glob("*.class")):
-            if path.name.startswith("PatchTest"):
+            if path.name.startswith(("PatchTest", "LookupBenchmark")):
                 continue
             put(path.relative_to(classes).as_posix(), path.read_bytes())
         put("LICENSE-SRBX.txt", (ROOT / "LICENSE").read_bytes())
