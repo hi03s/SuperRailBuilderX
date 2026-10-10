@@ -330,3 +330,13 @@
 - 未実施: 実GPU上の原因特定とエラー解消。更新GUI ZIPでゲームを再起動し、build=gui-gl-state-v2が出ることを確認してレール生成Aを使用。GUIが消える場合も操作手順とlogs/latest.logを共有してもらう。前回版のfogログと新しい診断を区別できる。
 - 配布物: 更新GUI ZIP102ファイル、gui_base.xcf非同梱、段階別診断/属性1段退避をZIP内でも確認。SHA256 c3b281c7b125e3fd909b901a9051889396fb02824145ae3867d15a3da082cc93。main ZIP/両SRBXPatch JARは保持。
 - 同期: 診断/停止処理076cd30をorigin/feature/builder1-guiへpush成功。
+
+## 2026-10-11 ローカルCodex: GUI属性スタックを撤去
+
+- v2でGUIが消えた実機ログを受領。00:05:55に初回入口/出口の行列・属性深度は一致した後、restore-attributesで1284が3件、属性深度0を確認。アイコン/文字/行列復元のエラーは記録されていないため、glPopAttribを含む属性復元段階へ原因を絞った。復元が追加実行される実行環境側の経緯までは未確定。
+- 関連GUI診断5行だけをlogs/builder1-gui-attribute-restore-underflow-20261011.logへ保存。生ログ、ユーザー/PC情報、無関係な出力は追加しない。
+- GUIのglPushAttrib/glPopAttribを完全撤去。行列と同様に有効状態・アルファ/深度条件・RGB/alpha別ブレンド係数・色/書込マスク・両テクスチャユニットの有効状態/バインド/環境/座標を個別保存/復元する。複数回復元してもホストのスタックを消費しない。GLエラー診断/GUI停止は保持し、識別子をgui-gl-state-v3へ変更。
+- SRBXApiCompat.syncGuiGLStateと型宣言を追加。Kaiz/通常1.7.10はキャッシュ同期不要、AE/通常1.12.2はGlStateManagerの有効状態/条件/色/テクスチャキャッシュを元状態へ同期し、後続レール描画が古いキャッシュに基づいて状態変更を省略しないようにする。バージョン固有APIはcompat内に限定。共有ツールキット/rtm-ts/サーバーワールド/Java Modは変更なし。
+- 検証済み: 全4ターゲットbuild（最終版warningなし）、test:gui（GUIにネイティブスタック操作がないこと、全変更属性の復元、スタック満杯でも表示、複数回復元、描画例外、GLエラー注入と停止、1.12.2両ターゲットのSRG名/キャッシュ復元）、runtime-dispatch/rail-patch/kaizpatch/appleextended、変更TS/テストPrettier、diff --check。
+- 更新GUI ZIP102ファイルでv3/スタック操作不在/gui_base.xcf非同梱を確認。SHA256 d21cb0fe103aa2e0ccfd2a96cebd6074d9ad209ba27be14fd603536c7d113ee9。main ZIP/両SRBXPatch JARは保持。
+- 未実施: 修正後の実GPU上のGUI継続とGLエラー/レール異常の解消。ZIPを置換してゲームを再起動し、v3診断と状態表示、レールプレビュー、ツール切替/終了を確認する。GUI消失/描画異常が再発した場合は操作手順とlogs/latest.logを共有する。

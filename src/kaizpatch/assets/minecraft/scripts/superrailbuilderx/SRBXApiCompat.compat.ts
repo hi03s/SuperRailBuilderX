@@ -158,7 +158,11 @@ declare const Packages: {
 	};
 };
 
+import { SRBXGuiGLState } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXGuiGLState";
 export class SRBXApiCompat {
+	static syncGuiGLState(state: SRBXGuiGLState): void {
+		// Minecraft 1.7.10 has no GlStateManager cache to synchronize.
+	}
 	static requiresRailBoundarySnap(): boolean {
 		return false;
 	}

@@ -5,7 +5,11 @@ import {
 import { RailPosition } from "jp.ngt.rtm.rail.util";
 import { EntityPlayer } from "net.minecraft.entity.player";
 
+import { SRBXGuiGLState } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXGuiGLState";
 export class SRBXApiCompat {
+	static syncGuiGLState(state: SRBXGuiGLState): void {
+		// Minecraft 1.7.10 has no GlStateManager cache to synchronize.
+	}
 	static requiresRailBoundarySnap(): boolean {
 		return false;
 	}

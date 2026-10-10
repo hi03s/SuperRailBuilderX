@@ -70,7 +70,9 @@ export type SRBXBranchRequest = {
 	branchEnd: SRBXBuilderPoint;
 };
 
+import { SRBXGuiGLState } from "./SRBXGuiGLState";
 export class SRBXApiCompat {
+	static syncGuiGLState(state: SRBXGuiGLState): void;
 	static requiresRailBoundarySnap(): boolean;
 
 	static getRider(entity: unknown): Entity | null;

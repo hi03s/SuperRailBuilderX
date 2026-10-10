@@ -6,7 +6,51 @@ import { RailPosition } from "jp.ngt.rtm.rail.util";
 import { EntityPlayer } from "net.minecraft.entity.player";
 import { BlockPos } from "net.minecraft.util.math";
 
+import { SRBXGuiGLState } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXGuiGLState";
+import { GlStateManager } from "net.minecraft.client.renderer";
 export class SRBXApiCompat {
+	static syncGuiGLState(state: SRBXGuiGLState): void {
+		if (state.enabled[0]) GlStateManager.enableLighting();
+		else GlStateManager.disableLighting();
+		if (state.enabled[1]) GlStateManager.enableFog();
+		else GlStateManager.disableFog();
+		if (state.enabled[2]) GlStateManager.enableCull();
+		else GlStateManager.disableCull();
+		if (state.enabled[3]) GlStateManager.enableAlpha();
+		else GlStateManager.disableAlpha();
+		if (state.enabled[4]) GlStateManager.enableDepth();
+		else GlStateManager.disableDepth();
+		if (state.enabled[5]) GlStateManager.enableBlend();
+		else GlStateManager.disableBlend();
+		GlStateManager.alphaFunc(state.alphaFunc, state.alphaRef);
+		GlStateManager.depthFunc(state.depthFunc);
+		GlStateManager.depthMask(state.depthWrite);
+		GlStateManager.colorMask(
+			state.colorWrite[0],
+			state.colorWrite[1],
+			state.colorWrite[2],
+			state.colorWrite[3],
+		);
+		GlStateManager.tryBlendFuncSeparate(
+			state.blend[0],
+			state.blend[1],
+			state.blend[2],
+			state.blend[3],
+		);
+		GlStateManager.color(
+			state.color[0],
+			state.color[1],
+			state.color[2],
+			state.color[3],
+		);
+		for (let unit = 0; unit < 2; unit++) {
+			GlStateManager.setActiveTexture(state.textureUnits[unit]);
+			if (state.textureEnabled[unit]) GlStateManager.enableTexture2D();
+			else GlStateManager.disableTexture2D();
+			GlStateManager.bindTexture(state.textureBinding[unit]);
+		}
+		GlStateManager.setActiveTexture(state.activeTexture);
+	}
 	static requiresRailBoundarySnap(): boolean {
 		return false;
 	}

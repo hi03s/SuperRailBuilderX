@@ -5,19 +5,20 @@ const source = fs.readFileSync(
 	"dist/assets/minecraft/scripts/superrailbuilderx/render_builder1.js",
 	"utf8",
 );
+const start = source.indexOf("function saveGuiMatrix(");
 const save = source.slice(
-	source.indexOf("function saveGuiMatrix("),
-	source.indexOf("function saveGuiMatrix(") +
-		source.slice(source.indexOf("function saveGuiMatrix(")).indexOf("\n}") +
-		2,
+	start,
+	start + source.slice(start).indexOf("\n}") + 2,
 );
 const draw = source.slice(
 	source.indexOf("function drawGuiTile("),
 	source.indexOf("function resultMessage("),
 );
-
-// Host projection/texture stacks are already at their minimum GL capacity (2).
-// Any GUI push/pop would overflow or consume the host renderer's stack frame.
+assert(
+	!/gl(Push|Pop)(Attrib|Matrix)\(/.test(draw),
+	"GUI must use no native stacks",
+);
+let snapshot;
 for (const failure of [
 	null,
 	"tile",
@@ -36,14 +37,43 @@ for (const failure of [
 	};
 	let mode = "texture",
 		active = 1,
-		fog = true;
-	const attributes = [],
+		pendingError = failure === "entry-gl" ? 1284 : 0;
+	const attrs = {
+		enabled: {
+			GL_LIGHTING: true,
+			GL_FOG: true,
+			GL_CULL_FACE: false,
+			GL_ALPHA_TEST: false,
+			GL_DEPTH_TEST: true,
+			GL_BLEND: false,
+		},
+		alphaFunc: 37,
+		alphaRef: 0.3,
+		depthFunc: 42,
+		depthWrite: false,
+		blend: [3, 4, 5, 6],
+		color: [0.2, 0.3, 0.4, 0.5],
+		colorWrite: [true, false, true, false],
+		textureEnabled: [false, true],
+		textureBinding: [51, 61],
+		textureEnv: [71, 81],
+		textureCoords: [
+			[0.1, 0.2, 0.3, 0.4],
+			[0.6, 0.7, 0.8, 0.9],
+		],
+	};
+	const before = JSON.stringify({ matrices, attrs }),
+		tiles = [],
 		labels = [],
-		tiles = [];
-	const diagnostics = [];
-	let pendingError = failure === "entry-gl" ? 1284 : 0;
-	const before = JSON.stringify(matrices);
-	let textureEnabled = { 0: false, 1: true };
+		diagnostics = [];
+	const query = {
+		GL_ALPHA_TEST_FUNC: "alphaFunc",
+		GL_ALPHA_TEST_REF: "alphaRef",
+		GL_DEPTH_FUNC: "depthFunc",
+		GL_DEPTH_WRITEMASK: "depthWrite",
+		GL_CURRENT_COLOR: "color",
+		GL_COLOR_WRITEMASK: "colorWrite",
+	};
 	const gl = new Proxy(
 		{
 			GL_PROJECTION: "projection",
@@ -54,31 +84,37 @@ for (const failure of [
 			GL_TEXTURE_MATRIX: "texture",
 			GL_MATRIX_MODE: "mode",
 			GL_ACTIVE_TEXTURE: "active",
-			GL_FOG: "fog",
-			GL_ATTRIB_STACK_DEPTH: "attrib-depth",
-			GL_MAX_ATTRIB_STACK_DEPTH: "attrib-max",
 			GL_TEXTURE0: 0,
 			GL_TEXTURE1: 1,
 			GL_NO_ERROR: 0,
-			GL_TEXTURE_2D: "texture-enabled",
 			glGetError() {
 				const error = pendingError;
 				pendingError = 0;
 				return error;
 			},
 			glGetInteger(p) {
-				return p === "mode"
-					? mode
-					: p === "active"
-						? active
-						: p === "attrib-depth"
-							? failure === "attrib-full"
-								? 16
-								: attributes.length
-							: 16;
+				if (p === "mode") return mode;
+				if (p === "active") return active;
+				if (p === "GL_ATTRIB_STACK_DEPTH")
+					return failure === "attrib-full" ? 16 : 0;
+				if (p === "GL_TEXTURE_BINDING_2D")
+					return attrs.textureBinding[active];
+				const i = [
+					"GL_BLEND_SRC_RGB",
+					"GL_BLEND_DST_RGB",
+					"GL_BLEND_SRC_ALPHA",
+					"GL_BLEND_DST_ALPHA",
+				].indexOf(p);
+				return i >= 0
+					? attrs.blend[i]
+					: p in query
+						? attrs[query[p]]
+						: 16;
 			},
-			glIsEnabled() {
-				return fog;
+			glIsEnabled(p) {
+				return p === "GL_TEXTURE_2D"
+					? attrs.textureEnabled[active]
+					: attrs.enabled[p];
 			},
 			glActiveTexture(unit) {
 				active = unit;
@@ -87,73 +123,120 @@ for (const failure of [
 				mode = value;
 			},
 			glGetFloat(p, b) {
+				if (!b) return attrs[query[p]];
+				if (p === "GL_CURRENT_TEXTURE_COORDS") {
+					b.data = [...attrs.textureCoords[active]];
+					return;
+				}
 				b.data = [
-					...matrices[p === "texture" ? `texture${active}` : p],
+					...(p === "GL_CURRENT_COLOR"
+						? attrs.color
+						: matrices[p === "texture" ? "texture" + active : p]),
 				];
 			},
+			glGetBoolean(p, b) {
+				if (b) b.data = attrs.colorWrite.map((v) => (v ? 1 : 0));
+				else return attrs[query[p]];
+			},
+			glGetTexEnvi() {
+				return attrs.textureEnv[active];
+			},
 			glLoadMatrix(b) {
-				matrices[mode === "texture" ? `texture${active}` : mode] = [
+				matrices[mode === "texture" ? "texture" + active : mode] = [
 					...b.data,
 				];
 			},
 			glLoadIdentity() {
-				matrices[mode === "texture" ? `texture${active}` : mode] = [
+				matrices[mode === "texture" ? "texture" + active : mode] = [
 					1, 0,
 				];
 			},
 			glPushMatrix() {
-				assert.fail("GUI must not push a full host matrix stack");
+				assert.fail("No GUI matrix push");
 			},
 			glPopMatrix() {
-				assert.fail("GUI must not pop a host matrix frame");
+				assert.fail("No GUI matrix pop");
 			},
 			glPushAttrib() {
-				attributes.push({
-					mode,
-					active,
-					fog,
-					textureEnabled: { ...textureEnabled },
-				});
+				assert.fail("No GUI attribute push");
 			},
 			glPopAttrib() {
-				assert(attributes.length);
-				({ mode, active, fog, textureEnabled } = attributes.pop());
-				if (failure === "restore-gl") pendingError = 1284;
+				assert.fail("No GUI attribute pop");
 			},
 			glDisable(p) {
-				if (p === "fog") fog = false;
-				if (p === "texture-enabled") textureEnabled[active] = false;
+				if (p === "GL_TEXTURE_2D") attrs.textureEnabled[active] = false;
+				else attrs.enabled[p] = false;
 			},
 			glEnable(p) {
-				if (p === "texture-enabled") textureEnabled[active] = true;
+				if (p === "GL_TEXTURE_2D") attrs.textureEnabled[active] = true;
+				else attrs.enabled[p] = true;
+			},
+			glAlphaFunc(f, r) {
+				attrs.alphaFunc = f;
+				attrs.alphaRef = r;
+			},
+			glDepthFunc(f) {
+				attrs.depthFunc = f;
+			},
+			glDepthMask(v) {
+				attrs.depthWrite = v;
+			},
+			glColorMask(...v) {
+				attrs.colorWrite = v;
+			},
+			glColor4f(...v) {
+				attrs.color = v;
+			},
+			glBlendFunc(s, d) {
+				attrs.blend = [s, d, s, d];
+			},
+			glBlendFuncSeparate(...v) {
+				attrs.blend = v;
+			},
+			glTexEnvi(t, p, v) {
+				attrs.textureEnv[active] = v;
+			},
+			glBindTexture(t, id) {
+				attrs.textureBinding[active] = id;
+			},
+			glMultiTexCoord4f(unit, ...v) {
+				attrs.textureCoords[unit] = v;
 			},
 		},
 		{
 			get(t, p) {
-				return p in t ? t[p] : p.startsWith("GL_") ? 1 : () => {};
+				return p in t ? t[p] : p.startsWith("GL_") ? p : () => {};
 			},
 		},
 	);
 	const font = {
 		func_78256_a: (s) => s.length * 6,
 		func_78276_b(s, x, y, color) {
-			assert.equal(fog, false);
+			assert.equal(attrs.enabled.GL_FOG, false);
 			assert.equal(active, 0);
-			assert.deepStrictEqual(textureEnabled, { 0: true, 1: false });
+			assert.deepStrictEqual(attrs.textureEnabled, [true, false]);
 			assert.deepStrictEqual(matrices.texture0, [1, 0]);
 			if (failure === "font") throw new Error("font failure");
+			attrs.textureBinding[0] = 103;
+			attrs.textureCoords[0] = [0, 0, 0, 1];
 			labels.push({ s, x, y, color });
 			if (failure === "font-gl") pendingError = 1284;
+		},
+	};
+	const compat = {
+		syncGuiGLState(state) {
+			snapshot = state;
+			if (failure === "restore-gl") pendingError = 1284;
 		},
 	};
 	const context = {
 		GL11: gl,
 		GL13: gl,
-		NGTLog: {
-			debug(message) {
-				diagnostics.push(message);
-			},
+		GL14: gl,
+		RTMX_COMPAT_scripts_superrailbuilderx_SRBXApiCompat_1js5ute: {
+			SRBXApiCompat: compat,
 		},
+		NGTLog: { debug: (s) => diagnostics.push(s) },
 		guiFogDiagnosticReported: false,
 		guiRenderingDisabled: false,
 		guiRestoreDiagnosticReported: false,
@@ -167,15 +250,16 @@ for (const failure of [
 		MAX_CURVE_RADIUS: 10000,
 		snapAngles: [1, 5, 15],
 		toolGui: {
-			func_73729_b(...args) {
-				assert.equal(fog, false);
+			func_73729_b(...v) {
 				if (failure === "tile") throw new Error("tile failure");
-				tiles.push(args);
+				tiles.push(v);
 				if (failure === "tile-gl") pendingError = 1284;
 			},
 		},
 		NGTUtilClient: {
-			bindTexture() {},
+			bindTexture(t) {
+				attrs.textureBinding[active] = t === "base" ? 101 : 102;
+			},
 			getMinecraft: () => ({ field_71466_p: font }),
 		},
 		getScaledGuiSize: () => [320, 240],
@@ -186,8 +270,17 @@ for (const failure of [
 		"guiTextureMatrix",
 		"guiTileTextureMatrix",
 		"guiIconTextureMatrix",
+		"guiColorBuffer",
+		"guiColorMaskBuffer",
 	])
-		context[name] = { data: [], clear() {}, rewind() {} };
+		context[name] = {
+			data: [],
+			clear() {},
+			rewind() {},
+			get(i) {
+				return this.data[i];
+			},
+		};
 	vm.runInNewContext(save + draw, context);
 	const render = () =>
 		context.renderToolGui(
@@ -204,43 +297,99 @@ for (const failure of [
 		assert.throws(render, new RegExp(failure + " failure"));
 	else render();
 	assert.equal(
-		JSON.stringify(matrices),
+		JSON.stringify({ matrices, attrs }),
 		before,
-		"all host matrices restored",
+		"complete host state restored",
 	);
 	assert.equal(mode, "texture");
 	assert.equal(active, 1);
-	assert.equal(fog, true);
-	assert.equal(attributes.length, 0);
-	assert.deepStrictEqual(textureEnabled, { 0: false, 1: true });
-	if (failure === "attrib-full") assert.equal(tiles.length, 0);
 	if (failure && failure.endsWith("-gl")) {
 		assert.equal(context.guiRenderingDisabled, true);
-		assert(diagnostics.some((line) => line.includes("error=1284")));
-		const expectedStage = {
+		const stage = {
 			"entry-gl": "entry-before-gui",
 			"tile-gl": "base-and-status-icons",
 			"font-gl": "tool-title",
 			"restore-gl": "restore-attributes",
 		}[failure];
 		assert(
-			diagnostics.some((line) => line.includes(`stage=${expectedStage}`)),
+			diagnostics.some(
+				(s) => s.includes("stage=" + stage) && s.includes("error=1284"),
+			),
 		);
 		const count = tiles.length;
 		render();
-		assert.equal(tiles.length, count, "GUI stops after a GL error");
+		assert.equal(tiles.length, count, "GUI stops on GL error");
 	}
-	if (!failure) {
+	if (!failure || failure === "attrib-full") {
 		assert.deepStrictEqual(
-			labels.map((x) => x.s),
+			labels.map((l) => l.s),
 			["tool", "5°", "250 m", "12.35 m"],
 		);
-		for (const label of labels.slice(1)) {
-			assert.equal(label.color, 0xffffff);
-			assert.equal(label.x + label.s.length * 6, 300);
+		for (const l of labels.slice(1)) {
+			assert.equal(l.color, 0xffffff);
+			assert.equal(l.x + l.s.length * 6, 300);
 		}
+		// Restore twice more: restoration itself must not consume any host stack.
+		context.restoreGuiAttributes(snapshot);
+		context.restoreGuiAttributes(snapshot);
+		assert.equal(
+			JSON.stringify(attrs),
+			JSON.stringify(JSON.parse(before).attrs),
+		);
 	}
 }
+
+// Verify emitted SRG names and cache synchronization on both 1.12.2 targets.
+for (const target of ["mc1122", "appleextended"]) {
+	const dir =
+		"dist/assets/minecraft/__targets__/" +
+		target +
+		"/scripts/superrailbuilderx";
+	const file = fs
+		.readdirSync(dir)
+		.find((n) => n.startsWith("SRBXApiCompat.__rtmx_"));
+	const code = fs.readFileSync(dir + "/" + file, "utf8");
+	const start = code.indexOf("SRBXApiCompat.syncGuiGLState = function");
+	const method = code.slice(start, code.indexOf("};", start) + 2);
+	assert(
+		!/GlStateManager\.(alphaFunc|depthFunc|depthMask|colorMask|tryBlendFuncSeparate|color|setActiveTexture|bindTexture)\(/.test(
+			method,
+		),
+		"production output must use SRG names",
+	);
+	const calls = [];
+	const manager = new Proxy(
+		{},
+		{
+			get:
+				(t, p) =>
+				(...args) =>
+					calls.push([p, ...args]),
+		},
+	);
+	const c = {
+		SRBXApiCompat: {},
+		Packages: {
+			net: {
+				minecraft: {
+					client: { renderer: { GlStateManager: manager } },
+				},
+			},
+		},
+	};
+	vm.runInNewContext(method, c);
+	c.SRBXApiCompat.syncGuiGLState(snapshot);
+	assert(
+		calls.some(
+			(c) =>
+				c[0] === "func_179144_i" && c[1] === snapshot.textureBinding[0],
+		),
+	);
+	assert.deepStrictEqual(calls.at(-1), [
+		"func_179138_g",
+		snapshot.activeTexture,
+	]);
+}
 console.log(
-	"GUI state restoration, global texture attributes, GL error stages and fail-stop passed",
+	"GUI stack-free restoration, repeated restore, GL guards and 1.12.2 cache/SRG synchronization passed",
 );
