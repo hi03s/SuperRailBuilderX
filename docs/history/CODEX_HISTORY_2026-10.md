@@ -267,3 +267,4 @@
 - 成果物: SRBXPatch-v1.0-1.7.10.jar SHA256 f6490d1acad0b948b96bd4e20d2ac86e4ba05bf6e12cd1886338f4a67099a886、SRBXPatch-v1.0-1.12.2.jar SHA256 1e523739f9eba6c776512de7f2c43344c256331cd142c4c7d6d782ec2bc51f55。SuperRailBuilderX-0.2.0.zipは101ファイル、include参照欠落なし、JSON除去/再利用資産保持を確認。ZIP SHA256 438859bacd644cd7cf5aa236a2b1f666cddd263972d11039679434ee203dacb1。
 - CIはmain/専用ブランチで独立ZIP＋2 JARを生成。タグworkflowも3配布物をDraftへ添付し、既存公開Release変更拒否と手動Publishを維持。今回はタグ/Release/Publishを実行しない。rtm-ts/共有ツールキットは変更しない。
 - 未実施: Minecraft起動/両方向低速走行、CrossTie併用、JARなしクライアント接続、実機全ツール/Undo。通常車両での確認手順とログ提出先をdocs/srbx-free-endpoint-mod.mdへ記載。同セルコア競合、複数極短区間の1 Tick通過、Kaiz nativeが見つけられない配置、AE周辺探索範囲外の候補は保証外。
+- 同期: 実装c04e530をorigin/mainへpush成功（01e5197→c04e530）。引継ぎ同期記録を追記後、既存feature/kaizpatch-free-endpoint-modもmainへfast-forwardして両ブランチを同期する。

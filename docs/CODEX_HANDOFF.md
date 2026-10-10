@@ -97,7 +97,7 @@
 
 ## 直近の完了
 
-- 2026-10-10 ローカルCodex: Web試作統合、SRBXPatch分離/AE追加、デバッグJSON除去。全4build・回帰・両Java/実バイトコード検証成功、実機未確認。[10月履歴](history/CODEX_HISTORY_2026-10.md)。同期結果は完了時に記載。
+- 2026-10-10 ローカルCodex: Web試作統合、SRBXPatch分離/AE追加、デバッグJSON除去。全4build・回帰・両Java/実バイトコード検証成功、実機未確認。[10月履歴](history/CODEX_HISTORY_2026-10.md)。実装[c04e530](https://github.com/hi03s/SuperRailBuilderX/commit/c04e530)をorigin/mainへpush済み。自由点ブランチも同じ実装へ同期する。
 
 ## 関連資料
 
