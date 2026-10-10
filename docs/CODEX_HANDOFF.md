@@ -103,7 +103,7 @@
 
 ## 直近の完了
 
-- 2026-10-10 ローカルCodex: GUI描画成功を受領し、グリッド/カーブ/レール長の状態表示を追加。更新PNG同梱、全4build/整形/表示条件の模擬検証成功。実機状態表示未確認。[10月履歴](history/CODEX_HISTORY_2026-10.md)。同期結果はコミット後に記載。
+- 2026-10-10 ローカルCodex: GUI描画成功を受領し、グリッド/カーブ/レール長の状態表示を追加。更新PNG同梱、全4build/整形/表示条件の模擬検証成功。実機状態表示未確認。[10月履歴](history/CODEX_HISTORY_2026-10.md)。実装[8eb593d](https://github.com/hi03s/SuperRailBuilderX/commit/8eb593d)をorigin/feature/builder1-guiへpush済み。
 
 ## 関連資料
 

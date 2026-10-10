@@ -307,3 +307,4 @@
 - renderBezierSegmentが実際に描画した3D折線長を返し、縦曲線の複数区間をrenderBezierで合計する。追加のRailMap構築や重い再サンプルを行わず、1点＋hover/2点の既存プレビュー長を再利用。概算長であり、線形候補なしは0.00 m。既存ワールド書込やサーバー/Javaパッチは変更しない。
 - 検証済み: 全4ターゲットpnpm build（warningなし）、対象TS Prettier、runtime-dispatch、diff --check。生成JSを模擬GUI/GLで実行し、3行の背景/アイコンUV・座標、ON/OFF条件、0/1/2点の文字条件、小数2桁、白色/右寄せを確認。更新PNGのZIP内内容一致、102ファイル、xcf非同梱を確認。
 - 未実施: 状態表示の実GPU/実機切替とカーソル追従、曲線/勾配長の表示確認。更新SuperRailBuilderX-0.2.0-builder1-gui.zipで確認する。ユーザーPNG更新をコミットに含め、未追跡xcf/参照画像は保持し追加しない。main ZIP/両Modは維持。
+- 同期: 状態表示8eb593dをorigin/feature/builder1-guiへpush成功。更新GUI ZIP SHA256 ee59308b8f27f24fa561cf4423a3224924097a59c0eb152598271d3cc33a9fdb。
