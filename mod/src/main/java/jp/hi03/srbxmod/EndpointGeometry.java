@@ -11,7 +11,10 @@ public final class EndpointGeometry {
         return (x - sx) * Math.sin(s) + (z - sz) * Math.cos(s) >= -1.0E-7
             && (x - ex) * Math.sin(e) + (z - ez) * Math.cos(e) <= 1.0E-7;
     }
-    public static boolean freeInteriorEndpoint(double x, double z) {
-        return Math.abs(x - Math.rint(x)) > 1.0E-7 && Math.abs(z - Math.rint(z)) > 1.0E-7;
+    public static boolean freeInteriorEndpoint(double x, double z, double yaw) {
+        double angle = Math.toRadians(yaw);
+        boolean xFace = Math.abs(Math.sin(angle)) > 1.0E-6 && Math.abs(x - Math.rint(x)) <= 1.0E-7;
+        boolean zFace = Math.abs(Math.cos(angle)) > 1.0E-6 && Math.abs(z - Math.rint(z)) <= 1.0E-7;
+        return !xFace && !zFace;
     }
 }

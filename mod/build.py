@@ -7,6 +7,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import urllib.request
+import urllib.error
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -21,14 +22,31 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--core-only", action="store_true", help="test artifact without model pack")
     parser.add_argument("--test", action="store_true")
+    parser.add_argument("--kaizpatch-jar", type=Path, help="verify transformed real KaizPatch bytecode")
     args = parser.parse_args()
     cache = ROOT / ".cache/srbxmod"
     cache.mkdir(parents=True, exist_ok=True)
+    javac = shutil.which("javac")
     for name, (url, digest) in DEPS.items():
+        if name == "ecj.jar" and javac:
+            continue
         path = cache / name
         if not path.exists():
-            with urllib.request.urlopen(url, timeout=60) as response:
-                path.write_bytes(response.read())
+            print("Downloading", name, flush=True)
+            candidates = [url]
+            if url.startswith("https://repo.maven.apache.org/maven2/"):
+                suffix = url.split("/maven2/", 1)[1]
+                candidates += ["https://maven.minecraftforge.net/" + suffix, "https://repo1.maven.org/maven2/" + suffix]
+            for candidate in candidates:
+                try:
+                    request = urllib.request.Request(candidate, headers={"User-Agent": "SRBXMod-build/0.1.0"})
+                    with urllib.request.urlopen(request, timeout=60) as response:
+                        path.write_bytes(response.read())
+                    break
+                except (urllib.error.URLError, TimeoutError) as error:
+                    print("Download failed:", candidate, str(error), flush=True)
+            if not path.exists():
+                raise RuntimeError("Cannot download " + name)
         if hashlib.sha256(path.read_bytes()).hexdigest() != digest:
             raise RuntimeError("Dependency checksum mismatch: " + name)
     classes = ROOT / ".cache/srbxmod/classes"
@@ -38,9 +56,10 @@ def main():
     sources = sorted((ROOT / "mod/src/main/java").rglob("*.java"))
     if args.test:
         sources += sorted((ROOT / "mod/src/test/java").rglob("*.java"))
-    subprocess.run(["java", "-jar", str(cache / "ecj.jar"), "-1.8", "-encoding", "UTF-8", "-proc:none", "-cp", cp, "-d", str(classes), *map(str, sources)], check=True)
+    compiler = [javac, "--release", "8"] if javac else ["java", "-jar", str(cache / "ecj.jar"), "-1.8"]
+    subprocess.run([*compiler, "-encoding", "UTF-8", "-proc:none", "-cp", cp, "-d", str(classes), *map(str, sources)], check=True)
     if args.test:
-        subprocess.run(["java", "-Xverify:all", "-cp", str(classes) + os.pathsep + cp, "jp.hi03.srbxmod.PatchTest"], check=True)
+        subprocess.run(["java", "-Xverify:all", "-cp", str(classes) + os.pathsep + cp, "jp.hi03.srbxmod.PatchTest", *([str(args.kaizpatch_jar)] if args.kaizpatch_jar else [])], check=True)
     dist = ROOT / "dist"
     if not args.core_only and not (dist / "assets/minecraft/scripts/superrailbuilderx/render_builder1.js").is_file():
         raise RuntimeError("Generated SRBX is missing. Run pnpm gen && pnpm build first (or --core-only for tests).")
@@ -50,16 +69,21 @@ def main():
     output = artifacts / name
     manifest = "Manifest-Version: 1.0\r\nFMLCorePlugin: jp.hi03.srbxmod.SRBXLoadingPlugin\r\nFMLCorePluginContainsFMLMod: true\r\n\r\n"
     with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as jar:
-        jar.writestr("META-INF/MANIFEST.MF", manifest)
+        def put(name, data):
+            info = zipfile.ZipInfo(name, date_time=(2026, 1, 1, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.external_attr = 0o100644 << 16
+            jar.writestr(info, data)
+        put("META-INF/MANIFEST.MF", manifest)
         for path in sorted((classes / "jp/hi03/srbxmod").glob("*.class")):
             if path.name.startswith("PatchTest"):
                 continue
-            jar.write(path, path.relative_to(classes).as_posix())
-        jar.write(ROOT / "LICENSE", "LICENSE-SRBX.txt")
+            put(path.relative_to(classes).as_posix(), path.read_bytes())
+        put("LICENSE-SRBX.txt", (ROOT / "LICENSE").read_bytes())
         if not args.core_only:
             for path in sorted(dist.rglob("*")):
                 if path.is_file():
-                    jar.write(path, path.relative_to(dist).as_posix())
+                    put(path.relative_to(dist).as_posix(), path.read_bytes())
     with zipfile.ZipFile(output) as jar:
         assert not any(p.startswith(("net/minecraft/", "cpw/", "org/objectweb/", "jp/ngt/")) for p in jar.namelist())
         for path in jar.namelist():

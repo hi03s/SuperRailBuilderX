@@ -9,6 +9,6 @@ public final class SRBXMod {
     public static boolean isFreeEndpointEnabled() {
         try { Class.forName("jp.ngt.rtm.entity.train.EntityBogie", false, SRBXMod.class.getClassLoader()); }
         catch (ClassNotFoundException e) { return false; }
-        return BogieTransformer.isApplied();
+        return BogieTransformer.isApplied() && FreeEndpointHook.isHealthy();
     }
 }

@@ -2,6 +2,8 @@ package jp.hi03.srbxmod;
 
 import java.lang.reflect.Method;
 import org.objectweb.asm.*;
+import org.objectweb.asm.tree.*;
+import org.objectweb.asm.tree.analysis.*;
 
 /** Behavioral tests plus JVM verification/execution of transformed bytecode. */
 public final class PatchTest {
@@ -66,7 +68,12 @@ public final class PatchTest {
         expect(FreeEndpointHook.retainCurrent(b, 0.3, 4.0625, 0.26) == b.currentRailObj, "0.2m section");
         expect(FreeEndpointHook.retainCurrent(b, 0.3, 4.0625, 0.41) == null, "short-section exit");
         expect(FreeEndpointHook.retainCurrent(b, Double.NaN, 4, 0.26) == null, "nonfinite rejected");
+        expect(EndpointGeometry.freeInteriorEndpoint(0, 0.3, 0), "parallel block face is not a rail boundary");
+        expect(!EndpointGeometry.freeInteriorEndpoint(0, 0.3, 90), "crossed block face is standard");
+        b = new Bogie(); b.currentRailMap.start.posZ = 0;
+        expect(FreeEndpointHook.retainCurrent(b, 0.3, 4.0625, 0.26) == null, "distant free end does not affect normal start");
         verifyTransformer();
+        if (args.length > 0) verifyRealJar(args[0]);
         System.out.println("SRBXMod behavioral and bytecode tests passed");
     }
     private static byte[] type(String name, String parent, boolean bogie, boolean resolver) {
@@ -105,13 +112,45 @@ public final class PatchTest {
         byte[] patched = t.transform(name, name, original);
         expect(java.util.Arrays.equals(patched, t.transform(name,name,patched)), "idempotence");
         Class<?> clazz = l.define(name, patched);
-        Bogie b = (Bogie) clazz.newInstance();
-        Core core = (Core) coreType.newInstance();
+        Bogie b = (Bogie) clazz.getDeclaredConstructor().newInstance();
+        Core core = (Core) coreType.getDeclaredConstructor().newInstance();
         b.currentRailObj = core; b.currentRailMap = core.map; b.worldObj.core = core;
         Method get = clazz.getMethod("getRail", double.class,double.class,double.class);
         expect(get.invoke(b,0.3,4.0625,0.26) == core, "transformed class returns retained core");
         expect(get.invoke(b,0.3,4.0625,0.19) == null, "transformed class executes native fallback");
         b.worldObj.isRemote = true;
         expect(get.invoke(b,0.3,4.0625,0.26) == null, "transformed client behavior preserved");
+    }
+    private static void verifyRealJar(String path) throws Exception {
+        java.util.zip.ZipFile jar = new java.util.zip.ZipFile(path);
+        java.io.InputStream input = jar.getInputStream(jar.getEntry("jp/ngt/rtm/entity/train/EntityBogie.class"));
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        byte[] buffer = new byte[8192]; int n;
+        while ((n = input.read(buffer)) >= 0) out.write(buffer,0,n);
+        input.close(); jar.close();
+        byte[] original = out.toByteArray();
+        String name = "jp.ngt.rtm.entity.train.EntityBogie";
+        byte[] patched = new BogieTransformer().transform(name,name,original);
+        expect(!java.util.Arrays.equals(original,patched), "real KaizPatch shape accepted");
+        ClassNode before = new ClassNode(), after = new ClassNode();
+        new ClassReader(original).accept(before, 0); new ClassReader(patched).accept(after, 0);
+        MethodNode previous = null;
+        for (Object value : before.methods) if (((MethodNode)value).name.equals("getRail")) previous=(MethodNode)value;
+        for (Object value : after.methods) {
+            MethodNode method = (MethodNode)value;
+            if (!method.name.equals("getRail")) continue;
+            new Analyzer(new BasicVerifier()).analyze(after.name,method);
+            java.util.List<String> callsBefore = nativeCalls(previous), callsAfter = nativeCalls(method);
+            expect(callsBefore.equals(callsAfter), "all native/CrossTie invocation sites preserved");
+        }
+        System.out.println("Real KaizPatch getRail bytecode/dataflow and native call preservation verified");
+    }
+    private static java.util.List<String> nativeCalls(MethodNode method) {
+        java.util.List<String> calls = new java.util.ArrayList<String>();
+        for (AbstractInsnNode i = method.instructions.getFirst(); i != null; i=i.getNext()) if(i instanceof MethodInsnNode) {
+            MethodInsnNode c=(MethodInsnNode)i;
+            if (!c.owner.equals("jp/hi03/srbxmod/FreeEndpointHook")) calls.add(c.owner+"."+c.name+c.desc);
+        }
+        return calls;
     }
 }

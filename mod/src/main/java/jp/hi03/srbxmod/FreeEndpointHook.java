@@ -9,6 +9,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public final class FreeEndpointHook {
     private static final AtomicBoolean warned = new AtomicBoolean();
+    private static volatile boolean healthy = true;
+    public static boolean isHealthy() { return healthy; }
     private static final ClassValue<Members> members = new ClassValue<Members>() {
         protected Members computeValue(Class<?> type) { return new Members(type); }
     };
@@ -33,7 +35,6 @@ public final class FreeEndpointHook {
             Object start = call(map, "getStartRP"), end = call(map, "getEndRP");
             double sx = number(start, "posX").doubleValue(), sz = number(start, "posZ").doubleValue();
             double ex = number(end, "posX").doubleValue(), ez = number(end, "posZ").doubleValue();
-            if (!EndpointGeometry.freeInteriorEndpoint(sx, sz) && !EndpointGeometry.freeInteriorEndpoint(ex, ez)) return null;
             double bx = number(bogie, "posX", "field_70165_t").doubleValue();
             double bz = number(bogie, "posZ", "field_70161_v").doubleValue();
             double movement = Math.hypot(x - bx, z - bz);
@@ -42,6 +43,10 @@ public final class FreeEndpointHook {
             if (previous > margin && split - previous > margin) return null;
             double sy = ((Number) call(map, "getRailYaw", split, Math.min(1, split))).doubleValue();
             double ey = ((Number) call(map, "getRailYaw", split, Math.max(0, split - 1))).doubleValue();
+            if (!EndpointGeometry.finite(sy) || !EndpointGeometry.finite(ey)) return null;
+            boolean freeStart = previous <= margin && EndpointGeometry.freeInteriorEndpoint(sx, sz, sy);
+            boolean freeEnd = split - previous <= margin && EndpointGeometry.freeInteriorEndpoint(ex, ez, ey);
+            if (!freeStart && !freeEnd) return null;
             // Test only the nearby endpoint planes. A distant curve may cross its own tangent plane.
             if (previous <= margin && !EndpointGeometry.interior(x, z, sx, sz, x, z, sy, ey)) return null;
             if (split - previous <= margin && !EndpointGeometry.interior(x, z, x, z, ex, ez, sy, ey)) return null;
@@ -49,8 +54,11 @@ public final class FreeEndpointHook {
             int low = Math.max(0, previous - search), high = Math.min(split, previous + search);
             double best = Double.MAX_VALUE;
             int nearest = previous;
+            Method sample = members.get(map.getClass()).method("getRailPos", 2);
+            double[] previousPoint = (double[]) sample.invoke(map, split, previous);
+            if (Math.hypot(bx - previousPoint[1], bz - previousPoint[0]) > 0.25) return null;
             for (int i = low; i <= high; i++) {
-                double[] point = (double[]) call(map, "getRailPos", split, i);
+                double[] point = (double[]) sample.invoke(map, split, i);
                 double dx = x - point[1], dz = z - point[0];
                 double distance = dx * dx + dz * dz;
                 if (distance < best) { best = distance; nearest = i; }
@@ -61,6 +69,7 @@ public final class FreeEndpointHook {
             if (!EndpointGeometry.finite(railY) || Math.abs(y - (railY + offset)) > 0.75) return null;
             return core;
         } catch (ReflectiveOperationException | RuntimeException error) {
+            healthy = false;
             if (warned.compareAndSet(false, true))
                 System.err.println("[SRBXMod] hook unavailable; delegating to KaizPatch: " + error);
             return null;
