@@ -2,6 +2,14 @@ node_modules/
 dist/
 generated/
 artifacts/
+.cache/
 /.tmp-kaizpatchx-source/
 /logs/latest.log
 /docs/instructions/
+/logs/crash-*.txt
+/logs/fml-client-latest.log
+
+__pycache__/
+*.pyc
+
+/logs/fml-server-latest*.log

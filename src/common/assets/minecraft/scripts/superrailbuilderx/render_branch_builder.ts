@@ -1,3 +1,5 @@
+import { SRBXRailBoundary } from "./SRBXRailBoundary";
+import { SRBXRailHighlight } from "./SRBXRailHighlight";
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { MCWrapperClient, NGTUtilClient } from "jp.ngt.ngtlib.util";
 import { EntityVehicle } from "jp.ngt.rtm.entity.vehicle";
@@ -10,7 +12,7 @@ import { EntityPlayer } from "net.minecraft.entity.player";
 import { WeakHashMap } from "java.util";
 import { Keyboard, Mouse } from "org.lwjgl.input";
 import { GL11 } from "org.lwjgl.opengl";
-import { InputManager } from "../lib_hi03toolkit_1_0/lib_InputManager";
+import { SRBXInputManager as InputManager } from "./SRBXInputManager";
 import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
 import { NGTOBuilderUtilClient } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtilClient";
 import { RTMApiCompat } from "@target/assets/minecraft/scripts/lib_hi03toolkit_1_0/lib_RTMApiCompat";
@@ -171,6 +173,28 @@ function findSplit(e: EntityVehicle, pt: number): SplitTarget | null {
 					endpoint: SRBXBuilderPoint | null,
 					directionPoint?: SRBXVec3,
 				) => {
+					if (!endpoint && SRBXApiCompat.requiresRailBoundarySnap()) {
+						const boundary = SRBXRailBoundary.findMapBoundary(
+							map,
+							index / split,
+							min / split,
+							max / split,
+						);
+						if (!boundary) return;
+						index = boundary.ratio * split;
+						pos = boundary.position;
+						pos[1] -= Math.abs(
+							Math.sin(
+								(RTMApiCompat.getCant(
+									map,
+									1000000,
+									Math.round(boundary.ratio * 1000000),
+								) *
+									Math.PI) /
+									180,
+							) * 1.5,
+						);
+					}
 					const d =
 						Math.pow(pos[0] - looking.posX, 2) +
 						Math.pow(pos[1] - looking.posY, 2) +
@@ -222,6 +246,14 @@ function findSplit(e: EntityVehicle, pt: number): SplitTarget | null {
 				}
 				for (let index = 0; index < 2; index++) {
 					const rp = rps[index] as RailPosition;
+					if (
+						SRBXApiCompat.requiresRailBoundarySnap() &&
+						!SRBXRailBoundary.isBoundary(
+							[rp.posX, rp.posY, rp.posZ],
+							SRBXApiCompat.getHorizontalAnchorYaw(rp),
+						)
+					)
+						continue;
 					const endpoint: SRBXBuilderPoint = {
 						kind: "rail",
 						position: [rp.posX, rp.posY, rp.posZ],
@@ -623,6 +655,7 @@ function handleResult(sender: ICommandSender, e: EntityVehicle, s: State) {
 		r = d.getString("branchBuilderResult");
 	if (!s.awaiting || !s.pending || !r || r === "waiting") return;
 	s.awaiting = false;
+	if (r === "undo_ok") d.setBoolean("branchBuilderCanUndo", false, 0);
 	const u = NGTOBuilderUtil.getJsonData<BranchClientUpdate>(
 		d,
 		"branchBuilderClientUpdate",
@@ -681,7 +714,7 @@ function renderRailHighlight(
 	const origin = NGTOBuilderUtilClient.getInterpolatedPos(e, pt);
 	GL11.glPushMatrix();
 	GL11.glTranslatef(-origin[0], -origin[1], -origin[2]);
-	NGTOBuilderUtilClient.renderRailMapHighlight(e, map, color, 0.6);
+	SRBXRailHighlight.render(e, map, color, 0.6);
 	GL11.glPopMatrix();
 }
 
@@ -749,6 +782,11 @@ function renderEndpointHoverHighlights(
 }
 
 function help(sender: ICommandSender) {
+	if (SRBXApiCompat.requiresRailBoundarySnap())
+		NGTLog.sendChatMessage(
+			sender,
+			"接続端点はブロック境界へ合わせます。既設の内部端点への接続はできません。",
+		);
 	NGTLog.sendChatMessage(sender, "--- SuperRailBuilderX 分岐生成 ---");
 	NGTLog.sendChatMessage(
 		sender,
@@ -908,7 +946,7 @@ function render(e: EntityVehicle, pass: number, pt: number): void {
 				const o = NGTOBuilderUtilClient.getInterpolatedPos(e, pt);
 				GL11.glPushMatrix();
 				GL11.glTranslatef(-o[0], -o[1], -o[2]);
-				NGTOBuilderUtilClient.renderRailMapHighlight(
+				SRBXRailHighlight.render(
 					e,
 					map,
 					s.split ? "00ffff" : "ffff00",

@@ -16,7 +16,7 @@ import {
 	SRBXBuilderPoint,
 } from "@target/assets/minecraft/scripts/superrailbuilderx/SRBXApiCompat";
 
-const VERSION = "alpha-0.1.0";
+const VERSION = "0.2.0";
 
 export type RailPositionMoveTarget = {
 	core: [number, number, number];
@@ -62,6 +62,7 @@ export type RailPositionMoveRequest =
 const hosts: WeakHashMap<Entity, EntityPlayer> = new WeakHashMap();
 type RemovedRail = { core: RailCorePos; key: string };
 type EndpointUndoOperation = {
+	originalPoint?: SRBXBuilderPoint;
 	mode: "endpoint";
 	core: RailCorePos;
 	railKey: string;
@@ -203,11 +204,30 @@ function sendClientChanges(
 		);
 }
 
+function snapshotEndpoint(
+	core: TileEntityLargeRailCore,
+	index: number,
+): SRBXBuilderPoint {
+	const rp = SRBXApiCompat.getEditableRailPositions(core)[index];
+	return {
+		kind: "free",
+		position: [rp.posX, rp.posY, rp.posZ],
+		direction: rp.direction,
+		anchorYaw: SRBXApiCompat.getHorizontalAnchorYaw(rp),
+		anchorPitch: SRBXApiCompat.getRailPositionAnchorPitch(rp),
+		anchorLength: SRBXApiCompat.getHorizontalAnchorLength(rp),
+		anchorLengthVertical: SRBXApiCompat.getVerticalAnchorLength(rp),
+		ownerBlock: [rp.blockX, rp.blockY, rp.blockZ],
+		markerPosition: [rp.blockX + 0.5, rp.posY, rp.blockZ + 0.5],
+	};
+}
+
 function findEndpointUndoOperation(
 	world: net.minecraft.world.World,
 	corePositions: RailCorePos[],
 	currentPosition: RailCorePos,
 	destination: RailCorePos,
+	originalPoint?: SRBXBuilderPoint,
 ): EndpointUndoOperation | null {
 	const seen: { [key: string]: boolean } = {};
 	for (let i = 0; i < corePositions.length; i++) {
@@ -230,6 +250,7 @@ function findEndpointUndoOperation(
 				continue;
 			return {
 				mode: "endpoint",
+				originalPoint,
 				core: SRBXApiCompat.getRailCorePos(core),
 				railKey,
 				index,
@@ -330,6 +351,8 @@ function applyUndo(
 						operation.destination[1],
 						operation.destination[2],
 						player,
+						true,
+						operation.originalPoint,
 					)
 				: SRBXApiCompat.moveBuilderRail(
 						core,
@@ -339,10 +362,21 @@ function applyUndo(
 						operation.start,
 						operation.end,
 						player,
+						true,
 					);
 		const moved = SRBXApiCompat.consumeLastRailPositionMoveCores();
 		for (let j = 0; j < moved.length; j++) updated.push(moved[j]);
 		if (!isMoveSuccess(result)) {
+			if (moved.length > 0) {
+				removed.push({ core: operation.core, key: operation.railKey });
+				// AE rollback recreates the group with a new identity. Keep Undo retryable.
+				const restored = resolveCurrentCore(world, moved[0]);
+				if (restored) {
+					operation.core = moved[0];
+					operation.railKey =
+						SRBXApiCompat.getRailPositionCandidateKey(restored);
+				}
+			}
 			record.operations = record.operations.slice(0, i + 1);
 			sendClientChanges(dataMap, updated, removed);
 			return `undo_${i}:${result}`;
@@ -444,6 +478,7 @@ function applyRequest(
 			core: TileEntityLargeRailCore;
 			railKey: string;
 			move: RailPositionConnectedMove;
+			originalPoint: SRBXBuilderPoint;
 		}> = [];
 		const seenConnected: { [key: string]: boolean } = {};
 		for (let i = 0; i < connectedMoves.length; i++) {
@@ -485,7 +520,15 @@ function applyRequest(
 				move.destination[2],
 			);
 			if (validation !== "ok") return `connected_${i}:${validation}`;
-			resolvedConnected.push({ core: connectedCore, railKey, move });
+			resolvedConnected.push({
+				core: connectedCore,
+				railKey,
+				move,
+				originalPoint: snapshotEndpoint(
+					connectedCore,
+					move.target.index,
+				),
+			});
 		}
 		const result = SRBXApiCompat.moveBuilderRail(
 			core,
@@ -498,7 +541,13 @@ function applyRequest(
 		);
 		const movedCores = SRBXApiCompat.consumeLastRailPositionMoveCores();
 		if (!isMoveSuccess(result)) {
-			sendClientChanges(dataMap, movedCores, []);
+			sendClientChanges(
+				dataMap,
+				movedCores,
+				movedCores.length > 0
+					? [{ core: request.core, key: request.railKey }]
+					: [],
+			);
 			return result;
 		}
 		const operations: UndoOperation[] = [];
@@ -533,6 +582,11 @@ function applyRequest(
 			for (let j = 0; j < connectedCores.length; j++)
 				movedCores.push(connectedCores[j]);
 			if (!isMoveSuccess(connectedResult)) {
+				if (connectedCores.length > 0)
+					removed.push({
+						core: item.move.target.core,
+						key: item.railKey,
+					});
 				if (operations.length > 0)
 					undoRecords.put(entity, { operations });
 				sendClientChanges(dataMap, movedCores, removed);
@@ -543,6 +597,7 @@ function applyRequest(
 				connectedCores,
 				item.move.destination,
 				item.move.target.original,
+				item.originalPoint,
 			);
 			if (undo) {
 				operations.push(undo);
@@ -574,6 +629,7 @@ function applyRequest(
 		core: TileEntityLargeRailCore;
 		railKey: string;
 		target: RailPositionMoveTarget;
+		originalPoint: SRBXBuilderPoint;
 	}> = [];
 	const seen: { [key: string]: boolean } = {};
 	const updatedCores: Array<[number, number, number]> = [];
@@ -610,7 +666,12 @@ function applyRequest(
 			request.destination[2],
 		);
 		if (validation !== "ok") return `target_${i}:${validation}`;
-		resolved.push({ core, railKey, target });
+		resolved.push({
+			core,
+			railKey,
+			target,
+			originalPoint: snapshotEndpoint(core, target.index),
+		});
 	}
 	NGTLog.debug(
 		`[SuperRailBuilderX RailPosition] applying connected endpoint: targets=${resolved.length}`,
@@ -637,6 +698,11 @@ function applyRequest(
 			result !== "ok_sectioned" &&
 			result !== "ok_normal_crossing"
 		) {
+			if (movedCores.length > 0)
+				removedRails.push({
+					core: item.target.core,
+					key: item.railKey,
+				});
 			if (operations.length > 0) undoRecords.put(entity, { operations });
 			sendClientChanges(dataMap, updatedCores, removedRails);
 			NGTLog.debug(
@@ -651,6 +717,7 @@ function applyRequest(
 			movedCores,
 			request.destination,
 			item.target.original,
+			item.originalPoint,
 		);
 		if (undo) {
 			operations.push(undo);

@@ -1,0 +1,45 @@
+# AE v2.5.3 connected endpoint move retest, 2026-10-04
+# Relevant SRBX results only; raw latest.log is not tracked.
+[00:32:38] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] applying connected endpoint: targets=2
+[00:32:39] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] connected endpoint apply failed: target=0, applied=0, result=rail_overlap
+[00:32:39] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=move, mode=endpoint, result=target_0:rail_overlap
+[00:32:43] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] applying connected endpoint: targets=2
+[00:32:44] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
+[00:32:44] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:d313c9cb-ee32-4653-983e-a9b9c77b9098, newKey=section:54e930f9-83bd-496c-a21e-cade7058455a, cores=11
+[00:32:44] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] connected endpoint apply failed: target=1, applied=1, result=rail_overlap
+[00:32:44] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=move, mode=endpoint, result=partial_target_1:rail_overlap
+[00:32:46] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=undo, mode=undo, result=undo_0:rail_overlap
+[00:32:47] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=undo, mode=undo, result=undo_0:rail_overlap
+[00:32:56] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] applying connected endpoint: targets=1
+[00:32:56] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
+[00:32:56] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:a376be0c-08ed-437f-92fd-00c5e989e898, newKey=section:1fc9108f-926a-4f31-8921-07f91fe2a38b, cores=3
+[00:32:56] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] endpoint undo recorded: operations=1
+[00:32:56] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=move, mode=endpoint, result=ok
+[00:32:59] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] applying connected endpoint: targets=1
+[00:32:59] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] connected endpoint apply failed: target=0, applied=0, result=rail_overlap
+[00:32:59] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=move, mode=endpoint, result=target_0:rail_overlap
+[00:33:12] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
+[00:33:12] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:c010f4e4-6d65-45b0-9702-c49c033e31a9, newKey=section:a3447728-8ced-4fa5-b6a4-c6a7f6e71dea, cores=4
+[00:33:12] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
+[00:33:12] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:9d44834e-3624-4907-aa5c-5958e6ebc9e3, newKey=section:741b466c-6e38-4d91-8cd5-1bfb40b0bed5, cores=3
+[00:33:12] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] parallel undo recorded: operations=2
+[00:33:12] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=move, mode=parallel_multi, result=ok
+[00:33:13] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
+[00:33:13] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:741b466c-6e38-4d91-8cd5-1bfb40b0bed5, newKey=section:b8588c44-3f8d-4362-8242-0b7ffc699886, cores=3
+[00:33:13] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
+[00:33:13] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:a3447728-8ced-4fa5-b6a4-c6a7f6e71dea, newKey=section:e28142d9-aaf8-4a8c-8c3b-bbc3f2047a97, cores=4
+[00:33:13] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=undo, mode=undo, result=undo_ok
+[00:33:18] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] applying connected endpoint: targets=2
+[00:33:18] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
+[00:33:18] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:e28142d9-aaf8-4a8c-8c3b-bbc3f2047a97, newKey=section:0a9f882f-a853-4f30-bca5-0b58c5d5fda2, cores=4
+[00:33:18] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] connected endpoint apply failed: target=1, applied=1, result=rail_overlap
+[00:33:18] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=move, mode=endpoint, result=partial_target_1:rail_overlap
+[00:33:19] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=undo, mode=undo, result=undo_0:rail_overlap
+[00:33:22] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=undo, mode=undo, result=undo_0:rail_overlap
+[00:33:48] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation not confirmed: apiResult=false, positions=2, root=1344,4,-1454, existingCore=false
+[00:33:48] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] section creation failed: owners=1344,4,-1454;1344,4,-1457;1343,4,-1460;1342,4,-1473, partial=false, creative=true
+[00:33:48] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] retrying creation as normal rail
+[00:33:48] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=false, positions=2
+[00:33:48] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
+[00:33:48] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2
+[00:33:48] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] creation confirmed: apiResult=false, sectioned=true, positions=2

@@ -38,7 +38,9 @@ export class SRBXPatchPlatform {
 						throw new Error(
 							"AppleExtended model construction timed out",
 						);
-					Minecraft.getMinecraft().addScheduledTask(task as any);
+					Minecraft.getMinecraft().addScheduledTask(
+						task as unknown as java.util.concurrent.Callable<unknown>,
+					);
 				} catch (error) {
 					onFailure(error);
 				}

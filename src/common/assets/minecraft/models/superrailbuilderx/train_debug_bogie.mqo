@@ -1,0 +1,40 @@
+Metasequoia Document
+Format Text Ver 1.1
+
+Scene {
+	pos 0 0 1500
+	lookat 0 0 0
+	head 0
+	pich 0
+	bank 0
+	ortho 0
+	zoom2 5
+	amb 0.25 0.25 0.25
+}
+
+Material 1 {
+ "bogie" shader(1) col(0.15 0.15 0.15 1) dif(0.8) amb(0.6) emi(0) spc(0) power(5) tex("../../textures/superrailbuilderx/builder1.png")
+}
+Object "bogie" {
+ visible 15
+ shading 0
+ vertex 8 {
+ -65 0 -35
+ 65 0 -35
+ 65 35 -35
+ -65 35 -35
+ -65 0 35
+ 65 0 35
+ 65 35 35
+ -65 35 35
+ }
+ face 6 {
+ 4 V(0 3 2 1) M(0) UV(0 0 1 0 1 1 0 1)
+ 4 V(4 5 6 7) M(0) UV(0 0 1 0 1 1 0 1)
+ 4 V(0 1 5 4) M(0) UV(0 0 1 0 1 1 0 1)
+ 4 V(3 7 6 2) M(0) UV(0 0 1 0 1 1 0 1)
+ 4 V(0 4 7 3) M(0) UV(0 0 1 0 1 1 0 1)
+ 4 V(1 2 6 5) M(0) UV(0 0 1 0 1 1 0 1)
+ }
+}
+Eof

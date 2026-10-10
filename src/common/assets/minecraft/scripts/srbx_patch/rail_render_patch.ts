@@ -12,6 +12,9 @@ type ExcludeConfig = {
 
 export class SRBXRailRenderPatch {
 	static apply(): void {
+		NGTLog.debug(
+			`[SRBX rail patch] source prepared: function serialization, length=${RAIL_RENDER_PATCH_SOURCE.length}`,
+		);
 		const exclusions = this.loadExclusions();
 		const targets = SRBXPatchPlatform.getRailPatchTargets();
 		let patched = 0;
@@ -115,7 +118,7 @@ export class SRBXRailRenderPatch {
 	}
 
 	private static normalize(path: string): string {
-		return String(path).replace(/\\/g, "/");
+		return String(path).split(String.fromCharCode(92)).join("/");
 	}
 
 	private static getLabel(target: SRBXRailPatchTarget): string {

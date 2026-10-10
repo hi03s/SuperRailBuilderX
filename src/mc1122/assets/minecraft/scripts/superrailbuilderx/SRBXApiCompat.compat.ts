@@ -7,6 +7,10 @@ import { EntityPlayer } from "net.minecraft.entity.player";
 import { BlockPos } from "net.minecraft.util.math";
 
 export class SRBXApiCompat {
+	static requiresRailBoundarySnap(): boolean {
+		return false;
+	}
+
 	static getLoadedRailCores(
 		world: net.minecraft.world.World,
 		centerX: number,
@@ -189,6 +193,15 @@ export class SRBXApiCompat {
 		void z;
 	}
 
+	static usesGeometryRailHighlight(): boolean {
+		return false;
+	}
+
+	static needsRailClientGhostRetry(expectedKey: string): boolean {
+		void expectedKey;
+		return false;
+	}
+
 	static removeRailClientGhost(
 		world: net.minecraft.world.World,
 		core: [number, number, number],
@@ -341,9 +354,9 @@ export class SRBXApiCompat {
 	}
 
 	static getLogicalRailMap(core: TileEntityLargeRailCore) {
-		return core.getAllRailMaps().length === 1
-			? core.getRailMap(null)
-			: null;
+		if (!core) return null;
+		const maps = core.getAllRailMaps();
+		return maps && maps.length === 1 ? core.getRailMap(null) : null;
 	}
 
 	static splitBuilderRail(

@@ -1,0 +1,25 @@
+# AE v2.5.3: endpoint move / Undo followed by chunk and highlight failures
+[02:37:07] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] section owners relocated: cores=3, owners=1347,4,-1552;1346,4,-1536;1346,4,-1520
+[02:37:07] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:738a670f-45bc-4b92-8361-973bbb172693, newKey=section:47cfe821-b580-493d-b709-74240d9c64b9, cores=3
+[02:37:07] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:b9e69db9-9f2b-48be-924a-4b7d9a7c9141, newKey=core:1350,4,-1478, cores=1
+[02:37:07] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=move, mode=endpoint, result=ok
+[02:37:07] [Client thread/INFO] [NGT]: [SuperRailBuilderX AE] client ghost cleanup: key=section:738a670f-45bc-4b92-8361-973bbb172693, removed=2, invalidated=2
+[02:37:07] [Client thread/INFO] [NGT]: [SuperRailBuilderX AE] client ghost cleanup: key=section:b9e69db9-9f2b-48be-924a-4b7d9a7c9141, removed=2, invalidated=2
+Caused by: java.lang.NullPointerException
+	at net.minecraft.world.chunk.Chunk.func_186033_a(Chunk.java:1201) ~[axw.class:?]
+Caused by: java.lang.NullPointerException
+	at net.minecraft.world.chunk.Chunk.func_186033_a(Chunk.java:1201) ~[axw.class:?]
+[02:37:10] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=core:1350,4,-1478, newKey=core:1348,4,-1506, cores=1
+[02:37:10] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE] section owners relocated: cores=3, owners=1347,4,-1506;1347,4,-1521;1347,4,-1537
+[02:37:10] [Server thread/INFO] [NGT]: [SuperRailBuilderX AE move] logical rail rebuilt: oldKey=section:47cfe821-b580-493d-b709-74240d9c64b9, newKey=section:11385c3a-f455-472a-9712-84b52f4a473e, cores=3
+[02:37:10] [Server thread/INFO] [NGT]: [SuperRailBuilderX RailPosition] request completed: action=undo, mode=undo, result=undo_ok
+[02:37:10] [Client thread/INFO] [NGT]: [SuperRailBuilderX AE] client ghost cleanup: key=core:1350,4,-1478, removed=1, invalidated=1
+[02:37:10] [Client thread/INFO] [NGT]: [SuperRailBuilderX AE] client ghost cleanup: key=section:47cfe821-b580-493d-b709-74240d9c64b9, removed=2, invalidated=2
+Caused by: java.lang.NullPointerException
+	at net.minecraft.world.chunk.Chunk.func_186033_a(Chunk.java:1201) ~[axw.class:?]
+Caused by: java.lang.NullPointerException
+	at net.minecraft.world.chunk.Chunk.func_186033_a(Chunk.java:1201) ~[axw.class:?]
+[02:37:10] [Client thread/INFO] [STDERR]: [jp.ngt.ngtlib.io.ScriptUtil:doScriptIgnoreError:115]: 	at jp.ngt.rtm.render.RailPartsRendererBase.shouldRenderObject(RailPartsRendererBase.java:90)
+Caused by: java.lang.RuntimeException: On render script : SuperRailBuilderX_RailMover
+Caused by: java.lang.NullPointerException
+	at jp.ngt.rtm.render.RailPartsRendererBase.shouldRenderObject(RailPartsRendererBase.java:90) ~[RailPartsRendererBase.class:2.5.3]

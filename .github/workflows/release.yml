@@ -37,8 +37,11 @@ jobs:
               uses: actions/setup-java@v4
               with:
                   distribution: temurin
-                  java-version: "17"
+                  java-version: "25"
                   cache: gradle
+                  cache-dependency-path: |
+                      pnpm-lock.yaml
+                      rtmx.json
 
             - name: Verify release notes
               shell: bash
@@ -55,6 +58,9 @@ jobs:
 
             - name: Build model pack
               run: pnpm exec rtmx build
+
+            - name: Build separate SRBXPatch JARs
+              run: python3 mod/build.py --target all --test
 
             - name: Create distribution ZIP
               run: pnpm exec rtmx zip
@@ -81,7 +87,10 @@ jobs:
               env:
                   GH_TOKEN: ${{ github.token }}
                   RELEASE_ASSET: ${{ steps.asset.outputs.path }}
+                  KAIZ_PATCH: artifacts/SRBXPatch-v1.0-1.7.10.jar
+                  AE_PATCH: artifacts/SRBXPatch-v1.0-1.12.2.jar
               run: |
+                  test -f "$KAIZ_PATCH" && test -f "$AE_PATCH"
                   if is_draft="$(gh release view "$GITHUB_REF_NAME" --json isDraft --jq '.isDraft' 2>/tmp/release-view-error)"; then
                     if [[ "$is_draft" != "true" ]]; then
                       echo "A non-draft release already exists for $GITHUB_REF_NAME; refusing to modify it." >&2
@@ -92,10 +101,10 @@ jobs:
                       --title "$GITHUB_REF_NAME" \
                       --notes-file release-notes.md \
                       --draft
-                    gh release upload "$GITHUB_REF_NAME" "$RELEASE_ASSET" --clobber
+                    gh release upload "$GITHUB_REF_NAME" "$RELEASE_ASSET" "$KAIZ_PATCH" "$AE_PATCH" --clobber
                   else
                     cat /tmp/release-view-error >&2
-                    gh release create "$GITHUB_REF_NAME" "$RELEASE_ASSET" \
+                    gh release create "$GITHUB_REF_NAME" "$RELEASE_ASSET" "$KAIZ_PATCH" "$AE_PATCH" \
                       --title "$GITHUB_REF_NAME" \
                       --notes-file release-notes.md \
                       --draft \

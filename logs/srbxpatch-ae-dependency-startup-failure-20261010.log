@@ -1,0 +1,6 @@
+# AE 2.5.3 / SRBXPatch v1.0: dependency declaration blocks startup
+# Extracted only relevant loader diagnostics; personal paths and unrelated logs omitted.
+[19:51:57] [Client thread/ERROR] [FML]: Unable to parse dependency for mod 'srbxpatch' with dependency string 'required-after:RTM'. The modId 'RTM' must be all lowercase.
+[19:51:57] [Client thread/FATAL] [FML]: net.minecraftforge.fml.common.MissingModsException: Mod srbxpatch (SRBXPatch) requires [RTM]
+net.minecraftforge.fml.common.MissingModsException: Mod srbxpatch (SRBXPatch) requires [RTM]
+[19:51:57] [Client thread/WARN] [FML]: There were errors previously. Not beginning mod initialization phase

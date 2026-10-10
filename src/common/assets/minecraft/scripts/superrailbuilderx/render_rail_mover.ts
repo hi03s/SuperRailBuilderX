@@ -1,3 +1,5 @@
+import { SRBXRailBoundary } from "./SRBXRailBoundary";
+import { SRBXRailHighlight } from "./SRBXRailHighlight";
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { MCWrapperClient, NGTUtilClient } from "jp.ngt.ngtlib.util";
 import { EntityVehicle } from "jp.ngt.rtm.entity.vehicle";
@@ -13,7 +15,7 @@ import { EntityPlayer } from "net.minecraft.entity.player";
 import { WeakHashMap } from "java.util";
 import { Keyboard, Mouse } from "org.lwjgl.input";
 import { GL11 } from "org.lwjgl.opengl";
-import { InputManager } from "../lib_hi03toolkit_1_0/lib_InputManager";
+import { SRBXInputManager as InputManager } from "./SRBXInputManager";
 import { ErrorLogger } from "../lib_hi03toolkit_1_0/lib_ErrorLogger";
 import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
 import { NGTOBuilderUtilClient } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtilClient";
@@ -32,7 +34,7 @@ import {
 
 declare const renderer: VehiclePartsRenderer;
 
-const VERSION = "alpha-0.1.0";
+const VERSION = "0.2.0";
 const SEARCH_RADIUS = 1.05;
 const CONNECTED_ENDPOINT_TOLERANCE = 0.001;
 const NORMAL_RAIL_HEIGHT = 1 / 16;
@@ -83,6 +85,8 @@ type EditorState = {
 	awaitingResult: boolean;
 	pendingAction: "move" | "undo" | null;
 	snapEnabled: boolean;
+	ghostCleanup?: { core: RailCorePos; key: string; untilTick: number }[];
+	ghostCleanupTick?: number;
 };
 
 type CandidateScanDiagnostics = {
@@ -249,7 +253,7 @@ function getDestination(
 		looking.posZ,
 	);
 	const roundHorizontal = snapEnabled ? roundSnap : roundCentimeter;
-	return [
+	const position: SRBXVec3 = [
 		roundHorizontal(looking.posX),
 		railHeight === null
 			? (snapEnabled
@@ -258,6 +262,25 @@ function getDestination(
 			: railHeight,
 		roundHorizontal(looking.posZ),
 	];
+	const selected = getState(entity).selected;
+	if (
+		selected &&
+		selected.candidates.length > 0 &&
+		SRBXApiCompat.requiresRailBoundarySnap()
+	) {
+		const yaws: number[] = [];
+		let pitch = 0;
+		for (let i = 0; i < selected.candidates.length; i++) {
+			const candidate = selected.candidates[i];
+			const rp = SRBXApiCompat.getEditableRailPositions(candidate.core)[
+				candidate.index
+			];
+			yaws.push(SRBXApiCompat.getHorizontalAnchorYaw(rp));
+			if (i === 0) pitch = SRBXApiCompat.getRailPositionAnchorPitch(rp);
+		}
+		return SRBXRailBoundary.snapShared(position, yaws, pitch);
+	}
+	return position;
 }
 
 function logCandidateErrorOnce(
@@ -669,8 +692,19 @@ function defaultOwnerBlock(point: SRBXBuilderPoint): RailCorePos {
 }
 
 function setDefaultOwner(point: SRBXBuilderPoint): void {
-	point.direction = SRBXMath.directionFromYaw(point.anchorYaw);
-	point.ownerBlock = defaultOwnerBlock(point);
+	if (SRBXApiCompat.requiresRailBoundarySnap()) {
+		point.position = SRBXRailBoundary.snap(
+			point.position,
+			point.anchorYaw,
+			point.anchorPitch,
+		);
+	}
+	point.direction = SRBXApiCompat.requiresRailBoundarySnap()
+		? SRBXRailBoundary.direction(point.position, point.anchorYaw)
+		: SRBXMath.directionFromYaw(point.anchorYaw);
+	point.ownerBlock = SRBXApiCompat.requiresRailBoundarySnap()
+		? SRBXRailBoundary.owner(point.position, point.anchorYaw)
+		: defaultOwnerBlock(point);
 	point.markerPosition = [
 		point.ownerBlock[0] + 0.5,
 		point.position[1],
@@ -741,6 +775,14 @@ function connectionCandidate(
 				const corePos = SRBXApiCompat.getRailCorePos(core);
 				for (let index = 0; index < positions.length; index++) {
 					const rp = positions[index] as RailPosition;
+					if (
+						SRBXApiCompat.requiresRailBoundarySnap() &&
+						!SRBXRailBoundary.isBoundary(
+							[rp.posX, rp.posY, rp.posZ],
+							SRBXApiCompat.getHorizontalAnchorYaw(rp),
+						)
+					)
+						continue;
 					const distance =
 						Math.pow(rp.posX - center[0], 2) +
 						Math.pow(rp.posY - center[1], 2) +
@@ -935,6 +977,77 @@ function buildParallelPlans(
 		if (!plan) return [];
 		result.push(plan);
 	}
+	if (SRBXApiCompat.requiresRailBoundarySnap()) {
+		const endpoints: { original: SRBXVec3; point: SRBXBuilderPoint }[] = [];
+		for (let i = 0; i < result.length; i++) {
+			endpoints.push({
+				original: result[i].originalStart,
+				point: result[i].start,
+			});
+			endpoints.push({
+				original: result[i].originalEnd,
+				point: result[i].end,
+			});
+		}
+		const visited: boolean[] = [];
+		for (let i = 0; i < endpoints.length; i++) {
+			if (visited[i]) continue;
+			const group = [endpoints[i].point];
+			visited[i] = true;
+			for (let j = i + 1; j < endpoints.length; j++) {
+				if (
+					!visited[j] &&
+					SRBXMath.distance(
+						endpoints[i].original,
+						endpoints[j].original,
+					) < CONNECTED_ENDPOINT_TOLERANCE
+				) {
+					group.push(endpoints[j].point);
+					visited[j] = true;
+				}
+			}
+			const fixed = group.filter((p) => p.kind === "rail");
+			const yaws = group.map((p) => p.anchorYaw);
+			const position =
+				fixed.length > 0
+					? fixed[0].position
+					: SRBXRailBoundary.snapShared(
+							group[0].position,
+							yaws,
+							group[0].anchorPitch,
+						);
+			if (
+				group.some(
+					(p) =>
+						!SRBXRailBoundary.isBoundary(position, p.anchorYaw) ||
+						(p.kind === "rail" &&
+							SRBXMath.distance(position, p.position) >
+								CONNECTED_ENDPOINT_TOLERANCE),
+				)
+			)
+				return [];
+			for (let j = 0; j < group.length; j++) {
+				const point = group[j];
+				if (point.kind !== "free") continue;
+				point.position = [position[0], position[1], position[2]];
+				point.direction = SRBXApiCompat.requiresRailBoundarySnap()
+					? SRBXRailBoundary.direction(
+							point.position,
+							point.anchorYaw,
+						)
+					: SRBXMath.directionFromYaw(point.anchorYaw);
+				point.ownerBlock = SRBXRailBoundary.owner(
+					position,
+					point.anchorYaw,
+				);
+				point.markerPosition = [
+					point.ownerBlock[0] + 0.5,
+					position[1],
+					point.ownerBlock[2] + 0.5,
+				];
+			}
+		}
+	}
 	return result;
 }
 
@@ -1053,7 +1166,7 @@ function renderRailHighlight(
 	);
 	GL11.glPushMatrix();
 	GL11.glTranslatef(-origin[0], -origin[1], -origin[2]);
-	NGTOBuilderUtilClient.renderRailMapHighlight(entity, map, color, alpha);
+	SRBXRailHighlight.render(entity, map, color, alpha);
 	GL11.glPopMatrix();
 }
 
@@ -1068,6 +1181,12 @@ function handleInput(
 	const dataMap = entity.getResourceState().getDataMap();
 	const state = getState(entity);
 	if (keys.pressed("help")) {
+		if (SRBXApiCompat.requiresRailBoundarySnap())
+			NGTLog.sendChatMessage(
+				sender,
+				"接続端点はブロック境界へ合わせます。既設の内部端点への接続はできません。",
+			);
+
 		NGTLog.sendChatMessage(
 			sender,
 			"--- SuperRailBuilderX レール移動ツール ---",
@@ -1264,10 +1383,20 @@ function handleInput(
 					removed[i].core,
 					removed[i].key,
 				);
+				// Section packets may arrive after the tool result. Their unique
+				// group key allows bounded retries without touching replacements.
+				if (SRBXApiCompat.needsRailClientGhostRetry(removed[i].key)) {
+					if (!state.ghostCleanup) state.ghostCleanup = [];
+					state.ghostCleanup.push({
+						...removed[i],
+						untilTick: entity.ticksExisted + 100,
+					});
+				}
 			}
 		NGTOBuilderUtil.resetJsonData(dataMap, "railPositionUpdatedCores");
 		NGTOBuilderUtil.resetJsonData(dataMap, "railPositionRemovedRails");
 		if (result === "undo_ok" && state.pendingAction === "undo") {
+			dataMap.setBoolean("railMoverCanUndo", false, 0);
 			NGTLog.sendChatMessage(
 				sender,
 				"§a[SuperRailBuilderX] 移動前の状態へ戻しました",
@@ -1297,6 +1426,15 @@ function handleInput(
 			state.destination = null;
 			state.parallelPlans = [];
 		} else {
+			// A partial operation or rollback can replace logical identities even
+			// when the request fails. Do not submit the old selection again.
+			if (updatedCores.length > 0 || removed.length > 0) {
+				state.stage = 0;
+				state.selected = null;
+				state.selectedRails = [];
+				state.destination = null;
+				state.parallelPlans = [];
+			}
 			NGTLog.sendChatMessage(
 				sender,
 				`§c[SuperRailBuilderX] 適用失敗: ${result}`,
@@ -1305,7 +1443,11 @@ function handleInput(
 		state.pendingAction = null;
 		dataMap.setString("applyResult", "", 1);
 	}
-	if (keys.pressed("undo") && !state.awaitingResult) {
+	if (
+		keys.pressed("undo") &&
+		!state.awaitingResult &&
+		dataMap.getBoolean("railMoverCanUndo")
+	) {
 		NGTOBuilderUtil.sendJsonData(dataMap, "railPositionMove", {
 			action: "undo",
 		} as RailPositionMoveRequest);
@@ -1336,6 +1478,14 @@ function render(
 	if (!host || host !== player) return;
 	SRBXApiCompat.doFollowing(entity, host);
 	const state = getState(entity);
+	if (state.ghostCleanup && state.ghostCleanupTick !== entity.ticksExisted) {
+		state.ghostCleanupTick = entity.ticksExisted;
+		state.ghostCleanup = state.ghostCleanup.filter((record) => {
+			if (entity.ticksExisted > record.untilTick) return false;
+			SRBXApiCompat.removeRailClientGhost(world, record.core, record.key);
+			return true;
+		});
+	}
 	const candidates =
 		!state.awaitingResult && state.stage === 0
 			? findCandidates(entity, partialTicks)

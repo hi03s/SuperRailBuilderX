@@ -1,5 +1,5 @@
 {
-	"name": "SuperRailBuilderX-alpha-0.1.0",
+	"name": "SuperRailBuilderX-0.2.0",
 	"outDir": "dist",
 	"commonApiPolicy": "allow",
 	"targets": {
@@ -13,7 +13,7 @@
 				"forgeVersion": "10.13.4.1614",
 				"channel": "stable",
 				"mappingsVersion": "12",
-				"mods": ["com.github.Kai-Z-JP:KaizPatchX:v1.10.3"],
+				"mods": ["com.github.Kai-Z-JP:KaizPatchX:v1.10.4"],
 				"packages": [
 					"net.minecraft",
 					"net.minecraftforge",
@@ -80,7 +80,7 @@
 		},
 		"appleextended": {
 			"compatFallbackTarget": "mc1122",
-			"runtimeDispatch": "Packages.net.minecraftforge.fml.common.Loader.isModLoaded('appleextended')",
+			"runtimeDispatch": "Packages.net.minecraftforge.fml.common.Loader.isModLoaded('applelib')",
 			"srcDirs": ["src/common", "src/appleextended"],
 			"outDir": "dist/assets/minecraft/__targets__/appleextended",
 			"scan": {
@@ -88,9 +88,7 @@
 				"forgeVersion": "14.23.5.2860",
 				"channel": "stable",
 				"mappingsVersion": "39",
-				"mods": [
-					"com.github.ringo-1234:AppleExtended:ca255fd65758ef4d587f80e3e23ad5eaa6b81e45"
-				],
+				"mods": ["com.github.Kirtmuna:AppleExtended:v2.5.3"],
 				"packages": [
 					"net.minecraft",
 					"net.minecraftforge",

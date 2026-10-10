@@ -1,3 +1,5 @@
+import { SRBXRailBoundary } from "./SRBXRailBoundary";
+import { SRBXRailHighlight } from "./SRBXRailHighlight";
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { MCWrapperClient, NGTUtilClient } from "jp.ngt.ngtlib.util";
 import { EntityVehicle } from "jp.ngt.rtm.entity.vehicle";
@@ -11,7 +13,7 @@ import { System } from "java.lang";
 import { WeakHashMap } from "java.util";
 import { Keyboard, Mouse } from "org.lwjgl.input";
 import { GL11 } from "org.lwjgl.opengl";
-import { InputManager } from "../lib_hi03toolkit_1_0/lib_InputManager";
+import { SRBXInputManager as InputManager } from "./SRBXInputManager";
 import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
 import { NGTOBuilderUtilClient } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtilClient";
 import { RTMApiCompat } from "@target/assets/minecraft/scripts/lib_hi03toolkit_1_0/lib_RTMApiCompat";
@@ -271,8 +273,19 @@ function defaultOwnerBlock(point: SRBXBuilderPoint): RailCorePos {
 }
 
 function setDefaultOwner(point: SRBXBuilderPoint): void {
-	point.direction = SRBXMath.directionFromYaw(point.anchorYaw);
-	point.ownerBlock = defaultOwnerBlock(point);
+	if (SRBXApiCompat.requiresRailBoundarySnap()) {
+		point.position = SRBXRailBoundary.snap(
+			point.position,
+			point.anchorYaw,
+			point.anchorPitch,
+		);
+	}
+	point.direction = SRBXApiCompat.requiresRailBoundarySnap()
+		? SRBXRailBoundary.direction(point.position, point.anchorYaw)
+		: SRBXMath.directionFromYaw(point.anchorYaw);
+	point.ownerBlock = SRBXApiCompat.requiresRailBoundarySnap()
+		? SRBXRailBoundary.owner(point.position, point.anchorYaw)
+		: defaultOwnerBlock(point);
 	point.markerPosition = [
 		point.ownerBlock[0] + 0.5,
 		point.position[1],
@@ -328,6 +341,14 @@ function connectionCandidate(
 				const corePos = SRBXApiCompat.getRailCorePos(core);
 				for (let index = 0; index < positions.length; index++) {
 					const rp = positions[index] as RailPosition;
+					if (
+						SRBXApiCompat.requiresRailBoundarySnap() &&
+						!SRBXRailBoundary.isBoundary(
+							[rp.posX, rp.posY, rp.posZ],
+							SRBXApiCompat.getHorizontalAnchorYaw(rp),
+						)
+					)
+						continue;
 					const dx = rp.posX - center[0];
 					const dy = rp.posY - center[1];
 					const dz = rp.posZ - center[2];
@@ -639,7 +660,7 @@ function renderRailHighlight(
 	);
 	GL11.glPushMatrix();
 	GL11.glTranslatef(-origin[0], -origin[1], -origin[2]);
-	NGTOBuilderUtilClient.renderRailMapHighlight(entity, map, color, alpha);
+	SRBXRailHighlight.render(entity, map, color, alpha);
 	GL11.glPopMatrix();
 }
 
@@ -667,6 +688,11 @@ function showSpacing(sender: ICommandSender, state: CopyState): void {
 }
 
 function showHelp(sender: ICommandSender): void {
+	if (SRBXApiCompat.requiresRailBoundarySnap())
+		NGTLog.sendChatMessage(
+			sender,
+			"接続端点はブロック境界へ合わせます。既設の内部端点への接続はできません。",
+		);
 	NGTLog.sendChatMessage(sender, "--- SuperRailBuilderX 複線コピー ---");
 	NGTLog.sendChatMessage(sender, "[右クリック] レールを選択/選択解除");
 	NGTLog.sendChatMessage(sender, "[空間を右クリック] 複製位置を確定");
@@ -717,6 +743,7 @@ function handleResult(
 			"§a[SuperRailBuilderX] 複線を生成しました",
 		);
 	} else if (result === "undo_ok" && pendingAction === "undo") {
+		dataMap.setBoolean("doubleTrackCopyCanUndo", false, 0);
 		const removed =
 			NGTOBuilderUtil.getJsonData<
 				Array<{ core: RailCorePos; key: string }>

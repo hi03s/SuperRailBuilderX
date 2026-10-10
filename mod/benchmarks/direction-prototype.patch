@@ -1,0 +1,68 @@
+--- a/mod/src/main/java/jp/hi03/srbxpatch/FreeEndpointHook.java
++++ b/mod/src/main/java/jp/hi03/srbxpatch/FreeEndpointHook.java
+@@ -49,9 +49,11 @@
+             if (!freeStart && !freeEnd) return null;
+             // Test only the nearby endpoint planes. A distant curve may cross its own tangent plane.
+             if (previous <= margin && !EndpointGeometry.interior(x, z, sx, sz, x, z, sy, ey))
+-                return null;
++                return ((x-bx)*Math.sin(Math.toRadians(sy))+(z-bz)*Math.cos(Math.toRadians(sy))) < -1.0E-7
++                    ? neighborCore(world, core, map, start) : null;
+             if (split - previous <= margin && !EndpointGeometry.interior(x, z, x, z, ex, ez, sy, ey))
+-                return null;
++                return ((x-bx)*Math.sin(Math.toRadians(ey))+(z-bz)*Math.cos(Math.toRadians(ey))) > 1.0E-7
++                    ? neighborCore(world, core, map, end) : null;
+             int search = (int) Math.ceil((movement + 0.25) * 360.0);
+             int low = Math.max(0, previous - search), high = Math.min(split, previous + search);
+             double best = Double.MAX_VALUE;
+@@ -92,6 +94,41 @@
+         return EndpointGeometry.finite(railY) && EndpointGeometry.finite(offset)
+             && Math.abs(y - (railY + offset)) <= 0.75;
+     }
++    /** One loaded neighbor tile only. A miss leaves KaizPatch/CrossTie search intact. */
++    private static Object neighborCore(Object world, Object currentCore, Object currentMap, Object endpoint)
++            throws ReflectiveOperationException {
++        // Section order is owned by KaizPatch, not inferred from marker orientation.
++        Method section = members.get(currentCore.getClass()).optionalMethod("isRailSection", 0);
++        if (section != null && Boolean.TRUE.equals(section.invoke(currentCore))) return null;
++        if (currentCore.getClass().getName().contains("RailSectionCore")) return null;
++        int[] pos = (int[]) call(endpoint, "getNeighborPos");
++        if (!(Boolean) call(world, "blockExists|func_72899_e", pos[0], pos[1], pos[2])) return null;
++        Object tile = call(world, "getTileEntity|func_147438_o", pos[0], pos[1], pos[2]);
++        if (tile == null) return null;
++        Method getCore = members.get(tile.getClass()).optionalMethod("getRailCore", 0);
++        if (getCore == null) return null;
++        Object candidate = getCore.invoke(tile);
++        if (candidate == null || candidate == currentCore) return null;
++        if (Boolean.TRUE.equals(call(currentCore, "isSameLogicalRail", candidate))) return null;
++        Object maps = call(candidate, "getAllRailMaps");
++        if (maps == null) return null;
++        for (int i=0; i<Array.getLength(maps); i++) {
++            Object map = Array.get(maps,i);
++            if (map == null) continue;
++            for (String getter : new String[]{"getStartRP", "getEndRP"}) {
++                Object other = call(map, getter);
++                if (other == null) continue;
++                int direction = number(endpoint, "direction").intValue();
++                if (((direction+4)&7) != (number(other,"direction").intValue()&7)) continue;
++                double dx = number(endpoint,"posX").doubleValue()-number(other,"posX").doubleValue();
++                double dy = number(endpoint,"posY").doubleValue()-number(other,"posY").doubleValue();
++                double dz = number(endpoint,"posZ").doubleValue()-number(other,"posZ").doubleValue();
++                if (dx*dx+dy*dy+dz*dz > 1.0E-10) continue;
++                if (Boolean.TRUE.equals(call(currentMap,"canConnect",map))) return candidate;
++            }
++        }
++        return null;
++    }
+     private static Number number(Object object, String... names) throws ReflectiveOperationException {
+         return (Number) field(object, names);
+     }
+@@ -116,6 +153,9 @@
+             }
+             throw new NoSuchFieldException(type.getName() + "." + key);
+         }
++        Method optionalMethod(String names, int count) {
++            try { return method(names,count); } catch (NoSuchMethodException missing) { return null; }
++        }
+         synchronized Method method(String names, int count) throws NoSuchMethodException {
+             String key = names + "/" + count;
+             if (methods.containsKey(key)) return methods.get(key);

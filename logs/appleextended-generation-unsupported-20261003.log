@@ -1,0 +1,11 @@
+# AE generation test, 2026-10-03 (minimal sanitized excerpt)
+# AE identification from the connection's mod list: applelib@2.5.3, rtm@2.4.24
+[18:45:17] [Server thread/INFO] [NGT]: [SuperRailBuilderX builder1] vertical profile plan: type=default, logicalRails=1, radius=default
+[18:45:17] [Server thread/INFO] [NGT]: [SuperRailBuilderX builder1] request completed: action=create, result=unsupported
+
+Analysis: rtmx.json checked Loader.isModLoaded('appleextended'), but AE's
+AppleLib @Mod annotation and the runtime mod list identify it as 'applelib'.
+The AE rule failed and the stock mc1122 backend returned unsupported.
+No [SRBX rail patch] bootstrap messages were present either, consistent with
+selection of the stock mc1122 no-op platform.
+Fix: use the actual applelib Mod ID before falling back to stock mc1122.

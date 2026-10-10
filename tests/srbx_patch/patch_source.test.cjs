@@ -1,11 +1,76 @@
 const fs = require("fs");
 const vm = require("vm");
+const path = require("path");
 
-const text = fs.readFileSync(
-	"src/common/assets/minecraft/scripts/srbx_patch/patch_source.ts",
-	"utf8",
+// ModelPackManager.loadScript uses Matcher.replaceFirst without quoteReplacement.
+// Reproduce its replacement-string escaping at every nested include boundary.
+function javaReplacement(text) {
+	if (text.includes("$"))
+		throw new Error("unescaped Java replacement group reference");
+	return text.replace(/\\([\s\S])/g, "$1");
+}
+function expandIncludes(file, replacement, active = []) {
+	if (active.includes(file)) throw new Error(`cyclic include: ${file}`);
+	const root = path.resolve("dist/assets/minecraft");
+	return fs
+		.readFileSync(file, "utf8")
+		.replace(/\/\/include\s+<([^>]+)>/g, (_match, include) =>
+			replacement(
+				expandIncludes(path.join(root, include), replacement, [
+					...active,
+					file,
+				]),
+			),
+		);
+}
+const generatedPatch = path.resolve(
+	"dist/assets/minecraft/scripts/srbx_patch/patch_source.js",
 );
-const source = text.slice(text.indexOf("`") + 1, text.lastIndexOf("`"));
+if (!fs.existsSync(generatedPatch))
+	throw new Error("run pnpm build before testing the distributed scripts");
+const generatedContext = {};
+const sourceContext = {};
+vm.runInNewContext(fs.readFileSync(generatedPatch, "utf8"), sourceContext);
+const source = sourceContext.RAIL_RENDER_PATCH_SOURCE;
+if (typeof source !== "string")
+	throw new Error("patch source was not serialized");
+vm.runInNewContext(
+	javaReplacement(fs.readFileSync(generatedPatch, "utf8")),
+	generatedContext,
+);
+if (generatedContext.RAIL_RENDER_PATCH_SOURCE !== source)
+	throw new Error("include expansion changed the serialized patch");
+const normalizerContext = {
+	Packages: { jp: { ngt: { ngtlib: { io: { NGTLog: {} } } } } },
+};
+vm.runInNewContext(
+	javaReplacement(
+		fs.readFileSync(
+			"dist/assets/minecraft/scripts/srbx_patch/rail_render_patch.js",
+			"utf8",
+		),
+	),
+	normalizerContext,
+);
+if (
+	normalizerContext.SRBXRailRenderPatch.normalize(
+		"scripts\\rail\\renderer.js",
+	) !== "scripts/rail/renderer.js"
+)
+	throw new Error("include expansion broke Windows exclude paths");
+for (const renderer of fs.readdirSync(
+	"dist/assets/minecraft/scripts/superrailbuilderx",
+)) {
+	if (!renderer.startsWith("render_") || !renderer.endsWith(".js")) continue;
+	const filename = path.resolve(
+		"dist/assets/minecraft/scripts/superrailbuilderx",
+		renderer,
+	);
+	for (const replacement of [javaReplacement, (source) => source])
+		new vm.Script(expandIncludes(filename, replacement), {
+			filename: renderer,
+		});
+}
 const translation = { x: 0, z: 0 };
 const stack = [];
 const rp = {

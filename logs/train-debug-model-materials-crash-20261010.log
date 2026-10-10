@@ -1,0 +1,16 @@
+com.anatawa12.fixRtm.rtm.modelpack.init.ModelConstructingException: constructing resource: SuperRailBuilderX_TrainDebug (source file: json/ModelTrain_SuperRailBuilderX_TrainDebug.json)
+	at com.anatawa12.fixRtm.rtm.modelpack.init.ExModelPackConstructThread.construct(ExModelPackConstructThread.kt:134)
+	at com.anatawa12.fixRtm.rtm.modelpack.init.ExModelPackConstructThread.runThread$lambda$3(ExModelPackConstructThread.kt:99)
+	at java.util.concurrent.ForkJoinTask$AdaptedRunnableAction.exec(ForkJoinTask.java:1386)
+	at java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:289)
+	at java.util.concurrent.ForkJoinPool$WorkQueue.runTask(ForkJoinPool.java:1056)
+	at java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1692)
+	at java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:175)
+Caused by: java.lang.NullPointerException
+	at jp.ngt.rtm.modelpack.ModelPackManager.getResource(ModelPackManager.java:306)
+	at jp.ngt.rtm.render.ModelObject.getMaterials(ModelObject.java:284)
+	at jp.ngt.rtm.render.ModelObject.<init>(ModelObject.java:61)
+	at jp.ngt.rtm.modelpack.modelset.ModelSetVehicleBase.constructOnClient(ModelSetVehicleBase.java:61)
+	at jp.ngt.rtm.modelpack.modelset.ModelSetTrain.constructOnClient(ModelSetTrain.java:44)
+	at com.anatawa12.fixRtm.rtm.modelpack.init.ExModelPackConstructThread.construct(ExModelPackConstructThread.kt:118)
+	... 6 more

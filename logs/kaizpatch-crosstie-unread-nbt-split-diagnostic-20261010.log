@@ -1,0 +1,46 @@
+# CrossTie Alpha14 unread-NBT diagnostic during SRBX creation/split
+# Relevant frames only; personal paths, player identities and unrelated logs omitted.
+[21:43:12] [Server thread/WARN] [CrossTie-DIAG/]: [CrossTie-DIAG] NBT未読込のTEが保存されます: jp.kaiz.kaizpatch.rtm.rail.TileEntityLargeRailSectionCore dim=0 pos=(10726,64,-7123) thread=Server thread
+[21:43:12] [Server thread/WARN] [CrossTie-DIAG/]: [CrossTie-DIAG] 生成元:
+java.lang.Throwable: created on thread Server thread
+	at jp.ngt.rtm.rail.TileEntityLargeRailCore.handler$zbn000$crosstie$onInit(TileEntityLargeRailCore.java:545) ~[TileEntityLargeRailCore.class:?]
+	at jp.ngt.rtm.rail.TileEntityLargeRailCore.<init>(TileEntityLargeRailCore.java:36) ~[TileEntityLargeRailCore.class:?]
+	at net.minecraft.world.World.func_147465_d(World.java:451) ~[ahb.class:?]
+	at jdk.nashorn.internal.scripts.Script$Recompilation$1848$283131AAAAAAZ$server_builder1.RTMX_loadCompatTarget_kaizpatch_scripts_superrailbuilderx_SRBXApiCompat_1js5ute#L:4631#SRBXApiCompat#createBuilderSectionedRail(scripts/superrailbuilderx/server_builder1.js:6268) [?:?]
+[21:43:12] [Server thread/WARN] [CrossTie-DIAG/]: [CrossTie-DIAG] 保存元:
+java.lang.Throwable: save called
+	at jp.ngt.rtm.rail.TileEntityLargeRailCore.handler$zbn000$crosstie$beforeWrite(TileEntityLargeRailCore.java:573) [TileEntityLargeRailCore.class:?]
+	at jdk.nashorn.internal.scripts.Script$Recompilation$1855$191489A$server_builder1.RTMX_loadCompatTarget_kaizpatch_scripts_superrailbuilderx_SRBXApiCompat_1js5ute#L:4631#SRBXApiCompat#sendRailCorePacket(scripts/superrailbuilderx/server_builder1.js:4668) [?:?]
+	at jdk.nashorn.internal.scripts.Script$Recompilation$1848$283131AAAAAAZ$server_builder1.RTMX_loadCompatTarget_kaizpatch_scripts_superrailbuilderx_SRBXApiCompat_1js5ute#L:4631#SRBXApiCompat#createBuilderSectionedRail(scripts/superrailbuilderx/server_builder1.js:6279) [?:?]
+[21:43:12] [Server thread/WARN] [CrossTie-DIAG/]: [CrossTie-DIAG] 生成元:
+java.lang.Throwable: created on thread Server thread
+	at jp.ngt.rtm.rail.TileEntityLargeRailCore.handler$zbn000$crosstie$onInit(TileEntityLargeRailCore.java:545) ~[TileEntityLargeRailCore.class:?]
+	at jp.ngt.rtm.rail.TileEntityLargeRailCore.<init>(TileEntityLargeRailCore.java:36) ~[TileEntityLargeRailCore.class:?]
+	at net.minecraft.world.World.func_147465_d(World.java:451) ~[ahb.class:?]
+	at jdk.nashorn.internal.scripts.Script$Recompilation$1848$283131AAAAAAZ$server_builder1.RTMX_loadCompatTarget_kaizpatch_scripts_superrailbuilderx_SRBXApiCompat_1js5ute#L:4631#SRBXApiCompat#createBuilderSectionedRail(scripts/superrailbuilderx/server_builder1.js:6268) [?:?]
+[21:44:03] [Server thread/WARN] [CrossTie-DIAG/]: [CrossTie-DIAG] NBT未読込のTEが保存されます: jp.ngt.rtm.rail.TileEntityLargeRailNormalCore dim=0 pos=(10732,64,-7172) thread=Server thread
+[21:44:03] [Server thread/WARN] [CrossTie-DIAG/]: [CrossTie-DIAG] 生成元:
+java.lang.Throwable: created on thread Server thread
+	at jp.ngt.rtm.rail.TileEntityLargeRailCore.handler$zbn000$crosstie$onInit(TileEntityLargeRailCore.java:545) ~[TileEntityLargeRailCore.class:?]
+	at jp.ngt.rtm.rail.TileEntityLargeRailCore.<init>(TileEntityLargeRailCore.java:36) ~[TileEntityLargeRailCore.class:?]
+	at net.minecraft.world.World.func_147465_d(World.java:451) ~[ahb.class:?]
+	at jdk.nashorn.internal.scripts.Script$Recompilation$1924$281235AAAAAAZ$server_rail_splitter.RTMX_loadCompatTarget_kaizpatch_scripts_superrailbuilderx_SRBXApiCompat_1js5ute#L:4631#SRBXApiCompat#createBuilderNormalRail(scripts/superrailbuilderx/server_rail_splitter.js:6222) [?:?]
+	at jdk.nashorn.internal.scripts.Script$Recompilation$1880$313309AAAAA$server_rail_splitter.RTMX_loadCompatTarget_kaizpatch_scripts_superrailbuilderx_SRBXApiCompat_1js5ute#L:4631#SRBXApiCompat#splitBuilderRail(scripts/superrailbuilderx/server_rail_splitter.js:6780) [?:?]
+[21:44:03] [Server thread/WARN] [CrossTie-DIAG/]: [CrossTie-DIAG] 保存元:
+java.lang.Throwable: save called
+	at jp.ngt.rtm.rail.TileEntityLargeRailCore.handler$zbn000$crosstie$beforeWrite(TileEntityLargeRailCore.java:573) [TileEntityLargeRailCore.class:?]
+	at jdk.nashorn.internal.scripts.Script$Recompilation$1928$191489A$server_rail_splitter.RTMX_loadCompatTarget_kaizpatch_scripts_superrailbuilderx_SRBXApiCompat_1js5ute#L:4631#SRBXApiCompat#sendRailCorePacket(scripts/superrailbuilderx/server_rail_splitter.js:4668) [?:?]
+	at jdk.nashorn.internal.scripts.Script$Recompilation$1924$281235AAAAAAZ$server_rail_splitter.RTMX_loadCompatTarget_kaizpatch_scripts_superrailbuilderx_SRBXApiCompat_1js5ute#L:4631#SRBXApiCompat#createBuilderNormalRail(scripts/superrailbuilderx/server_rail_splitter.js:6233) [?:?]
+	at jdk.nashorn.internal.scripts.Script$Recompilation$1880$313309AAAAA$server_rail_splitter.RTMX_loadCompatTarget_kaizpatch_scripts_superrailbuilderx_SRBXApiCompat_1js5ute#L:4631#SRBXApiCompat#splitBuilderRail(scripts/superrailbuilderx/server_rail_splitter.js:6780) [?:?]
+[21:44:03] [Server thread/INFO] [NGT/]: [SuperRailBuilderX splitter] split succeeded: ratio=0.88732394, bezierT=0.8873223795662684, sampledYaw=171.5001220703125, lengths=31.70296356136802/4.025773298101836
+[21:44:03] [Server thread/INFO] [NGT/]: [SuperRailBuilderX splitter] request completed: action=split, result=ok
+[21:44:04] [Server thread/INFO] [NGT/]: [SuperRailBuilderX splitter] split succeeded: ratio=0.76190476, bezierT=0.7618966570380248, sampledYaw=171.64892578125, lengths=24.154610571869647/7.54831588296658
+[21:44:04] [Server thread/INFO] [NGT/]: [SuperRailBuilderX splitter] request completed: action=split, result=ok
+[21:44:05] [Server thread/INFO] [NGT/]: [SuperRailBuilderX splitter] split succeeded: ratio=0.77083333, bezierT=0.770833881604339, sampledYaw=171.7578582763672, lengths=18.618976957345932/5.535371632310838
+[21:44:05] [Server thread/INFO] [NGT/]: [SuperRailBuilderX splitter] request completed: action=split, result=ok
+[21:44:06] [Server thread/INFO] [NGT/]: [SuperRailBuilderX splitter] split succeeded: ratio=0.7027027, bezierT=0.7027025540198566, sampledYaw=171.8677978515625, lengths=13.083610680006643/5.535373820845059
+[21:44:06] [Server thread/INFO] [NGT/]: [SuperRailBuilderX splitter] request completed: action=split, result=ok
+[21:44:07] [Server thread/INFO] [NGT/]: [SuperRailBuilderX splitter] split succeeded: ratio=0.61538462, bezierT=0.615383402721869, sampledYaw=171.9669952392578, lengths=8.051443186453644/5.032151893406564
+[21:44:07] [Server thread/INFO] [NGT/]: [SuperRailBuilderX splitter] request completed: action=split, result=ok
+[21:44:09] [Server thread/INFO] [NGT/]: [SuperRailBuilderX splitter] split succeeded: ratio=0.5, bezierT=0.5000020410555708, sampledYaw=172.0450897216797, lengths=4.0257072107504825/4.0257072107504825
+[21:44:09] [Server thread/INFO] [NGT/]: [SuperRailBuilderX splitter] request completed: action=split, result=ok

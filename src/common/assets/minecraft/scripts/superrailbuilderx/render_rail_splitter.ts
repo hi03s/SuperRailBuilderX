@@ -1,3 +1,5 @@
+import { SRBXRailBoundary } from "./SRBXRailBoundary";
+import { SRBXRailHighlight } from "./SRBXRailHighlight";
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { MCWrapperClient, NGTUtilClient } from "jp.ngt.ngtlib.util";
 import { EntityVehicle } from "jp.ngt.rtm.entity.vehicle";
@@ -10,7 +12,7 @@ import { EntityPlayer } from "net.minecraft.entity.player";
 import { WeakHashMap } from "java.util";
 import { Keyboard, Mouse } from "org.lwjgl.input";
 import { GL11 } from "org.lwjgl.opengl";
-import { InputManager } from "../lib_hi03toolkit_1_0/lib_InputManager";
+import { SRBXInputManager as InputManager } from "./SRBXInputManager";
 import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
 import { NGTOBuilderUtilClient } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtilClient";
 import { SRBXApiCompat } from "@target/assets/minecraft/scripts/superrailbuilderx/SRBXApiCompat";
@@ -138,7 +140,19 @@ function findHoverTarget(
 						minimumIndex,
 						Math.min(maximumIndex, index),
 					);
-				const position = railPoint(map, candidateSplit, index);
+				let ratio = index / candidateSplit;
+				let position = railPoint(map, candidateSplit, index);
+				if (splittable && SRBXApiCompat.requiresRailBoundarySnap()) {
+					const boundary = SRBXRailBoundary.findMapBoundary(
+						map,
+						ratio,
+						minimumIndex / candidateSplit,
+						maximumIndex / candidateSplit,
+					);
+					if (!boundary) continue;
+					ratio = boundary.ratio;
+					position = boundary.position;
+				}
 				const distance =
 					Math.pow(position[0] - looking.posX, 2) +
 					Math.pow(position[1] - looking.posY, 2) +
@@ -148,7 +162,7 @@ function findHoverTarget(
 				best = {
 					core: SRBXApiCompat.getRailCorePos(core),
 					railKey,
-					ratio: index / candidateSplit,
+					ratio,
 					position,
 					length: map.getLength(),
 					splittable,
@@ -214,7 +228,7 @@ function renderRailHighlight(
 	);
 	GL11.glPushMatrix();
 	GL11.glTranslatef(-origin[0], -origin[1], -origin[2]);
-	NGTOBuilderUtilClient.renderRailMapHighlight(entity, map, color, alpha);
+	SRBXRailHighlight.render(entity, map, color, alpha);
 	GL11.glPopMatrix();
 }
 
@@ -283,6 +297,11 @@ function sendRequest(
 }
 
 function showHelp(sender: ICommandSender): void {
+	if (SRBXApiCompat.requiresRailBoundarySnap())
+		NGTLog.sendChatMessage(
+			sender,
+			"接続端点はブロック境界へ合わせます。既設の内部端点への接続はできません。",
+		);
 	NGTLog.sendChatMessage(sender, "--- SuperRailBuilderX 線路分割 ---");
 	NGTLog.sendChatMessage(sender, "[右クリック] 分割位置を確定");
 	NGTLog.sendChatMessage(sender, "[左クリック] 選択解除");
@@ -340,6 +359,7 @@ function handleResult(
 		);
 		state.selected = null;
 	} else if (result === "undo_ok" && pendingAction === "undo") {
+		dataMap.setBoolean("railSplitterCanUndo", false, 0);
 		NGTLog.sendChatMessage(
 			sender,
 			"§a[SuperRailBuilderX] 分割前の線路を復元しました",

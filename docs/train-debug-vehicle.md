@@ -1,0 +1,51 @@
+# 走行デバッグ車両
+
+> 2026-10-10更新: 登録JSONは除去済み。モデル/テクスチャ/診断スクリプトは再利用用に保持するが、車両選択には出ない。以下は旧車両仕様。 現在の導入・確認手順は[SRBXPatch](srbx-free-endpoint-mod.md)を参照。
+
+## 導入・走行
+
+1. 今回の `artifacts/SuperRailBuilderX-0.2.0.zip` で既存SRBXパックを置き換え、Minecraftを再起動する。同じパックを重複配置しない。公開済みv0.2.0のZIPにはこの車両は含まれない。
+2. 通常のRTM電車アイテムを使い、モデル選択で `SuperRailBuilderX_TrainDebug` を選ぶ。SRBX生成ツールの車両とは別の、レール上を走る単車の電車。
+3. 橙色側がモデル前方、青色側が後方。前後運転台と台車間隔2.5 mを持つ。運転は通常のRTM列車と同じ。
+4. 力行P1～P5の最高速度は約1・2・5・10・20 km/h（20 TPS換算）。平坦な十分長い区間からP1/P2で接続へ入り、反対側の運転台から逆方向も試す。勾配や制動・速度制限の影響があるため、実際の速度はログで確認する。
+5. SRBX生成と標準マーカー生成を同じ条件で比較する。停止/引っかかりのおおよその時刻・進行方向・接続座標・生成順を控える。
+6. 検証後は車両を撤去すると記録が止まる。`logs/latest.log` を格納して共有する。専用サーバーではサーバー側ログを共有する。
+
+詳細な台車診断はKaizPatchX v1.10.3を型生成基準とし、実機v1.10.4でも取得を確認。AppleExtended v2.5.3にも対応。通常RTMでは車体情報だけを出し、台車はmissingと表示する。
+
+## 記録内容
+
+接頭辞は `[SuperRailBuilderX train-debug]`。サーバーだけで記録する。生成ツールを乗車/起動しておく必要はない。
+
+- `start`: 初回観測。
+- `sample`: 走行中/力行中は10 tickごと、停止・惰行ノッチでは100 tickごと。
+- `transition`: 実追従コア/RailMap・足元道床の所有先・ノッチ/方向が変化したtick。
+- `possible-stall`: 力行ノッチで車体の1 tick当たり移動量が0.0001 m未満の状態が40 tick続いた場合。直前20 tickの `context` を同時出力する。移動再開まで履歴の再出力を抑える。ブレーキ緩解待ち等も該当し得るため、これだけで不具合と判定しない。
+- `nearby`: 各台車の周囲3×3ブロック、上下±1ブロックの道床座標・所有先・コア解決結果。
+- `observation unavailable`: 診断API読取失敗。5秒相当ごとに抑制し、取得可能になれば再開。fieldは失敗した内部フィールド、またはsnapshot API。
+
+車体のid/tick・速度（m/tick、20 TPS換算km/h）・ノッチ・方向・位置と、前後台車b0/b1の実位置・位置バッファ・物理コア・論理グループ・実追従RailMapの端点/長さ/端部カント・index/split・ロールを記録する。
+
+`index/split` は最後に採用したRailMapサンプル位置と総分割数。splitはレール長×360で、index=-1はレール変更等の未確定状態。有効なindex/splitで局所進捗を比較できる。自動分割レールでは物理コアと論理グループの両方を見る。
+
+`core/map` は台車が実際に追従している内部状態。`bed/nearby` は周辺ブロックの観測であり、台車がそのレールを選択したという意味ではない。引っかかったときに両者が食い違うか、前後台車どちらのindexが止まるかを比較する。
+
+## 観測の制約
+
+- serverScriptは編成の当tick移動前に呼ばれる（phase=before-movement）。速度更新は済んでいても、位置/台車進捗は直前の移動結果。tick単位で突き合わせる。
+- 内部フィールドはcompat層からreflectionで読み取る。台車を生成し得るgetBogieは使わず、world/車両/RailMap/位置バッファの書換えは行わない。
+- 加減速・レール探索・衝突処理はMod本体に任せる。速度上限はモデル設定で指定し、ログ用スクリプトから速度や台車を強制変更しない。
+- 低速停止を調べる専用小型車両なので、他モデルの台車間隔・編成条件でのみ起こる症状が再現するとは限らない。
+- 2026-10-10のAE実機ログでモデル読み込み・車両設置・運転・start出力を確認済み。自由端点接続の低速走行には[別途確認した遷移制約](appleextended-free-endpoint-transition-report.md)がある。KaizPatchX 1.10.4でも読み込み・走行・台車診断を確認し、[RailMap往復と位置飛び](kaizpatch-free-endpoint-transition-report.md)を記録した。
+
+2026-10-09の提出ログには生成成功とhold_rail_itemの記録があるが、走行中の台車状態やroadbed/transition出力はなく、低速停止の原因は確定できない。必要箇所の抜粋は `logs/rail-transition-before-debug-vehicle-20261009.log`。
+
+## 2026-10-10 モデル構築クラッシュ修正
+
+提出ログの例外はModelObject.getMaterials:284 → ModelPackManager.getResource:306のNullPointerException。AEのgetMaterials:284は材質一覧が空の場合のdefaultテクスチャ参照で、今回JSONには名前付き材質だけが設定されていた。
+
+車体/台車MQOにSceneが無く、NGTLibの初期解析状態(currentType=0)がMaterialより前に解除されないため、Materialブロックが読み飛ばされていた。KaizPatchXでも同じコンストラクタ初期化順を確認。両MQOへ標準のSceneブロックを追加して材質解析を成立させる。
+
+AlphaBlend/Light等の第三要素はAEのローダー上で省略可能（省略時は空文字列）。今回は不透明モデルなので変更不要。JSONへのdefault追加だけで材質欠落を隠す対応は行わず、MQOを修正した。
+
+回帰テストに、ネイティブの初期解析状態に基づく材質抽出・全材質のJSONテクスチャ解決・配布ファイル存在確認と、Scene削除時の材質欠落再現を追加。全4targetビルド/ZIPとtest:train-debugは成功。実機再起動でモデル構築・車両設置・start出力を再確認し、失敗した場合はlogs/latest.logを共有する。

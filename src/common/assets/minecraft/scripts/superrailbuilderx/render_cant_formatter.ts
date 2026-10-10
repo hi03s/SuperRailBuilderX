@@ -1,3 +1,5 @@
+import { SRBXRailBoundary } from "./SRBXRailBoundary";
+import { SRBXRailHighlight } from "./SRBXRailHighlight";
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { MCWrapperClient, NGTUtilClient } from "jp.ngt.ngtlib.util";
 import { EntityVehicle } from "jp.ngt.rtm.entity.vehicle";
@@ -10,7 +12,7 @@ import { EntityPlayer } from "net.minecraft.entity.player";
 import { WeakHashMap } from "java.util";
 import { Keyboard, Mouse } from "org.lwjgl.input";
 import { GL11 } from "org.lwjgl.opengl";
-import { InputManager } from "../lib_hi03toolkit_1_0/lib_InputManager";
+import { SRBXInputManager as InputManager } from "./SRBXInputManager";
 import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
 import { NGTOBuilderUtilClient } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtilClient";
 import { RTMApiCompat } from "@target/assets/minecraft/scripts/lib_hi03toolkit_1_0/lib_RTMApiCompat";
@@ -157,6 +159,18 @@ function candidate(
 			targetIndex = Math.floor(split / 2);
 			targetRatio = 0.5;
 			targetPosition = point(map, 500);
+		}
+		if (mode === "split" && SRBXApiCompat.requiresRailBoundarySnap()) {
+			const boundary = SRBXRailBoundary.findMapBoundary(
+				map,
+				targetRatio,
+				0.001 / length,
+				1 - 0.001 / length,
+			);
+			if (!boundary) continue;
+			targetRatio = boundary.ratio;
+			targetIndex = targetRatio * split;
+			targetPosition = boundary.position;
 		}
 		const consider = (
 			index: number,
@@ -362,6 +376,11 @@ function result(sender: ICommandSender, entity: EntityVehicle, s: State) {
 	d.setString("cantFormatterResult", "", 1);
 }
 function help(sender: ICommandSender) {
+	if (SRBXApiCompat.requiresRailBoundarySnap())
+		NGTLog.sendChatMessage(
+			sender,
+			"接続端点はブロック境界へ合わせます。既設の内部端点への接続はできません。",
+		);
 	NGTLog.sendChatMessage(sender, "--- SuperRailBuilderX カント整形 ---");
 	NGTLog.sendChatMessage(
 		sender,
@@ -496,7 +515,7 @@ function renderRailHighlight(
 	const origin = NGTOBuilderUtilClient.getInterpolatedPos(entity, pt);
 	GL11.glPushMatrix();
 	GL11.glTranslatef(-origin[0], -origin[1], -origin[2]);
-	NGTOBuilderUtilClient.renderRailMapHighlight(entity, map, color, 0.65);
+	SRBXRailHighlight.render(entity, map, color, 0.65);
 	GL11.glPopMatrix();
 }
 

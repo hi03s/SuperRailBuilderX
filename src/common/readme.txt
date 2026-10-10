@@ -1,12 +1,12 @@
 ========== ========== ==========
 
-  SuperRailBuilderX alpha-0.1.0
+  SuperRailBuilderX 0.2.0
 
 ========== ========== ==========
 
 製作者: ひー@hi03
-リリースバージョン: alpha-0.1.0
-最終更新日: 2026/9/7
+リリースバージョン: 0.2.0
+最終更新日: 2026/10/4
 
 
 【重要・使用前に必ずお読みください】
@@ -24,7 +24,7 @@ SuperRailBuilderXを使用する前に、対象ワールドのバックアップ
 KaizPatchX向けのレール制作支援ツール集です。
 レールの新規敷設、複線コピー、既設線の分割、端点・線形の移動を行います。
 自動車モデルとして収録されています。地面に設置して右クリックで使用します。
-alpha-0.1.0は開発途中のアルファ版です。
+AppleExtended v2.5.3にも対応しています。
 
 
 ○動作環境
@@ -32,14 +32,15 @@ alpha-0.1.0は開発途中のアルファ版です。
 ・Minecraft 1.7.10
 ・RealTrainMod
 ・KaizPatchX 1.10.3以降
+またはMinecraft 1.12.2 / AppleExtended v2.5.3
 
-主要なワールド変更機能はKaizPatchX専用です。
+主要なワールド変更機能はKaizPatchXとAppleExtended v2.5.3に対応しています。
 通常RTM 1.7.10およびMinecraft 1.12.2では、非対応機能はワールドを変更せず停止します。
 
 
 ○導入方法
 
-RealTrainModとKaizPatchXを導入した状態で、このパックをmodsフォルダーへ入れてください。
+RealTrainModとKaizPatchX、またはAppleExtended v2.5.3を導入した状態で、このパックをmodsフォルダーへ入れてください。
 自動車モデル選択画面から「SuperRailBuilderX_builder1」（機能名: レール生成A）または「SuperRailBuilderX」で始まるモデルを選択します。
 
 

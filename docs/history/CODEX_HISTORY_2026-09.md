@@ -711,6 +711,25 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - マージコミット: `de3c3cb`
 - 同期: `origin/main`へ同期済み。
 
+### 2026-09-12 ローカルCodex — AppleExtended通常レール生成compat
+
+- KaizPatchXとAE `ca255fd`の生成API差分を比較し、自動分割、Section core、論理レール、設定型、座標API、NBT復元の違いとSRBX側の対応方針を`docs/appleextended-target.md`へ整理した。
+- AE専用の`AppleExtendedRailCompat.ts`を追加した。レール生成Aと複線コピーの`createBuilderRail`をAE標準`BlockMarker.createRail`による通常レール生成へ接続し、自由座標RailPosition、モデル選択、複製元再検証、通常レールUndoを補完した。
+- 自動分割構造に依存する分割・分岐・カントSection更新・既設レール再生成は、引き続き安全スタブで無効化した。AE側に同等公開APIが追加された補完から順次削除する。
+- 検証済み: `pnpm format:check`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、AE生成JavaScriptへの専用compat includeと通常レール生成呼び出しの出力、`git diff --check`。
+- 未検証: Minecraft実機でのAEレール生成A・複線コピーの生成、接続、モデル継承、走行、Undo。
+- 実装コミット: `6289a96`
+- 同期: `origin/feature/appleextended-compat`へ同期済み。
+
+### 2026-09-12 ローカルCodex — AE分割・分岐・カント対応
+
+- AE通常レール向けの`AppleExtendedRailToolsCompat.ts`を追加し、レール分割、中央/端点分岐生成、カント整形と各Undoを実装した。分割結果は常に通常レール2本とし、分岐はAE標準RTMのSwitch core生成へ委譲する。
+- 分割形状は元RailMapの候補位置、水平Bezier分割、勾配、カントを引き継ぐ。変更前のRailPosition、モデル、信号、サブレールを記録し、生成途中の失敗時とUndo時に元レールを復元する。
+- カントは通常RailPositionを更新し、共有端点の接続相手へ反対符号を適用する。分岐接続部のカント0化もUndo対象に含めた。削除レールのクライアントゴースト除去をAE用に追加した。
+- 検証済み: `pnpm format:check`、`pnpm gen`、`pnpm build`（4ターゲット）、AE生成JavaScriptへの全compatメソッド出力、AE生成物にKaizPatchX Section API参照がないこと、`git diff --check`。
+- 未検証: Minecraft実機でのAE通常レール分割・Undo、中央/端点分岐の切替・走行・Undo、カント共有端点反映・Undo、各失敗時ロールバック。
+- 実装コミット: `b507824`
+- 同期: `origin/feature/appleextended-compat`へ同期済み。
 ### 2026-09-13 ローカルCodex — レール移動・カント整形・分岐生成の実機指摘対応
 
 - `logs/latest.log`ではレール移動の単体/複数適用とUndo、カントの共有端点適用とUndo、分岐生成の中央/端点生成とUndoが成功しており、対象処理の例外はなかった。生ログは追加せず、判断に必要な成功行だけを`logs/rail-tools-retest-20260913.log`へ匿名化して保存した。
@@ -786,6 +805,16 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 実装コミット: `fa57990`
 - 同期: `origin/main`へ同期済み。
 
+### 2026-09-13 ローカルCodex — 最新AppleExtended論理レールAPI対応
+
+- `feature/appleextended-compat`へ最新`origin/main`を統合した（merge commit `0f16794`）。
+- AppleExtended上流HEAD `9df86c205d1b181cccaa4b68d7d09906f193e102`を調査し、依存を同commitへ更新した。`ca255fd`以降に自動分割、Section core、論理RailPosition・group core一覧、論理占有判定・削除、通常レール移設APIが追加されている。
+- AE生成時は`ResourceStateRail.autoSplit`を尊重し、共有コードが`forceNormal`を指定した場合だけ複製したpropertyで無効化する。識別・端点取得・占有判定・削除を論理レール単位へ変更した。
+- 分割・分岐は論理RailMapから再生成するため通常・自動分割レールに対応した。カント整形は全Section coreの論理端点NBTを書き換えて同期する。AEの`relocateRail`はSection overrideがないため、自動分割レール移設は安全のため未対応のままとした。
+- 検証済み: `pnpm gen`、`pnpm format:check`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、`git diff --check`。
+- 未検証: Minecraft実機でのチャンク境界をまたぐ生成・分割・分岐・走行・Undo、全Sectionへのカント反映・Undo。
+- 実装コミット: `c8970d6`
+- 同期: 実装`c8970d6`・引継ぎ更新`14262dc`を`origin/feature/appleextended-compat`へ同期済み。
 ### 2026-09-13 ローカルCodex — ローカル調査資料のGit除外
 
 - `.tmp-kaizpatchx-source/`と`logs/latest.log`を`.gitignore`へ追加した。
@@ -893,3 +922,55 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - コミットまたはIssue:
 - 次の担当者への連絡:
 ```
+
+## 2026-10-10 引継ぎ帳から移管した9月の連絡
+
+- 2026-09-06 hi03:
+    - usage.mdの文章を修正。
+
+### Codexから開発者・ローカルCodexへ
+
+- 2026-09-06 ローカルCodex:
+    - 分割失敗を、前半終端道床と後半通常コアが共有分割点の同一ブロックを使う`section_core_conflict`と特定し、共有点だけを安全にコアへ置換するよう修正した。builder1の複数勾配区間にも接続先モデルを引き継ぎ、端点ホバーは`snapCursorMarker`へ変更した。
+    - レール移動へ前後接続端点の連動、片側接続時の形状維持、両側接続優先、Ctrl+Z Undoを追加した。生ログは除外し、必要箇所だけ`logs/rail-tools-retest-20260906-7.log`へ保存した。実装コミット`5eea584`は`origin/main`へ同期済み。
+
+- 2026-09-06 Web側Codex:
+    - Work側とVS Code側のモデル運用を公式資料で確認し、軽量モデルへの委譲が総使用量を減らす場合だけ利用する規則を`AGENTS.md`へ追加した。
+
+- 2026-09-06 ローカルCodex:
+    - ログから、複線・builder1の失敗は接続マーカーではなく、直前レールの通常コアと次レールの内部セクションコア候補が同じブロックを要求したことが原因と特定し、64 m以下では通常レールへ切り替えるよう修正した。
+    - builder1の候補マーカー・接続先モデル継承・Iキー±1ブロック探索と、レール移動の端部2 m道床保護・単一RailMap平行移動を実装した。生ログは除外し、必要箇所だけ`logs/rail-tools-retest-20260906-6.log`へ保存した。実装コミット`7434eec`は`origin/main`へ同期済み。
+
+- 2026-09-06 ローカルCodex:
+    - 複線生成失敗、短区間分割・Undo失敗をログから修正し、builder1の実視点マーカーとIキー地上高合わせを追加した。RailPosition検証ツールは正式なレール移動ツールへ改名し、重複道床の所有規則を反映した。
+    - 生ログは除外し、必要箇所だけ`logs/rail-tools-retest-20260906-5.log`へ保存した。実装コミット`85e3572`は`origin/main`へ同期済み。
+
+- 2026-09-06 ローカルCodex:
+    - 複線Undoゴーストと曲率中心越え、全長6 m以下の再分割、builder1の3×3マーカー、RailPosition移動の高さ・外観・Pスナップ・描画同期を修正した。
+    - 生ログは除外し、必要箇所だけ`logs/rail-tools-retest-20260906-4.log`へ保存した。実装コミット`e40f361`は`origin/main`へ同期済み。
+
+- 2026-09-06 ローカルCodex:
+    - 追加実機ログから複線コピーの曲率中心越え、分割時の内部/接続先コア衝突、カント高さ二重加算を特定して修正した。builder1へ通常交差の64 m制限・チャット表示・スナップマーカーを追加し、RailPosition移動をbuilder1生成規則へ統合した。
+    - 生ログは除外し、必要箇所だけ`logs/rail-tools-retest-20260906-3.log`へ保存した。実装コミット`eeb7988`は`origin/main`へ同期済み。
+
+- 2026-09-06 ローカルCodex:
+    - 実機結果を受領し、強調表示・複線Undo選択・分割モデル/距離/最小長を修正。生成衝突、低速遷移、Undo失敗の診断を追加した。
+    - 生ログは必要箇所だけ `logs/rail-tools-retest-20260906-client.log` へ抜粋した。上記「次に行うこと」をバックアップ済みワールドで再確認する。
+    - 修正コミット `74c287f` は`origin/main`へ同期済み。
+
+- 2026-09-04 Web側Codex:
+    - 複線コピーツールを実装コミット `0e2b30e` でGitHubへ同期済み。
+    - Web側の静的検証は成功。型生成・ビルド・実機確認は上記「次に行うこと」に従って引き継ぐ。
+- 2026-09-04 ローカルCodex:
+    - `pnpm gen`は成功。mc1710にない`RailMap#getRailYaw`の直接呼び出しを既存compat経由へ修正し、`pnpm build`も全3ターゲットで成功した。
+    - 修正コミット `d8fe798` は`origin/main`へ同期済み。
+    - 次はバックアップ済みワールドで`docs/double-track-copy.md`の実機確認を行う。
+
+- 2026-09-03 Web側Codex:
+    - 線路分割ツールをコミット `70fe67e` でGitHubへ同期済み。
+    - Web側ではTypeScript構文変換、Prettier、JSON解析、`git diff --check`まで成功。
+    - `pnpm gen`以降と実機確認は上記「次に行うこと」に従って引き継ぐ。
+- 2026-09-03 ローカルCodex:
+    - 最新`main`で`pnpm gen`と`pnpm build`が成功。コード修正は不要だった。
+    - 検証記録コミット `3de4133` は`origin/main`へ同期済み。
+    - 次はバックアップ済みワールドで`docs/rail-splitter.md`の実機確認を行う。

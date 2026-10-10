@@ -1,0 +1,22 @@
+# KaizPatchレール分割時のCrossTie診断
+
+2026-10-10 ローカルCodex。対象は開発者が保存したサーバーログとローカル/公開ソース。本番サーバーへアクセス・変更・再起動・テストを行っていない。
+
+## 結論
+
+今回の26件のNBT未読込警告は、CrossTie 1.0.0-Alpha14の診断が「readFromNBTを通らない」を「初期値のまま」とみなすことによる、新規レール生成の誤検出と判断する。SRBXの分割失敗やNBT破損を示す例外ではない。ログでは6回の分割すべてsplit succeeded / result=ok。保存元はワールドのディスク保存ではなく、SRBXのsendRailCorePacketからのwriteToNBT（クライアント同期用）。java.lang.Throwableは診断が意図的に作るスタック表示であり、throwされた障害ではない。
+
+## 根拠
+
+- [CrossTie Alpha14のTileEntityUnreadSaveDiagnosticMixin](https://github.com/suzumiyatrainer/CrossTie/blob/cf3ce9211fbd05ff26681eef7b1d1f11c26babf6/src/main/java/net/suzumiya/crosstie/mixins/rtm/TileEntityUnreadSaveDiagnosticMixin.java)はコンストラクタで生成スタックを保存し、readFromNBT後だけnbtRead=trueにする。writeToNBT先頭で未読込/未報告/サーバー条件を満たすと警告する。RailPosition、RailProperty、線形の妥当性や新規配置とディスク復元の区別は確認せず、動作は変更しない。上限は40件。
+- SRBXのcreateBuilderNormalRailはsetBlockで新規TEを作り、setRailPositions/setProperty/setStartPoint/createRailMapで初期化した後に同期する。セクションはconfigureRailSection/setProperty/setStartPoint/createRailMapで初期化する。これらは保存NBTの復元ではないのでreadFromNBTを経ない。
+- sendRailCorePacketは編集可能なRailPositionの数/非nullを確認してからwriteToNBTを呼ぶ。KaizのwriteToNBTは現在のProperty/SubRails/StartRP/EndRP等を直列化する。新規TEが先にNBTを読まなければならない仕様ではない。
+- ログの生成元はWorld.setBlock→createBuilderNormalRail/createBuilderSectionedRail、保存元はsendRailCorePacket。分割の撤去/再生成でもこの経路が使われ、作成したTEごとに診断が出る。
+
+## 対応
+
+SRBXのコード変更は不要。警告を消すための空NBT読込、再読込、CrossTie内部フラグ操作、診断無効化は行わない。追加NBT読込は線形やモデル状態を変える可能性がある。CrossTie側で診断を見直すなら、新規生成してsetterで初期化済みのTEを考慮し、writeToNBTを一律にディスク保存と解釈しないのが論点となる。Issue/コメント投稿や第三者ソース変更は実施していない。
+
+今回のログだけで将来のチャンク保存/再読込や他の警告がすべて正常とは断定しない。確認が必要な場合は、本番以外のバックアップ検証ワールドで分割→再読込後のモデル/線形/走行/Undoを確認し、問題時の操作・時刻とサーバーログを共有する。本番環境では確認作業を要求しない。
+
+[個人情報を除いた診断抜粋](../logs/kaizpatch-crosstie-unread-nbt-split-diagnostic-20261010.log)。生ログはGitへ追加しない。

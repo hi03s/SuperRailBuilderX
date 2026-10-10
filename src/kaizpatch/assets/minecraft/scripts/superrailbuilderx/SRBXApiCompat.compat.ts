@@ -1,3 +1,5 @@
+import { SRBXFreeEndpointPolicy as SRBXRailBoundary } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXFreeEndpointPolicy";
+import { SRBXRailBoundary as NativeRailBoundary } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXRailBoundary";
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { NGTCore } from "jp.ngt.ngtlib";
 import { PacketNBT } from "jp.ngt.ngtlib.network";
@@ -157,6 +159,34 @@ declare const Packages: {
 };
 
 export class SRBXApiCompat {
+	static requiresRailBoundarySnap(): boolean {
+		return false;
+	}
+
+	/** Clients need only the separate model pack; Java capability is checked on writes. */
+	private static hasFreeEndpointPatch(): boolean {
+		try {
+			const type = java.lang.Class.forName("jp.hi03.srbxpatch.SRBXPatch");
+			const classes = java.lang.reflect.Array.newInstance(
+				java.lang.Class.class,
+				0,
+			);
+			const args = java.lang.reflect.Array.newInstance(
+				java.lang.Class.forName("java.lang.Object"),
+				0,
+			);
+			return (
+				String(
+					type
+						.getMethod("isFreeEndpointEnabled", classes)
+						.invoke(null, args),
+				) === "true"
+			);
+		} catch (error) {
+			return false;
+		}
+	}
+
 	private static sendRailCorePacket(core: TileEntityLargeRailCore): void {
 		const nbt = new NBTTagCompound(),
 			positions = this.getEditableRailPositions(core);
@@ -331,6 +361,16 @@ export class SRBXApiCompat {
 	private static getBuilderConnectionBlock(
 		rp: RailPosition,
 	): [number, number, number] {
+		if (
+			NativeRailBoundary.isBoundary(
+				[rp.posX, rp.posY, rp.posZ],
+				rp.anchorYaw,
+			)
+		)
+			return SRBXRailBoundary.owner(
+				[rp.posX, rp.posY, rp.posZ],
+				rp.anchorYaw + 180,
+			);
 		const revision = RailPosition.REVISION[rp.direction];
 		return [
 			Math.floor(rp.blockX + 0.5 + revision[0] * 2),
@@ -429,6 +469,46 @@ export class SRBXApiCompat {
 			coreKeys[this.positionKey(rp.blockX, rp.blockY, rp.blockZ)] = true;
 		}
 		return { source, sections, coreKeys };
+	}
+
+	private static areBoundaryPositions(positions: {
+		length: number;
+		[index: number]: RailPosition;
+	}): boolean {
+		for (let i = 0; i < positions.length; i++)
+			if (
+				!SRBXRailBoundary.isBoundary(
+					[positions[i].posX, positions[i].posY, positions[i].posZ],
+					positions[i].anchorYaw,
+				)
+			)
+				return false;
+		return true;
+	}
+
+	private static updateBoundaryOwner(rp: RailPosition): void {
+		const owner = SRBXRailBoundary.owner(
+			[rp.posX, rp.posY, rp.posZ],
+			rp.anchorYaw,
+		);
+		rp.blockX = owner[0];
+		rp.blockY = owner[1];
+		rp.blockZ = owner[2];
+		rp.direction = SRBXRailBoundary.direction(
+			[rp.posX, rp.posY, rp.posZ],
+			rp.anchorYaw,
+		);
+	}
+
+	private static restoreMovedPoint(
+		rp: RailPosition,
+		point?: BuilderPoint,
+	): void {
+		if (!point || !point.ownerBlock) return;
+		rp.blockX = point.ownerBlock[0];
+		rp.blockY = point.ownerBlock[1];
+		rp.blockZ = point.ownerBlock[2];
+		rp.direction = point.direction;
 	}
 
 	private static createMovedPositions(
@@ -997,6 +1077,15 @@ export class SRBXApiCompat {
 		);
 	}
 
+	static usesGeometryRailHighlight(): boolean {
+		return true;
+	}
+
+	static needsRailClientGhostRetry(expectedKey: string): boolean {
+		void expectedKey;
+		return false;
+	}
+
 	static removeRailClientGhost(
 		world: net.minecraft.world.World,
 		corePosition: [number, number, number],
@@ -1070,8 +1159,11 @@ export class SRBXApiCompat {
 		x: number,
 		y: number,
 		z: number,
+		preserveEndpointGeometry = false,
+		restorePoint?: BuilderPoint,
 	): string {
 		const isSwitch = core instanceof TileEntityLargeRailSwitchCore;
+		if (!this.hasFreeEndpointPatch()) return "srbxpatch_required";
 		if (!isSwitch && !this.canMoveRailPosition(core)) return "unsupported";
 		if (core.isLogicalRailOccupied()) return "occupied";
 		const positions = this.getEditableRailPositions(core);
@@ -1092,6 +1184,13 @@ export class SRBXApiCompat {
 			y,
 			z,
 		);
+		if (preserveEndpointGeometry)
+			this.restoreMovedPoint(movedPositions[index], restorePoint);
+		if (!preserveEndpointGeometry) {
+			if (!this.areBoundaryPositions(movedPositions))
+				return "endpoint_not_on_block_boundary";
+			this.updateBoundaryOwner(movedPositions[index]);
+		}
 		if (isSwitch) return this.validateSwitchMovePath(core, movedPositions);
 		const roadbedValidation = this.validateBuilderMovePath(
 			core,
@@ -1212,6 +1311,8 @@ export class SRBXApiCompat {
 		y: number,
 		z: number,
 		player?: EntityPlayer,
+		preserveEndpointGeometry = false,
+		restorePoint?: BuilderPoint,
 	): string {
 		this.lastRailPositionMoveCores = [];
 		const validation = this.validateRailPositionMove(
@@ -1223,11 +1324,21 @@ export class SRBXApiCompat {
 			x,
 			y,
 			z,
+			preserveEndpointGeometry,
+			restorePoint,
 		);
 		if (validation !== "ok") return validation;
 		if (!player) return "missing_player";
 		if (core instanceof TileEntityLargeRailSwitchCore)
-			return this.moveSwitchRailPosition(core, index, x, y, z);
+			return this.moveSwitchRailPosition(
+				core,
+				index,
+				x,
+				y,
+				z,
+				preserveEndpointGeometry,
+				restorePoint,
+			);
 		const wasSectioned = this.isSectionCore(core);
 		const sourcePositions = this.getEditableRailPositions(core);
 		if (!sourcePositions || sourcePositions.length !== 2)
@@ -1240,6 +1351,10 @@ export class SRBXApiCompat {
 			y,
 			z,
 		);
+		if (preserveEndpointGeometry)
+			this.restoreMovedPoint(movedPositions[index], restorePoint);
+		if (!preserveEndpointGeometry)
+			this.updateBoundaryOwner(movedPositions[index]);
 		const world = this.getCoreWorld(core);
 		const property = this.cloneRailProperty(core.getProperty());
 		const originalMap = this.getLogicalRailMap(core) as RailSectionMap;
@@ -1278,6 +1393,9 @@ export class SRBXApiCompat {
 			property,
 			false,
 			true,
+			true,
+			undefined,
+			undefined,
 			true,
 		);
 		if (
@@ -1331,6 +1449,9 @@ export class SRBXApiCompat {
 			property,
 			false,
 			true,
+			true,
+			undefined,
+			undefined,
 			true,
 		);
 		const rollbackOk =
@@ -1393,6 +1514,8 @@ export class SRBXApiCompat {
 		x: number,
 		y: number,
 		z: number,
+		preserveEndpointGeometry = false,
+		restorePoint?: BuilderPoint,
 	): string {
 		const world = this.getCoreWorld(core),
 			original = this.copyRailPositions(
@@ -1406,6 +1529,9 @@ export class SRBXApiCompat {
 		if (!original || index < 0 || index >= original.length)
 			return "not_found";
 		moved[index].setPosition(x, y, z);
+		if (preserveEndpointGeometry)
+			this.restoreMovedPoint(moved[index], restorePoint);
+		if (!preserveEndpointGeometry) this.updateBoundaryOwner(moved[index]);
 		protectedKeys = this.getBuilderMoveProtectedRailKeys(core, moved);
 		const originalProtectedKeys = this.getBuilderMoveProtectedRailKeys(
 			core,
@@ -1460,8 +1586,10 @@ export class SRBXApiCompat {
 		start: BuilderPoint,
 		end: BuilderPoint,
 		player?: EntityPlayer,
+		preserveEndpointGeometry = false,
 	): string {
 		this.lastRailPositionMoveCores = [];
+		if (!this.hasFreeEndpointPatch()) return "srbxpatch_required";
 		if (!player) return "missing_player";
 		if (
 			!core ||
@@ -1485,18 +1613,32 @@ export class SRBXApiCompat {
 		if (startValidation !== "ok") return startValidation;
 		const endValidation = this.validateBuilderPoint(end);
 		if (endValidation !== "ok") return endValidation;
+		if (!preserveEndpointGeometry) {
+			start = SRBXRailBoundary.normalizePoint(start);
+			end = SRBXRailBoundary.normalizePoint(end);
+			if (
+				!SRBXRailBoundary.isBoundary(start.position, start.anchorYaw) ||
+				!SRBXRailBoundary.isBoundary(end.position, end.anchorYaw)
+			)
+				return "endpoint_not_on_block_boundary";
+		}
 		const world = this.getCoreWorld(core);
 		const property = this.cloneRailProperty(core.getProperty());
 		const originalPositions = this.copyRailPositions(sourcePositions);
 		const movedStart =
 			start.kind === "rail"
 				? this.resolveBuilderRailPoint(world, start)
-				: this.createBuilderFreePoint(start);
+				: this.createBuilderFreePoint(start, preserveEndpointGeometry);
 		const movedEnd =
 			end.kind === "rail"
 				? this.resolveBuilderRailPoint(world, end)
-				: this.createBuilderFreePoint(end);
+				: this.createBuilderFreePoint(end, preserveEndpointGeometry);
 		if (!movedStart || !movedEnd) return "rail_endpoint_changed";
+		if (
+			!preserveEndpointGeometry &&
+			!this.areBoundaryPositions([movedStart, movedEnd])
+		)
+			return "endpoint_not_on_block_boundary";
 		const protectedKeys = this.getBuilderMoveProtectedRailKeys(core, [
 			movedStart,
 			movedEnd,
@@ -1529,6 +1671,9 @@ export class SRBXApiCompat {
 			property,
 			false,
 			true,
+			true,
+			undefined,
+			undefined,
 			true,
 		);
 		if (
@@ -1579,6 +1724,9 @@ export class SRBXApiCompat {
 			false,
 			true,
 			true,
+			undefined,
+			undefined,
+			true,
 		);
 		const rollbackOk =
 			restored.status === "ok" &&
@@ -1610,7 +1758,9 @@ export class SRBXApiCompat {
 		x: number,
 		y: number,
 		z: number,
+		preserveEndpointGeometry = false,
 	): string {
+		if (!this.hasFreeEndpointPatch()) return "srbxpatch_required";
 		if (!this.canMoveRailPosition(core)) return "unsupported";
 		const positions = this.getEditableRailPositions(core);
 		if (!positions || index < 0 || index >= positions.length)
@@ -1630,6 +1780,11 @@ export class SRBXApiCompat {
 			y,
 			z,
 		);
+		if (!preserveEndpointGeometry) {
+			if (!this.areBoundaryPositions(movedPositions))
+				return "endpoint_not_on_block_boundary";
+			this.updateBoundaryOwner(movedPositions[index]);
+		}
 		const roadbedValidation = this.validateRoadbedPath(
 			core,
 			movedPositions,
@@ -1663,6 +1818,8 @@ export class SRBXApiCompat {
 		x: number,
 		y: number,
 		z: number,
+		player?: EntityPlayer,
+		preserveEndpointGeometry = false,
 	): string {
 		const validation = this.validateRailPositionMoveAsNormal(
 			core,
@@ -1673,6 +1830,7 @@ export class SRBXApiCompat {
 			x,
 			y,
 			z,
+			preserveEndpointGeometry,
 		);
 		if (validation !== "ok") return validation;
 		if (!this.isSectionCore(core))
@@ -1685,6 +1843,8 @@ export class SRBXApiCompat {
 				x,
 				y,
 				z,
+				player,
+				preserveEndpointGeometry,
 			);
 		return this.moveSectionedRailPositionAsNormal(
 			core,
@@ -1695,6 +1855,7 @@ export class SRBXApiCompat {
 			x,
 			y,
 			z,
+			preserveEndpointGeometry,
 		);
 	}
 
@@ -1760,6 +1921,7 @@ export class SRBXApiCompat {
 		x: number,
 		y: number,
 		z: number,
+		preserveEndpointGeometry = false,
 	): string {
 		const logicalPositions = core.getLogicalRailPositions();
 		if (!logicalPositions || logicalPositions.length !== 2)
@@ -1777,6 +1939,8 @@ export class SRBXApiCompat {
 		const originalPositions = this.copyRailPositions(logicalPositions);
 		const movedPositions = this.copyRailPositions(logicalPositions);
 		movedPositions[index].setPosition(x, y, z);
+		if (!preserveEndpointGeometry)
+			this.updateBoundaryOwner(movedPositions[index]);
 		const property = core.getProperty();
 		const signal = core.getSignal();
 		const subRails = new ArrayList<RailProperty>();
@@ -2068,13 +2232,31 @@ export class SRBXApiCompat {
 		result.blockZ = neighbor[2];
 		result.direction = (source.direction + 4) & 7;
 		result.anchorYaw = this.normalizeDegrees(source.anchorYaw + 180);
+		if (
+			SRBXRailBoundary.isBoundary(
+				[result.posX, result.posY, result.posZ],
+				result.anchorYaw,
+			)
+		)
+			result.direction = SRBXRailBoundary.direction(
+				[result.posX, result.posY, result.posZ],
+				result.anchorYaw,
+			);
 		result.anchorPitch = -source.anchorPitch;
+		result.cantEdge = -source.cantEdge;
 		result.setPosition(source.posX, source.posY, source.posZ);
 		return result;
 	}
 
-	private static createBuilderFreePoint(point: BuilderPoint): RailPosition {
-		const direction = this.builderDirectionFromYaw(point.anchorYaw);
+	private static createBuilderFreePoint(
+		point: BuilderPoint,
+		preserveEndpointGeometry = false,
+	): RailPosition {
+		const direction = preserveEndpointGeometry
+			? point.direction
+			: SRBXRailBoundary.isBoundary(point.position, point.anchorYaw)
+				? SRBXRailBoundary.direction(point.position, point.anchorYaw)
+				: this.builderDirectionFromYaw(point.anchorYaw);
 		const yawRadians = (direction * 45 * Math.PI) / 180;
 		const insideDistance = 0.000001;
 		const result = new RailPosition(
@@ -2290,75 +2472,37 @@ export class SRBXApiCompat {
 		replacementEndpoint?: [number, number, number],
 		overwriteForeignRoadbeds = false,
 	): number {
+		void protectedRailKeys;
+		void preserveSectionCores;
+		void replacementEndpoint;
+		void overwriteForeignRoadbeds;
 		const blocks = this.getBuilderRoadbedBlocks(railMap, property);
-		let replaced = 0;
+		let replaced = 0,
+			retained = 0,
+			added = 0;
+		const samples: string[] = [];
 		for (let i = 0; i < blocks.length; i++) {
 			const pos = blocks[i];
 			const existingTile = world.getTileEntity(pos[0], pos[1], pos[2]);
-			if (existingTile instanceof TileEntityLargeRailBase) {
-				const owner = existingTile.getRailCore();
-				if (existingTile instanceof TileEntityLargeRailCore) {
-					NGTLog.debug(
-						`[SuperRailBuilderX builder1] existing rail core preserved during roadbed placement: pos=${pos[0]},${pos[1]},${pos[2]}`,
-					);
-					continue;
-				}
-				const protectedEndpointRoadbed =
-					overwriteForeignRoadbeds &&
-					owner &&
-					this.isBuilderEndpointRoadbed(owner, pos, 2);
-				if (protectedEndpointRoadbed) {
-					NGTLog.debug(
-						`[SuperRailBuilderX RailPosition] existing endpoint roadbed preserved: pos=${pos[0]},${pos[1]},${pos[2]}, railKey=${this.getRailPositionCandidateKey(owner)}`,
-					);
-					continue;
-				}
-				const replacesEndpoint =
-					!overwriteForeignRoadbeds &&
-					!(existingTile instanceof TileEntityLargeRailCore) &&
-					replacementEndpoint !== undefined &&
-					pos[0] === replacementEndpoint[0] &&
-					pos[1] === replacementEndpoint[1] &&
-					pos[2] === replacementEndpoint[2];
-				if (
-					!overwriteForeignRoadbeds &&
-					!(existingTile instanceof TileEntityLargeRailCore) &&
-					owner &&
-					!replacesEndpoint
-				) {
-					NGTLog.debug(
-						`[SuperRailBuilderX builder1] foreign normal roadbed preserved: pos=${pos[0]},${pos[1]},${pos[2]}, railKey=${this.getRailPositionCandidateKey(owner)}`,
-					);
-					continue;
-				}
-				if (replacesEndpoint)
-					NGTLog.debug(
-						`[SuperRailBuilderX builder1] endpoint roadbed ownership replaced: pos=${pos[0]},${pos[1]},${pos[2]}`,
-					);
-				if (
-					preserveSectionCores &&
-					existingTile instanceof TileEntityLargeRailCore &&
-					owner &&
-					this.isSectionCore(owner)
-				) {
-					NGTLog.debug(
-						`[SuperRailBuilderX builder1] crossing section core preserved: pos=${pos[0]},${pos[1]},${pos[2]}, railKey=${this.getRailPositionCandidateKey(owner)}`,
-					);
-					continue;
-				}
-				if (
-					!overwriteForeignRoadbeds &&
-					!replacesEndpoint &&
-					owner &&
-					protectedRailKeys[this.getRailPositionCandidateKey(owner)]
-				) {
-					NGTLog.debug(
-						`[SuperRailBuilderX builder1] protected connection roadbed preserved: pos=${pos[0]},${pos[1]},${pos[2]}`,
-					);
-					continue;
-				}
-			}
 			const beforeBlock = world.getBlock(pos[0], pos[1], pos[2]);
+			// Roadbed placement never transfers existing ownership. Core
+			// installation is a separate step and may promote a roadbed tile.
+			if (
+				existingTile instanceof TileEntityLargeRailBase ||
+				beforeBlock instanceof BlockLargeRailBase
+			) {
+				retained++;
+				if (samples.length < 4) {
+					const prior =
+						existingTile instanceof TileEntityLargeRailBase
+							? existingTile.getStartPoint()
+							: null;
+					samples.push(
+						`${pos[0]},${pos[1]},${pos[2]}:${prior ? `${prior[0]},${prior[1]},${prior[2]}` : "missing_tile"}`,
+					);
+				}
+				continue;
+			}
 			const beforeMetadata = world.getBlockMetadata(
 				pos[0],
 				pos[1],
@@ -2380,31 +2524,12 @@ export class SRBXApiCompat {
 				);
 			tile.setStartPoint(coreX, coreY, coreZ);
 			tile.markDirty();
+			added++;
 		}
+		NGTLog.debug(
+			`[SuperRailBuilderX roadbed] target=kaizpatch, added=${added}, retained=${retained}, owner=${coreX},${coreY},${coreZ}, samples=${samples.join(";")}`,
+		);
 		return replaced;
-	}
-
-	private static isBuilderEndpointRoadbed(
-		core: TileEntityLargeRailCore,
-		position: [number, number, number],
-		endpointLength: number,
-	): boolean {
-		const map = this.getLogicalRailMap(core);
-		if (!map || map.getLength() <= 0) return false;
-		const split = Math.max(
-			8,
-			Math.min(4096, Math.ceil(map.getLength() * 4)),
-		);
-		const index = map.getNearlestPoint(
-			split,
-			position[0] + 0.5,
-			position[2] + 0.5,
-		);
-		const distance = (map.getLength() * index) / split;
-		return (
-			distance <= endpointLength + 0.25 ||
-			map.getLength() - distance <= endpointLength + 0.25
-		);
 	}
 
 	private static getBuilderProtectedRailKeys(
@@ -2821,11 +2946,23 @@ export class SRBXApiCompat {
 		overwriteForeignRoadbeds = false,
 		propertySourcePoint?: BuilderPoint,
 		replaceProtectedCoreRoadbedAt?: [number, number, number],
+		preserveEndpointGeometry = false,
 	) {
+		if (!this.hasFreeEndpointPatch())
+			return { status: "srbxpatch_required" };
 		const startValidation = this.validateBuilderPoint(start);
 		if (startValidation !== "ok") return { status: startValidation };
 		const endValidation = this.validateBuilderPoint(end);
 		if (endValidation !== "ok") return { status: endValidation };
+		if (!preserveEndpointGeometry) {
+			start = SRBXRailBoundary.normalizePoint(start);
+			end = SRBXRailBoundary.normalizePoint(end);
+			if (
+				!SRBXRailBoundary.isBoundary(start.position, start.anchorYaw) ||
+				!SRBXRailBoundary.isBoundary(end.position, end.anchorYaw)
+			)
+				return { status: "endpoint_not_on_block_boundary" };
+		}
 		const dx = end.position[0] - start.position[0];
 		const dy = end.position[1] - start.position[1];
 		const dz = end.position[2] - start.position[2];
@@ -2877,11 +3014,20 @@ export class SRBXApiCompat {
 		let endRP: RailPosition | null = null;
 		if (start.kind === "rail")
 			startRP = this.resolveBuilderRailPoint(world, start);
-		else startRP = this.createBuilderFreePoint(start);
+		else
+			startRP = this.createBuilderFreePoint(
+				start,
+				preserveEndpointGeometry,
+			);
 		if (end.kind === "rail")
 			endRP = this.resolveBuilderRailPoint(world, end);
-		else endRP = this.createBuilderFreePoint(end);
+		else endRP = this.createBuilderFreePoint(end, preserveEndpointGeometry);
 		if (!startRP || !endRP) return { status: "rail_endpoint_changed" };
+		if (
+			!preserveEndpointGeometry &&
+			!this.areBoundaryPositions([startRP, endRP])
+		)
+			return { status: "endpoint_not_on_block_boundary" };
 		startRP.anchorLengthHorizontal = start.anchorLength;
 		endRP.anchorLengthHorizontal = end.anchorLength;
 		startRP.anchorLengthVertical =
@@ -3407,6 +3553,10 @@ export class SRBXApiCompat {
 				record.property,
 				!record.wasSectioned,
 				true,
+				false,
+				undefined,
+				undefined,
+				true,
 			);
 			if (
 				restored.status !== "ok" ||
@@ -3458,6 +3608,8 @@ export class SRBXApiCompat {
 		ratio: number,
 	) {
 		this.lastSplitClientUpdate = null;
+		if (!this.hasFreeEndpointPatch())
+			return { status: "srbxpatch_required" };
 		if (!isFinite(ratio) || ratio <= 0 || ratio >= 1)
 			return { status: "invalid_split_position" };
 		const tile = world.getTileEntity(
@@ -3478,21 +3630,21 @@ export class SRBXApiCompat {
 		if (!railMap) return { status: "invalid_rail" };
 		const length = railMap.getLength();
 		if (length <= 6) return { status: "rail_too_short" };
-		const renderSplit = Math.max(1, Math.floor(railMap.getLength() * 2));
-		const candidateSplit = Math.max(2, renderSplit);
-		const candidateIndex = Math.round(ratio * candidateSplit);
-		if (
-			candidateIndex <= 0 ||
-			candidateIndex >= candidateSplit ||
-			Math.abs(ratio - candidateIndex / candidateSplit) > 0.0000001
-		)
-			return { status: "invalid_split_position" };
-		ratio = candidateIndex / candidateSplit;
+		const boundary = SRBXRailBoundary.findMapBoundary(
+			railMap,
+			ratio,
+			3 / length + 0.000001,
+			1 - 3 / length - 0.000001,
+		);
+		if (!boundary) return { status: "no_block_boundary" };
+		ratio = boundary.ratio;
 		const positions = this.isSectionCore(core)
 			? core.getLogicalRailPositions()
 			: core.getRailPositions();
 		if (!positions || positions.length !== 2)
 			return { status: "invalid_rail" };
+		if (!this.areBoundaryPositions(positions))
+			return { status: "endpoint_not_on_block_boundary" };
 		const original = this.copyRailPositions(positions);
 		const property = this.cloneRailProperty(core.getProperty());
 		const subRails = new ArrayList<RailProperty>();
@@ -3510,13 +3662,12 @@ export class SRBXApiCompat {
 		const rightLength = length - leftLength;
 		if (leftLength <= 3 || rightLength <= 3)
 			return { status: "rail_too_short" };
-		const point = railMap.getRailPos(1000000, Math.round(ratio * 1000000));
-		const x = point[1];
+		const x = boundary.position[0];
 		const sampleIndex = Math.round(ratio * 1000000);
 		const cant = railMap.getCant(1000000, sampleIndex);
 		const cantLift = Math.abs(Math.sin((cant * Math.PI) / 180) * 1.5);
-		const y = railMap.getRailHeight(1000000, sampleIndex) - cantLift;
-		const z = point[0];
+		const y = boundary.position[1] - cantLift;
+		const z = boundary.position[2];
 		const sampledYaw = railMap.getRailYaw(1000000, sampleIndex);
 		const pitch = railMap.getRailPitch(
 			1000000,
@@ -3528,14 +3679,18 @@ export class SRBXApiCompat {
 			x,
 			z,
 		);
-		const direction = this.builderDirectionFromYaw(
+		const direction = SRBXRailBoundary.direction(
+			[x, y, z],
 			horizontal.secondStartYaw,
 		);
-		const yawRadians = (direction * 45 * Math.PI) / 180;
+		const splitOwner = SRBXRailBoundary.owner(
+			[x, y, z],
+			horizontal.secondStartYaw,
+		);
 		const splitStart = new RailPosition(
-			Math.floor(x + Math.sin(yawRadians) * 0.000001),
-			Math.floor(y - 1 / 16 + 0.000001),
-			Math.floor(z + Math.cos(yawRadians) * 0.000001),
+			splitOwner[0],
+			splitOwner[1],
+			splitOwner[2],
 			direction,
 		);
 		splitStart.anchorYaw = horizontal.secondStartYaw;
@@ -3561,6 +3716,10 @@ export class SRBXApiCompat {
 		splitEnd.blockZ = splitEndBlock[2];
 		splitEnd.direction = (splitStart.direction + 4) & 7;
 		splitEnd.anchorYaw = horizontal.firstEndYaw;
+		splitEnd.direction = SRBXRailBoundary.direction(
+			[x, y, z],
+			splitEnd.anchorYaw,
+		);
 		splitEnd.anchorPitch = -splitStart.anchorPitch;
 		splitEnd.anchorLengthHorizontal = Math.max(
 			0.01,
@@ -3943,6 +4102,8 @@ export class SRBXApiCompat {
 		targets: CantTarget[],
 	) {
 		this.lastCantClientUpdate = [];
+		if (!this.hasFreeEndpointPatch())
+			return { status: "srbxpatch_required" };
 		if (!targets || targets.length === 0) return { status: "no_selection" };
 		const records: CantUndoRecord = [];
 		const pending: {
@@ -3993,6 +4154,8 @@ export class SRBXApiCompat {
 				return { status: "rail_occupied" };
 			const entry = getPending(core);
 			if (!entry) return { status: "invalid_rail" };
+			if (!this.areBoundaryPositions(entry.positions))
+				return { status: "endpoint_not_on_block_boundary" };
 			const isCenter = target.mode === "center";
 			if (
 				!isCenter &&
@@ -4040,6 +4203,9 @@ export class SRBXApiCompat {
 			}
 		}
 		const keys = Object.keys(pending);
+		for (let i = 0; i < keys.length; i++)
+			if (!this.areBoundaryPositions(pending[keys[i]].positions))
+				return { status: "endpoint_not_on_block_boundary" };
 		for (let i = 0; i < keys.length; i++) {
 			const entry = pending[keys[i]];
 			let hasCenterTarget = false;
@@ -4208,6 +4374,8 @@ export class SRBXApiCompat {
 		);
 		if (!sourcePositions || sourcePositions.length !== 2)
 			return { status: "invalid_source_rail" };
+		if (!this.areBoundaryPositions(sourcePositions))
+			return { status: "endpoint_not_on_block_boundary" };
 		const rootIndex = request.ratio === 0 ? 0 : 1;
 		const sourceRoot = sourcePositions[rootIndex];
 		if (
@@ -4385,12 +4553,25 @@ export class SRBXApiCompat {
 		},
 	) {
 		this.lastSplitClientUpdate = null;
+		if (!this.hasFreeEndpointPatch())
+			return { status: "srbxpatch_required" };
 		if (
 			!request ||
 			this.validateBuilderPoint(request.branchStart) !== "ok" ||
 			this.validateBuilderPoint(request.branchEnd) !== "ok"
 		)
 			return { status: "invalid_request" };
+		request = {
+			...request,
+			branchEnd: SRBXRailBoundary.normalizePoint(request.branchEnd),
+		};
+		if (
+			!SRBXRailBoundary.isBoundary(
+				request.branchEnd.position,
+				request.branchEnd.anchorYaw,
+			)
+		)
+			return { status: "endpoint_not_on_block_boundary" };
 		const sourceTile = world.getTileEntity(
 			request.core[0],
 			request.core[1],
@@ -4428,6 +4609,16 @@ export class SRBXApiCompat {
 				request.branchStart.index !== (request.ratio === 0 ? 0 : 1))
 		)
 			return { status: "invalid_branch_start" };
+		if (!endpoint) {
+			const boundary = SRBXRailBoundary.findMapBoundary(
+				sourceMap,
+				request.ratio,
+				3 / sourceMap.getLength() + 0.000001,
+				1 - 3 / sourceMap.getLength() - 0.000001,
+			);
+			if (!boundary) return { status: "no_block_boundary" };
+			request = { ...request, ratio: boundary.ratio };
+		}
 		const sampleIndex = Math.round(request.ratio * 1000000);
 		const sourcePositions = this.getEditableRailPositions(sourceCore);
 		if (!sourcePositions || sourcePositions.length !== 2)
@@ -4482,6 +4673,8 @@ export class SRBXApiCompat {
 			);
 		} else resolvedEnd = this.createBuilderFreePoint(request.branchEnd);
 		if (!resolvedEnd) return { status: "invalid_branch_end" };
+		if (!this.areBoundaryPositions([resolvedEnd]))
+			return { status: "endpoint_not_on_block_boundary" };
 		if (endpoint)
 			return this.createEndpointBranchBuilderRail(
 				world,

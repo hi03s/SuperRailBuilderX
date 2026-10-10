@@ -1,3 +1,5 @@
+import { SRBXRailBoundary } from "./SRBXRailBoundary";
+
 export type SRBXVec3 = [x: number, y: number, z: number];
 
 const DEFAULT_VERTICAL_CURVE_RADIUS = 1000;
@@ -590,7 +592,51 @@ export class SRBXMath {
 	static planVerticalRailSegments<T extends SRBXVerticalBuilderPoint>(
 		start: T,
 		end: T,
+		boundaryEndpoints = false,
 	): Array<[T, T]> {
+		if (boundaryEndpoints) {
+			const segments = this.planVerticalRailSegments(
+				SRBXRailBoundary.normalizePoint(start),
+				SRBXRailBoundary.normalizePoint(end),
+			);
+			const originalLengths = segments.map((segment) =>
+				this.horizontalDistance(
+					segment[0].position,
+					segment[1].position,
+				),
+			);
+			for (let i = 1; i < segments.length; i++) {
+				const previous = segments[i - 1][1],
+					next = segments[i][0];
+				if (this.distance(previous.position, next.position) > 0.000001)
+					return [];
+				const shared = SRBXRailBoundary.snapShared(
+					previous.position,
+					[previous.anchorYaw, next.anchorYaw],
+					previous.anchorPitch,
+				);
+				previous.position = [shared[0], shared[1], shared[2]];
+				next.position = [shared[0], shared[1], shared[2]];
+			}
+			for (let i = 0; i < segments.length; i++) {
+				const segment = segments[i];
+				const previousLength = originalLengths[i];
+				segment[0] = SRBXRailBoundary.normalizePoint(segment[0]);
+				segment[1] = SRBXRailBoundary.normalizePoint(segment[1]);
+				const length = this.horizontalDistance(
+					segment[0].position,
+					segment[1].position,
+				);
+				if (length < 0.01 || previousLength < 0.01) return [];
+				const scale = length / previousLength;
+				for (const point of segment) {
+					point.anchorLength *= scale;
+					if (point.anchorLengthVertical !== undefined)
+						point.anchorLengthVertical *= scale;
+				}
+			}
+			return segments;
+		}
 		if (!start.slopeTarget && !end.slopeTarget) {
 			const copyStart = this.copyVerticalPoint(start);
 			const copyEnd = this.copyVerticalPoint(end);
