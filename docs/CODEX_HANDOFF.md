@@ -97,7 +97,7 @@
 
 ## 直近の完了
 
-- 2026-10-10 ローカルCodex: Kaiz/CrossTieありなしの実機報告を記録。AE起動停止の依存IDを修正し、実AEのMod注釈との一致を検証、1.12.2 JAR再生成。[10月履歴](history/CODEX_HISTORY_2026-10.md)。同期結果はコミット後に追記。
+- 2026-10-10 ローカルCodex: Kaiz/CrossTieありなしの実機報告を記録。AE起動停止の依存IDを修正し、実AEのMod注釈との一致を検証、1.12.2 JAR再生成。[10月履歴](history/CODEX_HISTORY_2026-10.md)。修正[e240d3a](https://github.com/hi03s/SuperRailBuilderX/commit/e240d3a)をorigin/mainへpush済み。
 
 ## 関連資料
 

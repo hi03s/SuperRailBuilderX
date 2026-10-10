@@ -276,3 +276,4 @@
 - Javaテストへ成果物のMod注釈、lowercase依存ID、実AE modidとの一致、クライアント任意導入設定の検証を追加。対象1.12.2ビルド、挙動/実AE ASM検証成功。SRBXPatch-v1.0-1.12.2.jarを再生成、SHA256 eb148069ec39843c3b81a1dc3e96a37e5731f1648f941aed21905964bb7f48ec。
 - パック/TypeScript/Kaiz JARは変更なしのため再ビルド不要。rawログはGitへ入れず、必要診断のみlogs/srbxpatch-ae-dependency-startup-failure-20261010.logへ抜粋し個人パス/無関係Modログを除外。AE本体のmulti-release module-info読込警告等もあるが、今回の直接停止原因はSRBXPatch依存宣言。第三者Modは変更しない。
 - 未実施: 修正版AEのMinecraft起動/自由点両方向微速走行。旧JAR置換とhook installed確認、問題時logs/latest.log提出を依頼する。
+- 同期: 修正e240d3aをorigin/mainへpush成功。同期記録を含め既存自由点ブランチもfast-forwardで更新する。
