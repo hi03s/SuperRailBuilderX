@@ -318,3 +318,14 @@
 - 更新GUI ZIPは102ファイル、ユーザーgui_base.xcf非同梱。main ZIP/両SRBXPatch JARは保持。GUI ZIP SHA256 6660e237771c414396087bfeffb4a210810babe9bfb54eec9cd45abd32d715aa。
 - 未実施: Minecraft実機でのGLエラー解消とレール描画。更新ZIPを導入し、GUI状態表示/レールプレビュー/ツール切替・終了を確認。再発時は操作手順とlogs/latest.log（fog isolatedを含む）を共有する。
 - 同期: 修正ef1f3ccをorigin/feature/builder1-guiへpush成功。
+
+## 2026-10-10 ローカルCodex: GUI GL 1284再発の段階別診断
+
+- 開発者よりGUI表示中だけGL 1284が継続するとの報告。latest.logの23:49:22でfog isolated直後からPost renderの1284が連続することを確認。前回の行列Push/Pop撤去だけでは解消せず、実機の破損箇所は未確定。
+- 必要なGUI初回ログと最初のGLエラー2回のみlogs/builder1-gui-stack-underflow-20261010.logへ抜粋。生ログ、PC情報、ユーザー名、ローカルパス、無関係なMod出力は追加しない。
+- OpenGLの属性スタックは全テクスチャユニット共通なので、texture0/lightmapの2段退避を1段へ整理。これは不要な複雑さの除去であり、2段使用が実機エラー原因だったとは断定しない。
+- build=gui-gl-state-v2を追加。GUI入場前、属性退避、行列設定、属性設定、背景/状態アイコン、ツールアイコン、タイトル、各状態文字、行列復元、属性復元でglGetErrorを確認。検出段階/コード/各行列・属性スタック深度/active textureを出力し、状態復元後にGUIだけを停止する。初回にはGUI入口/出口のGL状態も記録する。入場前エラーはGUI以前の描画として区別。
+- GLエラーを記録して消費するため、Post renderが止まるだけでは解消と扱わない。GUI表示継続かつdisabled診断なしが再検証条件。停止後はパック再読込/ゲーム再起動が必要。共有ツールキット/rtm-ts/サーバー/Javaパッチは変更なし。
+- 検証済み: 全4ターゲットbuild、GUI回帰（入場/タイル/文字/復元のGL 1284注入、段階識別、GUI停止、再描画抑止、行列/モード/霧/active texture/両ユニットの有効状態復元）、runtime-dispatch/rail-patch、対象TS/テストPrettier、diff --check。
+- 未実施: 実GPU上の原因特定とエラー解消。更新GUI ZIPでゲームを再起動し、build=gui-gl-state-v2が出ることを確認してレール生成Aを使用。GUIが消える場合も操作手順とlogs/latest.logを共有してもらう。前回版のfogログと新しい診断を区別できる。
+- 配布物: 更新GUI ZIP102ファイル、gui_base.xcf非同梱、段階別診断/属性1段退避をZIP内でも確認。SHA256 c3b281c7b125e3fd909b901a9051889396fb02824145ae3867d15a3da082cc93。main ZIP/両SRBXPatch JARは保持。

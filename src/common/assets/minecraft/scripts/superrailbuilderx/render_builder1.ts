@@ -56,6 +56,8 @@ const GUI_TOOL_ICON = new ResourceLocation(
 );
 const toolGui = new Gui();
 let guiFogDiagnosticReported = false;
+let guiRenderingDisabled = false;
+let guiRestoreDiagnosticReported = false;
 const guiProjectionMatrix = BufferUtils.createFloatBuffer(16);
 const guiModelViewMatrix = BufferUtils.createFloatBuffer(16);
 const guiTextureMatrix = BufferUtils.createFloatBuffer(16);
@@ -1323,10 +1325,34 @@ function drawToolGuiIcon(width: number): void {
 	}
 }
 
+function guiGLState(): string {
+	return `mode=${GL11.glGetInteger(GL11.GL_MATRIX_MODE)}, activeTexture=${GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE)}, modelViewDepth=${GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH)}, projectionDepth=${GL11.glGetInteger(GL11.GL_PROJECTION_STACK_DEPTH)}, textureDepth=${GL11.glGetInteger(GL11.GL_TEXTURE_STACK_DEPTH)}, attribDepth=${GL11.glGetInteger(GL11.GL_ATTRIB_STACK_DEPTH)}`;
+}
+
+function stopGuiOnGLError(stage: string): boolean {
+	const error = GL11.glGetError();
+	if (error === GL11.GL_NO_ERROR) return false;
+	guiRenderingDisabled = true;
+	NGTLog.debug(
+		`[SuperRailBuilderX GUI] build=gui-gl-state-v2 disabled: stage=${stage}, error=${error}, ${guiGLState()}`,
+	);
+	// Drain only this error batch; diagnostics retain the codes rather than
+	// repeatedly flooding Minecraft's Post render check every frame.
+	for (let i = 0; i < 7; i++) {
+		const next = GL11.glGetError();
+		if (next === GL11.GL_NO_ERROR) break;
+		NGTLog.debug(`[SuperRailBuilderX GUI] stage=${stage}, error=${next}`);
+	}
+	return true;
+}
+
 function renderToolGui(
 	state: BuilderState,
 	previewLength: number | null,
 ): void {
+	if (guiRenderingDisabled) return;
+	// An entry error belongs to earlier world/preview rendering, not this GUI.
+	if (stopGuiOnGLError("entry-before-gui")) return;
 	const mc = NGTUtilClient.getMinecraft();
 	const size = getScaledGuiSize(mc);
 	const width = size[0];
@@ -1334,9 +1360,10 @@ function renderToolGui(
 	const worldFog = GL11.glIsEnabled(GL11.GL_FOG);
 	const previousActiveTexture = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
 	const previousMatrixMode = GL11.glGetInteger(GL11.GL_MATRIX_MODE);
+	const entryGLState = !guiRestoreDiagnosticReported ? guiGLState() : "";
 	// A failed attribute push must never be followed by a pop of RTM's frame.
 	if (
-		GL11.glGetInteger(GL11.GL_ATTRIB_STACK_DEPTH) + 2 >
+		GL11.glGetInteger(GL11.GL_ATTRIB_STACK_DEPTH) + 1 >
 		GL11.glGetInteger(GL11.GL_MAX_ATTRIB_STACK_DEPTH)
 	)
 		return;
@@ -1344,11 +1371,8 @@ function renderToolGui(
 	// Snapshot matrices without pushing onto (or popping) its stacks.
 	saveGuiMatrix(GL11.GL_PROJECTION_MATRIX, guiProjectionMatrix);
 	saveGuiMatrix(GL11.GL_MODELVIEW_MATRIX, guiModelViewMatrix);
-	GL13.glActiveTexture(GL13.GL_TEXTURE1);
-	GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_TEXTURE_BIT);
-	GL11.glDisable(GL11.GL_TEXTURE_2D);
-	GL13.glActiveTexture(GL13.GL_TEXTURE0);
-	saveGuiMatrix(GL11.GL_TEXTURE_MATRIX, guiTextureMatrix);
+	// The attribute stack is global: GL_TEXTURE_BIT saves all texture units.
+	// One frame covers both the primary texture and the lightmap unit.
 	GL11.glPushAttrib(
 		GL11.GL_ENABLE_BIT |
 			GL11.GL_CURRENT_BIT |
@@ -1357,6 +1381,11 @@ function renderToolGui(
 			GL11.GL_TEXTURE_BIT |
 			GL11.GL_TRANSFORM_BIT,
 	);
+	if (stopGuiOnGLError("save-attributes")) return;
+	GL13.glActiveTexture(GL13.GL_TEXTURE1);
+	GL11.glDisable(GL11.GL_TEXTURE_2D);
+	GL13.glActiveTexture(GL13.GL_TEXTURE0);
+	saveGuiMatrix(GL11.GL_TEXTURE_MATRIX, guiTextureMatrix);
 	GL11.glMatrixMode(GL11.GL_PROJECTION);
 	GL11.glLoadIdentity();
 	GL11.glOrtho(0, width, height, 0, 1000, 3000);
@@ -1367,6 +1396,7 @@ function renderToolGui(
 	GL11.glLoadIdentity();
 	GL11.glMatrixMode(GL11.GL_MODELVIEW);
 	try {
+		if (stopGuiOnGLError("setup-matrices")) return;
 		GL11.glDisable(GL11.GL_LIGHTING);
 		// This screen projection uses eye-space z=-1001. World fog would
 		// replace GUI RGB with the sky color while still writing its depth.
@@ -1375,7 +1405,7 @@ function renderToolGui(
 		if (!guiFogDiagnosticReported) {
 			guiFogDiagnosticReported = true;
 			NGTLog.debug(
-				`[SuperRailBuilderX GUI] fog isolated: worldFog=${worldFog}, guiFog=${GL11.glIsEnabled(GL11.GL_FOG)}, size=${width}x${height}`,
+				`[SuperRailBuilderX GUI] build=gui-gl-state-v2 fog isolated: worldFog=${worldFog}, guiFog=${GL11.glIsEnabled(GL11.GL_FOG)}, size=${width}x${height}, ${guiGLState()}`,
 			);
 		}
 		GL11.glDisable(GL11.GL_CULL_FACE);
@@ -1394,13 +1424,17 @@ function renderToolGui(
 		GL11.glEnable(GL11.GL_BLEND);
 		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		GL11.glColor4f(1, 1, 1, 1);
+		if (stopGuiOnGLError("setup-attributes")) return;
 		drawToolGuiBase(width, height, state);
+		if (stopGuiOnGLError("base-and-status-icons")) return;
 		drawToolGuiIcon(width);
+		if (stopGuiOnGLError("tool-icon")) return;
 		const font = mc.fontRenderer;
 		const textX = Math.floor(
 			(width - font.getStringWidth(GUI_TOOL_NAME)) / 2,
 		);
 		font.drawString(GUI_TOOL_NAME, textX, 4, 0x202020);
+		if (stopGuiOnGLError("tool-title")) return;
 		const labels = [
 			state.snapEnabled ? `${snapAngles[state.snapAngleIndex]}°` : "",
 			state.curveRadiusLocked
@@ -1422,6 +1456,7 @@ function renderToolGui(
 				GUI_TOOL_FRAME_SIZE + row * GUI_TILE_SIZE + 4,
 				0xffffff,
 			);
+			if (stopGuiOnGLError(`status-text-${row}`)) return;
 		}
 	} finally {
 		GL11.glMatrixMode(GL11.GL_MODELVIEW);
@@ -1431,11 +1466,17 @@ function renderToolGui(
 		GL13.glActiveTexture(GL13.GL_TEXTURE0);
 		GL11.glMatrixMode(GL11.GL_TEXTURE);
 		GL11.glLoadMatrix(guiTextureMatrix);
-		GL11.glPopAttrib();
-		GL13.glActiveTexture(GL13.GL_TEXTURE1);
+		stopGuiOnGLError("restore-matrices");
 		GL11.glPopAttrib();
 		GL13.glActiveTexture(previousActiveTexture);
 		GL11.glMatrixMode(previousMatrixMode);
+		stopGuiOnGLError("restore-attributes");
+		if (!guiRestoreDiagnosticReported) {
+			guiRestoreDiagnosticReported = true;
+			NGTLog.debug(
+				`[SuperRailBuilderX GUI] build=gui-gl-state-v2 restored: entry={${entryGLState}}, exit={${guiGLState()}}`,
+			);
+		}
 	}
 }
 

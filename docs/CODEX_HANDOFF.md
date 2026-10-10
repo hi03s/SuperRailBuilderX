@@ -33,7 +33,7 @@
 
 ## 優先確認事項
 
-- GUI状態表示後にGL 1284/レール描画異常を受領。GUI行列のPush/Popを直接保存/復元へ変更し、属性スタック容量も検査。全4build/満杯スタック・例外復元の回帰成功。更新`SuperRailBuilderX-0.2.0-builder1-gui.zip`でGLエラー解消と状態表示/レール描画の実機確認待ち。[描画仕様/手順](builder1.md)。
+- 行列退避修正後もGUI表示時GL 1284が継続。最新ログで初回GUI直後の連続発生を確認、原因は未確定。属性退避を共通1段へ整理し、`build=gui-gl-state-v2`の段階別GL診断/検出時GUI停止を追加。全4build/GLエラー注入回帰成功。更新GUI ZIPで再起動し、表示継続/レール描画/`disabled`診断を確認してlatest.logを共有する。[仕様/手順](builder1.md)。
 
 - CrossTie Alpha14のレール分割警告は新規TEへの未読込診断の誤検出と判断。ログ内の分割6回は成功、SRBX変更不要。[調査](crosstie-split-diagnostic.md)。本番サーバーは操作しない。
 
@@ -103,7 +103,7 @@
 
 ## 直近の完了
 
-- 2026-10-10 ローカルCodex: GL 1284対策でGUI行列を直接保存/復元し、満杯スタック/例外復元の回帰を追加。全4build成功、GUI ZIP更新、実機再確認待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[ef1f3cc](https://github.com/hi03s/SuperRailBuilderX/commit/ef1f3cc)をorigin/feature/builder1-guiへpush済み。
+- 2026-10-10 ローカルCodex: GL 1284再発ログを保存し、GUI属性退避を1段へ整理、段階別診断/エラー時GUI停止を追加。全4build/復元・GLエラー注入回帰成功、実機原因特定待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。同期結果はコミット後に記載。
 
 ## 関連資料
 

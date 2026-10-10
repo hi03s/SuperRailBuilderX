@@ -18,7 +18,16 @@ const draw = source.slice(
 
 // Host projection/texture stacks are already at their minimum GL capacity (2).
 // Any GUI push/pop would overflow or consume the host renderer's stack frame.
-for (const failure of [null, "tile", "font", "attrib-full"]) {
+for (const failure of [
+	null,
+	"tile",
+	"font",
+	"attrib-full",
+	"entry-gl",
+	"tile-gl",
+	"font-gl",
+	"restore-gl",
+]) {
 	const matrices = {
 		projection: [11, 12],
 		modelview: [21, 22],
@@ -31,7 +40,10 @@ for (const failure of [null, "tile", "font", "attrib-full"]) {
 	const attributes = [],
 		labels = [],
 		tiles = [];
+	const diagnostics = [];
+	let pendingError = failure === "entry-gl" ? 1284 : 0;
 	const before = JSON.stringify(matrices);
+	let textureEnabled = { 0: false, 1: true };
 	const gl = new Proxy(
 		{
 			GL_PROJECTION: "projection",
@@ -47,6 +59,13 @@ for (const failure of [null, "tile", "font", "attrib-full"]) {
 			GL_MAX_ATTRIB_STACK_DEPTH: "attrib-max",
 			GL_TEXTURE0: 0,
 			GL_TEXTURE1: 1,
+			GL_NO_ERROR: 0,
+			GL_TEXTURE_2D: "texture-enabled",
+			glGetError() {
+				const error = pendingError;
+				pendingError = 0;
+				return error;
+			},
 			glGetInteger(p) {
 				return p === "mode"
 					? mode
@@ -54,7 +73,7 @@ for (const failure of [null, "tile", "font", "attrib-full"]) {
 						? active
 						: p === "attrib-depth"
 							? failure === "attrib-full"
-								? 15
+								? 16
 								: attributes.length
 							: 16;
 			},
@@ -89,14 +108,24 @@ for (const failure of [null, "tile", "font", "attrib-full"]) {
 				assert.fail("GUI must not pop a host matrix frame");
 			},
 			glPushAttrib() {
-				attributes.push({ mode, active, fog });
+				attributes.push({
+					mode,
+					active,
+					fog,
+					textureEnabled: { ...textureEnabled },
+				});
 			},
 			glPopAttrib() {
 				assert(attributes.length);
-				({ mode, active, fog } = attributes.pop());
+				({ mode, active, fog, textureEnabled } = attributes.pop());
+				if (failure === "restore-gl") pendingError = 1284;
 			},
 			glDisable(p) {
 				if (p === "fog") fog = false;
+				if (p === "texture-enabled") textureEnabled[active] = false;
+			},
+			glEnable(p) {
+				if (p === "texture-enabled") textureEnabled[active] = true;
 			},
 		},
 		{
@@ -110,16 +139,24 @@ for (const failure of [null, "tile", "font", "attrib-full"]) {
 		func_78276_b(s, x, y, color) {
 			assert.equal(fog, false);
 			assert.equal(active, 0);
+			assert.deepStrictEqual(textureEnabled, { 0: true, 1: false });
 			assert.deepStrictEqual(matrices.texture0, [1, 0]);
 			if (failure === "font") throw new Error("font failure");
 			labels.push({ s, x, y, color });
+			if (failure === "font-gl") pendingError = 1284;
 		},
 	};
 	const context = {
 		GL11: gl,
 		GL13: gl,
-		NGTLog: { debug() {} },
+		NGTLog: {
+			debug(message) {
+				diagnostics.push(message);
+			},
+		},
 		guiFogDiagnosticReported: false,
+		guiRenderingDisabled: false,
+		guiRestoreDiagnosticReported: false,
 		GUI_TILE_SIZE: 16,
 		GUI_TOOL_FRAME_SIZE: 32,
 		GUI_DRAW_TEXTURE_SIZE: 256,
@@ -134,6 +171,7 @@ for (const failure of [null, "tile", "font", "attrib-full"]) {
 				assert.equal(fog, false);
 				if (failure === "tile") throw new Error("tile failure");
 				tiles.push(args);
+				if (failure === "tile-gl") pendingError = 1284;
 			},
 		},
 		NGTUtilClient: {
@@ -174,7 +212,24 @@ for (const failure of [null, "tile", "font", "attrib-full"]) {
 	assert.equal(active, 1);
 	assert.equal(fog, true);
 	assert.equal(attributes.length, 0);
+	assert.deepStrictEqual(textureEnabled, { 0: false, 1: true });
 	if (failure === "attrib-full") assert.equal(tiles.length, 0);
+	if (failure && failure.endsWith("-gl")) {
+		assert.equal(context.guiRenderingDisabled, true);
+		assert(diagnostics.some((line) => line.includes("error=1284")));
+		const expectedStage = {
+			"entry-gl": "entry-before-gui",
+			"tile-gl": "base-and-status-icons",
+			"font-gl": "tool-title",
+			"restore-gl": "restore-attributes",
+		}[failure];
+		assert(
+			diagnostics.some((line) => line.includes(`stage=${expectedStage}`)),
+		);
+		const count = tiles.length;
+		render();
+		assert.equal(tiles.length, count, "GUI stops after a GL error");
+	}
 	if (!failure) {
 		assert.deepStrictEqual(
 			labels.map((x) => x.s),
@@ -187,5 +242,5 @@ for (const failure of [null, "tile", "font", "attrib-full"]) {
 	}
 }
 console.log(
-	"GUI host matrices, full stacks, fog, texture unit, labels and exception restoration passed",
+	"GUI state restoration, global texture attributes, GL error stages and fail-stop passed",
 );
