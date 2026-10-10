@@ -31,7 +31,7 @@
 
 ## 作業中
 
-- ローカルCodex: カント選択解除色/カーソル廃止と、TABホイールメニューによる6ツール切り替えを実装・検証する。
+- なし。
 
 ## 優先確認事項
 
@@ -89,7 +89,7 @@
 
 ## 次に行うこと
 
-1. 更新main ZIPでPの3種類切替、ブロック格子（Yは通常レール高1/16 m込み）、影付き白文字/「直線」をKaizPatch/AEで確認する。暫定SRBXPatchは継続導入する（builder1.md、srbx-free-endpoint-mod.md）。
+1. 更新main ZIPで全6ツールのTABホイール（マウス/←→/解除/ESC/マルチプレイリスト）、カント解除色とカーソル非表示を確認する（tool-wheel.md）。Pの3種類切替/ブロック格子/影付き文字も継続確認し、暫定SRBXPatchは継続導入する。
 2. KaizPatch/AEで自由端点の接続を新規生成し、通常車両の両方向低速走行・移動・Undoを確認する（srbx-free-endpoint-mod.md）。
 3. AppleExtended v2.5.3で分岐描画patchのBootstrapログとoffsetあり/なし描画を確認する。
 4. レール移動のCTRL中ホバー抑止、カントのレール単位選択/両端適用/速度0/±50/Undo、分岐の3種スナップとGUIをKaizPatch/AEで確認する。全6ツールのHヘルプの行分けと末尾のスクロール案内も確認する。
@@ -111,7 +111,7 @@
 
 ## 直近の完了
 
-- 2026-10-11 ローカルCodex: カントの論理レール両端整形、移動CTRLホバー抑止、分岐3種スナップ、全ツールヘルプを実装。全4build・回帰・旧Java GUI成功、ZIP更新、実機未確認。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[25ad162](https://github.com/hi03s/SuperRailBuilderX/commit/25ad162)をorigin/mainへpush済み。
+- 2026-10-11 ローカルCodex: カント解除色/カーソル廃止と全6ツールのTABホイールを実装。全4build・回帰・旧Java GUI/Java.extend成功、ZIP更新、実機未確認。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[d2d8237](https://github.com/hi03s/SuperRailBuilderX/commit/d2d8237)をorigin/mainへpush済み。
 
 ## 関連資料
 
