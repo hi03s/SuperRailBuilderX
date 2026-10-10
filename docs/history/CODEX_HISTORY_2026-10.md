@@ -415,3 +415,4 @@
 - 共通のdrawToolGuiIconで各アイコン描画前にglColor4f(1, 1, 1, 1)を設定し、テクスチャ本来の色を使う。選択名/区画の強調は維持し、既存のGL保存復元・スタック不使用方針も維持。
 - 回帰テストの文字描画をGL色が残る挙動へ変更し、ホイール6アイコンすべてが白色で描画されることを検証。pnpm build（全4ターゲット）、pnpm test:gui、Java 8u51のbuilder1_gui_nashorn.test.jsが成功。差分/整形確認済み。実GPUでの修正版確認は未実施。
 - ZIPを106ファイルで更新。SHA256: 4F082E69C3A9CB2AFE041799D10D7C39744D720A990E327A231F111F5BF29179。KaizPatch/AEで6項目を順に選択して次アイコンの変色がないことを確認し、異常時は選択ツールとlogs/latest.logを共有する。
+- 同期: a1ecdea（ホイールの選択文字色が次のアイコンへ残る不具合を修正）をorigin/mainへpush完了。

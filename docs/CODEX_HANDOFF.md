@@ -31,7 +31,7 @@
 
 ## 作業中
 
-- ローカルCodex: ホイールの選択文字色が次のアイコンへ残る不具合を修正・検証する。
+- なし。
 
 ## 優先確認事項
 
@@ -111,7 +111,7 @@
 
 ## 直近の完了
 
-- 2026-10-11 ローカルCodex: ホイールの左クリック決定、6区画リング、中央で変更なしを実装。全4build・入力/GUI・旧Java検証成功、ZIP更新、実機未確認。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[d51c996](https://github.com/hi03s/SuperRailBuilderX/commit/d51c996)をorigin/mainへpush済み。
+- 2026-10-11 ローカルCodex: ホイールの選択文字色が次アイコンへ残る不具合を修正。全4build・GUI回帰・旧Java検証成功、ZIP更新、実機再確認待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[a1ecdea](https://github.com/hi03s/SuperRailBuilderX/commit/a1ecdea)をorigin/mainへpush済み。
 
 ## 関連資料
 
