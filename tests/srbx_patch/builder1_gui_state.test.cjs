@@ -231,6 +231,13 @@ for (const failure of [
 			if (failure === "font") throw new Error("font failure");
 			attrs.textureBinding[0] = 103;
 			attrs.textureCoords[0] = [0, 0, 0, 1];
+			// Native FontRenderer retains the final text color in OpenGL.
+			attrs.color = [
+				((color >> 16) & 255) / 255,
+				((color >> 8) & 255) / 255,
+				(color & 255) / 255,
+				1,
+			];
 			labels.push({ s, x, y, color });
 			if (failure === "font-gl") pendingError = 1284;
 		},
@@ -272,6 +279,12 @@ for (const failure of [
 		toolGui: {
 			func_73729_b(...v) {
 				if (failure === "tile") throw new Error("tile failure");
+				if (failure === "wheel")
+					assert.deepStrictEqual(
+						attrs.color,
+						[1, 1, 1, 1],
+						"Every wheel icon stays white after selected yellow text",
+					);
 				tiles.push(v);
 				if (failure === "tile-gl") pendingError = 1284;
 			},

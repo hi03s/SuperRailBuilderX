@@ -408,3 +408,10 @@
 - 実GPU、実Minecraft画面、KaizPatch/AE実機、マルチプレイのリスト非表示は未検証。更新ZIPでリング・左クリック・中央取消・押しっぱなし動作を確認し、不具合時は操作手順とlogs/latest.logを共有する（docs/tool-wheel.md）。
 - ZIP更新: artifacts/SuperRailBuilderX-0.2.0.zip（106ファイル）、SHA256: 9732C8C5D7DAAAE2AD6536D09DEEEE9AFD3E9F44465B0356A84A717C22116B1A。ユーザーのgui_base.xcfは変更せず、生成先コピーのみZIPから除外。従来のbutton_template.xcfは維持。
 - 同期: d51c996（ホイールを中央取消付きリングへ変更し左クリック決定を追加）をorigin/mainへpush完了。
+
+## 2026-10-11 ローカルCodex: ホイールアイコンへの文字色残留を修正
+
+- 実機報告: 選択中ツールの次のアイコンが黄色に変色する。選択名を黄色で描くFontRendererがGL色を残し、その直後のアイコンに乗算されることが原因。
+- 共通のdrawToolGuiIconで各アイコン描画前にglColor4f(1, 1, 1, 1)を設定し、テクスチャ本来の色を使う。選択名/区画の強調は維持し、既存のGL保存復元・スタック不使用方針も維持。
+- 回帰テストの文字描画をGL色が残る挙動へ変更し、ホイール6アイコンすべてが白色で描画されることを検証。pnpm build（全4ターゲット）、pnpm test:gui、Java 8u51のbuilder1_gui_nashorn.test.jsが成功。差分/整形確認済み。実GPUでの修正版確認は未実施。
+- ZIPを106ファイルで更新。SHA256: 4F082E69C3A9CB2AFE041799D10D7C39744D720A990E327A231F111F5BF29179。KaizPatch/AEで6項目を順に選択して次アイコンの変色がないことを確認し、異常時は選択ツールとlogs/latest.logを共有する。

@@ -220,6 +220,8 @@ function drawToolGuiIcon(
 	y?: number,
 ): void {
 	NGTUtilClient.bindTexture(icon);
+	// FontRenderer leaves its text color active; icons must use their own colors.
+	GL11.glColor4f(1, 1, 1, 1);
 	GL13.glActiveTexture(GL13.GL_TEXTURE0);
 	saveGuiMatrix(GL11.GL_TEXTURE_MATRIX, guiIconTextureMatrix);
 	GL11.glMatrixMode(GL11.GL_TEXTURE);
