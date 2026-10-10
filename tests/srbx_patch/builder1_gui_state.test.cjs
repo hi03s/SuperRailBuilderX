@@ -329,6 +329,7 @@ for (const failure of [
 			labels.map((l) => l.s),
 			["tool", "5°", "250 m", "12.35 m"],
 		);
+		assert.equal(labels[0].color, 0xffffff, "Tool title is white with shadow");
 		for (const l of labels.slice(1)) {
 			assert.equal(l.color, 0xffffff);
 			assert.equal(l.x + l.s.length * 6, 300);

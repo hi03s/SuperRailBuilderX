@@ -1533,7 +1533,7 @@ function renderToolGui(
 		const textX = Math.floor(
 			(width - font.getStringWidth(GUI_TOOL_NAME)) / 2,
 		);
-		SRBXApiCompat.drawGuiTextWithShadow(GUI_TOOL_NAME, textX, 4, 0x202020);
+		SRBXApiCompat.drawGuiTextWithShadow(GUI_TOOL_NAME, textX, 4, 0xffffff);
 		if (stopGuiOnGLError("tool-title")) return;
 		const labels = [
 			state.snapEnabled ? `${snapAngles[state.snapAngleIndex]}°` : "",
