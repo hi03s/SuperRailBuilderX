@@ -33,7 +33,7 @@
 
 ## 優先確認事項
 
-- v2実機でGUI停止、restore-attributes/1284と属性深度0を確認。GUI属性Push/Popを撤去し個別状態を復元、AE/1.12.2のGLキャッシュも同期。全4build/複数回復元・例外・GLエラー注入・SRG回帰成功。更新GUI ZIPで再起動し`gui-gl-state-v3`、GUI継続/レール描画/disabledなしを実機確認待ち。[仕様/手順](builder1.md)。
+- v3の実機GLエラー解消を確認。Java 8u51のcontinue/finally早期復元を再現し、グリッドOFF数値欠落を条件ブロックへ変更して回避。非固定プレビュー半径/影付き文字を追加。全4build/Node回帰/実Java 8u51での生成GUI検証成功。更新GUI ZIPでOFF数値/選択途中・2点半径/直線∞/影の実機確認待ち。[仕様/手順](builder1.md)。
 
 - CrossTie Alpha14のレール分割警告は新規TEへの未読込診断の誤検出と判断。ログ内の分割6回は成功、SRBX変更不要。[調査](crosstie-split-diagnostic.md)。本番サーバーは操作しない。
 
@@ -103,7 +103,7 @@
 
 ## 直近の完了
 
-- 2026-10-11 ローカルCodex: GUI停止原因を属性復元の1284へ絞り、GUIの全スタック操作を撤去。AEキャッシュ同期/複数回復元回帰を追加、全4build成功、GUI ZIP更新。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[e7bb487](https://github.com/hi03s/SuperRailBuilderX/commit/e7bb487)をorigin/feature/builder1-guiへpush済み。
+- 2026-10-11 ローカルCodex: GLエラー解消を受領。旧Nashornのcontinue/finally挙動を回避しOFF数値を修正、非固定半径/文字影を追加。全4build/実Java 8u51回帰成功、GUI ZIP更新。[10月履歴](history/CODEX_HISTORY_2026-10.md)。同期結果はコミット後に記載。
 
 ## 関連資料
 

@@ -18,7 +18,21 @@ import { AppleExtendedRailMoveCompat } from "./AppleExtendedRailMoveCompat";
 import { SRBXGuiGLState } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXGuiGLState";
 
 /** AppleExtended v2.5.3 exposes logical-rail APIs and automatic section rails. */
+import { NGTUtilClient } from "jp.ngt.ngtlib.util";
 export class SRBXApiCompat {
+	static drawGuiTextWithShadow(
+		text: string,
+		x: number,
+		y: number,
+		color: number,
+	): void {
+		NGTUtilClient.getMinecraft().fontRenderer.drawStringWithShadow(
+			text,
+			x,
+			y,
+			color,
+		);
+	}
 	static syncGuiGLState(state: SRBXGuiGLState): void {
 		if (state.enabled[0]) GlStateManager.enableLighting();
 		else GlStateManager.disableLighting();

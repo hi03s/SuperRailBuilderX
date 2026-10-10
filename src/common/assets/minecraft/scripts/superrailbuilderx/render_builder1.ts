@@ -1463,6 +1463,7 @@ function stopGuiOnGLError(stage: string): boolean {
 function renderToolGui(
 	state: BuilderState,
 	previewLength: number | null,
+	previewRadius: number | null = null,
 ): void {
 	if (guiRenderingDisabled) return;
 	// An entry error belongs to earlier world/preview rendering, not this GUI.
@@ -1532,7 +1533,7 @@ function renderToolGui(
 		const textX = Math.floor(
 			(width - font.getStringWidth(GUI_TOOL_NAME)) / 2,
 		);
-		font.drawString(GUI_TOOL_NAME, textX, 4, 0x202020);
+		SRBXApiCompat.drawGuiTextWithShadow(GUI_TOOL_NAME, textX, 4, 0x202020);
 		if (stopGuiOnGLError("tool-title")) return;
 		const labels = [
 			state.snapEnabled ? `${snapAngles[state.snapAngleIndex]}°` : "",
@@ -1540,7 +1541,11 @@ function renderToolGui(
 				? state.curveRadius >= MAX_CURVE_RADIUS
 					? "∞"
 					: `${state.curveRadius} m`
-				: "",
+				: state.selected.length > 0 && previewRadius !== null
+					? isFinite(previewRadius)
+						? `${Math.round(Math.abs(previewRadius))} m`
+						: "∞"
+					: "",
 			state.selected.length > 0 &&
 			previewLength !== null &&
 			isFinite(previewLength)
@@ -1548,14 +1553,20 @@ function renderToolGui(
 				: "",
 		];
 		for (let row = 0; row < labels.length; row++) {
-			if (!labels[row]) continue;
-			font.drawString(
-				labels[row],
-				width - GUI_TILE_SIZE - 4 - font.getStringWidth(labels[row]),
-				GUI_TOOL_FRAME_SIZE + row * GUI_TILE_SIZE + 4,
-				0xffffff,
-			);
-			if (stopGuiOnGLError(`status-text-${row}`)) return;
+			// Java 8u51 Nashorn runs the enclosing finally on loop continue.
+			// Keep optional rows in the loop without taking that exit path.
+			if (labels[row]) {
+				SRBXApiCompat.drawGuiTextWithShadow(
+					labels[row],
+					width -
+						GUI_TILE_SIZE -
+						4 -
+						font.getStringWidth(labels[row]),
+					GUI_TOOL_FRAME_SIZE + row * GUI_TILE_SIZE + 4,
+					0xffffff,
+				);
+				if (stopGuiOnGLError(`status-text-${row}`)) return;
+			}
 		}
 	} finally {
 		GL11.glMatrixMode(GL11.GL_MODELVIEW);
@@ -2061,6 +2072,12 @@ function render(
 			!prevRight && right,
 			!prevLeft && left,
 		);
-		renderToolGui(state, previewLength);
+		const previewRadius =
+			displayPoints.length >= 2
+				? displayPoints[0].curveRadius === undefined
+					? Infinity
+					: Math.abs(displayPoints[0].curveRadius)
+				: null;
+		renderToolGui(state, previewLength, previewRadius);
 	}
 }

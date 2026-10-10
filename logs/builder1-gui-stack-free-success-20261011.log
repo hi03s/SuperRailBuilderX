@@ -1,0 +1,2 @@
+﻿[00:22:21] [Client thread/INFO]: [SuperRailBuilderX GUI] build=gui-gl-state-v3 fog isolated: worldFog=true, guiFog=false, size=683x384, mode=5888, activeTexture=33984, modelViewDepth=4, projectionDepth=1, textureDepth=1, attribDepth=0
+[00:22:21] [Client thread/INFO]: [SuperRailBuilderX GUI] build=gui-gl-state-v3 restored: entry={mode=5888, activeTexture=33984, modelViewDepth=4, projectionDepth=1, textureDepth=1, attribDepth=0}, exit={mode=5888, activeTexture=33984, modelViewDepth=4, projectionDepth=1, textureDepth=1, attribDepth=0}

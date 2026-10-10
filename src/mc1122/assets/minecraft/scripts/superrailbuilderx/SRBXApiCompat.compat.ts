@@ -8,7 +8,21 @@ import { BlockPos } from "net.minecraft.util.math";
 
 import { SRBXGuiGLState } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXGuiGLState";
 import { GlStateManager } from "net.minecraft.client.renderer";
+import { NGTUtilClient } from "jp.ngt.ngtlib.util";
 export class SRBXApiCompat {
+	static drawGuiTextWithShadow(
+		text: string,
+		x: number,
+		y: number,
+		color: number,
+	): void {
+		NGTUtilClient.getMinecraft().fontRenderer.drawStringWithShadow(
+			text,
+			x,
+			y,
+			color,
+		);
+	}
 	static syncGuiGLState(state: SRBXGuiGLState): void {
 		if (state.enabled[0]) GlStateManager.enableLighting();
 		else GlStateManager.disableLighting();

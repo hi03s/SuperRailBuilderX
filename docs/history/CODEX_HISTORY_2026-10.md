@@ -341,3 +341,13 @@
 - 更新GUI ZIP102ファイルでv3/スタック操作不在/gui_base.xcf非同梱を確認。SHA256 d21cb0fe103aa2e0ccfd2a96cebd6074d9ad209ba27be14fd603536c7d113ee9。main ZIP/両SRBXPatch JARは保持。
 - 未実施: 修正後の実GPU上のGUI継続とGLエラー/レール異常の解消。ZIPを置換してゲームを再起動し、v3診断と状態表示、レールプレビュー、ツール切替/終了を確認する。GUI消失/描画異常が再発した場合は操作手順とlogs/latest.logを共有する。
 - 同期: 修正e7bb487をorigin/feature/builder1-guiへpush成功。
+
+## 2026-10-11 ローカルCodex: グリッドOFF数値/プレビュー半径/影文字
+
+- 開発者よりv3のGLエラー解消を受領。最新ログで入口/出口一致とGL ERROR/1284/disabled不在を確認。関連GUI2行をlogs/builder1-gui-stack-free-success-20261011.logへ抜粋し、生ログは追加しない。
+- グリッドOFFで角度の空行をcontinueすると数値が見えなくなる件を調査。ゲーム同梱Java 8u51のjjsで、try/finally内ループのcontinueが途中でもfinallyを実行することを再現（通常は終了時1回だが、空行1件で途中/終了の2回復元）。以前の複数glPopAttribによる1284とも整合する。数値ループをcontinueなしの条件ブロックへ変更し、後続数値の描画前にGUI投影が戻る問題を回避。
+- 半径固定OFFで1点＋hover/2点選択の線形がある場合、既存プレビューのstart.curveRadiusを再利用して半径の絶対値を整数m表示、直線は∞。選択なし/線形なしは非固定半径を隠し、固定ONの設定半径表示は維持。新たなRailMap生成やワールド書込なし。
+- ツール名/状態数値をMinecraft標準の影付き文字へ変更。1.7.10と1.12.2でshadowメソッドのSRG名が異なるためSRBXApiCompat.drawGuiTextWithShadowを全ターゲットへ追加し、対象バージョンのAPIを呼ぶ。
+- 検証済み: 全4ターゲットbuild（warningなし）、test:gui（OFF非固定半径/長さと状態復元、全4のshadow SRG名、既存GLガード）、runtime-dispatch/rail-patch、変更ファイル整形/diff --check。ゲーム実Java 8u51で生成GUIを実行するbuilder1_gui_nashorn.test.jsを追加し、OFF固定/非固定・1/2点・直線∞・ON未選択・影文字とGUI投影維持/終了時復元を確認。GL呼出は模擬、実GPU画像の検証ではない。旧jjsのためこのJSだけPrettier --trailing-comma noneを使用する。
+- 更新GUI ZIP102ファイル、影/プレビュー半径/空行回避とgui_base.xcf非同梱を確認。SHA256 b60502f2e60bfd1229c1a60c12a05410eef7294600668127aa2e5a849bdd0a2b。main ZIP/両SRBXPatch JAR、ユーザー参照画像/xcfは保持。
+- 未実施: 更新後実機でのOFF数値、選択途中/2点の非固定半径、直線∞、文字影の見え方。ZIPを置換してゲームを再起動し、状態切替/カーソル追従を確認する。再発時は操作手順とlogs/latest.logを共有する。

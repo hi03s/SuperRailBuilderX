@@ -224,11 +224,15 @@ for (const failure of [
 		},
 	};
 	const compat = {
+		drawGuiTextWithShadow(...args) {
+			font.func_78261_a(...args);
+		},
 		syncGuiGLState(state) {
 			snapshot = state;
 			if (failure === "restore-gl") pendingError = 1284;
 		},
 	};
+	font.func_78261_a = font.func_78276_b;
 	const context = {
 		GL11: gl,
 		GL13: gl,
@@ -336,6 +340,22 @@ for (const failure of [
 			JSON.stringify(attrs),
 			JSON.stringify(JSON.parse(before).attrs),
 		);
+		labels.length = 0;
+		context.renderToolGui(
+			{
+				snapEnabled: false,
+				snapAngleIndex: 1,
+				curveRadiusLocked: false,
+				selected: [{}],
+			},
+			12.345,
+			500.6,
+		);
+		assert.deepStrictEqual(
+			labels.map((l) => l.s),
+			["tool", "501 m", "12.35 m"],
+		);
+		assert.equal(JSON.stringify({ matrices, attrs }), before);
 	}
 }
 
@@ -389,6 +409,28 @@ for (const target of ["mc1122", "appleextended"]) {
 		"func_179138_g",
 		snapshot.activeTexture,
 	]);
+}
+for (const target of ["kaizpatch", "mc1710", "mc1122", "appleextended"]) {
+	const dir =
+		"dist/assets/minecraft/__targets__/" +
+		target +
+		"/scripts/superrailbuilderx";
+	const file = fs
+		.readdirSync(dir)
+		.find((n) => n.startsWith("SRBXApiCompat.__rtmx_"));
+	const code = fs.readFileSync(dir + "/" + file, "utf8");
+	const start = code.indexOf(
+		"SRBXApiCompat.drawGuiTextWithShadow = function",
+	);
+	const method = code.slice(start, code.indexOf("};", start) + 2);
+	const name =
+		target === "kaizpatch" || target === "mc1710"
+			? "func_78261_a"
+			: "func_175063_a";
+	assert(
+		method.includes("." + name + "("),
+		"Correct version-specific shadow SRG call",
+	);
 }
 console.log(
 	"GUI stack-free restoration, repeated restore, GL guards and 1.12.2 cache/SRG synchronization passed",

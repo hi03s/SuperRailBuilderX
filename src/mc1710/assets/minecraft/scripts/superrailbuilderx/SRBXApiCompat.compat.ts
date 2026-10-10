@@ -6,7 +6,21 @@ import { RailPosition } from "jp.ngt.rtm.rail.util";
 import { EntityPlayer } from "net.minecraft.entity.player";
 
 import { SRBXGuiGLState } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXGuiGLState";
+import { NGTUtilClient } from "jp.ngt.ngtlib.util";
 export class SRBXApiCompat {
+	static drawGuiTextWithShadow(
+		text: string,
+		x: number,
+		y: number,
+		color: number,
+	): void {
+		NGTUtilClient.getMinecraft().fontRenderer.drawStringWithShadow(
+			text,
+			x,
+			y,
+			color,
+		);
+	}
 	static syncGuiGLState(state: SRBXGuiGLState): void {
 		// Minecraft 1.7.10 has no GlStateManager cache to synchronize.
 	}

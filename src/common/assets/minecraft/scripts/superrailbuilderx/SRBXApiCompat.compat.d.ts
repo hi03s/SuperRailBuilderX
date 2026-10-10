@@ -72,6 +72,12 @@ export type SRBXBranchRequest = {
 
 import { SRBXGuiGLState } from "./SRBXGuiGLState";
 export class SRBXApiCompat {
+	static drawGuiTextWithShadow(
+		text: string,
+		x: number,
+		y: number,
+		color: number,
+	): void;
 	static syncGuiGLState(state: SRBXGuiGLState): void;
 	static requiresRailBoundarySnap(): boolean;
 
