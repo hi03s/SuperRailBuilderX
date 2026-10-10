@@ -103,7 +103,7 @@
 
 ## 直近の完了
 
-- 2026-10-10 ローカルCodex: GUIブランチへmain a1afeabを取り込み、最新自由点/SRBXPatch/AE修正とGUIを併用。全4build/回帰・GUIソース整形・ZIP参照検証成功、実機GUI未確認。調査45a941fはorigin/main同期済み。GUI同期結果はコミット後に記載。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
+- 2026-10-10 ローカルCodex: GUIブランチへmain a1afeabを取り込み、最新自由点/SRBXPatch/AE修正とGUIを併用。全4build/回帰・GUIソース整形・ZIP参照検証成功、実機GUI未確認。調査45a941fはorigin/main同期済み。GUIマージ[df0d3d8](https://github.com/hi03s/SuperRailBuilderX/commit/df0d3d8)をorigin/feature/builder1-guiへpush済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 ## 関連資料
 

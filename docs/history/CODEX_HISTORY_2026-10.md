@@ -288,3 +288,4 @@
 - GUI: feature/builder1-guiのGUIコミットを保持してmain a1afeabをmerge。競合はdocs/CODEX_HANDOFF.mdだけで、最新main状態にGUI仕様/検証項目を足して解消。render_builder1.tsは自動統合され、最新入力/自由点/描画compatを保持。
 - GUI検証: pnpm build全4ターゲット（warningなし）、rail-patch/runtime-dispatch/appleextended/input/kaizpatch/rail-boundary/free-endpoint/train-debug全成功、render_builder1.tsのPrettier確認成功。GUIテクスチャとrenderToolGuiが入ったZIP102ファイル、include欠落なし、不要JSON/gui_base.xcfなし。既存main ZIPを保持し、GUI成果物はSuperRailBuilderX-0.2.0-builder1-gui.zipへ別名保存。
 - 未実施: GUIの画面/スケール/色/透過/3D表示の実機再確認、本番での実行。既存mainの両ModはJava変更なしで再利用する。ユーザーの未追跡gui_base.xcfは保持しGitへ追加しない。
+- GUI同期: merge df0d3d8をorigin/feature/builder1-guiへpush成功（963f30e→df0d3d8）。整形後に全4build/ZIPを再生成し、最終GUI ZIP SHA256 9e75847362539aa34b77035aa43b68261357a0be595bd04a3661e341daf5b84d。現在のチェックアウトはGUIブランチ。本番未操作。
