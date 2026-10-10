@@ -52,7 +52,7 @@ type BranchClientUpdate = {
 type State = {
 	split: SplitTarget | null;
 	end: SRBXBuilderPoint | null;
-	snap: boolean;
+	snapMode: "off" | "distance" | "block";
 	snapIndex: number;
 	locked: boolean;
 	radius: number;
@@ -62,7 +62,7 @@ type State = {
 	ignored: { [k: string]: boolean };
 };
 const states: WeakHashMap<EntityVehicle, State> = new WeakHashMap();
-const snapAngles = [1, 5, 15, 45];
+const snapAngles = [1, 5, 15];
 let keys: InputManager,
 	body: Parts,
 	hoverCursor: Parts,
@@ -107,7 +107,7 @@ function getState(e: EntityVehicle): State {
 		s = {
 			split: null,
 			end: null,
-			snap: false,
+			snapMode: "off",
 			snapIndex: 1,
 			locked: false,
 			radius: MAX_RADIUS,
@@ -410,33 +410,47 @@ function freePoint(
 		looking.posY + DEFAULT_HEIGHT,
 		looking.posZ,
 	];
-	if (s.snap) {
+	if (s.snapMode === "block") {
+		p = SRBXMath.roundPosition(
+			[looking.posX, looking.posY, looking.posZ],
+			0.5,
+		);
+		p[1] += DEFAULT_HEIGHT;
+	} else if (s.snapMode === "distance") {
 		const yaw = SRBXMath.snapDegrees(
 				SRBXMath.horizontalYaw(s.split!.position, p),
 				snapAngles[s.snapIndex],
 			),
 			distance = SRBXMath.roundToStep(
-				SRBXMath.horizontalDistance(s.split!.position, p),
+				SRBXMath.distance(s.split!.position, p),
 				0.5,
 			);
+		const pitch =
+			(Math.atan2(
+				p[1] - s.split!.position[1],
+				SRBXMath.horizontalDistance(s.split!.position, p),
+			) *
+				180) /
+			Math.PI;
 		p = SRBXMath.pointAtYawPitchDistance(
 			s.split!.position,
 			yaw,
-			0,
+			pitch,
 			distance,
 		);
-		p[1] = Math.round(p[1] * 2) / 2 + DEFAULT_HEIGHT;
 	}
 	if (s.locked && s.radius < MAX_RADIUS) {
 		const direct = SRBXMath.horizontalYaw(s.split!.position, p),
 			base = bestRootYaw(s.split!, p),
 			side = SRBXMath.relativeDegrees(direct, base) <= 0 ? 1 : -1;
-		p = SRBXMath.continueCircularCurve(
+		const curve = SRBXMath.continueCircularCurve(
 			s.split!.position,
 			base,
 			s.radius * side,
 			SRBXMath.horizontalDistance(s.split!.position, p),
 		).position;
+		p[0] = curve[0];
+		p[2] = curve[2];
 	}
 	const yaw = SRBXMath.horizontalYaw(s.split!.position, p);
 	return {
@@ -801,16 +815,21 @@ function help(sender: ICommandSender) {
 		sender,
 		"[右クリック] 分割点→自由点/別レール端点を選択",
 	);
+	NGTLog.sendChatMessage(sender, "[左クリック] 1段階戻る");
+	NGTLog.sendChatMessage(sender, "[P] スナップOFF→距離→ブロックを切替");
 	NGTLog.sendChatMessage(
 		sender,
-		"[左クリック] 1段階戻る / [P, Ctrl+P] スナップ設定",
+		"[Ctrl+P] 距離スナップの角度を1/5/15度に切替",
 	);
-	NGTLog.sendChatMessage(
-		sender,
-		"[O] 半径固定 / [←→, Ctrl+←→] 半径を1m/100m変更",
-	);
+	NGTLog.sendChatMessage(sender, "[O] 半径固定を切替");
+	NGTLog.sendChatMessage(sender, "[←] 固定半径を1m減少");
+	NGTLog.sendChatMessage(sender, "[→] 固定半径を1m増加");
+	NGTLog.sendChatMessage(sender, "[Ctrl+←] 固定半径を100m減少");
+	NGTLog.sendChatMessage(sender, "[Ctrl+→] 固定半径を100m増加");
 	NGTLog.sendChatMessage(sender, keys.getDescription("build"));
 	NGTLog.sendChatMessage(sender, keys.getDescription("undo"));
+	NGTLog.sendChatMessage(sender, keys.getDescription("exit"));
+	SRBXToolGui.helpFooter(sender);
 }
 function input(
 	host: EntityPlayer,
@@ -825,10 +844,15 @@ function input(
 	if (keys.pressed("help")) help(sender);
 	if (keys.down("exit")) d.setBoolean("isEndEdit", true, 1);
 	if (keys.pressed("snap")) {
-		s.snap = !s.snap;
+		s.snapMode =
+			s.snapMode === "off"
+				? "distance"
+				: s.snapMode === "distance"
+					? "block"
+					: "off";
 		NGTLog.sendChatMessage(
 			sender,
-			`[SuperRailBuilderX] スナップ: ${s.snap ? "ON" : "OFF"}`,
+			`[SuperRailBuilderX] スナップ: ${s.snapMode === "off" ? "OFF" : s.snapMode === "distance" ? "\u8ddd\u96e2" : "\u30d6\u30ed\u30c3\u30af"}`,
 		);
 	}
 	if (keys.pressed("snapAngle")) {
@@ -928,6 +952,17 @@ function renderToolGui(
 	previewRadius: number | null,
 ): void {
 	SRBXToolGui.render("分岐生成", GUI_TOOL_ICON, [
+		{
+			iconX: 4,
+			iconY: 0,
+			enabled: s.snapMode !== "off",
+			label:
+				s.snapMode === "block"
+					? "\u30d6\u30ed\u30c3\u30af"
+					: s.snapMode === "distance"
+						? snapAngles[s.snapIndex] + "°"
+						: "",
+		},
 		{
 			iconX: 4,
 			iconY: 1,

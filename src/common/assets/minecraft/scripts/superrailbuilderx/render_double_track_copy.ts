@@ -705,6 +705,7 @@ function showHelp(sender: ICommandSender): void {
 	NGTLog.sendChatMessage(sender, keys.getDescription("create"));
 	NGTLog.sendChatMessage(sender, keys.getDescription("undo"));
 	NGTLog.sendChatMessage(sender, keys.getDescription("exit"));
+	SRBXToolGui.helpFooter(sender);
 }
 
 function sendRequest(

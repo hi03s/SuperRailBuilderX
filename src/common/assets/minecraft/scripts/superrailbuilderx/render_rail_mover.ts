@@ -1215,6 +1215,7 @@ function handleInput(
 			"[Ctrl+右クリック] 選択を固定して移動先を確定",
 		);
 		NGTLog.sendChatMessage(sender, keys.getDescription("exit"));
+		SRBXToolGui.helpFooter(sender);
 	}
 	if (keys.down("exit")) dataMap.setBoolean("isEndEdit", true, 1);
 	if (keys.pressed("snap")) {
@@ -1499,13 +1500,18 @@ function render(
 		});
 	}
 	const candidates =
-		!state.awaitingResult && state.stage === 0
+		!state.awaitingResult &&
+		state.stage === 0 &&
+		!Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)
 			? findCandidates(entity, partialTicks)
 			: [];
 	for (let i = 0; i < candidates.length; i++)
 		renderMarker(entity, partialTicks, candidates[i].position, point);
 	const hoverRail =
-		!state.awaitingResult && state.stage <= 1 && !state.selected
+		!state.awaitingResult &&
+		state.stage <= 1 &&
+		!state.selected &&
+		!Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)
 			? findHoverRail(entity, partialTicks)
 			: null;
 	let hoverSelected = false;

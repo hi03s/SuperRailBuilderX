@@ -7,6 +7,7 @@ let drawn;
 const context = vm.createContext({
 	GUI_TOOL_ICON: "icon",
 	MAX_RADIUS: 10000,
+	snapAngles: [1, 5, 15],
 	renderSharedGui: (title, icon, rows) => {
 		drawn = JSON.parse(JSON.stringify({ title, icon, rows }));
 	},
@@ -139,24 +140,53 @@ for (let gaugeIndex = 0; gaugeIndex < context.GAUGES.length; gaugeIndex++) {
 	);
 }
 const branch = load("branch_builder");
-context.renderToolGui({ locked: false, split: null }, null, null);
-assert.deepStrictEqual(
-	drawn.rows.map((r) => r.label),
-	["", ""],
+context.renderToolGui(
+	{ snapMode: "block", locked: false, split: null },
+	null,
+	null,
 );
-context.renderToolGui({ locked: false, split: {} }, 20.123, -250.6);
-assert.deepStrictEqual(
-	drawn.rows.map((r) => r.label),
-	["251 m", "20.12 m"],
-);
-context.renderToolGui({ locked: true, radius: 10000, split: {} }, null, 250);
-assert.deepStrictEqual(
-	drawn.rows.map((r) => r.label),
-	["直線", "0.00 m"],
-);
+assert.equal(drawn.rows[0].label, "ブロック");
 assert.equal(drawn.rows[0].enabled, true);
-context.renderToolGui({ locked: false, split: {} }, 5, Infinity);
-assert.equal(drawn.rows[0].label, "直線");
+context.renderToolGui(
+	{ snapMode: "distance", snapIndex: 1, locked: false, split: null },
+	null,
+	null,
+);
+assert.equal(drawn.rows[0].label, "5°");
+context.renderToolGui(
+	{ snapMode: "off", locked: false, split: null },
+	null,
+	null,
+);
+assert.deepStrictEqual(
+	drawn.rows.map((r) => r.label),
+	["", "", ""],
+);
+context.renderToolGui(
+	{ snapMode: "off", locked: false, split: {} },
+	20.123,
+	-250.6,
+);
+assert.deepStrictEqual(
+	drawn.rows.map((r) => r.label),
+	["", "251 m", "20.12 m"],
+);
+context.renderToolGui(
+	{ snapMode: "off", locked: true, radius: 10000, split: {} },
+	null,
+	250,
+);
+assert.deepStrictEqual(
+	drawn.rows.map((r) => r.label),
+	["", "直線", "0.00 m"],
+);
+assert.equal(drawn.rows[1].enabled, true);
+context.renderToolGui(
+	{ snapMode: "off", locked: false, split: {} },
+	5,
+	Infinity,
+);
+assert.equal(drawn.rows[1].label, "直線");
 // Length is accumulated on the actual displayed 3D polyline, including curved/sloped paths.
 vm.runInContext(read("SRBXMath"), context);
 vm.runInContext(fn(branch, "preview"), context);

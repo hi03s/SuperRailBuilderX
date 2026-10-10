@@ -1,13 +1,15 @@
 import { SRBXToolGui } from "./SRBXToolGui";
 import { ResourceLocation } from "net.minecraft.util";
-import { SRBXRailBoundary } from "./SRBXRailBoundary";
 import { SRBXRailHighlight } from "./SRBXRailHighlight";
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { MCWrapperClient, NGTUtilClient } from "jp.ngt.ngtlib.util";
 import { EntityVehicle } from "jp.ngt.rtm.entity.vehicle";
 import { ModelSetVehicle } from "jp.ngt.rtm.modelpack.modelset";
 import { ModelObject, Parts, VehiclePartsRenderer } from "jp.ngt.rtm.render";
-import { TileEntityLargeRailBase } from "jp.ngt.rtm.rail";
+import {
+	TileEntityLargeRailBase,
+	TileEntityLargeRailCore,
+} from "jp.ngt.rtm.rail";
 import { RailMap, RailPosition } from "jp.ngt.rtm.rail.util";
 import { ICommandSender } from "net.minecraft.command";
 import { EntityPlayer } from "net.minecraft.entity.player";
@@ -38,10 +40,16 @@ const GAUGES: Gauge[] = [
 	{ gauge: 1435, name: "1435mm (新幹線)", maxCant: 200 },
 	{ gauge: 1000, name: "1000mm (モノレール)", maxCant: 110 },
 ];
-type Candidate = SRBXCantTarget & {
+type CantEndpoint = SRBXCantTarget & {
 	height: number;
 	radius: number;
-	mode: "edge" | "center" | "split";
+	sign: number;
+};
+type Candidate = {
+	core: [number, number, number];
+	railKey: string;
+	position: [number, number, number];
+	endpoints: CantEndpoint[];
 };
 type State = {
 	speed: number;
@@ -54,8 +62,7 @@ type State = {
 const states: WeakHashMap<EntityVehicle, State> = new WeakHashMap();
 let keys: InputManager;
 let body: Parts, hoverCursor: Parts, selectedCursor: Parts, cantMM: Parts;
-let cantDigits: Parts[] = [],
-	curveDigits: Parts[] = [];
+let cantDigits: Parts[] = [];
 
 function init(a: ModelSetVehicle, b: ModelObject): void {
 	void a;
@@ -72,7 +79,6 @@ function init(a: ModelSetVehicle, b: ModelObject): void {
 	cantMM = renderer.registerParts(new Parts("cantPanel_mm"));
 	for (let i = 0; i <= 9; i++) {
 		cantDigits.push(renderer.registerParts(new Parts(`cantPanel_${i}`)));
-		curveDigits.push(renderer.registerParts(new Parts(`curvePanel_${i}`)));
 	}
 }
 function state(entity: EntityVehicle): State {
@@ -94,187 +100,114 @@ function point(map: RailMap, i: number): [number, number, number] {
 	const p = map.getRailPos(1000, i);
 	return [p[1], map.getRailHeight(1000, i), p[0]];
 }
+function railEndpoints(
+	core: TileEntityLargeRailCore,
+	map: RailMap,
+	s: State,
+): CantEndpoint[] {
+	const positions = SRBXApiCompat.getEditableRailPositions(core);
+	if (!positions || positions.length !== 2) return [];
+	const length = map.getLength(),
+		split = Math.max(2, Math.floor(length * 2));
+	const sample = Math.max(1, Math.floor(split * 0.02));
+	const endpoints: CantEndpoint[] = [];
+	for (let index = 0; index < 2; index++) {
+		const rp = positions[index],
+			at = index === 0 ? 0 : split;
+		const from = Math.max(0, at - sample),
+			to = Math.min(split, at + sample);
+		const delta = SRBXMath.relativeDegrees(
+			RTMApiCompat.getRailYaw(map, split, to),
+			RTMApiCompat.getRailYaw(map, split, from),
+		);
+		const arc = Math.max(0.001, (length * (to - from)) / split);
+		const radius =
+			Math.abs(delta) < 0.0001
+				? Infinity
+				: Math.abs(arc / ((delta * Math.PI) / 180));
+		const sign = (delta >= 0 ? -1 : 1) * (index === 1 ? -1 : 1);
+		endpoints.push({
+			core: SRBXApiCompat.getRailCorePos(core),
+			railKey: SRBXApiCompat.getRailPositionCandidateKey(core),
+			index,
+			position: [rp.posX, rp.posY, rp.posZ],
+			yaw: SRBXApiCompat.getHorizontalAnchorYaw(rp),
+			mode: "edge",
+			radius,
+			sign,
+			height: 0,
+			angle: 0,
+		});
+	}
+	updateEndpointCants(endpoints, s);
+	return endpoints;
+}
+function updateEndpointCants(endpoints: CantEndpoint[], s: State): void {
+	const gauge = GAUGES[s.gaugeIndex];
+	for (let i = 0; i < endpoints.length; i++) {
+		const endpoint = endpoints[i];
+		endpoint.height = isFinite(endpoint.radius)
+			? Math.min(
+					gauge.maxCant,
+					Math.max(
+						0,
+						Math.round(
+							(gauge.gauge * s.speed * s.speed) /
+								(127 * endpoint.radius),
+						),
+					),
+				)
+			: 0;
+		endpoint.angle =
+			((Math.asin(endpoint.height / gauge.gauge) * 180) / Math.PI) *
+			endpoint.sign;
+	}
+}
 function candidate(
 	entity: EntityVehicle,
 	partialTicks: number,
 ): Candidate | null {
 	const looking = NGTOBuilderUtilClient.getLookingPos(partialTicks);
 	if (!looking) return null;
-	const world = SRBXApiCompat.getWorld(entity);
-	const seen: { [k: string]: boolean } = {};
+	const world = SRBXApiCompat.getWorld(entity),
+		seen: { [key: string]: boolean } = {};
+	const cores = SRBXApiCompat.getLoadedRailCores(
+		world,
+		looking.posX,
+		looking.posZ,
+		48,
+	);
 	let best: Candidate | null = null,
-		bestD = 4;
-	const endpointCandidates: Candidate[] = [],
-		loadedCores = SRBXApiCompat.getLoadedRailCores(
-			world,
-			looking.posX,
-			looking.posZ,
-			48,
-		);
-	for (let loadedIndex = 0; loadedIndex < loadedCores.length; loadedIndex++) {
-		const core = loadedCores[loadedIndex];
+		bestDistance = 4;
+	for (let i = 0; i < cores.length; i++) {
+		const core = cores[i];
 		if (
 			!core ||
 			SRBXApiCompat.getRailPositionUnsupportedReason(core) !== ""
 		)
 			continue;
-		const railKey = SRBXApiCompat.getRailPositionCandidateKey(core);
-		if (seen[railKey]) continue;
-		seen[railKey] = true;
+		const key = SRBXApiCompat.getRailPositionCandidateKey(core);
+		if (seen[key]) continue;
+		seen[key] = true;
 		const map = SRBXApiCompat.getLogicalRailMap(core);
 		if (!map) continue;
-		const rps = SRBXApiCompat.getEditableRailPositions(core),
-			length = map.getLength(),
-			split = Math.max(2, Math.floor(length * 2)),
-			corePos = SRBXApiCompat.getRailCorePos(core),
-			g = GAUGES[state(entity).gaugeIndex],
-			near = map.getNearlestPoint(split, looking.posX, looking.posZ),
-			ratio = near / split,
-			nearPosition = point(map, Math.round(ratio * 1000)),
-			railDistance =
-				Math.pow(nearPosition[0] - looking.posX, 2) +
-				Math.pow(nearPosition[1] - looking.posY, 2) +
-				Math.pow(nearPosition[2] - looking.posZ, 2),
-			startDistance = length * ratio,
-			endDistance = length * (1 - ratio),
-			centerDistance = Math.abs(length * (ratio - 0.5));
-		if (railDistance >= 4) continue;
-		let mode: "edge" | "center" | "split" = "split",
-			targetIndex = near,
-			targetRatio = ratio,
-			targetPosition = nearPosition,
-			targetEnd = -1;
-		if (
-			startDistance <= 10 &&
-			startDistance <= endDistance &&
-			startDistance <= centerDistance
-		) {
-			mode = "edge";
-			targetIndex = 0;
-			targetRatio = 0;
-			targetPosition = [rps[0].posX, rps[0].posY, rps[0].posZ];
-			targetEnd = 0;
-		} else if (endDistance <= 10 && endDistance <= centerDistance) {
-			mode = "edge";
-			targetIndex = split;
-			targetRatio = 1;
-			targetPosition = [rps[1].posX, rps[1].posY, rps[1].posZ];
-			targetEnd = 1;
-		} else if (centerDistance <= 10) {
-			mode = "center";
-			targetIndex = Math.floor(split / 2);
-			targetRatio = 0.5;
-			targetPosition = point(map, 500);
-		}
-		if (mode === "split" && SRBXApiCompat.requiresRailBoundarySnap()) {
-			const boundary = SRBXRailBoundary.findMapBoundary(
-				map,
-				targetRatio,
-				0.001 / length,
-				1 - 0.001 / length,
-			);
-			if (!boundary) continue;
-			targetRatio = boundary.ratio;
-			targetIndex = targetRatio * split;
-			targetPosition = boundary.position;
-		}
-		const consider = (
-			index: number,
-			ratio: number,
-			position: [number, number, number],
-			directionPoint?: [number, number, number],
-		) => {
-			void directionPoint;
-			const d =
-				Math.pow(position[0] - looking.posX, 2) +
-				Math.pow(position[1] - looking.posY, 2) +
-				Math.pow(position[2] - looking.posZ, 2);
-			const sample = Math.max(1, Math.floor(split * 0.02)),
-				aIndex = Math.max(0, index - sample),
-				bIndex = Math.min(split, index + sample),
-				a = RTMApiCompat.getRailYaw(map, split, aIndex),
-				b = RTMApiCompat.getRailYaw(map, split, bIndex),
-				delta = SRBXMath.relativeDegrees(b, a),
-				arc = Math.max(0.001, (length * (bIndex - aIndex)) / split),
-				radius =
-					Math.abs(delta) < 0.0001
-						? Infinity
-						: Math.abs(arc / ((delta * Math.PI) / 180)),
-				height = isFinite(radius)
-					? Math.min(
-							g.maxCant,
-							Math.max(
-								0,
-								Math.round(
-									(g.gauge *
-										state(entity).speed *
-										state(entity).speed) /
-										(127 * radius),
-								),
-							),
-						)
-					: 0,
-				physicalAngle =
-					((Math.asin(height / g.gauge) * 180) / Math.PI) *
-					(delta >= 0 ? -1 : 1),
-				angle =
-					mode === "edge" && index === split
-						? -physicalAngle
-						: physicalAngle;
-			const candidate: Candidate = {
-				core: corePos,
-				railKey,
-				index: mode === "edge" ? targetEnd : -1,
-				position,
-				angle,
-				height,
-				radius,
-				mode,
-				ratio,
-				yaw:
-					mode === "edge"
-						? SRBXApiCompat.getHorizontalAnchorYaw(rps[targetEnd])
-						: RTMApiCompat.getRailYaw(map, split, index),
-			};
-			if (mode === "edge") endpointCandidates.push(candidate);
-			if (d >= bestD) return;
-			bestD = d;
-			best = candidate;
+		const split = Math.max(2, Math.floor(map.getLength() * 2));
+		const near = map.getNearlestPoint(split, looking.posX, looking.posZ);
+		const position = point(map, Math.round((near / split) * 1000));
+		const distance =
+			Math.pow(position[0] - looking.posX, 2) +
+			Math.pow(position[1] - looking.posY, 2) +
+			Math.pow(position[2] - looking.posZ, 2);
+		if (distance >= bestDistance) continue;
+		const endpoints = railEndpoints(core, map, state(entity));
+		if (endpoints.length !== 2) continue;
+		bestDistance = distance;
+		best = {
+			core: SRBXApiCompat.getRailCorePos(core),
+			railKey: key,
+			position,
+			endpoints,
 		};
-		const directionSample = Math.max(
-			1,
-			Math.min(
-				999,
-				Math.round((Math.min(10, length * 0.25) * 1000) / length),
-			),
-		);
-		consider(
-			targetIndex,
-			targetRatio,
-			targetPosition,
-			targetEnd < 0
-				? undefined
-				: point(
-						map,
-						targetEnd === 0
-							? directionSample
-							: 1000 - directionSample,
-					),
-		);
-	}
-	if (best && best.mode === "edge") {
-		let endpointBest = best;
-		for (let i = 0; i < endpointCandidates.length; i++) {
-			const candidate = endpointCandidates[i];
-			if (
-				Math.abs(candidate.position[0] - best.position[0]) <= 0.001 &&
-				Math.abs(candidate.position[1] - best.position[1]) <= 0.001 &&
-				Math.abs(candidate.position[2] - best.position[2]) <= 0.001 &&
-				candidate.height > endpointBest.height
-			)
-				endpointBest = candidate;
-		}
-		return endpointBest;
 	}
 	return best;
 }
@@ -388,13 +321,20 @@ function help(sender: ICommandSender) {
 			"接続端点はブロック境界へ合わせます。既設の内部端点への接続はできません。",
 		);
 	NGTLog.sendChatMessage(sender, "--- SuperRailBuilderX カント整形 ---");
+	NGTLog.sendChatMessage(sender, "[↑] 設計速度を1km/h増加（長押し可）");
+	NGTLog.sendChatMessage(sender, "[↓] 設計速度を1km/h減少（最低0km/h）");
+	NGTLog.sendChatMessage(sender, "[Ctrl+↑] 設計速度を50km/h増加（長押し可）");
 	NGTLog.sendChatMessage(
 		sender,
-		"[↑/↓] 設計速度を1km/h変更（長押し可・画面表示のみ）",
+		"[Ctrl+↓] 設計速度を50km/h減少（最低0km/h）",
 	);
 	NGTLog.sendChatMessage(
 		sender,
-		"[Ctrl+←/→] レール種類を変更（チャット表示）",
+		"[Ctrl+←] 前のレール種類へ変更（チャット表示）",
+	);
+	NGTLog.sendChatMessage(
+		sender,
+		"[Ctrl+→] 次のレール種類へ変更（チャット表示）",
 	);
 	NGTLog.sendChatMessage(
 		sender,
@@ -406,31 +346,17 @@ function help(sender: ICommandSender) {
 	);
 	NGTLog.sendChatMessage(
 		sender,
-		"[右クリック] 端点・中央・離れたレール上を複数選択 / [左クリック] 1点戻る",
+		"[右クリック] 論理レールを選択/解除（両端にカント適用）",
 	);
+	NGTLog.sendChatMessage(sender, "[左クリック] 最後に選択したレールを解除");
 	NGTLog.sendChatMessage(sender, keys.getDescription("apply"));
 	NGTLog.sendChatMessage(sender, keys.getDescription("undo"));
+	NGTLog.sendChatMessage(sender, keys.getDescription("exit"));
+	SRBXToolGui.helpFooter(sender);
 }
 function recalculateSelected(s: State): void {
-	const gauge = GAUGES[s.gaugeIndex];
-	for (let i = 0; i < s.selected.length; i++) {
-		const target = s.selected[i];
-		const sign = target.angle < 0 ? -1 : 1;
-		target.height = isFinite(target.radius)
-			? Math.min(
-					gauge.maxCant,
-					Math.max(
-						0,
-						Math.round(
-							(gauge.gauge * s.speed * s.speed) /
-								(127 * target.radius),
-						),
-					),
-				)
-			: 0;
-		target.angle =
-			((Math.asin(target.height / gauge.gauge) * 180) / Math.PI) * sign;
-	}
+	for (let i = 0; i < s.selected.length; i++)
+		updateEndpointCants(s.selected[i].endpoints, s);
 }
 function input(
 	host: EntityPlayer,
@@ -447,12 +373,16 @@ function input(
 	const now = Date.now(),
 		up = Keyboard.isKeyDown(Keyboard.KEY_UP),
 		down = Keyboard.isKeyDown(Keyboard.KEY_DOWN);
-	if (
-		!Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) &&
-		(up || down) &&
-		now >= s.repeatAt
-	) {
-		s.speed = Math.max(1, Math.min(999, s.speed + (up ? 1 : -1)));
+	if ((up || down) && now >= s.repeatAt) {
+		s.speed = Math.max(
+			0,
+			Math.min(
+				999,
+				s.speed +
+					(up ? 1 : -1) *
+						(Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) ? 50 : 1),
+			),
+		);
 		recalculateSelected(s);
 		s.repeatAt = now + (s.repeatAt === 0 ? 350 : 75);
 	}
@@ -486,23 +416,20 @@ function input(
 	if (right && !s.awaiting) {
 		const c = candidate(entity, pt);
 		if (c) {
-			NGTLog.debug(
-				`[SuperRailBuilderX cant] selected: railKey=${c.railKey}, mode=${c.mode}, ratio=${c.ratio}, radius=${c.radius}, height=${c.height}, angle=${c.angle}, yaw=${c.yaw}`,
-			);
-			const k = `${c.railKey}:${c.mode}:${Math.round((c.ratio || 0) * 1000000)}`;
 			let found = -1;
 			for (let i = 0; i < s.selected.length; i++)
-				if (
-					`${s.selected[i].railKey}:${s.selected[i].mode}:${Math.round((s.selected[i].ratio || 0) * 1000000)}` ===
-					k
-				)
-					found = i;
+				if (s.selected[i].railKey === c.railKey) found = i;
 			if (found >= 0) s.selected.splice(found, 1);
 			else s.selected.push(c);
 		}
 	}
-	if (keys.pressed("apply") && !s.awaiting && s.selected.length)
-		send(entity, s, { action: "apply", targets: s.selected });
+	if (keys.pressed("apply") && !s.awaiting && s.selected.length) {
+		const targets: SRBXCantTarget[] = [];
+		for (let i = 0; i < s.selected.length; i++)
+			for (let j = 0; j < s.selected[i].endpoints.length; j++)
+				targets.push(s.selected[i].endpoints[j]);
+		send(entity, s, { action: "apply", targets });
+	}
 	if (
 		keys.pressed("undo") &&
 		!s.awaiting &&
@@ -530,43 +457,37 @@ function collectAffectedRails(
 	target: Candidate,
 	result: { [key: string]: RailMap },
 ): void {
-	const world = SRBXApiCompat.getWorld(entity),
-		seen: { [key: string]: boolean } = {};
-	for (let dx = -2; dx <= 2; dx++)
-		for (let dy = -2; dy <= 2; dy++)
-			for (let dz = -2; dz <= 2; dz++) {
-				const tile = SRBXApiCompat.getTileEntity(
-					world,
-					Math.floor(target.position[0]) + dx,
-					Math.floor(target.position[1]) + dy,
-					Math.floor(target.position[2]) + dz,
-				);
-				if (!(tile instanceof TileEntityLargeRailBase)) continue;
-				const core = tile.getRailCore();
-				if (!core) continue;
-				const key = SRBXApiCompat.getRailPositionCandidateKey(core);
-				if (seen[key]) continue;
-				const positions = SRBXApiCompat.getEditableRailPositions(core),
-					map = SRBXApiCompat.getLogicalRailMap(core);
-				if (!positions || !map) continue;
-				let affected = key === target.railKey;
-				if (!affected && target.mode === "edge")
-					for (let i = 0; i < positions.length; i++)
-						if (
-							Math.abs(positions[i].posX - target.position[0]) <=
-								0.001 &&
-							Math.abs(positions[i].posY - target.position[1]) <=
-								0.001 &&
-							Math.abs(positions[i].posZ - target.position[2]) <=
-								0.001
-						)
-							affected = true;
-				if (!affected) continue;
-				seen[key] = true;
-				result[key] = map;
-			}
+	const world = SRBXApiCompat.getWorld(entity);
+	for (let e = 0; e < target.endpoints.length; e++) {
+		const position = target.endpoints[e].position;
+		const cores = SRBXApiCompat.getLoadedRailCores(
+			world,
+			position[0],
+			position[2],
+			48,
+		);
+		for (let i = 0; i < cores.length; i++) {
+			const core = cores[i];
+			if (
+				!core ||
+				SRBXApiCompat.getRailPositionUnsupportedReason(core) !== ""
+			)
+				continue;
+			const key = SRBXApiCompat.getRailPositionCandidateKey(core);
+			if (result[key]) continue;
+			const positions = SRBXApiCompat.getEditableRailPositions(core),
+				map = SRBXApiCompat.getLogicalRailMap(core);
+			if (!positions || !map) continue;
+			for (let j = 0; j < positions.length; j++)
+				if (
+					Math.abs(positions[j].posX - position[0]) <= 0.001 &&
+					Math.abs(positions[j].posY - position[1]) <= 0.001 &&
+					Math.abs(positions[j].posZ - position[2]) <= 0.001
+				)
+					result[key] = map;
+		}
+	}
 }
-
 function renderToolGui(s: State): void {
 	SRBXToolGui.render("カント整形", GUI_TOOL_ICON, [
 		{ iconX: 5, iconY: 0, label: `設計速度:${s.speed}km/h` },
@@ -590,14 +511,51 @@ function render(entity: EntityVehicle, pass: number, pt: number): void {
 	if (!host || host !== player) return;
 	SRBXApiCompat.doFollowing(entity, host);
 	const s = state(entity),
-		hover = candidate(entity, pt),
+		hover = candidate(entity, pt);
+	const selected: { [key: string]: RailMap } = {},
 		affected: { [key: string]: RailMap } = {};
-	for (let i = 0; i < s.selected.length; i++)
-		collectAffectedRails(entity, s.selected[i], affected);
+	for (let i = 0; i < s.selected.length; i++) {
+		const target = s.selected[i];
+		const core = SRBXApiCompat.getTileEntity(
+			world,
+			target.core[0],
+			target.core[1],
+			target.core[2],
+		);
+		if (core instanceof TileEntityLargeRailBase) {
+			const logical = core.getRailCore();
+			if (
+				logical &&
+				SRBXApiCompat.getRailPositionCandidateKey(logical) ===
+					target.railKey
+			) {
+				const map = SRBXApiCompat.getLogicalRailMap(logical);
+				if (map) selected[target.railKey] = map;
+			}
+		}
+		collectAffectedRails(entity, target, affected);
+		for (let j = 0; j < target.endpoints.length; j++) {
+			const end = target.endpoints[j];
+			renderAt(entity, pt, end.position, selectedCursor);
+			panel(entity, pt, end.position, end.height, cantDigits, cantMM);
+		}
+	}
 	const affectedKeys = Object.keys(affected);
-	for (let i = 0; i < affectedKeys.length; i++)
-		renderRailHighlight(entity, pt, affected[affectedKeys[i]], "00ffff");
-	if (hover && hover.mode === "split" && !affected[hover.railKey]) {
+	for (let i = 0; i < affectedKeys.length; i++) {
+		const key = affectedKeys[i];
+		if (!selected[key] && (!hover || hover.railKey !== key))
+			renderRailHighlight(entity, pt, affected[key], "99ff00");
+	}
+	const selectedKeys = Object.keys(selected);
+	for (let i = 0; i < selectedKeys.length; i++)
+		if (!hover || hover.railKey !== selectedKeys[i])
+			renderRailHighlight(
+				entity,
+				pt,
+				selected[selectedKeys[i]],
+				"00ffff",
+			);
+	if (hover) {
 		const tile = SRBXApiCompat.getTileEntity(
 			world,
 			hover.core[0],
@@ -608,29 +566,9 @@ function render(entity: EntityVehicle, pass: number, pt: number): void {
 			tile instanceof TileEntityLargeRailBase ? tile.getRailCore() : null;
 		const map = core ? SRBXApiCompat.getLogicalRailMap(core) : null;
 		if (map) renderRailHighlight(entity, pt, map, "ffff00");
+		renderAt(entity, pt, hover.position, hoverCursor);
 	}
-	if (hover) renderAt(entity, pt, hover.position, hoverCursor);
-	for (let i = 0; i < s.selected.length; i++) {
-		renderAt(entity, pt, s.selected[i].position, selectedCursor);
-		panel(
-			entity,
-			pt,
-			s.selected[i].position,
-			s.selected[i].height,
-			cantDigits,
-			cantMM,
-		);
-	}
-	const look = NGTOBuilderUtilClient.getLookingPos(pt);
-	if (look)
-		panel(
-			entity,
-			pt,
-			[look.posX, look.posY + 1, look.posZ],
-			s.speed,
-			curveDigits,
-			null,
-		);
+
 	const gui = NGTUtilClient.getMinecraft().currentScreen !== null,
 		left = Mouse.isButtonDown(0),
 		right = Mouse.isButtonDown(1),

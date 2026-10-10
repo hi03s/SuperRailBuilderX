@@ -1,6 +1,7 @@
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { NGTUtilClient } from "jp.ngt.ngtlib.util";
 import { Minecraft } from "net.minecraft.client";
+import { ICommandSender } from "net.minecraft.command";
 import { Gui } from "net.minecraft.client.gui";
 import { ResourceLocation } from "net.minecraft.util";
 import { GL11, GL13, GL14 } from "org.lwjgl.opengl";
@@ -404,6 +405,12 @@ function renderSharedGui(
 }
 
 export class SRBXToolGui {
+	static helpFooter(sender: ICommandSender): void {
+		NGTLog.sendChatMessage(
+			sender,
+			"チャット欄を開いてスクロールすると、説明文の全文を確認できます。",
+		);
+	}
 	static render(
 		toolName: string,
 		icon: ResourceLocation,

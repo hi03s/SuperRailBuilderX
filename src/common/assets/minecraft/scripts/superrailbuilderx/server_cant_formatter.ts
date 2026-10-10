@@ -1,7 +1,6 @@
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { EntityVehicle } from "jp.ngt.rtm.entity.vehicle";
 import { ScriptExecuter } from "jp.ngt.rtm.modelpack";
-import { TileEntityLargeRailBase } from "jp.ngt.rtm.rail";
 import { Entity } from "net.minecraft.entity";
 import { EntityPlayer } from "net.minecraft.entity.player";
 import { WeakHashMap } from "java.util";
@@ -16,7 +15,7 @@ const VERSION = "0.2.0";
 export type CantFormatterRequest =
 	{ action: "apply"; targets: SRBXCantTarget[] } | { action: "undo" };
 const hosts: WeakHashMap<Entity, EntityPlayer> = new WeakHashMap();
-type CantUndo = { cantToken: string | null; splitTokens: string[] };
+type CantUndo = { cantToken: string };
 const undoRecords: WeakHashMap<EntityVehicle, CantUndo[]> = new WeakHashMap();
 type ClientUpdate = {
 	refreshed: Array<[number, number, number]>;
@@ -37,79 +36,10 @@ function appendUniqueCore(
 	target.push(value);
 }
 
-function appendSplitUpdate(target: ClientUpdate): void {
-	const update = SRBXApiCompat.consumeLastSplitClientUpdate();
-	if (!update) return;
-	for (let i = 0; i < update.refreshed.length; i++)
-		appendUniqueCore(target.refreshed, update.refreshed[i].core);
-	for (let i = 0; i < update.removed.length; i++)
-		target.removed.push(update.removed[i]);
-}
-
 function appendCantUpdate(target: ClientUpdate): void {
 	const refreshed = SRBXApiCompat.consumeLastCantClientUpdate();
 	for (let i = 0; i < refreshed.length; i++)
 		appendUniqueCore(target.refreshed, refreshed[i]);
-}
-
-function resolveSplitEndpoint(
-	entity: EntityVehicle,
-	target: SRBXCantTarget,
-	update: ClientUpdate,
-): SRBXCantTarget | null {
-	const world = SRBXApiCompat.getWorld(entity);
-	let best: SRBXCantTarget | null = null,
-		bestDistance = 0.75 * 0.75;
-	for (let i = 0; i < update.refreshed.length; i++) {
-		const pos = update.refreshed[i],
-			tile = SRBXApiCompat.getTileEntity(world, pos[0], pos[1], pos[2]);
-		if (!(tile instanceof TileEntityLargeRailBase)) continue;
-		const core = tile.getRailCore();
-		if (
-			!core ||
-			SRBXApiCompat.getRailPositionUnsupportedReason(core) !== ""
-		)
-			continue;
-		const positions = SRBXApiCompat.getEditableRailPositions(core),
-			map = SRBXApiCompat.getLogicalRailMap(core);
-		if (!positions || positions.length !== 2 || !map) continue;
-		for (let index = 0; index < positions.length; index++) {
-			const rp = positions[index];
-			const dx = rp.posX - target.position[0],
-				dz = rp.posZ - target.position[2],
-				distance = dx * dx + dz * dz;
-			if (distance > bestDistance) continue;
-			const endpointYaw = SRBXApiCompat.getHorizontalAnchorYaw(rp),
-				delta =
-					target.yaw === undefined
-						? 0
-						: Math.abs(
-								((endpointYaw - target.yaw + 540) % 360) - 180,
-							);
-			bestDistance = distance;
-			best = {
-				core: SRBXApiCompat.getRailCorePos(core),
-				railKey: SRBXApiCompat.getRailPositionCandidateKey(core),
-				index,
-				position: [rp.posX, rp.posY, rp.posZ],
-				angle: delta > 90 ? -target.angle : target.angle,
-				mode: "edge",
-			};
-		}
-	}
-	return best;
-}
-
-function rollbackSplits(
-	world: any,
-	player: EntityPlayer,
-	tokens: string[],
-	update: ClientUpdate,
-): void {
-	for (let i = tokens.length - 1; i >= 0; i--) {
-		SRBXApiCompat.undoSplitBuilderRail(world, player, tokens[i]);
-		appendSplitUpdate(update);
-	}
 }
 
 function process(
@@ -117,6 +47,7 @@ function process(
 	player: EntityPlayer,
 	request: CantFormatterRequest,
 ): { status: string; update: ClientUpdate } {
+	void player;
 	const world = SRBXApiCompat.getWorld(entity);
 	const update: ClientUpdate = { refreshed: [], removed: [] };
 	if (!request || (request.action !== "apply" && request.action !== "undo"))
@@ -126,63 +57,34 @@ function process(
 		if (!stack || stack.length === 0)
 			return { status: "nothing_to_undo", update };
 		const record = stack[stack.length - 1];
-		if (record.cantToken) {
-			const cantStatus = SRBXApiCompat.undoRailCants(
-				world,
-				record.cantToken,
-			);
-			appendCantUpdate(update);
-			if (cantStatus !== "undo_ok") return { status: cantStatus, update };
-			record.cantToken = null;
-		}
-		while (record.splitTokens.length > 0) {
-			const token = record.splitTokens[record.splitTokens.length - 1];
-			const splitStatus = SRBXApiCompat.undoSplitBuilderRail(
-				world,
-				player,
-				token,
-			);
-			appendSplitUpdate(update);
-			if (splitStatus !== "undo_ok")
-				return { status: splitStatus, update };
-			record.splitTokens.pop();
-		}
+		const cantStatus = SRBXApiCompat.undoRailCants(world, record.cantToken);
+		appendCantUpdate(update);
+		if (cantStatus !== "undo_ok") return { status: cantStatus, update };
 		stack.pop();
 		if (stack.length === 0) undoRecords.remove(entity);
 		return { status: "undo_ok", update };
 	}
-	const splitTokens: string[] = [],
-		targets: SRBXCantTarget[] = [];
+	if (!request.targets || request.targets.length === 0)
+		return { status: "no_selection", update };
+	const pairs: { [key: string]: number } = {};
 	for (let i = 0; i < request.targets.length; i++) {
 		const target = request.targets[i];
-		if (target.mode !== "split") {
-			targets.push(target);
-			continue;
-		}
-		if (target.ratio === undefined) {
-			rollbackSplits(world, player, splitTokens, update);
-			return { status: "invalid_split", update };
-		}
-		const split = SRBXApiCompat.splitBuilderRail(
-			world,
-			player,
-			target.core,
-			target.railKey,
-			target.ratio,
-		);
-		appendSplitUpdate(update);
-		if (split.status !== "ok" || !split.undoToken) {
-			rollbackSplits(world, player, splitTokens, update);
-			return { status: `split_${split.status}`, update };
-		}
-		splitTokens.push(split.undoToken);
-		const endpoint = resolveSplitEndpoint(entity, target, update);
-		if (!endpoint) {
-			rollbackSplits(world, player, splitTokens, update);
-			return { status: "split_endpoint_not_found", update };
-		}
-		targets.push(endpoint);
+		if (
+			!target ||
+			target.mode !== "edge" ||
+			(target.index !== 0 && target.index !== 1)
+		)
+			return { status: "invalid_endpoint", update };
+		const key = target.railKey;
+		if ((pairs[key] || 0) & (1 << target.index))
+			return { status: "invalid_endpoint", update };
+		pairs[key] = (pairs[key] || 0) | (1 << target.index);
 	}
+	const railKeys = Object.keys(pairs);
+	for (let i = 0; i < railKeys.length; i++)
+		if (pairs[railKeys[i]] !== 3)
+			return { status: "invalid_endpoint", update };
+	const targets = request.targets;
 	const result = SRBXApiCompat.applyRailCants(world, targets);
 	appendCantUpdate(update);
 	if (result.status === "ok" && result.undoToken) {
@@ -191,9 +93,8 @@ function process(
 			stack = [];
 			undoRecords.put(entity, stack);
 		}
-		stack.push({ cantToken: result.undoToken, splitTokens });
-	} else if (result.status !== "ok")
-		rollbackSplits(world, player, splitTokens, update);
+		stack.push({ cantToken: result.undoToken });
+	}
 	return { status: result.status, update };
 }
 

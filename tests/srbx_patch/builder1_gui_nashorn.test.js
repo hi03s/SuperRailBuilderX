@@ -182,13 +182,36 @@ var otherCases = [
 	],
 	[
 		"branch_builder",
-		[{ locked: false, split: {} }, 12.345, Infinity],
+		[{ snapMode: "off", locked: false, split: {} }, 12.345, Infinity],
 		["\u5206\u5c90\u751f\u6210", "\u76f4\u7dda", "12.35 m"]
 	],
 	[
 		"branch_builder",
-		[{ locked: true, radius: 10000, split: null }, null, null],
+		[
+			{ snapMode: "off", locked: true, radius: 10000, split: null },
+			null,
+			null
+		],
 		["\u5206\u5c90\u751f\u6210", "\u76f4\u7dda"]
+	],
+	[
+		"branch_builder",
+		[{ snapMode: "block", locked: false, split: {} }, 12.345, Infinity],
+		[
+			"\u5206\u5c90\u751f\u6210",
+			"\u30d6\u30ed\u30c3\u30af",
+			"\u76f4\u7dda",
+			"12.35 m"
+		]
+	],
+	[
+		"branch_builder",
+		[
+			{ snapMode: "distance", snapIndex: 1, locked: false, split: null },
+			null,
+			null
+		],
+		["\u5206\u5c90\u751f\u6210", "5\u00b0"]
 	]
 ];
 var MAX_RADIUS = 10000;

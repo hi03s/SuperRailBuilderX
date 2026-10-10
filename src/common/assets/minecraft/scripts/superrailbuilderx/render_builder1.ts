@@ -1186,17 +1186,31 @@ function showHelp(sender: ICommandSender): void {
 	NGTLog.sendChatMessage(sender, keys.getDescription("snap"));
 	NGTLog.sendChatMessage(sender, keys.getDescription("snapAngle"));
 	NGTLog.sendChatMessage(sender, keys.getDescription("radiusLock"));
-	NGTLog.sendChatMessage(sender, "[←/→] 固定半径を1m変更");
-	NGTLog.sendChatMessage(sender, "[Ctrl+←/→] 固定半径を100m変更");
-	NGTLog.sendChatMessage(sender, "[↑/↓] 高さを1mまたは目標勾配を1‰変更");
+	NGTLog.sendChatMessage(sender, "[←] 固定半径を1m減少");
+	NGTLog.sendChatMessage(sender, "[→] 固定半径を1m増加");
+	NGTLog.sendChatMessage(sender, "[Ctrl+←] 固定半径を100m減少");
+	NGTLog.sendChatMessage(sender, "[Ctrl+→] 固定半径を100m増加");
 	NGTLog.sendChatMessage(
 		sender,
-		"[Ctrl+↑/↓] 高さを1/16mまたは縦曲線半径を1000m変更",
+		"[↑] 高さを1m増加（既設接続時は目標勾配を1‰増加）",
+	);
+	NGTLog.sendChatMessage(
+		sender,
+		"[↓] 高さを1m減少（既設接続時は目標勾配を1‰減少）",
+	);
+	NGTLog.sendChatMessage(
+		sender,
+		"[Ctrl+↑] 高さを1/16m増加（既設接続時は縦曲線半径を1000m増加）",
+	);
+	NGTLog.sendChatMessage(
+		sender,
+		"[Ctrl+↓] 高さを1/16m減少（既設接続時は縦曲線半径を1000m減少）",
 	);
 	NGTLog.sendChatMessage(sender, keys.getDescription("heightReset"));
 	NGTLog.sendChatMessage(sender, keys.getDescription("slopeGroundAlign"));
 	NGTLog.sendChatMessage(sender, keys.getDescription("undo"));
 	NGTLog.sendChatMessage(sender, keys.getDescription("exit"));
+	SRBXToolGui.helpFooter(sender);
 }
 
 function renderToolGui(
