@@ -12,6 +12,7 @@ import {
 	SRBXBuilderPoint,
 } from "@target/assets/minecraft/scripts/superrailbuilderx/SRBXApiCompat";
 import { SRBXMath } from "./SRBXMath";
+import { SRBXBuilderGeometry, SRBXBuilderDesign } from "./SRBXBuilderGeometry";
 
 const VERSION = "0.3.0";
 
@@ -20,6 +21,7 @@ export type Builder1Request =
 			action: "create";
 			start: SRBXBuilderPoint;
 			end: SRBXBuilderPoint;
+			design?: SRBXBuilderDesign;
 	  }
 	| { action: "undo" };
 
@@ -60,6 +62,16 @@ function processRequest(
 	}
 	const dataMap = entity.getResourceState().getDataMap();
 	dataMap.setBoolean("builder1CreatedAsNormalCrossing", false, 1);
+	if (SRBXApiCompat.getToolModel(entity) === "SuperRailBuilderX_builder2") {
+		const planned = SRBXBuilderGeometry.plan(request.start, request.design);
+		if (!planned) return "invalid_design";
+		request = {
+			action: "create",
+			start: planned[0],
+			end: planned[1],
+			design: request.design,
+		};
+	}
 	const segments = SRBXMath.planVerticalRailSegments(
 		request.start,
 		request.end,

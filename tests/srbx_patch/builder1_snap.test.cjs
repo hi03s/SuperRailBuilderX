@@ -5,6 +5,7 @@ const dir = "dist/assets/minecraft/scripts/superrailbuilderx/";
 const source = fs.readFileSync(dir + "render_builder1.js", "utf8");
 let looking = { posX: -2.24, posY: 4.21, posZ: 3.76 };
 const context = vm.createContext({
+	builderB: false,
 	DEFAULT_RAIL_HEIGHT: 1 / 16,
 	snapAngles: [1, 5, 15],
 	NGTOBuilderUtilClient: { getLookingPos: () => looking },
@@ -46,8 +47,8 @@ assert.deepStrictEqual(
 state.heightOffsetSixteenths = 8;
 assert.deepStrictEqual(
 	cursor(),
-	[-2, 4.5625, 4],
-	"Height offset is applied before grid snapping",
+	[-2, 4.0625, 4],
+	"Legacy height offset no longer changes cursor height",
 );
 state.heightOffsetSixteenths = 0;
 state.snapMode = "off";

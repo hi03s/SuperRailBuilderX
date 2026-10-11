@@ -92,7 +92,7 @@ screen.func_73863_a(200, 150, 0);
 if (values.srbxToolSwitchRequest) throw new Error("Switch before release");
 tab = false;
 screen.func_73876_c();
-if (values.srbxToolSwitchRequest !== "SuperRailBuilderX_RailSplitter")
+if (values.srbxToolSwitchRequest !== "SuperRailBuilderX_builder2")
 	throw new Error("SRG callback release failed");
 if (mc.field_71462_r !== null) throw new Error("Screen did not close");
 print(
@@ -102,7 +102,7 @@ SRBXToolWheel.update(entity, true);
 tab = true;
 SRBXToolWheel.update(entity, true);
 screen = mc.field_71462_r;
-screen.click(287, 200, 0);
+screen.click(239, 232, 0);
 if (
 	values.srbxToolSwitchRequest !== "SuperRailBuilderX_RailMover" ||
 	mc.field_71462_r !== null

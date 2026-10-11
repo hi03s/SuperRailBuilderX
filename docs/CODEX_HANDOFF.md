@@ -6,15 +6,17 @@
 
 ## 現在の状態
 
+- レール生成Aの自由点間を目標勾配に沿う高さへ変更。Bは始点・半径・長さから終点を計算し、初期40m、ホイール±1m/Ctrl±10m、J/K±0.1m。勾配/縦曲線GUI、7ツールのホイール、AE日本語ヘルプを実装。実機未確認。[A](builder1.md)・[B](builder2.md)。
+
 - AE v2.5.3の通常/Section/分岐の読込は保存NBTと線形キャッシュを復元し、道床の自動再敷設は確認できない。再配置は標準マーカー生成/明示的なrelocateRail経路。[調査](roadbed-ownership-investigation.md)。
 
 - KaizPatch/AEの未接続端点移動に0.5mの接続スナップを追加。共通生成は理論両端各1タイルの所有先変更、競合時の逆順→設定上限内の通常生成に対応。移動・分割・Undo前の所有先復元とコア昇格の復元を追加。[規則/検証手順](roadbed-ownership-investigation.md)。
 
 - 現在main。KaizPatch/AE実機確認済みbuilder1 GUIを791d2a5で統合してpush済み。feature/builder1-guiはローカル/リモートとも削除済み。距離/ブロックスナップと「直線」表示をmainへ追加。
-- 状態GUIをSRBXToolGuiへ共通化し、全6ツールへ実装。分割2区間長（ホバー対応）、移動スナップ状態、複線間隔、カント速度/種類、分岐半径/新線長を表示。複線間隔チャットのみ廃止。[GUI仕様](tool-gui.md)。
-- 全6ツールにTABホイールを追加。6区画リングをマウス/←→で選択し、左クリック/TAB解除で確定、ESC取消。中央へ戻すと現在ツールが選ばれ切り替えない。切り替え後の押しっぱなし入力も抑止する。[仕様・確認手順](tool-wheel.md)。
+- 状態GUIをSRBXToolGuiへ共通化し、全7ツールへ実装。分割2区間長（ホバー対応）、移動スナップ状態、複線間隔、カント速度/種類、分岐半径/新線長を表示。複線間隔チャットのみ廃止。[GUI仕様](tool-gui.md)。
+- 全7ツールにTABホイールを追加。6区画リングをマウス/←→で選択し、左クリック/TAB解除で確定、ESC取消。中央へ戻すと現在ツールが選ばれ切り替えない。切り替え後の押しっぱなし入力も抑止する。[仕様・確認手順](tool-wheel.md)。
 
-- Web側試作（`462fdb1`まで）をmainへ統合。KaizPatch/AEの全6ツールは完全自由点仕様へ戻し、暫定SRBXPatchを別途導入する。[導入/実機確認](srbx-free-endpoint-mod.md)。
+- Web側試作（`462fdb1`まで）をmainへ統合。KaizPatch/AEの全7ツールは完全自由点仕様へ戻し、暫定SRBXPatchを別途導入する。[導入/実機確認](srbx-free-endpoint-mod.md)。
 - 配布物はパックZIP、SRBXPatch-v1.0-1.7.10.jar（Kaiz 1.10.4）、SRBXPatch-v1.0-1.12.2.jar（AE 2.5.3）。デバッグ車両の登録JSONを除去し、資産/診断スクリプトは保持。
 
 - rtm-ts 0.12.0、`kaizpatch`・`mc1710`・`appleextended`・`mc1122`のmulti-target環境を構築済み。AEは正式版`v2.5.3`基準。JitPack取得が復旧し、未改造rtm-tsの標準手順で全4ターゲットの型生成・ビルド成功。
@@ -40,6 +42,8 @@
 
 ## 優先確認事項
 
+- KaizPatch/AEでAの自由点勾配と既設接続、Bの始点選択・L/R・長さ操作・生成/Undo、7ツールのホイールと日本語ヘルプを確認する。不具合時は操作順とlogs/latest.logを共有する。
+
 - v0.3.0はDraftのまま。本文と3 Assetsを確認後、開発者が手動Publishする。ローカルCodexは公開しない。
 
 - AE重複区間・自動分割境界対策は開発者から実機確認済みの報告を受領（2026-10-11）。既設Sectionコア保護、Java挙動/実AE ASM検証も成功。今後の再発時は操作順と診断ログで確認する。初回取得の線選択は対象外。[診断/手順](appleextended-overlap-rail-patch.md)。
@@ -50,7 +54,7 @@
 
 - 今回のカント選択変更、CTRL中の移動ホバー抑止、分岐スナップ、ヘルプ改行は実機未確認。全4build・回帰テスト・旧Java 8u51 GUI（GL模擬）は成功。更新ZIPでKaizPatch/AEを確認し、異常時は操作順とlogs/latest.logを共有する。
 
-- 更新main ZIPで全6ツールの状態GUIをKaizPatch/AEで確認する。全4build/全回帰/旧Java 8u51による全ツールGUI検証済み（GL模擬）、実GPU/実ワールドは未検証。分割ホバー/選択長、移動ON/OFF、複線チャット廃止、カントの種類チャット継続、分岐半径/長さとレール描画を確認。異常時はツール名/操作とlogs/latest.logを共有。[手順](tool-gui.md)。
+- 更新main ZIPで全7ツールの状態GUIをKaizPatch/AEで確認する。全4build/全回帰/旧Java 8u51による全ツールGUI検証済み（GL模擬）、実GPU/実ワールドは未検証。分割ホバー/選択長、移動ON/OFF、複線チャット廃止、カントの種類チャット継続、分岐半径/長さとレール描画を確認。異常時はツール名/操作とlogs/latest.logを共有。[手順](tool-gui.md)。
 
 - KaizPatch/AEで既存GUIの実機確認を受領してmainへ統合済み。新しい距離/ブロックスナップ、ツール名の影付き白文字、「直線」表示は実機確認待ち。PでOFF→距離→ブロック、Ctrl+Pは距離の角度設定。main ZIPを置換して再起動し、自由点/既設端接続とGUI切替を確認する。異常時は操作手順とlogs/latest.logを共有。[仕様/手順](builder1.md)。
 
@@ -101,10 +105,10 @@
 ## 次に行うこと
 
 0. v0.3.0のDraftを確認し、開発者が手動Publishする。
-1. 更新main ZIPで未接続端点スナップと重複敷設/移動/分割/Undo後のレール保持を確認する（roadbed-ownership-investigation.md）。全6ツールのTABホイール（リング/左クリック/中央で変更なし/TAB解除/ESC/マルチプレイリスト）、カント解除色とカーソル非表示を確認する（tool-wheel.md）。Pの3種類切替/ブロック格子/影付き文字も継続確認し、暫定SRBXPatchは継続導入する。
+1. 更新main ZIPで未接続端点スナップと重複敷設/移動/分割/Undo後のレール保持を確認する（roadbed-ownership-investigation.md）。全7ツールのTABホイール（リング/左クリック/中央で変更なし/TAB解除/ESC/マルチプレイリスト）、カント解除色とカーソル非表示を確認する（tool-wheel.md）。Pの3種類切替/ブロック格子/影付き文字も継続確認し、暫定SRBXPatchは継続導入する。
 2. KaizPatch/AEで自由端点の接続を新規生成し、通常車両の両方向低速走行・移動・Undoを確認する（srbx-free-endpoint-mod.md）。
 3. AppleExtended v2.5.3で分岐描画patchのBootstrapログとoffsetあり/なし描画を確認する。
-4. レール移動のCTRL中ホバー抑止、カントのレール単位選択/両端適用/速度0/±50/Undo、分岐の3種スナップとGUIをKaizPatch/AEで確認する。全6ツールのHヘルプの行分けと末尾のスクロール案内も確認する。
+4. レール移動のCTRL中ホバー抑止、カントのレール単位選択/両端適用/速度0/±50/Undo、分岐の3種スナップとGUIをKaizPatch/AEで確認する。全7ツールのHヘルプの行分けと末尾のスクロール案内も確認する。
 5. 不具合時は機能名・操作順・時刻と`[SuperRailBuilderX`または`[SRBX rail patch]`を含むログを共有する。
 
 ## 双方向連絡
@@ -122,6 +126,8 @@
 - 2026-10-10 ローカルCodex: 開発者の新方針でmain/AEも自由点へ統一しSRBXPatchを分離。新規repo/fork/Issue/PR/コメント禁止は継続。実機確認は[srbx-free-endpoint-mod.md](srbx-free-endpoint-mod.md)。
 
 ## 直近の完了
+
+- 2026-10-11 ローカルCodex: Aの勾配操作/GUI、B、AEヘルプを実装。全4ターゲットのビルドと入力/幾何/サーバー再計算・関連回帰テストを検証。実機未確認。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 - 2026-10-11 ローカルCodex: SRBX 0.3.0と導入案内を更新し、3 Assets付きDraftを作成・検証。AE対策の実機確認報告を反映、CIのList取得も修正。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[228e407](https://github.com/hi03s/SuperRailBuilderX/commit/228e407)とv0.3.0はpush・同期済み。公開は手動。
 

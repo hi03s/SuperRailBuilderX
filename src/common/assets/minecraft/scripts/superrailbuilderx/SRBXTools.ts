@@ -1,32 +1,51 @@
 /** Clockwise order, starting at twelve o'clock. No client-only dependencies. */
+// AE's include expansion strips Unicode escape backslashes. Build names at runtime.
+function toolName(hex: string): string {
+	return String.fromCharCode.apply(
+		null,
+		hex.split(" ").map((unit) => parseInt(unit, 16)),
+	);
+}
 const tools = [
 	{
-		name: "レール生成A",
+		// レール生成A
+		name: toolName("30ec 30fc 30eb 751f 6210 41"),
 		model: "SuperRailBuilderX_builder1",
 		icon: "icon_builder1.png",
 	},
 	{
-		name: "線路分割",
+		// レール生成B
+		name: toolName("30ec 30fc 30eb 751f 6210 42"),
+		model: "SuperRailBuilderX_builder2",
+		icon: "icon_builder2.png",
+	},
+	{
+		// 線路分割
+		name: toolName("7dda 8def 5206 5272"),
 		model: "SuperRailBuilderX_RailSplitter",
 		icon: "icon_rail_splitter.png",
 	},
 	{
-		name: "線路移動",
+		// 線路移動
+		name: toolName("7dda 8def 79fb 52d5"),
 		model: "SuperRailBuilderX_RailMover",
 		icon: "icon_rail_mover.png",
 	},
 	{
-		name: "複線コピー",
+		// 複線コピー
+		name: toolName("8907 7dda 30b3 30d4 30fc"),
 		model: "SuperRailBuilderX_DoubleTrackCopy",
 		icon: "icon_double_track_copy.png",
 	},
 	{
-		name: "カント整形",
+		// カント整形
+		name: toolName("30ab 30f3 30c8 6574 5f62"),
 		model: "SuperRailBuilderX_CantFormatter",
 		icon: "icon_cant_formatter.png",
 	},
 	{
-		name: "分岐生成",
+		// 分岐生成
+		name: toolName("5206 5c90 751f 6210"),
 		model: "SuperRailBuilderX_BranchBuilder",
 		icon: "icon_branch_builder.png",
 	},
@@ -63,5 +82,6 @@ export function wheelIndex(
 ): number {
 	if (dx * dx + dy * dy <= inner * inner) return current;
 	const angle = Math.atan2(dx, -dy);
-	return (Math.round(angle / (Math.PI / 3)) + 6) % 6;
+	const count = tools.length;
+	return (Math.round(angle / ((Math.PI * 2) / count)) + count) % count;
 }

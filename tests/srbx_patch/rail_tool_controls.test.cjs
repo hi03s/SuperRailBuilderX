@@ -318,14 +318,57 @@ context.render(entity, 0, 0);
 assert.equal(hovered, 1);
 // All helpers end with the chat scrolling note and use one key combination per line.
 const gui = read("SRBXToolGui");
-vm.runInContext(gui.slice(gui.indexOf("var SRBXToolGui =")), context);
+// AE expands //include with a Java regex replacement: unquoted backslashes vanish.
+vm.runInContext(
+	gui.slice(gui.indexOf("var SRBXToolGui =")).replace(/\\(.)/g, "$1"),
+	context,
+);
 let messages = [];
 context.NGTLog.sendChatMessage = (sender, text) => messages.push(text);
+context.SRBXToolGui.helpFooter(host);
+assert.deepEqual(messages, [
+	"[TAB長押し] ツール切り替え（マウス・←→で選択、左クリック/離して決定）",
+	"チャット欄を開いてスクロールすると、説明文の全文を確認できます。",
+]);
+assert.equal(context.SRBXToolGui.formatRadius(Infinity), "直線");
+// The same include also contains the wheel title, center caption and controls.
+const wheelLabels = [];
+const wheelContext = vm.createContext({
+	GUI_BASE_TEXTURE: "base",
+	guiRenderingDisabled: false,
+	SRBX_TOOLS: [],
+	wheelLayout: () => ({ inner: 10, outer: 20, label: 15 }),
+	NGTUtilClient: {
+		getMinecraft: () => ({ field_71466_p: { func_78256_a: () => 0 } }),
+	},
+	RTMX_COMPAT_scripts_superrailbuilderx_SRBXApiCompat_1js5ute: {
+		SRBXApiCompat: {
+			drawGuiTextWithShadow: (label) => wheelLabels.push(label),
+		},
+	},
+	renderSharedGui: (title, icon, rows, overlay) => {
+		wheelLabels.push(title);
+		overlay(320, 240);
+	},
+	drawGuiRect: () => {},
+	drawWheelSector: () => {},
+});
+vm.runInContext(
+	gui.slice(gui.indexOf("var SRBXToolGui =")).replace(/\\(.)/g, "$1"),
+	wheelContext,
+);
+wheelContext.SRBXToolGui.renderWheel(0, () => 0);
+assert.deepEqual(wheelLabels, [
+	"ツール切り替え",
+	"変更なし",
+	"左クリック・TAB解除で決定 / マウス・←→で選択",
+]);
 context.keys = {
 	pressed: (name) => name === "help",
 	down: () => false,
 	getDescription: (name) => "[" + name + "]",
 };
+context.builderB = false;
 context.handleResult = () => {};
 context.repeatedKey = () => false;
 for (const tool of [

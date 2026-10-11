@@ -274,6 +274,7 @@ for (const failure of [
 		GUI_BASE_TEXTURE: "base",
 		GUI_TOOL_ICON: "icon",
 		GUI_TOOL_NAME: "tool",
+		builderB: false,
 		MAX_CURVE_RADIUS: 10000,
 		snapAngles: [1, 5, 15],
 		toolGui: {
@@ -350,6 +351,8 @@ for (const failure of [
 						snapAngleIndex: 1,
 						curveRadiusLocked: true,
 						curveRadius: 250,
+						slopePermil: 12,
+						verticalCurveRadius: 2000,
 						selected: [{}],
 					},
 					12.345,
@@ -367,8 +370,8 @@ for (const failure of [
 	if (failure === "wheel") {
 		assert.equal(
 			primitives.length,
-			15,
-			"One dimming rectangle, six sectors, two circles and six dividers",
+			17,
+			"One dimming rectangle, seven sectors, two circles and seven dividers",
 		);
 		const layout = context.wheelLayout(320, 240);
 		for (const shape of primitives.slice(1)) {
@@ -382,16 +385,16 @@ for (const failure of [
 				);
 			}
 		}
-		assert.equal(tiles.length, 6, "Wheel draws six tool icons");
+		assert.equal(tiles.length, 7, "Wheel draws seven tool icons");
 		assert.equal(
 			labels.length,
-			8,
-			"Wheel shows six names, hole label and instructions",
+			9,
+			"Wheel shows seven names, hole label and instructions",
 		);
 		assert.equal(labels[0].s, "レール生成A");
 		assert.equal(labels[2].color, 0xffff55, "Selected tool name is yellow");
-		assert.equal(labels[6].s, "変更なし");
-		assert(labels[7].s.includes("TAB"));
+		assert.equal(labels[7].s, "変更なし");
+		assert(labels[8].s.includes("TAB"));
 	}
 	if (failure && failure.endsWith("-gl")) {
 		assert.equal(context.guiRenderingDisabled, true);
@@ -413,7 +416,7 @@ for (const failure of [
 	if (!failure || failure === "attrib-full") {
 		assert.deepStrictEqual(
 			labels.map((l) => l.s),
-			["tool", "5°", "250 m", "12.35 m"],
+			["tool", "5°", "250 m", "12.35 m", "12 ‰", "2000 m"],
 		);
 		assert.equal(
 			labels[0].color,
@@ -437,6 +440,8 @@ for (const failure of [
 				snapMode: "off",
 				snapAngleIndex: 1,
 				curveRadiusLocked: false,
+				slopePermil: 0,
+				verticalCurveRadius: 1000,
 				selected: [{}],
 			},
 			12.345,
@@ -444,7 +449,7 @@ for (const failure of [
 		);
 		assert.deepStrictEqual(
 			labels.map((l) => l.s),
-			["tool", "501 m", "12.35 m"],
+			["tool", "501 m", "12.35 m", "0 ‰", "1000 m"],
 		);
 		assert.equal(JSON.stringify({ matrices, attrs }), before);
 		for (const locked of [false, true]) {
@@ -455,6 +460,8 @@ for (const failure of [
 					snapAngleIndex: 0,
 					curveRadiusLocked: locked,
 					curveRadius: 10000,
+					slopePermil: 0,
+					verticalCurveRadius: 1000,
 					selected: [{}],
 				},
 				12.345,
@@ -462,7 +469,7 @@ for (const failure of [
 			);
 			assert.deepStrictEqual(
 				labels.map((l) => l.s),
-				["tool", "ブロック", "直線", "12.35 m"],
+				["tool", "ブロック", "直線", "12.35 m", "0 ‰", "1000 m"],
 			);
 			assert.equal(JSON.stringify({ matrices, attrs }), before);
 		}

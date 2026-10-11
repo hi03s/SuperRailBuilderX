@@ -471,3 +471,12 @@
 - 228e407をorigin/mainへpushし、未公開v0.3.0タグを同コミットへ更新（旧タグオブジェクト指定のforce-with-lease）。実AE v2.5.3のASM検証もJava25で成功。初回Workflow 38113263863は全4型生成/パックbuild成功、JARテストで失敗。[再実行](https://github.com/hi03s/SuperRailBuilderX/actions/runs/38113797772)のDraft/Assets確認待ち。
 - 完了: 再実行とmain CI 38113790061は成功。[Draft Release](https://github.com/hi03s/SuperRailBuilderX/releases/tag/untagged-ade4983c2b433faa8c63)（ID 409433941）を検証し、draft=true/published_at=null、本文一致、3 Assets uploadedを確認。全Assetsを再取得してAPI SHA256と一致を確認。ZIP108ファイル/全4ターゲット/0.3.0/gui_base.xcfなし、両JAR Java8/パッチのみ/テスト非同梱を確認。手動Publish待ちで終了。
 - 配布Assets SHA256: ZIP 6070a19105c65887291e7dc443e4d32a1b28d114daed38473fdb1158638e0c88、Kaiz JAR 2936c9325a144ede4cc5a6c3b46589e242f48572bbf3bd3c2039b6b3478a0012、AE JAR 5cdffe343e5666a4a469507838046c2f39a6f87d455f403d0e26214fab217aac。CIはjavac25、ローカルの先行JARは別コンパイラでバイト列が異なるため、配布物は上記CI生成Assetsを使用する。
+
+## 2026-10-11 ローカルCodex: レール生成Aの勾配操作・レール生成B・AEヘルプ
+
+- Aの非接続始点/終点はカーソルXZと目標勾配から高さを決定し、両端を同じ勾配に設定。旧高さオフセット/F操作を除去し、目標勾配・縦曲線半径のGUIを追加。既設端への接続処理は維持。
+- Bは共有描画/サーバー処理に設計パラメータを追加し、サーバーで終点を再計算して検証する。初期40m、ホイール上/下±1m、Ctrl併用±10m、J/K±0.1m。L/R半径は常時固定、始点だけスナップ。180度以上の単一円弧は拒否。ユーザー提供PNGを使用。
+- 7ツールのホイールに対応。AE includeの置換によるUnicodeエスケープ破損を数値からの文字列復元で回避し、ツール名/TAB/スクロール案内を修正。生ログから必要なチャットのみ抽出した appleextended-help-include-unicode-20261011.log を保存。
+- 検証: 全4ターゲットビルド、test:gui、test:input、test:appleextended、test:rail-transition、test:rail-boundary、test:runtime-dispatch、test:free-endpoint、Java8 NashornのGUI/ネイティブホイールテスト成功。無効設計での書込拒否、サーバー再計算とUndoを確認。実機GPU描画・ワールド生成は未実施。
+- v0.3.0の既存Draft/タグ/Assetsは変更せず、開発版ZIPを別名で用意する。実機確認は docs/builder2.md を参照。
+- 整形: 今回変更したTypeScript全7ファイルはPrettier確認成功。全体のformat:checkは未変更の既存24ファイルに警告があり未通過。検証用ZIPは113ファイル、BのJSON/3テクスチャを確認し、編集中のgui_base.xcfは除外した。

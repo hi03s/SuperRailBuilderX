@@ -640,8 +640,18 @@ export class SRBXMath {
 		if (!start.slopeTarget && !end.slopeTarget) {
 			const copyStart = this.copyVerticalPoint(start);
 			const copyEnd = this.copyVerticalPoint(end);
-			copyStart.anchorLengthVertical = copyStart.anchorLength;
-			copyEnd.anchorLengthVertical = copyEnd.anchorLength;
+			if (
+				copyStart.kind !== "free" ||
+				copyEnd.kind !== "free" ||
+				copyStart.anchorLengthVertical === undefined
+			)
+				copyStart.anchorLengthVertical = copyStart.anchorLength;
+			if (
+				copyStart.kind !== "free" ||
+				copyEnd.kind !== "free" ||
+				copyEnd.anchorLengthVertical === undefined
+			)
+				copyEnd.anchorLengthVertical = copyEnd.anchorLength;
 			return [[copyStart, copyEnd]];
 		}
 		if (end.slopeTarget) return this.planForwardVerticalProfile(start, end);

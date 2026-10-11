@@ -4,6 +4,21 @@ const fs = require("fs"),
 const dir = "dist/assets/minecraft/scripts/superrailbuilderx/";
 const read = (name) => fs.readFileSync(dir + name + ".js", "utf8");
 const catalog = read("SRBXTools");
+// Preserve labels through AE's regex-replacement-based include expansion.
+const aeCatalog = vm.createContext({});
+vm.runInContext(catalog.replace(/\\(.)/g, "$1"), aeCatalog);
+assert.deepEqual(
+	Array.from(aeCatalog.SRBX_TOOLS, (tool) => tool.name),
+	[
+		"レール生成A",
+		"レール生成B",
+		"線路分割",
+		"線路移動",
+		"複線コピー",
+		"カント整形",
+		"分岐生成",
+	],
+);
 const alias = "RTMX_COMPAT_scripts_superrailbuilderx_SRBXApiCompat_1js5ute";
 function setup() {
 	const values = { hostPlayerEntityId: "7" },
@@ -100,8 +115,10 @@ function setup() {
 	};
 }
 let s = setup();
-for (let i = 0; i < 6; i++) {
-	const a = (i * Math.PI) / 3;
+assert.equal(s.context.SRBX_TOOLS.length, 7);
+assert.equal(s.context.toolIndex("SuperRailBuilderX_builder2"), 1);
+for (let i = 0; i < s.context.SRBX_TOOLS.length; i++) {
+	const a = (i * Math.PI * 2) / s.context.SRBX_TOOLS.length;
 	assert.equal(
 		s.context.wheelIndex(Math.sin(a) * 100, -Math.cos(a) * 100, 3),
 		i,
@@ -116,6 +133,12 @@ assert.equal(
 	"TAB press does not switch",
 );
 screen.func_73863_a(200, 150, 0);
+screen.func_73869_a("", "LEFT");
+screen.func_73863_a(200, 150, 0);
+assert.equal(s.selected(), 6, "Left wraps to the last tool");
+screen.func_73869_a("", "RIGHT");
+screen.func_73863_a(200, 150, 0);
+assert.equal(s.selected(), 0, "Right wraps to the first tool");
 screen.func_73869_a("", "RIGHT");
 screen.func_73863_a(200, 150, 0);
 assert.equal(s.selected(), 1, "Stationary mouse preserves arrow selection");
@@ -126,11 +149,11 @@ assert.equal(
 );
 s.held.delete("TAB");
 screen.func_73876_c();
-assert.equal(s.values.srbxToolSwitchRequest, "SuperRailBuilderX_RailSplitter");
+assert.equal(s.values.srbxToolSwitchRequest, "SuperRailBuilderX_builder2");
 assert.equal(s.mc.field_71462_r, null);
 assert.equal(s.focused(), 1);
 assert(s.context.SRBXToolSwitchServer.update(s.entity, s.player));
-assert.equal(s.model(), "SuperRailBuilderX_RailSplitter");
+assert.equal(s.model(), "SuperRailBuilderX_builder2");
 assert.equal(s.values.srbxToolSwitchRequest, "");
 assert.equal(s.values.srbxToolSwitchResult, "ok");
 assert.equal(
@@ -140,16 +163,16 @@ assert.equal(
 );
 s = setup();
 screen = s.open();
-screen.func_73863_a(287, 200, 0);
-assert.equal(s.selected(), 2, "Mouse selects clockwise rail mover sector");
+screen.func_73863_a(243, 240, 0);
+assert.equal(s.selected(), 3, "Mouse selects clockwise rail mover sector");
 s.held.delete("TAB");
 screen.func_73876_c();
 assert.equal(s.values.srbxToolSwitchRequest, "SuperRailBuilderX_RailMover");
 s = setup();
 screen = s.open();
-screen.func_73864_a(287, 200, 1);
+screen.func_73864_a(243, 240, 1);
 assert.equal(s.mc.field_71462_r, screen, "Right click does not confirm");
-screen.func_73864_a(287, 200, 0);
+screen.func_73864_a(243, 240, 0);
 assert.equal(
 	s.values.srbxToolSwitchRequest,
 	"SuperRailBuilderX_RailMover",
@@ -166,12 +189,12 @@ assert(
 s = setup();
 s.compat.getToolModel = () => "SuperRailBuilderX_CantFormatter";
 screen = s.open();
-screen.func_73863_a(287, 200, 0);
-assert.equal(s.selected(), 2);
+screen.func_73863_a(243, 240, 0);
+assert.equal(s.selected(), 3);
 screen.func_73863_a(205, 155, 0);
 assert.equal(
 	s.selected(),
-	4,
+	5,
 	"Returning to the hole selects the original tool",
 );
 s.held.clear();

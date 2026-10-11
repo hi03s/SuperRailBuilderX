@@ -107,8 +107,11 @@ export class SRBXToolWheel {
 		};
 		const key = (text: string, code: number): void => {
 			if (code === Keyboard.KEY_ESCAPE) finish(false);
-			else if (code === Keyboard.KEY_LEFT) selected = (selected + 5) % 6;
-			else if (code === Keyboard.KEY_RIGHT) selected = (selected + 1) % 6;
+			else if (code === Keyboard.KEY_LEFT)
+				selected =
+					(selected + SRBX_TOOLS.length - 1) % SRBX_TOOLS.length;
+			else if (code === Keyboard.KEY_RIGHT)
+				selected = (selected + 1) % SRBX_TOOLS.length;
 		};
 		const click = (
 			mouseX: number,

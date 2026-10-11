@@ -504,12 +504,19 @@ function renderSharedGui(
 }
 
 export class SRBXToolGui {
+	// AE removes backslashes while expanding includes, including Unicode escapes.
+	private static text(hex: string): string {
+		return String.fromCharCode.apply(
+			null,
+			hex.split(" ").map((unit) => parseInt(unit, 16)),
+		);
+	}
 	static renderWheel(
 		selected: number,
 		choose: (width: number, height: number) => number,
 	): boolean {
 		renderSharedGui(
-			"ツール切り替え",
+			SRBXToolGui.text("30c4 30fc 30eb 5207 308a 66ff 3048"), // ツール切り替え
 			GUI_BASE_TEXTURE,
 			[],
 			(width, height) => {
@@ -518,19 +525,20 @@ export class SRBXToolGui {
 				const layout = wheelLayout(width, height);
 				const cx = width / 2,
 					cy = height / 2;
+				const sectorAngle = (Math.PI * 2) / SRBX_TOOLS.length;
 				for (let i = 0; i < SRBX_TOOLS.length; i++) {
-					const start = ((i - 0.5) * Math.PI) / 3;
+					const start = (i - 0.5) * sectorAngle;
 					drawWheelSector(
 						cx,
 						cy,
 						layout.inner,
 						layout.outer,
 						start,
-						start + Math.PI / 3,
+						start + sectorAngle,
 						i === selected ? -1440088065 : -1728053248,
 					);
 				}
-				// Inner/outer circular outlines and six radial dividers.
+				// Inner/outer circular outlines and radial dividers.
 				drawWheelSector(
 					cx,
 					cy,
@@ -550,7 +558,7 @@ export class SRBXToolGui {
 					0x66ffffff,
 				);
 				for (let i = 0; i < SRBX_TOOLS.length; i++) {
-					const angle = ((i - 0.5) * Math.PI) / 3;
+					const angle = (i - 0.5) * sectorAngle;
 					drawWheelSector(
 						cx,
 						cy,
@@ -563,7 +571,7 @@ export class SRBXToolGui {
 				}
 				const font = NGTUtilClient.getMinecraft().fontRenderer;
 				for (let i = 0; i < SRBX_TOOLS.length; i++) {
-					const angle = (i * Math.PI) / 3;
+					const angle = i * sectorAngle;
 					const x = Math.round(cx + Math.sin(angle) * layout.label);
 					const y = Math.round(cy - Math.cos(angle) * layout.label);
 					const item = SRBX_TOOLS[i];
@@ -584,14 +592,17 @@ export class SRBXToolGui {
 						i === selected ? 0xffff55 : 0xffffff,
 					);
 				}
-				const centerLabel = "変更なし";
+				const centerLabel = SRBXToolGui.text("5909 66f4 306a 3057"); // 変更なし
 				SRBXApiCompat.drawGuiTextWithShadow(
 					centerLabel,
 					Math.round(cx - font.getStringWidth(centerLabel) / 2),
 					Math.round(cy - 4),
 					0xffffff,
 				);
-				const hint = "左クリック・TAB解除で決定 / マウス・←→で選択";
+				// 左クリック・TAB解除で決定 / マウス・←→で選択
+				const hint = SRBXToolGui.text(
+					"5de6 30af 30ea 30c3 30af 30fb 54 41 42 89e3 9664 3067 6c7a 5b9a 20 2f 20 30de 30a6 30b9 30fb 2190 2192 3067 9078 629e",
+				);
 				SRBXApiCompat.drawGuiTextWithShadow(
 					hint,
 					Math.round((width - font.getStringWidth(hint)) / 2),
@@ -603,13 +614,19 @@ export class SRBXToolGui {
 		return !guiRenderingDisabled;
 	}
 	static helpFooter(sender: ICommandSender): void {
+		// [TAB長押し] ツール切り替え（マウス・←→で選択、左クリック/離して決定）
 		NGTLog.sendChatMessage(
 			sender,
-			"[TAB長押し] ツール切り替え（マウス・←→で選択、左クリック/離して決定）",
+			SRBXToolGui.text(
+				"5b 54 41 42 9577 62bc 3057 5d 20 30c4 30fc 30eb 5207 308a 66ff 3048 ff08 30de 30a6 30b9 30fb 2190 2192 3067 9078 629e 3001 5de6 30af 30ea 30c3 30af 2f 96e2 3057 3066 6c7a 5b9a ff09",
+			),
 		);
+		// チャット欄を開いてスクロールすると、説明文の全文を確認できます。
 		NGTLog.sendChatMessage(
 			sender,
-			"チャット欄を開いてスクロールすると、説明文の全文を確認できます。",
+			SRBXToolGui.text(
+				"30c1 30e3 30c3 30c8 6b04 3092 958b 3044 3066 30b9 30af 30ed 30fc 30eb 3059 308b 3068 3001 8aac 660e 6587 306e 5168 6587 3092 78ba 8a8d 3067 304d 307e 3059 3002",
+			),
 		);
 	}
 	static render(
@@ -627,6 +644,6 @@ export class SRBXToolGui {
 			? ""
 			: isFinite(value)
 				? Math.round(Math.abs(value)) + " m"
-				: "\u76f4\u7dda";
+				: SRBXToolGui.text("76f4 7dda"); // 直線
 	}
 }
