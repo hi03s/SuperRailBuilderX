@@ -129,7 +129,7 @@
 
 ## 直近の完了
 
-- 2026-10-12 ローカルCodex: AEホイールの比較処理と拒否理由の診断を修正。全4build・入力/GUI/dispatch・Java8ホイール成功。実機再確認待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
+- 2026-10-12 ローカルCodex: AEホイールの比較処理と拒否理由の診断を修正。全4build・入力/GUI/dispatch・Java8ホイール成功。実機再確認待ち。[a79d4b9](https://github.com/hi03s/SuperRailBuilderX/commit/a79d4b9)はmainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 - 2026-10-11 ローカルCodex: Aの勾配操作/GUI、B、AEヘルプを実装。全4ターゲットのビルドと関連回帰テストを検証。実機未確認。[790f4de](https://github.com/hi03s/SuperRailBuilderX/commit/790f4de)をmainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。検証ZIP: artifacts/SuperRailBuilderX-0.3.0-builder-ab-test.zip。
 

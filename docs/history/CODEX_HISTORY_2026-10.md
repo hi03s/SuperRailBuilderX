@@ -488,3 +488,4 @@
 - Java由来のツール名と所有者IDをJS文字列へ正規化。追従先とホストの比較をラッパーの厳密参照一致から、同じサーバーワールド内のEntity ID一致へ変更。所有者・追従先・未処理要求のチェックは継続。invalid_owner/invalid_mountとindex/host/owner/ridingをログへ追加。
 - test:inputで文字列ラッパー・同一IDの別ラッパーでの切替成功、他人/所有者不一致/追従先なしの拒否を検証。全4ターゲットbuild、test:gui、test:runtime-dispatch、Java8 Nashornホイールテスト成功。実機再確認は未実施。
 - 抜粋ログ: logs/appleextended-wheel-invalid-tool-20261012.log（SRBX要求3行のみ）。更新ZIP: artifacts/SuperRailBuilderX-0.3.0-ae-wheel-fix.zip。AEでTAB解除/左クリックのモデル変更を再確認し、不具合時はlogs/latest.logを共有する。既存Draft/タグ/Assetsは変更しない。
+- 実装コミットa79d4b9はorigin/mainへpush・同期済み。
