@@ -129,7 +129,7 @@
 
 ## 直近の完了
 
-- 2026-10-12 ローカルCodex: AEの非乗車追従を考慮したTAB検証と切替後のホスト引継ぎを修正。全4build・関連回帰・Java8ホイール成功。実機再確認待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
+- 2026-10-12 ローカルCodex: AEの非乗車追従を考慮したTAB検証と切替後のホスト引継ぎを修正。全4build・関連回帰・Java8ホイール成功。実機再確認待ち。[bb224fa](https://github.com/hi03s/SuperRailBuilderX/commit/bb224fa)はmainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 - 2026-10-12 ローカルCodex: AEホイールの比較処理と拒否理由の診断を修正。全4build・入力/GUI/dispatch・Java8ホイール成功。実機再確認待ち。[a79d4b9](https://github.com/hi03s/SuperRailBuilderX/commit/a79d4b9)はmainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
