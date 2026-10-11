@@ -39,7 +39,7 @@
 
 ## 優先確認事項
 
-- AE重複区間の保持に加え、自動分割境界で同一グループ隣接コアを優先するようSRBXPatchを更新。敷設による既設Sectionコア上書きは実装上禁止され、競合テストでも保持を確認。Java挙動/実AE ASM検証成功、実機未確認。AE JARのみ置換し、非重複区間から双方向通過・通常/Section/分岐/移動Undoを確認する。初回取得の線選択は対象外。[診断/手順](appleextended-overlap-rail-patch.md)。
+- AE重複区間・自動分割境界対策は開発者から実機確認済みの報告を受領（2026-10-11）。既設Sectionコア保護、Java挙動/実AE ASM検証も成功。今後の再発時は操作順と診断ログで確認する。初回取得の線選択は対象外。[診断/手順](appleextended-overlap-rail-patch.md)。
 
 - KaizPatch実機の生成/移動/分割失敗は前回のSRBX getTileData誤用が原因。1.7.10の履歴保存を専用WorldSavedDataへ修正済み。更新ZIP（108ファイル）でKaizPatch/AEの重複敷設・双方向低速走行、接続移動・分割・分岐・Undoと保存/再入場後の未選択レール保持を確認する。全4build（警告なし）・関連回帰・保存再読込の模擬検証成功、実機再確認待ち。[手順](roadbed-ownership-investigation.md)。本番サーバーは操作しない。
 
@@ -55,8 +55,8 @@
 
 ### 完全自由点とSRBXPatch
 
-- 開発者がKaizPatchのCrossTieあり/なしで動作を確認（2026-10-10）。AEは起動時に大文字依存IDで停止したためrequired-after:rtmへ修正しJARを再生成。Java挙動/実AE ASM/依存ID一致テスト成功、修正版の起動・走行再確認待ち。JARなしクライアント接続は未検証。
-- JARはサーバーmods、パックZIPはサーバー/クライアントへ。旧SRBXMod内包版を置き換える。未有効時の書き込みはsrbxpatch_requiredで拒否。
+- 開発者がKaizPatchのCrossTieあり/なしで動作を確認（2026-10-10）、AE重複区間・自動分割境界対策も実機確認済み（2026-10-11）。AE依存IDはrequired-after:rtmへ修正済み。Java挙動/実AE ASM/依存ID一致テスト成功。JARなしクライアント接続は未検証。
+- SRBX使用時はJARをクライアント/サーバー双方のmodsへ、パックZIPも双方へ導入する。SRBXを入れないマルチクライアントはJAR不要。旧SRBXMod内包版を置き換える。パッチは本家対応までの暫定処理で、実処理はサーバーワールド限定。未有効時の書き込みはsrbxpatch_requiredで拒否。
 - Kaizは現在map保持＋native遷移、AEは現在map保持＋精密接続探索。両方向微速通過・分岐・移動・Undoを実機確認する。同セルコア競合/極短区間の多重通過は保証外。[制限・手順](srbx-free-endpoint-mod.md)。
 
 ### 分岐レール描画compatibility patch

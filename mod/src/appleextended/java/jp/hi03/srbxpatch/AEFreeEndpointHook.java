@@ -158,9 +158,10 @@ public final class AEFreeEndpointHook {
         // live member of the same logical group with a matching physical endpoint.
         if(current.getClass().getName().contains("SectionCore") && (Boolean)call(current,"isRailSection")) {
             Object positions=call(current,"getRailGroupCorePositions"), selected=null;
-            int size=((Number)call(positions,"size")).intValue();
+            java.util.List<?> corePositions=(java.util.List<?>)positions;
+            int size=corePositions.size();
             if(size>=0 && size<=4096) for(int i=0;i<size;i++) {
-                int[] p=(int[])call(positions,"get",i);
+                int[] p=(int[])corePositions.get(i);
                 if(p==null || p.length<3) continue;
                 Object position=pos(current,p[0],p[1],p[2]);
                 if(!(Boolean)call(world,"isBlockLoaded|func_175667_e",position)) continue;

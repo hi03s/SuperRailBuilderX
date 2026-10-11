@@ -467,3 +467,4 @@
 - 全4build（警告なし）、rail-transition/appleextended/input/gui/free-endpoint/runtime-dispatch回帰、両Javaパッチテスト成功。ツールVERSION修正後も全4build成功。ZIP108ファイル、JARはJava8・資産/依存/テスト非同梱を検証。実機未確認事項は引継ぎのまま。ユーザーの未追跡アセットは保持しgui_base.xcfは生成コピーだけ除外。
 - ローカル成果物SHA256: ZIP 00CCC684E109C2159F08DDE71834890842586F3E7523ED6530F4B3C645A6A5C3、Kaiz JAR F6490D1ACAD0B948B96BD4E20D2AC86E4BA05BF6E12CD1886338F4A67099A886、AE JAR 9074F0C50BA284F659426C764ED12FD466E536EBDAB45506F95AFE0D52298B41。
 - release.ymlはDraft明示、公開済みReleaseの更新拒否、ZIP/2 JAR添付を確認。タグpush後にWorkflow完了とDraft/Assetsを確認し、手動Publish待ちで止める。
+- 追加確認: 開発者からAE重複区間・自動分割境界対策の実機確認済み報告を受領し、本文と現行資料を更新。初回CIはJava25でArrays$ArrayListのリフレクションが拒否されAEテスト失敗。グループ位置リストを標準List APIで取得するよう修正し、Java8/25の挙動・バイトコードテストで確認。未公開タグを修正コミットへ更新してDraft作成を再実行する。

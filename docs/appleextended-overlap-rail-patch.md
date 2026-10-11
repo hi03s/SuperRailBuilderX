@@ -44,4 +44,4 @@ SHA256: 9074F0C50BA284F659426C764ED12FD466E536EBDAB45506F95AFE0D52298B41
 
 検証: 境界の道床を別線へ向けた状態で同一グループを双方向に選択し、別グループ/削除コア/ずれた接続点を拒否。既設Sectionコアが生成直前に競合した場合の無変更/生成拒否をスクリプトテストへ追加。AE Java回帰・実AE ASM検証・pnpm test:appleextended成功。敷設スクリプト本体の変更なし、パックZIP/Kaiz JARの更新不要。
 
-実機での現象とコア消失有無は未確認。現在のlogs/latest.logは先のKaizPatch getTileData例外のログで、今回AEの走行遷移を含まない。更新JARで両方向の自動分割境界・複数グループの重複・移動/Undo後・再入場後を試し、問題時は-Dsrbxpatch.debugRailLookup=trueを付けたAEログを共有する。診断は最大1秒1行でretainedまたはsection transition（元/先コア座標）を出力する。診断の間引きにより全境界イベントが出るとは限らない。本番サーバーは操作していない。
+2026-10-11に開発者から、AE重複区間・自動分割境界対策は実機で確認済みとの報告を受領。個別の全ケースを確認済みとは扱わず、今後の再発時は-Dsrbxpatch.debugRailLookup=trueを付けたAEログと操作順を共有する。診断は最大1秒1行でretainedまたはsection transition（元/先コア座標）を出力する。診断の間引きにより全境界イベントが出るとは限らない。本番サーバーは操作していない。
