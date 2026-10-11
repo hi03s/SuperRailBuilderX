@@ -55,10 +55,28 @@ export class SRBXPatchPlatform {
 	static getRailPatchTargets(): RailPatchTarget[] {
 		const manager = ModelPackManager.INSTANCE;
 		const railType = manager.getType("ModelRail");
-		const list = manager.getModelList(railType);
+		// getModelList selects the server's SMP allowlist, which can still be
+		// empty at startup. Renderer engines belong to the local full registry.
+		const lock = manager.modelSetMapLock.readLock();
+		const sets: ModelSetRail[] = [];
+		lock.lock();
+		try {
+			const localModels = manager.allModelSetMap.get(
+				railType.parent || railType,
+			);
+			if (localModels) {
+				const iterator = localModels.values().iterator();
+				while (iterator.hasNext())
+					sets.push(iterator.next() as ModelSetRail);
+			}
+		} finally {
+			lock.unlock();
+		}
+		NGTLog.debug(
+			`[SRBX rail patch] local rail registry: models=${sets.length}`,
+		);
 		const targets: RailPatchTarget[] = [];
-		for (let index = 0; index < list.size(); index++) {
-			const set = list.get(index) as ModelSetRail;
+		for (const set of sets) {
 			if (!set) continue;
 			const config = set.getConfig();
 			if (!config) continue;

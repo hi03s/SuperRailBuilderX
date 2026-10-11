@@ -516,3 +516,12 @@
 - 配布用の最新artifacts/SuperRailBuilderX-0.3.0.zipを更新。AEの通常/自動分割レール付近で分岐選択と端点ホバー、分岐生成、修正パッチのcompleted: patched=.../failed=0を確認し、異常時はlogs/latest.logを共有する。実機描画は未実施。既存v0.3.0 Draft/タグ/AssetsとSRBXPatch JARは変更しない。
 - 生ログはGitへ追加せず、必要なスタック/待機診断だけをローカル logs/appleextended-branch-render-patch-20261012.log へ抜粋。解決したAE非乗車診断の旧抜粋は削除。
 - 実装コミット2d4a57bはorigin/mainへpush・同期済み。
+
+## 2026-10-12 ローカルCodex: AE中間点分岐・Undoと描画パッチ空列挙の修正
+
+- 実機ログでは端点nullガードとモデル切替が正常。01:29:16の中間点分岐は保持halfコアが分岐rootを塞ぎ、生成拒否後にsplit_rollback_failed。01:29:28にはundo_rail_changed。開発者からUndo失敗・分割後片側消失・分岐生成失敗を受領した。
+- 原因は仮分割後に片側を分岐へ置換する順序と、元レール撤去後に新しいhalfを外部カントUndoへ登録する処理。形状計算だけ共用し、元レールの現存中に外部接続を退避、最終分岐→保持halfを直接生成する方式へ変更。既設コアの保護を緩めず、共通復元処理の撤去失敗を無視しないよう修正した。
+- 生成失敗の復元でも元レールのSection UUIDが変わるため、クライアントへ旧グループ撤去・復元グループ再描画を通知する。片側消失の実機症状と同期の因果は再確認待ち。AE実JARの論理撤去は別所有者のコアを保持することを確認した。
+- 描画パッチは起動時にscanning 0、patched=0。AEのgetModelListはSMP時に未同期のサーバー許可一覧を参照するため、公開allModelSetMapのローカル全モデルをreadLock下で列挙する方式へ変更。同一ResourceSetが後のサーバー同期にも使われることを実JARで確認した。
+- 全4ターゲットbuild、test:appleextended、test:input、test:gui、test:runtime-dispatch、test:rail-patch、変更ファイル整形・差分確認成功。中間点分岐の両方向、生成1本目/2本目失敗時の復元と外部カント復元、Undo、異なるキーの撤去拒否、失敗時のクライアント通知を模擬検証。モデル列挙はSMP空一覧非使用・親タイプ・lock解除を検証。Minecraft実機は未実施。
+- 更新ZIPはartifacts/SuperRailBuilderX-0.3.0.zip。最新ZIPで両方向の分岐生成・両側保持・Undo・失敗後の復元、local rail registry: models=Nとcompleted: patched/failedを確認し、異常時はlogs/latest.logを共有する。SRBXPatch JAR、既存Draft/タグ/Assetsは変更しない。生ログはGitへ追加しない。

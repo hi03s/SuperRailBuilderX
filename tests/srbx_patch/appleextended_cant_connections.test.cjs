@@ -256,3 +256,188 @@ assert.equal(
 );
 assert.equal(sectionB.positions[1].cantCenter, 2);
 console.log("AppleExtended cant connections: passed");
+
+// Exercise the real split geometry and replacement transaction for interior branches.
+class Position {
+	constructor(x, y, z, direction = 2) {
+		Object.assign(this, {
+			blockX: x,
+			blockY: y,
+			blockZ: z,
+			direction,
+			posX: x,
+			posY: y,
+			posZ: z,
+			anchorYaw: 90,
+			anchorPitch: 0,
+			anchorLengthHorizontal: 40 / 3,
+			cantEdge: 0,
+			cantCenter: 0,
+			cantRandom: 0,
+		});
+	}
+	setPosition(x, y, z) {
+		this.posX = x;
+		this.posY = y;
+		this.posZ = z;
+	}
+	getNeighborBlockPos() {
+		return {};
+	}
+}
+context.Packages.jp.ngt.rtm.rail.util = { RailPosition: Position };
+helper.cloneRailPosition = (rp) => Object.assign(new Position(), rp);
+context.Packages.jp.ngt.ngtlib = { io: { NGTLog: { debug() {} } } };
+helper.normalizeDegrees = (yaw) => ((yaw % 360) + 360) % 360;
+helper.isSectionCore = () => false;
+const dynamic = { size: () => cores.length, get: (i) => cores[i] };
+const branchWorld = {
+	...world,
+	func_175625_s: () => null,
+	loadedTileEntityList: dynamic,
+	field_147482_g: dynamic,
+};
+const originalSwitchPosition = tools.switchPosition;
+tools.switchPosition = (rp, type) => ({
+	...rp,
+	switchType: type,
+	cantEdge: 0,
+	cantCenter: 0,
+	cantRandom: 0,
+});
+const originalRestore = tools.restoreRecord;
+let calls, failedCreation, failedRemoval;
+helper.getLogicalRailMap = () => ({
+	getLength: () => 40,
+	getRailPos: (n, i) => [0, (40 * i) / n],
+	getRailHeight: () => 4,
+	getCant: () => 0,
+	getRailPitch: () => 0,
+});
+helper.undoNormalRail = (_world, pos, expected) => {
+	const validation = helper.validateUndoNormalRail(null, pos, expected);
+	if (validation !== "ok") return validation;
+	if (expected === failedRemoval) return "rail_occupied";
+	cores = cores.filter((item) => item.key !== expected);
+	return "ok";
+};
+helper.createFromPositions = (_world, _player, positions) => {
+	calls.push(positions.map((rp) => ({ ...rp })));
+	if (calls.length === failedCreation) return null;
+	const id = 100 + calls.length;
+	const item = core(id, `replacement-${id}`, positions);
+	item.setSignal = () => {};
+	item.addSubRail = () => {};
+	cores.push(item);
+	return { core: [id, 4, 0], key: item.key };
+};
+function interiorBranch(toStart, failure = 0) {
+	calls = [];
+	failedCreation = failure;
+	failedRemoval = null;
+	const start = new Position(0, 4, 0),
+		end = new Position(40, 4, 0);
+	end.anchorYaw = 270;
+	const source = core(1, "original", [start, end]);
+	source.getResourceState = () => ({});
+	source.getSignal = () => 0;
+	source.subRails = list([]);
+	const external = core(3, "external", [
+		new Position(0, 4, 0),
+		new Position(-20, 4, 0),
+	]);
+	external.positions[0].cantEdge = 5;
+	cores = [source, external];
+	const branchEnd = new Position(toStart ? 5 : 35, 4, 10);
+	const result = tools.splitBuilderRail(
+		branchWorld,
+		{},
+		[1, 4, 0],
+		source.key,
+		0.5,
+		{
+			request: {
+				branchEnd: { kind: "free", position: [branchEnd.posX, 4, 10] },
+			},
+			end: branchEnd,
+			property: {},
+		},
+	);
+	return { result, external };
+}
+for (const direction of [true, false]) {
+	const { result, external } = interiorBranch(direction);
+	assert.equal(result.status, "ok");
+	assert.equal(
+		calls.length,
+		2,
+		"no temporary split half is created and deleted",
+	);
+	assert.equal(
+		calls[0].length,
+		3,
+		"switch reserves its root before the retained half",
+	);
+	assert.equal(calls[0][0].posX, 20);
+	assert.equal(calls[0][1].posX, direction ? 0 : 40);
+	assert.equal(calls[1].length, 2);
+	const record = tools.splitUndoRecords[result.undoToken];
+	assert.deepEqual(
+		Array.from(record.cants, (item) => item.railKey),
+		["external"],
+		"only original external connections enter cant Undo",
+	);
+	assert.equal(
+		cores.filter((item) => item.key.startsWith("replacement")).length,
+		2,
+	);
+	assert.equal(external.positions[0].cantEdge, 0);
+	assert.equal(
+		tools.undoBranchBuilderRail(branchWorld, {}, result.undoToken),
+		"undo_ok",
+	);
+	assert.equal(external.positions[0].cantEdge, 5);
+	assert.equal(
+		cores.length,
+		2,
+		"Undo removes both final replacements and restores the original",
+	);
+}
+for (const failure of [1, 2]) {
+	const { result, external } = interiorBranch(true, failure);
+	assert.equal(result.status, "create_failed");
+	const rollbackUpdate = tools.consumeLastSplitClientUpdate();
+	assert(
+		rollbackUpdate,
+		"failed generation must synchronize restored rail geometry",
+	);
+	assert(rollbackUpdate.removed.some((rail) => rail.key === "original"));
+	assert.equal(rollbackUpdate.refreshed.length, 1);
+	assert.equal(external.positions[0].cantEdge, 5);
+	assert.equal(
+		cores.length,
+		2,
+		"failed generation restores original and keeps its neighbor",
+	);
+	assert.equal(
+		cores.filter((item) => item.key.startsWith("replacement")).length,
+		1,
+	);
+}
+// A replacement changed by another action must never be deleted during rollback.
+interiorBranch(true);
+const record = { created: [{ core: [101, 4, 0], key: "previous-key" }] };
+const beforeRollback = cores.slice(),
+	beforeCalls = calls.length;
+assert.equal(tools.rollbackBranch(branchWorld, {}, record), false);
+assert.deepEqual(cores, beforeRollback);
+assert.equal(
+	calls.length,
+	beforeCalls,
+	"blocked cleanup must not attempt original restoration",
+);
+tools.switchPosition = originalSwitchPosition;
+tools.restoreRecord = originalRestore;
+console.log(
+	"AppleExtended interior branch generation, Undo and rollback: passed",
+);

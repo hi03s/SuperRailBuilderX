@@ -12,6 +12,7 @@ import { NBTBase, NBTTagCompound } from "net.minecraft.nbt";
 import { BlockPos } from "net.minecraft.util.math";
 import { World } from "net.minecraft.world";
 import { UUID } from "java.util";
+import { NGTLog } from "jp.ngt.ngtlib.io";
 import {
 	AppleExtendedBuilderPoint,
 	AppleExtendedRailCompat,
@@ -41,6 +42,7 @@ type CantRecord = {
 	positions: RailPosition[];
 };
 type RailRecord = {
+	source?: CreatedRail;
 	positions: RailPosition[];
 	property: ResourceStateRail;
 	signal: number;
@@ -453,6 +455,11 @@ export class AppleExtendedRailToolsCompat {
 		corePosition: RailCorePos,
 		expectedKey: string,
 		ratio: number,
+		branch?: {
+			request: BranchRequest;
+			end: RailPosition;
+			property: ResourceStateRail;
+		},
 	) {
 		this.lastSplitUpdate = null;
 		if (!isFinite(ratio) || ratio <= 0 || ratio >= 1)
@@ -483,6 +490,7 @@ export class AppleExtendedRailToolsCompat {
 			return { status: "rail_too_short" };
 		const original = this.copyPositions(positions);
 		const record: RailRecord = {
+			source: { core: corePosition, key: expectedKey },
 			positions: original,
 			property: core.getResourceState(),
 			signal: core.getSignal(),
@@ -585,36 +593,66 @@ export class AppleExtendedRailToolsCompat {
 			secondEnd.anchorLengthHorizontal,
 			secondEnd.anchorPitch,
 		);
+		let firstPositions = [firstStart, splitEnd];
+		let secondPositions = [splitStart, secondEnd];
+		if (branch) {
+			// Snapshot external connections while the original rail still exists.
+			// Replacement halves must never become external cant Undo targets.
+			record.cants = [];
+			this.zeroBranchConnections(
+				world,
+				core,
+				positions,
+				branch.request,
+				record.cants,
+			);
+			const vx = branch.end.posX - x,
+				vz = branch.end.posZ - z;
+			const selectedFirst =
+				vx * (original[0].posX - x) + vz * (original[0].posZ - z) >=
+				vx * (original[1].posX - x) + vz * (original[1].posZ - z);
+			const selected = selectedFirst ? firstPositions : secondPositions;
+			const remaining = selectedFirst ? secondPositions : firstPositions;
+			const rootIndex = selectedFirst ? 1 : 0;
+			firstPositions = [
+				this.switchPosition(selected[rootIndex], 1),
+				this.switchPosition(selected[1 - rootIndex], 0),
+				this.switchPosition(branch.end, 0),
+			];
+			secondPositions = remaining;
+			for (let i = 0; i < remaining.length; i++) {
+				remaining[i].cantEdge = 0;
+				remaining[i].cantCenter = 0;
+				remaining[i].cantRandom = 0;
+			}
+		}
 		const removed = AppleExtendedRailCompat.undoNormalRail(
 			world,
 			corePosition,
 			expectedKey,
 		);
-		if (removed !== "ok") return { status: removed };
+		if (removed !== "ok") {
+			this.restoreCantRecords(world, record.cants);
+			return { status: removed };
+		}
 		const first = AppleExtendedRailCompat.createFromPositions(
 			world,
 			player,
-			[firstStart, splitEnd],
-			record.property,
+			firstPositions,
+			branch ? branch.property : record.property,
 		);
 		if (first) record.created.push(first);
 		const second = first
 			? AppleExtendedRailCompat.createFromPositions(
 					world,
 					player,
-					[splitStart, secondEnd],
+					secondPositions,
 					record.property,
 				)
 			: null;
 		if (second) record.created.push(second);
 		if (!first || !second) {
-			for (let i = record.created.length - 1; i >= 0; i--)
-				AppleExtendedRailCompat.undoNormalRail(
-					world,
-					record.created[i].core,
-					record.created[i].key,
-				);
-			const restored = this.restoreRecord(world, player, record);
+			const restored = this.rollbackBranch(world, player, record);
 			return {
 				status: restored ? "create_failed" : "split_rollback_failed",
 			};
@@ -712,17 +750,37 @@ export class AppleExtendedRailToolsCompat {
 		player: EntityPlayer,
 		record: RailRecord,
 	): boolean {
-		for (let i = record.created.length - 1; i >= 0; i--)
-			AppleExtendedRailCompat.undoNormalRail(
+		// Never restore over replacements that could not safely be removed.
+		const removed = record.created.slice();
+		for (let i = 0; i < record.created.length; i++) {
+			const validation = AppleExtendedRailCompat.validateUndoNormalRail(
 				world,
 				record.created[i].core,
 				record.created[i].key,
 			);
-		record.created = [];
-		return (
-			!!this.restoreRecord(world, player, record) &&
-			this.restoreCantRecords(world, record.cants)
-		);
+			if (validation !== "ok") {
+				NGTLog.debug(
+					`[SuperRailBuilderX AE] branch rollback blocked: core=${record.created[i].core.join(",")}, key=${record.created[i].key}, status=${validation}`,
+				);
+				return false;
+			}
+		}
+		for (let i = record.created.length - 1; i >= 0; i--) {
+			const result = AppleExtendedRailCompat.undoNormalRail(
+				world,
+				record.created[i].core,
+				record.created[i].key,
+			);
+			if (result !== "ok") return false;
+			record.created.pop();
+		}
+		const restored = this.restoreRecord(world, player, record);
+		if (!restored) return false;
+		if (record.source) removed.push(record.source);
+		// A rollback also replaces the section UUID. Refresh the restored group,
+		// even when the requested branch itself failed.
+		this.lastSplitUpdate = { removed, refreshed: [restored] };
+		return this.restoreCantRecords(world, record.cants);
 	}
 
 	private static zeroExternalCant(
@@ -933,6 +991,7 @@ export class AppleExtendedRailToolsCompat {
 			const rootIndex = request.ratio === 0 ? 0 : 1;
 			const original = this.copyPositions(sourcePositions);
 			const record: RailRecord = {
+				source: { core: request.core, key: request.railKey },
 				positions: original,
 				property: sourceCore.getResourceState(),
 				signal: sourceCore.getSignal(),
@@ -989,89 +1048,15 @@ export class AppleExtendedRailToolsCompat {
 			return { status: "ok", undoToken: token };
 		}
 
-		const split = this.splitBuilderRail(
+		// Install the final switch before the remaining half can occupy its root.
+		return this.splitBuilderRail(
 			world,
 			player,
 			request.core,
 			request.railKey,
 			request.ratio,
+			{ request, end: branchEnd, property },
 		);
-		if (split.status !== "ok" || !split.undoToken) return split;
-		const record = this.splitUndoRecords[split.undoToken];
-		if (!record || record.created.length !== 2)
-			return { status: "branch_split_failed" };
-		record.cants = [];
-		this.zeroBranchConnections(
-			world,
-			sourceCore,
-			sourcePositions,
-			request,
-			record.cants,
-		);
-		const splitPosition = request.branchStart.position;
-		const vx = request.branchEnd.position[0] - splitPosition[0];
-		const vz = request.branchEnd.position[2] - splitPosition[2];
-		const sx = record.positions[0].posX - splitPosition[0];
-		const sz = record.positions[0].posZ - splitPosition[2];
-		const ex = record.positions[1].posX - splitPosition[0];
-		const ez = record.positions[1].posZ - splitPosition[2];
-		const selectedIndex = vx * sx + vz * sz >= vx * ex + vz * ez ? 0 : 1;
-		const selected = record.created[selectedIndex];
-		const selectedCore = AppleExtendedRailCompat.getCore(
-			world,
-			selected.core,
-		);
-		if (!selectedCore) {
-			this.rollbackBranch(world, player, record);
-			delete this.splitUndoRecords[split.undoToken];
-			return { status: "branch_split_failed" };
-		}
-		const half = this.copyPositions(
-			AppleExtendedRailCompat.getLogicalPositions(selectedCore),
-		);
-		let rootIndex = 0;
-		if (
-			Math.pow(half[1].posX - splitPosition[0], 2) +
-				Math.pow(half[1].posZ - splitPosition[2], 2) <
-			Math.pow(half[0].posX - splitPosition[0], 2) +
-				Math.pow(half[0].posZ - splitPosition[2], 2)
-		)
-			rootIndex = 1;
-		const removed = AppleExtendedRailCompat.undoNormalRail(
-			world,
-			selected.core,
-			selected.key,
-		);
-		if (removed !== "ok") {
-			this.restoreCantRecords(world, record.cants);
-			return { status: removed };
-		}
-		record.created.splice(selectedIndex, 1);
-		const created = AppleExtendedRailCompat.createFromPositions(
-			world,
-			player,
-			[
-				this.switchPosition(half[rootIndex], 1),
-				this.switchPosition(half[1 - rootIndex], 0),
-				this.switchPosition(branchEnd, 0),
-			],
-			property,
-		);
-		if (!created) {
-			const restored = this.rollbackBranch(world, player, record);
-			delete this.splitUndoRecords[split.undoToken];
-			return {
-				status: restored
-					? "switch_create_failed"
-					: "split_rollback_failed",
-			};
-		}
-		record.created.push(created);
-		this.lastSplitUpdate = {
-			removed: [{ core: request.core, key: request.railKey }, selected],
-			refreshed: record.created.slice(),
-		};
-		return { status: "ok", undoToken: split.undoToken };
 	}
 
 	static undoBranchBuilderRail(

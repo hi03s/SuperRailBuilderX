@@ -649,7 +649,11 @@ const platform = Object.values(context.RTMX_COMPAT_TARGETS.appleextended).find(
 	(value) => value.SRBXPatchPlatform,
 ).SRBXPatchPlatform;
 const railType = {};
+const parentRailType = {};
+railType.parent = parentRailType;
 const engine = {};
+let registryLockHeld = false;
+let registryUnlocks = 0;
 let railModels = [
 	{
 		modelObj: { renderer: { getScript: () => engine } },
@@ -670,10 +674,39 @@ let railModels = [
 const manager = {
 	modelConstructed: false,
 	getType: () => railType,
-	getModelList: () => ({
-		size: () => railModels.length,
-		get: (index) => railModels[index],
-	}),
+	// SMP's server allowlist is empty before joining the world. It is not
+	// the source of local renderer engines, even when NGTUtil.isSMP is true.
+	getModelList: () => {
+		throw new Error("patch must not use the world-dependent SMP allowlist");
+	},
+	modelSetMapLock: {
+		readLock: () => ({
+			lock: () => {
+				registryLockHeld = true;
+			},
+			unlock: () => {
+				registryLockHeld = false;
+				registryUnlocks++;
+			},
+		}),
+	},
+	allModelSetMap: {
+		get: (type) => {
+			assert.strictEqual(type, parentRailType);
+			assert.strictEqual(registryLockHeld, true);
+			return {
+				values: () => ({
+					iterator: () => {
+						let index = 0;
+						return {
+							hasNext: () => index < railModels.length,
+							next: () => railModels[index++],
+						};
+					},
+				}),
+			};
+		},
+	},
 };
 context.Packages.jp.ngt.rtm.modelpack = {
 	ModelPackManager: { INSTANCE: manager },
@@ -690,6 +723,8 @@ assert.strictEqual(
 	"rendererless dummy/failed models must not block all scripted models",
 );
 const targets = platform.getRailPatchTargets();
+assert.strictEqual(registryLockHeld, false);
+assert.strictEqual(registryUnlocks, 1);
 assert.strictEqual(targets.length, 3);
 assert.strictEqual(targets[0].engine, engine);
 assert.strictEqual(targets[1].engine, null);
@@ -698,6 +733,20 @@ assert(
 	messages.some((line) => line.includes("no constructed renderer: failed")),
 );
 railModels = [];
+assert.strictEqual(platform.getRailPatchTargets().length, 0);
+assert.strictEqual(registryUnlocks, 2);
+const normalRegistryGet = manager.allModelSetMap.get;
+manager.allModelSetMap.get = () => {
+	throw new Error("registry failure");
+};
+assert.throws(() => platform.getRailPatchTargets(), /registry failure/);
+assert.strictEqual(
+	registryLockHeld,
+	false,
+	"failed registry reads must release the lock",
+);
+assert.strictEqual(registryUnlocks, 3);
+manager.allModelSetMap.get = normalRegistryGet;
 assert.strictEqual(
 	platform.isReady(),
 	true,
