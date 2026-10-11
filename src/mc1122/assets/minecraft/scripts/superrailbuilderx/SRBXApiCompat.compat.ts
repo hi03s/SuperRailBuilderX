@@ -11,6 +11,9 @@ import { SRBXGuiGLState } from "@common/assets/minecraft/scripts/superrailbuilde
 import { GlStateManager } from "net.minecraft.client.renderer";
 import { NGTUtilClient } from "jp.ngt.ngtlib.util";
 export class SRBXApiCompat {
+	static usesMountedToolHost(): boolean {
+		return false;
+	}
 	static getToolModel(entity: unknown): string {
 		return (entity as jp.ngt.rtm.entity.vehicle.EntityVehicle)
 			.getResourceState()

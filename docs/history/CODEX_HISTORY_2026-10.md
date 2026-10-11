@@ -489,3 +489,11 @@
 - test:inputで文字列ラッパー・同一IDの別ラッパーでの切替成功、他人/所有者不一致/追従先なしの拒否を検証。全4ターゲットbuild、test:gui、test:runtime-dispatch、Java8 Nashornホイールテスト成功。実機再確認は未実施。
 - 抜粋ログ: logs/appleextended-wheel-invalid-tool-20261012.log（SRBX要求3行のみ）。更新ZIP: artifacts/SuperRailBuilderX-0.3.0-ae-wheel-fix.zip。AEでTAB解除/左クリックのモデル変更を再確認し、不具合時はlogs/latest.logを共有する。既存Draft/タグ/Assetsは変更しない。
 - 実装コミットa79d4b9はorigin/mainへpush・同期済み。
+
+## 2026-10-12 ローカルCodex: AEの非乗車追従とホイール切替のホスト引継ぎ
+
+- 新しい実機ログでは全切替要求がinvalid_mount、index=1〜6、host=owner=0、riding=none。ツール名と所有者は正常で、乗車先を要求する条件が原因と確定した。
+- AEが継承するmc1122 compatのstartRidingは意図的に何もしない。doFollowingがツール座標をプレイヤーへ追従させているため、getRidingEntityはnullが正常。1.12.2は非乗車追従、1.7.10は乗車追従をcompatで区別し、所有者IDチェックと異なる乗車先の拒否は維持する。
+- モデル切替後はサーバースクリプトのhostsキャッシュが新しくなるため、成功する切替でサーバーが保存したホストIDを次のスクリプトで消費し、同じワールドの生存EntityPlayerを復元する。全6サーバースクリプト（A/B共用）へ追加。失敗時の引継ぎ消去・所有者不一致・終了済み・不正ID・プレイヤー不在をガードする。
+- 全4ターゲットbuild、test:input、test:gui、test:runtime-dispatch、test:appleextended、Java8 Nashornホイールテスト成功。1.12.2の乗車先なしで切替成功・ホスト引継ぎと1.7.10の乗車先必須を回帰テスト。実機再確認は未実施。
+- 必要なwheel診断7行を logs/appleextended-wheel-unmounted-host-20261012.log へ抜粋。再確認用ZIP: artifacts/SuperRailBuilderX-0.3.0-ae-wheel-host-fix.zip。AEでTAB解除/左クリックの切替と切替後の選択・生成・再切替を確認し、異常時はlogs/latest.logを共有する。既存Draft/タグ/Assetsは変更しない。

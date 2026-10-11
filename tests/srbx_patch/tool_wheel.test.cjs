@@ -29,7 +29,12 @@ function setup() {
 		getString: (key) => values[key] || "",
 		setString: (key, value) => (values[key] = value),
 	};
-	const player = { getEntityId: () => 7, func_145782_y: () => 7 };
+	class Player {
+		func_145782_y() {
+			return 7;
+		}
+	}
+	const player = new Player();
 	const entity = {
 		getResourceState: () => ({ getDataMap: () => data }),
 		field_70128_L: false,
@@ -49,6 +54,8 @@ function setup() {
 		func_71381_h: () => focused++,
 	};
 	const compat = {
+		usesMountedToolHost: () => true,
+		getWorld: () => ({ func_73045_a: (id) => (id === 7 ? player : null) }),
 		getToolModel: () => model,
 		getRidingEntity: () => rider,
 		switchToolModel: (e, name) => {
@@ -57,6 +64,7 @@ function setup() {
 		},
 	};
 	const context = vm.createContext({
+		EntityPlayer: Player,
 		Keyboard: {
 			isKeyDown: (key) => held.has(key),
 			KEY_TAB: "TAB",
@@ -291,6 +299,35 @@ s.setRider(null);
 s.values.srbxToolSwitchRequest = "SuperRailBuilderX_builder2";
 assert.equal(s.context.SRBXToolSwitchServer.update(s.entity, s.player), false);
 assert.equal(s.values.srbxToolSwitchResult, "invalid_mount");
+// 1.12.2/AE follows by position and deliberately has no vehicle mount.
+s = setup();
+s.compat.usesMountedToolHost = () => false;
+s.setRider(null);
+s.values.srbxToolSwitchRequest = "SuperRailBuilderX_builder2";
+assert(s.context.SRBXToolSwitchServer.update(s.entity, s.player));
+assert.equal(s.values.srbxToolSwitchHost, "7");
+assert.equal(s.context.SRBXToolSwitchServer.restoreHost(s.entity), s.player);
+assert.equal(s.values.srbxToolSwitchHost, "");
+assert.equal(s.context.SRBXToolSwitchServer.restoreHost(s.entity), null);
+for (const [pending, owner, ended] of [
+	["7", "99", false],
+	["7", "7", true],
+	["invalid", "invalid", false],
+	["99", "99", false],
+]) {
+	s = setup();
+	s.values.srbxToolSwitchHost = pending;
+	s.values.hostPlayerEntityId = owner;
+	s.values.isEndEdit = ended;
+	assert.equal(s.context.SRBXToolSwitchServer.restoreHost(s.entity), null);
+	assert.equal(s.values.srbxToolSwitchHost, "");
+}
+s = setup();
+s.compat.usesMountedToolHost = () => false;
+s.setRider({ func_145782_y: () => 99 });
+s.values.srbxToolSwitchRequest = "SuperRailBuilderX_builder2";
+assert.equal(s.context.SRBXToolSwitchServer.update(s.entity, s.player), false);
+assert.equal(s.values.srbxToolSwitchResult, "invalid_mount");
 for (const status of ["missing_model", "internal_error"]) {
 	s = setup();
 	s.values.srbxToolSwitchRequest = "SuperRailBuilderX_CantFormatter";
@@ -303,6 +340,7 @@ for (const status of ["missing_model", "internal_error"]) {
 		false,
 	);
 	assert.equal(s.values.srbxToolSwitchResult, status);
+	assert.equal(s.values.srbxToolSwitchHost, "");
 }
 for (const visible of [false, "throw"]) {
 	s = setup();
@@ -334,6 +372,10 @@ for (const tool of [
 	assert(
 		read("server_" + tool).includes("SRBXToolSwitchServer.update("),
 		tool + " server hook",
+	);
+	assert(
+		read("server_" + tool).includes("SRBXToolSwitchServer.restoreHost("),
+		tool + " host handoff",
 	);
 }
 assert(

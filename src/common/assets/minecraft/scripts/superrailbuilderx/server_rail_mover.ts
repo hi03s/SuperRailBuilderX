@@ -798,7 +798,8 @@ function applyRequest(
 function onUpdate(entity: EntityVehicle, scriptExecuter: ScriptExecuter): void {
 	entity.rotationYaw = 0;
 	const dataMap = entity.getResourceState().getDataMap();
-	let host = hosts.get(entity);
+	let host = hosts.get(entity) || SRBXToolSwitchServer.restoreHost(entity);
+	if (host) hosts.put(entity, host);
 	const rider = SRBXApiCompat.getRider(entity) as unknown as EntityPlayer;
 	const ridingEntity = SRBXApiCompat.getRidingEntity(entity);
 	if (dataMap.getString("VERSIONS") === "")

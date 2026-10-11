@@ -9,6 +9,9 @@ import { EntityPlayer } from "net.minecraft.entity.player";
 import { SRBXGuiGLState } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXGuiGLState";
 import { NGTUtilClient } from "jp.ngt.ngtlib.util";
 export class SRBXApiCompat {
+	static usesMountedToolHost(): boolean {
+		return true;
+	}
 	static getToolModel(entity: unknown): string {
 		return (
 			entity as jp.ngt.rtm.entity.vehicle.EntityVehicle

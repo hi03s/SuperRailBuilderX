@@ -42,7 +42,7 @@
 
 ## 優先確認事項
 
-- AEのTAB切替要求はサーバーでinvalid_tool拒否を確認。文字列を正規化し、追従先をEntity IDで検証するよう修正。旧ログから失敗条件は断定できないため診断を追加。artifacts/SuperRailBuilderX-0.3.0-ae-wheel-fix.zipで再確認し、失敗時はlogs/latest.logのwheel行を共有する。
+- AEのTAB拒否は、非乗車で座標追従する1.12.2へ乗車必須チェックを適用していたことが原因。compatで区別し、切替後のサーバーホスト引継ぎも修正。artifacts/SuperRailBuilderX-0.3.0-ae-wheel-host-fix.zipで切替と切替後の操作・再切替を確認し、異常時はlogs/latest.logを共有する。
 
 - KaizPatch/AEでAの自由点勾配と既設接続、Bの始点選択・L/R・長さ操作・生成/Undo、7ツールのホイールと日本語ヘルプを確認する。不具合時は操作順とlogs/latest.logを共有する。
 
@@ -128,6 +128,8 @@
 - 2026-10-10 ローカルCodex: 開発者の新方針でmain/AEも自由点へ統一しSRBXPatchを分離。新規repo/fork/Issue/PR/コメント禁止は継続。実機確認は[srbx-free-endpoint-mod.md](srbx-free-endpoint-mod.md)。
 
 ## 直近の完了
+
+- 2026-10-12 ローカルCodex: AEの非乗車追従を考慮したTAB検証と切替後のホスト引継ぎを修正。全4build・関連回帰・Java8ホイール成功。実機再確認待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 - 2026-10-12 ローカルCodex: AEホイールの比較処理と拒否理由の診断を修正。全4build・入力/GUI/dispatch・Java8ホイール成功。実機再確認待ち。[a79d4b9](https://github.com/hi03s/SuperRailBuilderX/commit/a79d4b9)はmainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 

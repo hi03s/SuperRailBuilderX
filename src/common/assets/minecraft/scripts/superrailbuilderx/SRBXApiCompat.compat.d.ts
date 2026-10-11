@@ -74,6 +74,8 @@ import { SRBXGuiGLState } from "./SRBXGuiGLState";
 export class SRBXApiCompat {
 	static getToolModel(entity: unknown): string;
 	static switchToolModel(entity: unknown, model: string): boolean;
+	static usesMountedToolHost(): boolean;
+	static usesMountedToolHost(): boolean;
 	static drawGuiTextWithShadow(
 		text: string,
 		x: number,

@@ -45,7 +45,8 @@ function onUpdate(entity: EntityVehicle, executer: ScriptExecuter): void {
 	void executer;
 	entity.rotationYaw = 0;
 	const d = entity.getResourceState().getDataMap();
-	let host = hosts.get(entity);
+	let host = hosts.get(entity) || SRBXToolSwitchServer.restoreHost(entity);
+	if (host) hosts.put(entity, host);
 	const rider = SRBXApiCompat.getRider(entity) as unknown as EntityPlayer,
 		riding = SRBXApiCompat.getRidingEntity(entity);
 	if (d.getString("VERSIONS") === "") d.setString("VERSIONS", VERSION, 1);
