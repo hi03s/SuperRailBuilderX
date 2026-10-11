@@ -115,7 +115,7 @@
 
 ## 直近の完了
 
-- 2026-10-11 ローカルCodex: 未接続端点スナップ、端部道床所有先変更/復元と逆順・設定上限内の通常生成を実装。全4build・関連回帰成功、ZIP更新、実機確認待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[a945d9b](https://github.com/hi03s/SuperRailBuilderX/commit/a945d9b)をorigin/mainへpush済み、同期確認済み。
+- 2026-10-11 ローカルCodex: KaizPatchのgetTileData未定義による生成/移動/分割失敗を修正。全4build・関連回帰・保存再読込模擬検証成功、ZIP更新、実機再確認待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[91d7899](https://github.com/hi03s/SuperRailBuilderX/commit/91d7899)をorigin/mainへpush済み、同期確認済み。
 
 ## 関連資料
 

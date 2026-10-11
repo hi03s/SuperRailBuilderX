@@ -435,3 +435,4 @@
 - 検証済み: 全4ターゲットpnpm build（警告なし）、test:rail-transition、test:kaizpatch、test:appleextended、test:free-endpoint、test:runtime-dispatch。getTileDataなし/SRG名だけのKaiz模擬環境で昇格/Undo、端部所有先保存再読込、借用端部の昇格後の段階復元、初期化失敗/配置拒否、旧所有先/旧グループ拒否、ディメンション分離、クライアント書込抑止を検証。変更TSのPrettier確認とgit diff --check成功。
 - pnpm format:checkは変更していない25ファイルの既存整形差分で失敗。今回の変更TSは個別確認で成功し、無関係な整形は行わない。実Minecraftの保存再読込・実走行・本番サーバーは未検証/未操作。
 - ZIP: artifacts/SuperRailBuilderX-0.2.0.zip（108ファイル）、SHA256: 26B53FFDD98145047D730AE40B3725B29C9E0F371ED14A5306E07B9C30EFBB63。Kaiz専用保存ヘルパーの収録とgui_base.xcf除外を確認。ユーザーの元アセットは保持。更新ZIPで生成/接続移動/分割/Undoと保存再入場後の未選択レール保持を確認し、異常時は操作順とlogs/latest.logを共有する。
+- 同期: 91d7899（KaizPatchの道床履歴保存APIを修正し生成・移動・分割の失敗を解消）をorigin/mainへpush成功。
