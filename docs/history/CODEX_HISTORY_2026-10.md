@@ -515,3 +515,4 @@
 - 検証: 全4ターゲットbuild、test:input、test:gui、test:appleextended、test:runtime-dispatch、test:rail-patch成功。変更ソース/テストのPrettierと差分確認成功。null/空/片端/欠損配列を拒否し、後から準備済みになったコアを描画。構築途中待機、rendererなし混在で正常エンジン取得、空モデル一覧、クライアントスケジューリングを検証。
 - 配布用の最新artifacts/SuperRailBuilderX-0.3.0.zipを更新。AEの通常/自動分割レール付近で分岐選択と端点ホバー、分岐生成、修正パッチのcompleted: patched=.../failed=0を確認し、異常時はlogs/latest.logを共有する。実機描画は未実施。既存v0.3.0 Draft/タグ/AssetsとSRBXPatch JARは変更しない。
 - 生ログはGitへ追加せず、必要なスタック/待機診断だけをローカル logs/appleextended-branch-render-patch-20261012.log へ抜粋。解決したAE非乗車診断の旧抜粋は削除。
+- 実装コミット2d4a57bはorigin/mainへpush・同期済み。
