@@ -249,6 +249,46 @@ assert(!records.has(entity));
 assert(!server.includes("splitBuilderRail"));
 // Branch snap modes and world-grid independence.
 const branch = read("render_branch_builder");
+// AE may expose a core before its logical endpoints are available.
+let missingDiagnostics = 0;
+context.NGTLog.debug = () => missingDiagnostics++;
+context.missingPositionReports = {};
+vm.runInContext(fn(branch, "readyRailPositions"), context);
+vm.runInContext(fn(branch, "renderEndpointHoverHighlights"), context);
+context.TileEntityLargeRailBase = Core;
+let highlighted = 0;
+context.renderRailHighlight = () => highlighted++;
+const originalPositions = compat.getEditableRailPositions;
+compat.getEditableRailPositions = () => null;
+context.renderEndpointHoverHighlights(
+	{},
+	0,
+	{ position: [0, 0.0625, 0], railKey: "A" },
+	false,
+	true,
+);
+context.renderEndpointHoverHighlights(
+	{},
+	0,
+	{ position: [0, 0.0625, 0], railKey: "A" },
+	false,
+	true,
+);
+assert.equal(highlighted, 0);
+assert.equal(missingDiagnostics, 1, "Missing endpoint diagnostics are bounded");
+for (const invalid of [[], [null, null], [positions(core)[0]]]) {
+	compat.getEditableRailPositions = () => invalid;
+	assert.equal(context.readyRailPositions(core, "split candidate"), null);
+}
+compat.getEditableRailPositions = originalPositions;
+context.renderEndpointHoverHighlights(
+	{},
+	0,
+	{ position: [0, 0.0625, 0], railKey: "A" },
+	false,
+	true,
+);
+assert.equal(highlighted, 1, "A core initialized later becomes drawable");
 context.DEFAULT_HEIGHT = 1 / 16;
 context.MAX_RADIUS = 10000;
 context.snapAngles = [1, 5, 15];

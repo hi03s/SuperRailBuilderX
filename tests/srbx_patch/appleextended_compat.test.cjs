@@ -648,7 +648,61 @@ loadCompat("srbx_patch", "platform.");
 const platform = Object.values(context.RTMX_COMPAT_TARGETS.appleextended).find(
 	(value) => value.SRBXPatchPlatform,
 ).SRBXPatchPlatform;
-platform.isReady = () => true;
+const railType = {};
+const engine = {};
+let railModels = [
+	{
+		modelObj: { renderer: { getScript: () => engine } },
+		getConfig: () => ({
+			getName: () => "scripted",
+			model: { rendererPath: "rail.js" },
+		}),
+	},
+	{
+		modelObj: { renderer: null },
+		getConfig: () => ({ getName: () => "dummy", model: {} }),
+	},
+	{
+		modelObj: null,
+		getConfig: () => ({ getName: () => "failed", model: {} }),
+	},
+];
+const manager = {
+	modelConstructed: false,
+	getType: () => railType,
+	getModelList: () => ({
+		size: () => railModels.length,
+		get: (index) => railModels[index],
+	}),
+};
+context.Packages.jp.ngt.rtm.modelpack = {
+	ModelPackManager: { INSTANCE: manager },
+};
+assert.strictEqual(
+	platform.isReady(),
+	false,
+	"construction must finish before patching",
+);
+manager.modelConstructed = true;
+assert.strictEqual(
+	platform.isReady(),
+	true,
+	"rendererless dummy/failed models must not block all scripted models",
+);
+const targets = platform.getRailPatchTargets();
+assert.strictEqual(targets.length, 3);
+assert.strictEqual(targets[0].engine, engine);
+assert.strictEqual(targets[1].engine, null);
+assert.strictEqual(targets[2].engine, null);
+assert(
+	messages.some((line) => line.includes("no constructed renderer: failed")),
+);
+railModels = [];
+assert.strictEqual(
+	platform.isReady(),
+	true,
+	"an empty rail list must complete without a timeout",
+);
 let ran = false;
 platform.scheduleWhenReady(
 	() => {

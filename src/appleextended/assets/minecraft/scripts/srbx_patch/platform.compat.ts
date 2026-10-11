@@ -36,7 +36,7 @@ export class SRBXPatchPlatform {
 					}
 					if (!ready)
 						throw new Error(
-							"AppleExtended model construction timed out",
+							`AppleExtended model construction timed out: modelConstructed=${ModelPackManager.INSTANCE.modelConstructed}, railType=${Boolean(ModelPackManager.INSTANCE.getType("ModelRail"))}`,
 						);
 					Minecraft.getMinecraft().addScheduledTask(
 						task as unknown as java.util.concurrent.Callable<unknown>,
@@ -59,9 +59,15 @@ export class SRBXPatchPlatform {
 		const targets: RailPatchTarget[] = [];
 		for (let index = 0; index < list.size(); index++) {
 			const set = list.get(index) as ModelSetRail;
+			if (!set) continue;
 			const config = set.getConfig();
+			if (!config) continue;
 			const model = set.modelObj;
 			const renderer = model ? model.renderer : null;
+			if (!renderer)
+				NGTLog.debug(
+					`[SRBX rail patch] skipped: no constructed renderer: ${String(config.getName())}`,
+				);
 			targets.push({
 				engine: renderer ? renderer.getScript() : null,
 				modelName: String(config.getName()),
@@ -86,14 +92,9 @@ export class SRBXPatchPlatform {
 	private static isReady(): boolean {
 		const manager = ModelPackManager.INSTANCE;
 		if (!manager.modelConstructed) return false;
-		const railType = manager.getType("ModelRail");
-		if (!railType) return false;
-		const list = manager.getModelList(railType);
-		if (list.isEmpty()) return false;
-		for (let index = 0; index < list.size(); index++) {
-			const set = list.get(index) as ModelSetRail;
-			if (!set || !set.modelObj || !set.modelObj.renderer) return false;
-		}
-		return true;
+		// AE publishes this volatile flag after all construction tasks finish.
+		// Dummy and failed model sets can legitimately have no renderer; they
+		// must not prevent the remaining script engines from being patched.
+		return Boolean(manager.getType("ModelRail"));
 	}
 }

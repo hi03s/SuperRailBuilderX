@@ -8,7 +8,10 @@ import { MCWrapperClient, NGTUtilClient } from "jp.ngt.ngtlib.util";
 import { EntityVehicle } from "jp.ngt.rtm.entity.vehicle";
 import { ModelSetVehicle } from "jp.ngt.rtm.modelpack.modelset";
 import { ModelObject, Parts, VehiclePartsRenderer } from "jp.ngt.rtm.render";
-import { TileEntityLargeRailBase } from "jp.ngt.rtm.rail";
+import {
+	TileEntityLargeRailBase,
+	TileEntityLargeRailCore,
+} from "jp.ngt.rtm.rail";
 import { RailMap, RailPosition } from "jp.ngt.rtm.rail.util";
 import { ICommandSender } from "net.minecraft.command";
 import { EntityPlayer } from "net.minecraft.entity.player";
@@ -161,7 +164,8 @@ function findSplit(e: EntityVehicle, pt: number): SplitTarget | null {
 					Math.abs(RTMApiCompat.getRailPitch(map, 1000, 1000)) > 0.001
 				)
 					continue;
-				const rps = SRBXApiCompat.getEditableRailPositions(core);
+				const rps = readyRailPositions(core, "split candidate");
+				if (!rps) continue;
 				if (
 					Math.abs(SRBXApiCompat.getRailPositionAnchorPitch(rps[0])) >
 						0.001 ||
@@ -363,7 +367,8 @@ function findEndpoint(e: EntityVehicle, pt: number): SRBXBuilderPoint | null {
 					Math.abs(RTMApiCompat.getRailPitch(map, 1000, 1000)) > 0.001
 				)
 					continue;
-				const rps = SRBXApiCompat.getEditableRailPositions(core);
+				const rps = readyRailPositions(core, "endpoint candidate");
+				if (!rps) continue;
 				for (let i = 0; i < 2; i++) {
 					const rp = rps[i] as RailPosition;
 					if (
@@ -742,6 +747,20 @@ function renderRailHighlight(
 	GL11.glPopMatrix();
 }
 
+const missingPositionReports: { [phase: string]: boolean } = {};
+function readyRailPositions(core: TileEntityLargeRailCore, phase: string) {
+	const positions = SRBXApiCompat.getEditableRailPositions(core);
+	if (positions && positions.length >= 2 && positions[0] && positions[1])
+		return positions;
+	if (!missingPositionReports[phase]) {
+		missingPositionReports[phase] = true;
+		NGTLog.debug(
+			`[SuperRailBuilderX branch] unready rail skipped: phase=${phase}, core=${SRBXApiCompat.getRailCorePos(core)}, positions=${positions ? positions.length : "null"}`,
+		);
+	}
+	return null;
+}
+
 function renderEndpointHoverHighlights(
 	e: EntityVehicle,
 	pt: number,
@@ -779,7 +798,11 @@ function renderEndpointHoverHighlights(
 				if (seen[key]) continue;
 				if (selected && !showAlternatives && key !== target.railKey)
 					continue;
-				const positions = SRBXApiCompat.getEditableRailPositions(core);
+				const positions = readyRailPositions(
+					core,
+					"endpoint highlight",
+				);
+				if (!positions) continue;
 				let connected = false;
 				for (let i = 0; i < positions.length; i++)
 					if (

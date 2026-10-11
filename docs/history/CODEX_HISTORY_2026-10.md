@@ -507,3 +507,11 @@
 - 9ツール/共通説明書とSRBXPatch導入案内を利用者向けの操作・表示・制限優先に整理。実装情報は末尾または開発文書へ移動し、調査履歴・実機チェックリスト・検証コマンドを説明書から除去。Kaiz限定や旧カント任意点分割などの古い記述を現仕様へ更新。
 - 引継ぎ帳を現在の状態と未解決の実機確認に圧縮。Markdownリンクと本文中の文書パスを更新し、削除ログへのリンクを解消。ローカルリンク検証は欠落0件、Prettier確認とgit diff --check成功。.cacheへ移したfixtureでJava8 Nashornホイールテスト成功。コードの動作変更がないため新たなゲームビルド・実機検証は実施しない。
 - 整理コミット0824ed2はorigin/mainへpush・同期済み。GitHub上の追跡ログ57件を削除した。
+
+## 2026-10-12 ローカルCodex: AE分岐描画クラッシュとレール描画パッチ待機
+
+- 最新ログではモデル切替result=okと切替後のA/B・分岐生成成功を確認。01:02:24のクラッシュはrenderEndpointHoverHighlightsでnull配列のlengthを参照したTypeError。AE getLogicalRailPositionsは未初期化コアでnullを返し得る。分岐の分割候補/接続端候補/端点強調に端点準備判定を追加し、未準備をスキップ。段階ごと1回の診断と、後で初期化されたレールを再度描画する回帰を追加。
+- 描画パッチは00:24:15のModel load time:19126msの後も待機し00:34:13に10分タイムアウト。全体構築完了に加えて全モデルrenderer非nullを要求するため、ダミー/構築失敗モデル1件で全体が止まる設計を修正。AE2.5.3の全体構築完了フラグを維持し、描画器なしをモデル名付きで個別スキップ。旧ログで阻害モデル名は不明のため、修正後のcompleted/スキップ名は実機再確認待ち。Kaizのパッチ処理は変更しない。
+- 検証: 全4ターゲットbuild、test:input、test:gui、test:appleextended、test:runtime-dispatch、test:rail-patch成功。変更ソース/テストのPrettierと差分確認成功。null/空/片端/欠損配列を拒否し、後から準備済みになったコアを描画。構築途中待機、rendererなし混在で正常エンジン取得、空モデル一覧、クライアントスケジューリングを検証。
+- 配布用の最新artifacts/SuperRailBuilderX-0.3.0.zipを更新。AEの通常/自動分割レール付近で分岐選択と端点ホバー、分岐生成、修正パッチのcompleted: patched=.../failed=0を確認し、異常時はlogs/latest.logを共有する。実機描画は未実施。既存v0.3.0 Draft/タグ/AssetsとSRBXPatch JARは変更しない。
+- 生ログはGitへ追加せず、必要なスタック/待機診断だけをローカル logs/appleextended-branch-render-patch-20261012.log へ抜粋。解決したAE非乗車診断の旧抜粋は削除。
