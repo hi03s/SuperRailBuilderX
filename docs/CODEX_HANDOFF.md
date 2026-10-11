@@ -119,7 +119,7 @@
 
 ## 直近の完了
 
-- 2026-10-11 ローカルCodex: AE読込時の道床自動再敷設は確認できず、保存所有先のNBT復元と明示的な移動/生成経路を区別。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[043b53a](https://github.com/hi03s/SuperRailBuilderX/commit/043b53a)をorigin/mainへpush済み、同期確認済み。
+- 2026-10-11 ローカルCodex: AE重複区間の現在map保持を試作しJAR更新。Java挙動/実AE ASM検証成功、実機確認待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[cb406bb](https://github.com/hi03s/SuperRailBuilderX/commit/cb406bb)をorigin/mainへpush済み、同期確認済み。
 
 ## 関連資料
 

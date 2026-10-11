@@ -450,3 +450,4 @@
 - AEFreeEndpointHookの現在map保持を区間全体へ拡張し、予測には現在サンプルの接線を使用。近い端点外では保持を解除し、自由点の精密遷移/境界点の標準遷移を維持する。削除/置換/未ロード/位置や高さの不整合は標準復帰。初回取得や既に吸着済みの台車は対象外。Kaiz JAR、道床所有先、パックは変更しない。
 - Java 8挙動テストと実AE v2.5.3へのASM BasicVerifier/二重適用防止が成功。追加した重複区間双方向・曲線接線/探索量・境界端点両側・線形外/map置換/初回取得のテストと従来回帰を確認。JVM診断引数ON/OFFとも成功。実ワールド・実走行・マルチ同期・負荷は未検証。Javaのみ変更でTypeScript build/ZIPは未更新。
 - AE JARを更新: artifacts/SRBXPatch-v1.0-1.12.2.jar、SHA256: 2974CFF2259124996598A3C78D413556FF9D04593FC623B98E1D741D5B3AA0FD。Java 8形式・資産/依存/テスト非同梱の検証成功。診断は-Dsrbxpatch.debugRailLookup=true、最大1秒に1行。仕様/制約/確認手順はdocs/appleextended-overlap-rail-patch.md。本番サーバー・rtm-ts・共有ツールキット・ユーザーアセットは未操作。
+- 同期: cb406bb（AEの重複区間で現在レールを保持するパッチを追加）をorigin/mainへpush成功。
