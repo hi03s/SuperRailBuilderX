@@ -28,6 +28,7 @@
 - AppleExtended v2.5.3対応をmainへ統合済み。開発者から概ね不具合解消の報告を受領（2026-10-04）。通常/自動分割レールの生成・複線・分割・移動・カント・分岐・Undoを補完し、KaizPatchの既存処理を維持。
 - builder1のチャンク境界交差・候補表示・Iキー地上高合わせ、複線コピーの生成、分割パネル・縦勾配・カント、レール移動の基本操作・接続・回り込み防止・三線軌条の相互走行は実機確認済み。
 - `v0.2.0`を2026-10-04に[正式公開](https://github.com/hi03s/SuperRailBuilderX/releases/tag/v0.2.0)。タグは`1c73128`。Actions生成ZIP（88ファイル、全4ターゲット）を検証済み。
+- SRBX 0.3.0の[Draft Release](https://github.com/hi03s/SuperRailBuilderX/releases/tag/untagged-ade4983c2b433faa8c63)を作成済み、未公開。ZIPと両SRBXPatch JARの3 Assetsを検証済み。タグv0.3.0は228e407、[Workflow](https://github.com/hi03s/SuperRailBuilderX/actions/runs/38113797772)成功。導入案内は両側導入・SRBX未導入クライアントの例外を明記。公開は手動Publish。
 - `v*`タグpushで型生成・multi-targetビルド・ZIPと2 JAR付きDraft Releaseを作成。Java 25、生成前のGradle cacheキーはpnpm-lock.yaml/rtmx.jsonを使用。公開はDraft確認後に手動実行する。
 - レール生成・自由点移動の構造は `docs/rail-generation-and-free-positioning.md`、各ツールの仕様と検証方法は下記「関連資料」を参照する。
 - `AGENTS.md`へ、親モデルを途中変更するのではなく、限定作業だけを軽量・バランス型サブエージェントへ委譲するモデル運用規則を追加済み。
@@ -35,9 +36,11 @@
 
 ## 作業中
 
-- ローカルCodex: SRBX 0.3.0の版更新・導入案内・3 Assets付きDraft Releaseを準備する（手動Publish待ち）。
+- なし。
 
 ## 優先確認事項
+
+- v0.3.0はDraftのまま。本文と3 Assetsを確認後、開発者が手動Publishする。ローカルCodexは公開しない。
 
 - AE重複区間・自動分割境界対策は開発者から実機確認済みの報告を受領（2026-10-11）。既設Sectionコア保護、Java挙動/実AE ASM検証も成功。今後の再発時は操作順と診断ログで確認する。初回取得の線選択は対象外。[診断/手順](appleextended-overlap-rail-patch.md)。
 
@@ -97,6 +100,7 @@
 
 ## 次に行うこと
 
+0. v0.3.0のDraftを確認し、開発者が手動Publishする。
 1. 更新main ZIPで未接続端点スナップと重複敷設/移動/分割/Undo後のレール保持を確認する（roadbed-ownership-investigation.md）。全6ツールのTABホイール（リング/左クリック/中央で変更なし/TAB解除/ESC/マルチプレイリスト）、カント解除色とカーソル非表示を確認する（tool-wheel.md）。Pの3種類切替/ブロック格子/影付き文字も継続確認し、暫定SRBXPatchは継続導入する。
 2. KaizPatch/AEで自由端点の接続を新規生成し、通常車両の両方向低速走行・移動・Undoを確認する（srbx-free-endpoint-mod.md）。
 3. AppleExtended v2.5.3で分岐描画patchのBootstrapログとoffsetあり/なし描画を確認する。
@@ -119,7 +123,7 @@
 
 ## 直近の完了
 
-- 2026-10-11 ローカルCodex: 既設Sectionコア保護を確認し、AE自動分割境界の同一グループ優先遷移を追加。Java/ASM/AE回帰成功、実機確認待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[4296d76](https://github.com/hi03s/SuperRailBuilderX/commit/4296d76)をorigin/mainへpush済み、同期確認済み。
+- 2026-10-11 ローカルCodex: SRBX 0.3.0と導入案内を更新し、3 Assets付きDraftを作成・検証。AE対策の実機確認報告を反映、CIのList取得も修正。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[228e407](https://github.com/hi03s/SuperRailBuilderX/commit/228e407)とv0.3.0はpush・同期済み。公開は手動。
 
 ## 関連資料
 
