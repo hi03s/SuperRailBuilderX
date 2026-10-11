@@ -127,7 +127,7 @@
 
 ## 直近の完了
 
-- 2026-10-11 ローカルCodex: Aの勾配操作/GUI、B、AEヘルプを実装。全4ターゲットのビルドと入力/幾何/サーバー再計算・関連回帰テストを検証。実機未確認。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
+- 2026-10-11 ローカルCodex: Aの勾配操作/GUI、B、AEヘルプを実装。全4ターゲットのビルドと関連回帰テストを検証。実機未確認。[790f4de](https://github.com/hi03s/SuperRailBuilderX/commit/790f4de)をmainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。検証ZIP: artifacts/SuperRailBuilderX-0.3.0-builder-ab-test.zip。
 
 - 2026-10-11 ローカルCodex: SRBX 0.3.0と導入案内を更新し、3 Assets付きDraftを作成・検証。AE対策の実機確認報告を反映、CIのList取得も修正。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[228e407](https://github.com/hi03s/SuperRailBuilderX/commit/228e407)とv0.3.0はpush・同期済み。公開は手動。
 

@@ -480,3 +480,4 @@
 - 検証: 全4ターゲットビルド、test:gui、test:input、test:appleextended、test:rail-transition、test:rail-boundary、test:runtime-dispatch、test:free-endpoint、Java8 NashornのGUI/ネイティブホイールテスト成功。無効設計での書込拒否、サーバー再計算とUndoを確認。実機GPU描画・ワールド生成は未実施。
 - v0.3.0の既存Draft/タグ/Assetsは変更せず、開発版ZIPを別名で用意する。実機確認は docs/builder2.md を参照。
 - 整形: 今回変更したTypeScript全7ファイルはPrettier確認成功。全体のformat:checkは未変更の既存24ファイルに警告があり未通過。検証用ZIPは113ファイル、BのJSON/3テクスチャを確認し、編集中のgui_base.xcfは除外した。
+- 実装コミット: 790f4de。origin/mainへのpush成功・同期済み。検証ZIP: artifacts/SuperRailBuilderX-0.3.0-builder-ab-test.zip。
