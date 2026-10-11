@@ -506,3 +506,4 @@
 - docs直下は文書案内READMEとCODEX_HANDOFFだけとし、user-guide/development/research/historyへ分類。自由端点・台車遷移・導入意図・撤回境界案・旧デバッグ車両の7資料をrail-transition-researchへ統合。CrossTie診断は道床調査、探索性能比較はSRBXPatch開発へ統合。一次資料リンクと原因判断に必要な観測数値は保持。
 - 9ツール/共通説明書とSRBXPatch導入案内を利用者向けの操作・表示・制限優先に整理。実装情報は末尾または開発文書へ移動し、調査履歴・実機チェックリスト・検証コマンドを説明書から除去。Kaiz限定や旧カント任意点分割などの古い記述を現仕様へ更新。
 - 引継ぎ帳を現在の状態と未解決の実機確認に圧縮。Markdownリンクと本文中の文書パスを更新し、削除ログへのリンクを解消。ローカルリンク検証は欠落0件、Prettier確認とgit diff --check成功。.cacheへ移したfixtureでJava8 Nashornホイールテスト成功。コードの動作変更がないため新たなゲームビルド・実機検証は実施しない。
+- 整理コミット0824ed2はorigin/mainへpush・同期済み。GitHub上の追跡ログ57件を削除した。
