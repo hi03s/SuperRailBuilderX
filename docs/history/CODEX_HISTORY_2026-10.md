@@ -525,3 +525,4 @@
 - 描画パッチは起動時にscanning 0、patched=0。AEのgetModelListはSMP時に未同期のサーバー許可一覧を参照するため、公開allModelSetMapのローカル全モデルをreadLock下で列挙する方式へ変更。同一ResourceSetが後のサーバー同期にも使われることを実JARで確認した。
 - 全4ターゲットbuild、test:appleextended、test:input、test:gui、test:runtime-dispatch、test:rail-patch、変更ファイル整形・差分確認成功。中間点分岐の両方向、生成1本目/2本目失敗時の復元と外部カント復元、Undo、異なるキーの撤去拒否、失敗時のクライアント通知を模擬検証。モデル列挙はSMP空一覧非使用・親タイプ・lock解除を検証。Minecraft実機は未実施。
 - 更新ZIPはartifacts/SuperRailBuilderX-0.3.0.zip。最新ZIPで両方向の分岐生成・両側保持・Undo・失敗後の復元、local rail registry: models=Nとcompleted: patched/failedを確認し、異常時はlogs/latest.logを共有する。SRBXPatch JAR、既存Draft/タグ/Assetsは変更しない。生ログはGitへ追加しない。
+- 実装コミット244e4e2はorigin/mainへpush・同期済み。

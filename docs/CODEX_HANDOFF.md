@@ -41,7 +41,7 @@
 
 ## 直近の完了
 
-- 2026-10-12 ローカルCodex: AE中間点分岐の生成順序・Undo対象・失敗時再描画を修正し、描画パッチをローカルモデル一覧へ適用。全4build・関連回帰成功、最新ZIPを更新、実機再確認待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
+- 2026-10-12 ローカルCodex: AE中間点分岐の生成順序・Undo対象・失敗時再描画と描画パッチ列挙先を修正。全4build・関連回帰成功、最新ZIP更新、実機再確認待ち。[244e4e2](https://github.com/hi03s/SuperRailBuilderX/commit/244e4e2)はmainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 - 2026-10-12 ローカルCodex: AE分岐描画の未初期化端点ガードと描画パッチ待機条件を修正。全4build・関連回帰成功、実機再確認待ち。[2d4a57b](https://github.com/hi03s/SuperRailBuilderX/commit/2d4a57b)はmainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
