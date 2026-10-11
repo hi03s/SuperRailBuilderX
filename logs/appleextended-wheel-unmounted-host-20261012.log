@@ -1,7 +1,0 @@
-[00:14:08] [Server thread/INFO] [NGT]: [SuperRailBuilderX wheel] target=SuperRailBuilderX_builder2, result=invalid_mount, index=1, host=0, owner=0, riding=none
-[00:14:16] [Server thread/INFO] [NGT]: [SuperRailBuilderX wheel] target=SuperRailBuilderX_RailSplitter, result=invalid_mount, index=2, host=0, owner=0, riding=none
-[00:14:17] [Server thread/INFO] [NGT]: [SuperRailBuilderX wheel] target=SuperRailBuilderX_RailMover, result=invalid_mount, index=3, host=0, owner=0, riding=none
-[00:14:18] [Server thread/INFO] [NGT]: [SuperRailBuilderX wheel] target=SuperRailBuilderX_DoubleTrackCopy, result=invalid_mount, index=4, host=0, owner=0, riding=none
-[00:14:19] [Server thread/INFO] [NGT]: [SuperRailBuilderX wheel] target=SuperRailBuilderX_CantFormatter, result=invalid_mount, index=5, host=0, owner=0, riding=none
-[00:14:20] [Server thread/INFO] [NGT]: [SuperRailBuilderX wheel] target=SuperRailBuilderX_BranchBuilder, result=invalid_mount, index=6, host=0, owner=0, riding=none
-[00:14:30] [Server thread/INFO] [NGT]: [SuperRailBuilderX wheel] target=SuperRailBuilderX_builder2, result=invalid_mount, index=1, host=0, owner=0, riding=none

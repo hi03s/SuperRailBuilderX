@@ -1,40 +1,18 @@
-# Codex・開発者間 引継ぎ帳
-
-このファイルは、次の作業に必要な現行情報だけを共有するための短期引継ぎ帳です。詳細な過去記録は `docs/history/` に保存し、通常は読みません。
+# 開発者とローカルCodexの引継ぎ帳
 
 最終更新: 2026-10-12（ローカルCodex、main）
 
 ## 現在の状態
 
-- レール生成Aの自由点間を目標勾配に沿う高さへ変更。Bは始点・半径・長さから終点を計算し、初期40m、ホイール±1m/Ctrl±10m、J/K±0.1m。勾配/縦曲線GUI、7ツールのホイール、AE日本語ヘルプを実装。実機未確認。[A](builder1.md)・[B](builder2.md)。
-
-- AE v2.5.3の通常/Section/分岐の読込は保存NBTと線形キャッシュを復元し、道床の自動再敷設は確認できない。再配置は標準マーカー生成/明示的なrelocateRail経路。[調査](roadbed-ownership-investigation.md)。
-
-- KaizPatch/AEの未接続端点移動に0.5mの接続スナップを追加。共通生成は理論両端各1タイルの所有先変更、競合時の逆順→設定上限内の通常生成に対応。移動・分割・Undo前の所有先復元とコア昇格の復元を追加。[規則/検証手順](roadbed-ownership-investigation.md)。
-
-- 現在main。KaizPatch/AE実機確認済みbuilder1 GUIを791d2a5で統合してpush済み。feature/builder1-guiはローカル/リモートとも削除済み。距離/ブロックスナップと「直線」表示をmainへ追加。
-- 状態GUIをSRBXToolGuiへ共通化し、全7ツールへ実装。分割2区間長（ホバー対応）、移動スナップ状態、複線間隔、カント速度/種類、分岐半径/新線長を表示。複線間隔チャットのみ廃止。[GUI仕様](tool-gui.md)。
-- 全7ツールにTABホイールを追加。6区画リングをマウス/←→で選択し、左クリック/TAB解除で確定、ESC取消。中央へ戻すと現在ツールが選ばれ切り替えない。切り替え後の押しっぱなし入力も抑止する。[仕様・確認手順](tool-wheel.md)。
-
-- Web側試作（`462fdb1`まで）をmainへ統合。KaizPatch/AEの全7ツールは完全自由点仕様へ戻し、暫定SRBXPatchを別途導入する。[導入/実機確認](srbx-free-endpoint-mod.md)。
-- 配布物はパックZIP、SRBXPatch-v1.0-1.7.10.jar（Kaiz 1.10.4）、SRBXPatch-v1.0-1.12.2.jar（AE 2.5.3）。デバッグ車両の登録JSONを除去し、資産/診断スクリプトは保持。
-
-- rtm-ts 0.12.0、`kaizpatch`・`mc1710`・`appleextended`・`mc1122`のmulti-target環境を構築済み。AEは正式版`v2.5.3`基準。JitPack取得が復旧し、未改造rtm-tsの標準手順で全4ターゲットの型生成・ビルド成功。
-- NGTOBuilder2由来のツールキットは `src/common/assets/minecraft/scripts/lib_hi03toolkit_1_0` に置き、参照専用とする。SuperRailBuilderX固有処理は `superrailbuilderx` ディレクトリと `SRBXApiCompat` に実装する。
-- 正式版`SuperRailBuilderX_RailMover`は通常・自動分割レールとも元状態を退避し、builder1と同じ衝突判定・道床生成規則で再生成する。論理RailMapの複数選択・一括平行移動・一括Undoと、KaizPatchX分岐レールの端点移動に対応し、ホバーは現在のコアとRailPositionから再構築する。
-- `SuperRailBuilderX_builder1`を実装済み。JSON識別名はbuilder1を維持し、文書・ヘルプでは`レール生成A`と表記する。自由点・通常/分岐レール端点接続、曲線半径固定、勾配・縦曲線、複数レール一括Undo、道床・コア保護を備える。
-- `SuperRailBuilderX_RailSplitter`を実装済み。論理RailMap強調、レールパーツ描画位置と同じ約0.5 m間隔の候補、予定長表示、手持ちモデルによる2本生成、分割前状態へ戻すUndoを備える。分割後の両区間を3 m超に制限し、分割不可レールは赤表示する。
-- `SuperRailBuilderX_DoubleTrackCopy`を実装済み。通常レールの複数選択、カーソル距離に応じた指定間隔の反復複製、水平平行線形、0.5 m端点接続、手持ち/複製元モデル、一括Undoを備える。
-- `SuperRailBuilderX_CantFormatter`は論理RailMap単位で選択し両端へ適用する。分割/選択カーソルを廃止し、接続する影響対象は黄緑、未選択ホバーは黄色、選択済みホバーは暗い水色。速度0で水平化、Ctrl+↑↓で±50 km/h。複数回の適用を遡るUndoに対応する。
-- `SuperRailBuilderX_BranchBuilder`を実装済み。中央の約0.5 m候補、接続/未接続の正確な端点を根元とする単純分岐、共有端点両側の強調と分岐先カーソル方向によるベース選択、接続部カント0化とUndoに対応する。
-- AppleExtended v2.5.3対応をmainへ統合済み。開発者から概ね不具合解消の報告を受領（2026-10-04）。通常/自動分割レールの生成・複線・分割・移動・カント・分岐・Undoを補完し、KaizPatchの既存処理を維持。
-- builder1のチャンク境界交差・候補表示・Iキー地上高合わせ、複線コピーの生成、分割パネル・縦勾配・カント、レール移動の基本操作・接続・回り込み防止・三線軌条の相互走行は実機確認済み。
-- `v0.2.0`を2026-10-04に[正式公開](https://github.com/hi03s/SuperRailBuilderX/releases/tag/v0.2.0)。タグは`1c73128`。Actions生成ZIP（88ファイル、全4ターゲット）を検証済み。
-- SRBX 0.3.0の[Draft Release](https://github.com/hi03s/SuperRailBuilderX/releases/tag/untagged-ade4983c2b433faa8c63)を作成済み、未公開。ZIPと両SRBXPatch JARの3 Assetsを検証済み。タグv0.3.0は228e407、[Workflow](https://github.com/hi03s/SuperRailBuilderX/actions/runs/38113797772)成功。導入案内は両側導入・SRBX未導入クライアントの例外を明記。公開は手動Publish。
-- `v*`タグpushで型生成・multi-targetビルド・ZIPと2 JAR付きDraft Releaseを作成。Java 25、生成前のGradle cacheキーはpnpm-lock.yaml/rtmx.jsonを使用。公開はDraft確認後に手動実行する。
-- レール生成・自由点移動の構造は `docs/rail-generation-and-free-positioning.md`、各ツールの仕様と検証方法は下記「関連資料」を参照する。
-- `AGENTS.md`へ、親モデルを途中変更するのではなく、限定作業だけを軽量・バランス型サブエージェントへ委譲するモデル運用規則を追加済み。
-- KaizPatchX / AppleExtended向けの分岐レール描画runtime compatibility patchを`main`へ統合済み。KaizPatchXの描画は実機確認済みで、AppleExtended確認待ち。統合済み描画修正ブランチは整理済み。通常RTMはno-op。
+- SRBX 0.3.0、main。rtm-ts 0.12.0を改造せず、KaizPatch/AE/通常RTM 1.7.10/通常RTM 1.12.2の4ターゲット構成を維持。
+- KaizPatchX 1.10.4 / AppleExtended 2.5.3は完全自由点仕様。SRBXパックと対象SRBXPatch JARを併用する。基本はクライアント/サーバー双方へ導入し、SRBX未導入クライアントにはJAR不要。本家対応までの暫定処理。[導入](user-guide/srbx-free-endpoint-mod.md)。
+- 生成・移動・分割・複線・カント・分岐・Undoは共通の道床/コア保護を使用。理論両端各1タイルの所有先変更、競合時の逆順→設定上限内の通常生成、撤去前の所有先復元に対応。[道床調査](research/roadbed-ownership-investigation.md)。
+- AE重複区間・自動分割境界対策は実機確認済み（2026-10-11）。KaizのCrossTieあり/なしも実機動作を確認済み。[AE対策](research/appleextended-overlap-rail-patch.md)。
+- 生成Aの自由点間はカーソルXZと目標勾配から高さを決める。Bは始点・半径・長さから終点を計算（初期40m、ホイール±1m/Ctrl±10m、J/K±0.1m）。勾配/縦曲線GUI、7ツールのホイール、AE日本語ヘルプを追加。実機確認待ち。[A](user-guide/builder1.md)・[B](user-guide/builder2.md)。
+- AEのTAB拒否は非乗車追従へ乗車必須チェックを適用していたことが原因。bb224faでcompat判定と切替後のサーバーホスト引継ぎを修正しpush済み。全4build・入力/GUI/dispatch/AE回帰・Java8ホイール成功、実機再確認待ち。
+- [v0.3.0 Draft](https://github.com/hi03s/SuperRailBuilderX/releases/tag/untagged-ade4983c2b433faa8c63)は未公開。タグ228e407のパックと2 JARを添付済み。公開は開発者の手動Publish。後続mainの変更は既存Draft/タグ/Assetsへ反映していない。[リリース手順](development/releasing.md)。
+- artifactsには最新mainパック`SuperRailBuilderX-0.3.0.zip`、タグ時点の`SuperRailBuilderX-0.3.0-v0.3.0.zip`、環境別SRBXPatch JARだけを保持。テスト生成物は.cacheへ移動。
+- docsは[user-guide](user-guide/)、[development](development)、[research](research/)、[history](history)へ分類。文書入口は[README](README.md)。logsは原則Git保存しない。
 
 ## 作業中
 
@@ -42,112 +20,34 @@
 
 ## 優先確認事項
 
-- AEのTAB拒否は、非乗車で座標追従する1.12.2へ乗車必須チェックを適用していたことが原因。compatで区別し、切替後のサーバーホスト引継ぎも修正。artifacts/SuperRailBuilderX-0.3.0-ae-wheel-host-fix.zipで切替と切替後の操作・再切替を確認し、異常時はlogs/latest.logを共有する。
-
-- KaizPatch/AEでAの自由点勾配と既設接続、Bの始点選択・L/R・長さ操作・生成/Undo、7ツールのホイールと日本語ヘルプを確認する。不具合時は操作順とlogs/latest.logを共有する。
-
-- v0.3.0はDraftのまま。本文と3 Assetsを確認後、開発者が手動Publishする。ローカルCodexは公開しない。
-
-- AE重複区間・自動分割境界対策は開発者から実機確認済みの報告を受領（2026-10-11）。既設Sectionコア保護、Java挙動/実AE ASM検証も成功。今後の再発時は操作順と診断ログで確認する。初回取得の線選択は対象外。[診断/手順](appleextended-overlap-rail-patch.md)。
-
-- KaizPatch実機の生成/移動/分割失敗は前回のSRBX getTileData誤用が原因。1.7.10の履歴保存を専用WorldSavedDataへ修正済み。更新ZIP（108ファイル）でKaizPatch/AEの重複敷設・双方向低速走行、接続移動・分割・分岐・Undoと保存/再入場後の未選択レール保持を確認する。全4build（警告なし）・関連回帰・保存再読込の模擬検証成功、実機再確認待ち。[手順](roadbed-ownership-investigation.md)。本番サーバーは操作しない。
-
-- ホイールで選択名の黄色が次のアイコンへ残る実機報告を受け、各アイコン描画前に白色へ戻すよう修正。更新ZIPで全6項目の色をKaizPatch/AEで再確認する。全4build、GUI回帰、旧Java 8u51のGL模擬検証は成功。リング・左クリック・中央で変更なし・押しっぱなし抑止とマルチプレイのリスト非表示も継続確認する。[手順](tool-wheel.md)。
-
-- 今回のカント選択変更、CTRL中の移動ホバー抑止、分岐スナップ、ヘルプ改行は実機未確認。全4build・回帰テスト・旧Java 8u51 GUI（GL模擬）は成功。更新ZIPでKaizPatch/AEを確認し、異常時は操作順とlogs/latest.logを共有する。
-
-- 更新main ZIPで全7ツールの状態GUIをKaizPatch/AEで確認する。全4build/全回帰/旧Java 8u51による全ツールGUI検証済み（GL模擬）、実GPU/実ワールドは未検証。分割ホバー/選択長、移動ON/OFF、複線チャット廃止、カントの種類チャット継続、分岐半径/長さとレール描画を確認。異常時はツール名/操作とlogs/latest.logを共有。[手順](tool-gui.md)。
-
-- KaizPatch/AEで既存GUIの実機確認を受領してmainへ統合済み。新しい距離/ブロックスナップ、ツール名の影付き白文字、「直線」表示は実機確認待ち。PでOFF→距離→ブロック、Ctrl+Pは距離の角度設定。main ZIPを置換して再起動し、自由点/既設端接続とGUI切替を確認する。異常時は操作手順とlogs/latest.logを共有。[仕様/手順](builder1.md)。
-
-- CrossTie Alpha14のレール分割警告は新規TEへの未読込診断の誤検出と判断。ログ内の分割6回は成功、SRBX変更不要。[調査](crosstie-split-diagnostic.md)。本番サーバーは操作しない。
-
-### 完全自由点とSRBXPatch
-
-- 開発者がKaizPatchのCrossTieあり/なしで動作を確認（2026-10-10）、AE重複区間・自動分割境界対策も実機確認済み（2026-10-11）。AE依存IDはrequired-after:rtmへ修正済み。Java挙動/実AE ASM/依存ID一致テスト成功。JARなしクライアント接続は未検証。
-- SRBX使用時はJARをクライアント/サーバー双方のmodsへ、パックZIPも双方へ導入する。SRBXを入れないマルチクライアントはJAR不要。旧SRBXMod内包版を置き換える。パッチは本家対応までの暫定処理で、実処理はサーバーワールド限定。未有効時の書き込みはsrbxpatch_requiredで拒否。
-- Kaizは現在map保持＋native遷移、AEは現在map保持＋精密接続探索。両方向微速通過・分岐・移動・Undoを実機確認する。同セルコア競合/極短区間の多重通過は保証外。[制限・手順](srbx-free-endpoint-mod.md)。
-
-### 分岐レール描画compatibility patch
-
-- 修正版ZIPでAEのモデル構築が成功し、`[SRBX rail patch] source prepared: function serialization`と`completed`（`failed=0`）を確認する。KaizPatchXでもoffsetあり/なし分岐の描画を再確認する。
-- AppleExtendedで通常レール、offsetなし分岐、offsetあり分岐を表示し、offsetあり分岐の根元～中央と中央～終端がともにRailMapへ一致し、他2ケースの描画が変化しないことを確認する。
-- `exclude.json`へ実在するrenderer script pathを一時指定し`skipped: excluded`になること、AppleExtendedではモデルパックreload後に新しいEngineへ再適用されることを確認する。
-
-### 共通の走行遷移
-
-- 境界端点制約は撤回。境界上の点はnative direction/ownerを維持し、内部点は元の精密座標を使う。既存線の自動一括変換はしない。[境界試作記録](rail-boundary-endpoints.md)。
-- 内側自由端点ではAE停止/位置補正、Kaiz新旧map往復を確認済み。Kaiz [Issue #534](https://github.com/Kai-Z-JP/KaizPatchX/issues/534)は端点のブロック端保証をスクリプト責務と回答。[Kaiz報告](kaizpatch-free-endpoint-transition-report.md)・[AE報告](appleextended-free-endpoint-transition-report.md)。
-- [自由化の導入意図](rail-position-free-endpoint-intent.md): Kaizはチャンク境界上の精密分割点を扱う目的でoffset/setPositionを追加し、導入時からブロック端保証は設定側の責務。AEの導入も座標/保存/描画対応で、任意点走行接続保証は確認できない。
-- [遷移パッチ実現性](free-endpoint-transition-patch-feasibility.md)の検討を経て、mainでも両版SRBXPatchを併用する方針へ変更済み。
-- デバッグ車両の登録JSONは除去済み。実機検証は通常車両を使用する。[保存した診断資産](train-debug-vehicle.md)。
-- KaizPatch/AEのSRBX敷設は途中の既設道床を保持し、理論端部各1タイルだけ所有先を変更。SRBXでの削除前に旧所有先を復元する。標準マーカー/手動破壊は変更しない。[道床の比較/現行規則](roadbed-ownership-investigation.md)。
-
-### レール移動ツール
-
-- 平行移動・端点移動・Undo後も、前後の接続レールを含むホバー強調が現在の線形で表示されることを確認する。
-- KaizPatchX分岐レールの根元・本線端・側線端を移動でき、接続レールとの同時移動、走行、Undoで分岐全体が正しく再構築されることを確認する。分岐全体の平行移動は未対応。
-
-### カント整形
-
-- 論理レールを選択すると分割せず両端と接続先へカントを適用し、速度0では水平化、Ctrl+↑↓では±50 km/hになることを確認する。
-- 選択済みは水色、接続する影響対象は黄緑、未選択ホバーは黄色、選択済みホバーは暗い水色となり、カーソルがなくても解除できることを確認する。適用・Undo後も現在の線形で表示されることを確認する。
-
-### 分岐生成
-
-- 分岐化後に新しく接する既設レールもカント0となり、Undoで元へ戻ることを確認する。
-- 端点・中央の分岐生成後にUndoしてもワールドから切断されず、エラーなく元レールへ戻ることを確認する。
-
-### AppleExtended
-
-- 開発者から概ね不具合解消の報告を受領しmainへ統合。個別の全ケース確認済みとは扱わず、今後の再発時は操作順・時刻とlogs/latest.logを確認する。
-- 接続cantEdge反転・論理線形ハイライトはKaizPatch/AEで適用。旧コアのブロック/tile一括掃除はAEのみ。接続移動/Undo/走行は今後も継続確認する。
-- Section生成の競合は代替配置と逆順を試し、配置不可なら設定上限（既定64m）内で通常生成へfallback。コア初期化失敗/配置拒否時は昇格前の道床を復元する。
+- AEで最新main ZIPを入れ、TAB解除/左クリックでのモデル変更、切替後の選択・生成・再切替を確認する。失敗時はlogs/latest.logのwheel行（result/index/host/owner/riding）を共有する。
+- KaizPatch/AEで生成Aの自由点勾配と既設接続、BのL/R/長さ/スナップ/生成/Undo、7ツールのホイールと日本語ヘルプを確認する。
+- 道床所有履歴の専用WorldSavedDataへの変更は模擬保存/再読込まで確認済み。生成・接続移動・分割・Undoと再入場後の未選択レール保持を実機確認する。本番サーバーは操作しない。
+- 状態GUI、カントの理論レール単位選択/両端適用/0km/h/±50、CTRL中の移動ホバー抑止、分岐スナップは関連回帰成功。未確認の実機条件は操作順とログで確認する。
+- SRBX未導入/JARなしクライアント接続は設計上許可するが、実機接続は未確認。
+- v0.3.0 Draftの本文/Assets確認後に開発者が手動Publishする。ローカルCodexは公開しない。
 
 ## 次に行うこと
 
-0. v0.3.0のDraftを確認し、開発者が手動Publishする。
-1. 更新main ZIPで未接続端点スナップと重複敷設/移動/分割/Undo後のレール保持を確認する（roadbed-ownership-investigation.md）。全7ツールのTABホイール（リング/左クリック/中央で変更なし/TAB解除/ESC/マルチプレイリスト）、カント解除色とカーソル非表示を確認する（tool-wheel.md）。Pの3種類切替/ブロック格子/影付き文字も継続確認し、暫定SRBXPatchは継続導入する。
-2. KaizPatch/AEで自由端点の接続を新規生成し、通常車両の両方向低速走行・移動・Undoを確認する（srbx-free-endpoint-mod.md）。
-3. AppleExtended v2.5.3で分岐描画patchのBootstrapログとoffsetあり/なし描画を確認する。
-4. レール移動のCTRL中ホバー抑止、カントのレール単位選択/両端適用/速度0/±50/Undo、分岐の3種スナップとGUIをKaizPatch/AEで確認する。全7ツールのHヘルプの行分けと末尾のスクロール案内も確認する。
-5. 不具合時は機能名・操作順・時刻と`[SuperRailBuilderX`または`[SRBX rail patch]`を含むログを共有する。
+1. 最新main ZIPで上記の実機確認を行う。異常時は機能・操作順・時刻とlogs/latest.logを共有する。
+2. 確認結果を引継ぎ帳へ反映し、不要になったローカルログを削除する。調査結果は文書へ要約し、生ログをGitへ追加しない。
+3. リリースするコード範囲を確認し、手動Publishを行う。
 
 ## 双方向連絡
 
-### 開発者からCodexへ
-
-```text
-- YYYY-MM-DD 開発者:
-  共有・依頼:
-  関連ファイルまたはIssue:
-```
-
-### Codexから開発者・ローカルCodexへ
-
-- 2026-10-10 ローカルCodex: 開発者の新方針でmain/AEも自由点へ統一しSRBXPatchを分離。新規repo/fork/Issue/PR/コメント禁止は継続。実機確認は[srbx-free-endpoint-mod.md](srbx-free-endpoint-mod.md)。
+- 新規リポジトリ/フォーク/Issue/PR/コメント投稿は禁止。既存ブランチ・コミット・push・ビルドだけを行う。
+- rtm-ts、参照専用ツールキット、本番サーバーを変更しない。コミットメッセージは日本語。
+- ローカルに保持する調査ログは、最新AEログ、AEの非乗車診断抜粋、Kaiz保存APIの例外抜粋。実機再確認後に不要なら削除する。
 
 ## 直近の完了
 
-- 2026-10-12 ローカルCodex: AEの非乗車追従を考慮したTAB検証と切替後のホスト引継ぎを修正。全4build・関連回帰・Java8ホイール成功。実機再確認待ち。[bb224fa](https://github.com/hi03s/SuperRailBuilderX/commit/bb224fa)はmainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
+- 2026-10-12 ローカルCodex: 成果物を4ファイルへ整理し、不要ログ58件を削除。logsはGit追跡から除外。文書分類・調査統合・説明書の利用者向け整理とリンク検証を完了。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
-- 2026-10-12 ローカルCodex: AEホイールの比較処理と拒否理由の診断を修正。全4build・入力/GUI/dispatch・Java8ホイール成功。実機再確認待ち。[a79d4b9](https://github.com/hi03s/SuperRailBuilderX/commit/a79d4b9)はmainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
-
-- 2026-10-11 ローカルCodex: Aの勾配操作/GUI、B、AEヘルプを実装。全4ターゲットのビルドと関連回帰テストを検証。実機未確認。[790f4de](https://github.com/hi03s/SuperRailBuilderX/commit/790f4de)をmainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。検証ZIP: artifacts/SuperRailBuilderX-0.3.0-builder-ab-test.zip。
-
-- 2026-10-11 ローカルCodex: SRBX 0.3.0と導入案内を更新し、3 Assets付きDraftを作成・検証。AE対策の実機確認報告を反映、CIのList取得も修正。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[228e407](https://github.com/hi03s/SuperRailBuilderX/commit/228e407)とv0.3.0はpush・同期済み。公開は手動。
+- 2026-10-12 ローカルCodex: AEの非乗車TAB切替とホスト引継ぎをbb224faで修正・push済み。実機再確認待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 ## 関連資料
 
-| 対象                   | ファイル                                       |
-| ---------------------- | ---------------------------------------------- |
-| 複線コピーツール       | `docs/double-track-copy.md`                    |
-| 線路分割ツール         | `docs/rail-splitter.md`                        |
-| カント整形ツール       | `docs/cant-formatter.md`                       |
-| 分岐生成ツール         | `docs/branch-builder.md`                       |
-| builder1               | `docs/builder1.md`                             |
-| RailPosition自由化     | `docs/rail-position-free-positioning.md`       |
-| レール生成・道床・同期 | `docs/rail-generation-and-free-positioning.md` |
-| multi-target設定       | `rtmx.json`                                    |
-| 正式リリース手順       | `docs/releasing.md`                            |
-| 過去の作業記録         | `docs/history/CODEX_HISTORY_2026-09.md`        |
+- [利用者向け説明書](README.md#利用者向け)
+- [共通レール生成](development/rail-generation-and-free-positioning.md)・[SRBXPatch開発](development/srbxpatch.md)
+- [自由端点/台車遷移の統合調査](research/rail-transition-research.md)・[道床/CrossTie](research/roadbed-ownership-investigation.md)
+- [10月履歴](history/CODEX_HISTORY_2026-10.md)・[9月履歴](history/CODEX_HISTORY_2026-09.md)

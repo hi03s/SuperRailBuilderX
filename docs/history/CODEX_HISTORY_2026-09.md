@@ -13,7 +13,7 @@
 - kaizpatch、mc1710、mc1122のmulti-target構成を準備済み。
 - NGTOBuilder2のツールキット、サンプルスクリプト、暫定モデル・テクスチャを導入済み。
 - RailPosition自由化を確認する試験ツールを実装済み。
-- RailPosition自由化の調査結果を `docs/rail-position-free-positioning.md` に記録済み。
+- RailPosition自由化の調査結果を `docs/research/rail-transition-research.md` に記録済み。
 - `pnpm gen` と全3ターゲットの `pnpm build` が成功する状態を確認済み。
 - RailPosition試験ツールへ、候補探索の例外ガード・診断ログと適用後のクライアントRailMap再生成を追加済み。適用直後の描画更新は実機確認済み。
 - NGTOBuilder2と同じ共有compatパスによるキャッシュ衝突を避けるため、バージョン差分APIをSuperRailBuilderX固有の `SRBXApiCompat` へ分離・統合済み。NGTOBuilder2併用環境で未定義エラー解消を確認済み。
@@ -26,7 +26,7 @@
 - 自動分割レールの端点移動後に、再分割せず単一コアの通常レールとして再生成する別モデル `SuperRailBuilderX_RailPositionNormalTest` を追加済み。ローカルで全ターゲットの生成・ビルド確認済み（実機検証待ち）。
 - 最新ログで自動分割・通常レール再生成の共通失敗原因が、手動型付けしたコアの `markDirty` がMinecraft 1.7.10名へ変換されなかったことだと判明し、compatヘルパー経由で `func_70296_d` へ生成されるよう修正済み。
 - 複数セクション再生成と通常レール再生成を、ルート上の道床は空気部分だけ追加し、予定セクションコア位置の非コア道床だけをコアへ置換する試験方式へ変更済み（実機検証待ち）。
-- レール敷設、自動分割、自由点移動、道床更新、クライアント同期の知見を `docs/rail-generation-and-free-positioning.md` に集約済み。
+- レール敷設、自動分割、自由点移動、道床更新、クライアント同期の知見を `docs/development/rail-generation-and-free-positioning.md` に集約済み。
 - 計算系の共通ライブラリ `SRBXMath` を新設。丸め、角度正規化・スナップ、方向変換、距離計算を収容済み。
 - レール生成ツール `SuperRailBuilderX_builder1` に、RTM標準準拠のコア保護・道床交差、内部セクションコア移設と自己破壊防止、固定半径のプレイヤーYaw変換修正、垂直アンカー、矢印長押し、F高さリセット、Undoを維持するCtrl+Cまで実装済み（実機再検証待ち）。
 - builder1の-X/-Z直線だけ起点側道床が凹型になる問題に対し、道床幅計算の三角関数誤差の正規化に加え、端部隣接座標に属する幅サンプル全体を除外するよう修正し、実機で解消を確認済み。
@@ -72,7 +72,7 @@
 
 ## 次に行うこと
 
-1. 必ずバックアップ済みテストワールドで`docs/rail-splitter.md`の実機確認項目を順に実施する。特に接続点の両方向走行、縦曲線・カント連続性、後半失敗ロールバック、Ctrl+Z復元を優先する。
+1. 必ずバックアップ済みテストワールドで`docs/user-guide/rail-splitter.md`の実機確認項目を順に実施する。特に接続点の両方向走行、縦曲線・カント連続性、後半失敗ロールバック、Ctrl+Z復元を優先する。
 2. 問題が出た場合は`[SuperRailBuilderX splitter]`を含む`latest.log`の該当部分と、分割前後のレール条件・分割位置・手持ちモデルを共有する。
 3. 必ずバックアップ済みテストワールドで `SuperRailBuilderX_builder1` を使用し、前回失敗した端部始点・自由点生成と交差を再現する。
 4. 接続元レールの道床・コアが経路幅に含まれても`protected connection ... preserved`となり、元レールを壊さず生成できることを確認する。
@@ -112,7 +112,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 
 - 2026-09-03 Web側Codex:
   確認してほしいこと: 新規`SuperRailBuilderX_RailSplitter`の生成・ビルドと、論理RailMap強調、約0.25 m候補、長さ表示、2本生成、走行、ロールバック、Undo復元。
-  確認方法: まず`pnpm gen`と`pnpm build`。成功後は必ずバックアップ済みワールドで`docs/rail-splitter.md`の実機確認項目を実施する。通常レール、自動分割レール、水平曲線、勾配・縦曲線、カント付きレールを含める。Web側ではGradle配布物を取得できずビルド未実施。
+  確認方法: まず`pnpm gen`と`pnpm build`。成功後は必ずバックアップ済みワールドで`docs/user-guide/rail-splitter.md`の実機確認項目を実施する。通常レール、自動分割レール、水平曲線、勾配・縦曲線、カント付きレールを含める。Web側ではGradle配布物を取得できずビルド未実施。
   結果の記入先: この欄または作業記録へ結果を追記し、問題時は`[SuperRailBuilderX splitter]`周辺を抜粋したログを保存する。
 
 - 2026-09-03 ローカルCodex:
@@ -122,7 +122,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 
 - 2026-09-02 ローカルCodex:
   確認してほしいこと: builder1の端部接続保護、通常道床交差、内部コア移設、固定半径の向き、垂直アンカー、長押し、F高さリセット、Undoを維持するCtrl+C、走行と保存。
-  確認方法: 必ずバックアップ済みテストワールドを使用し、上記「次に行うこと」1〜12と `docs/builder1.md` の実機検証を確認する。既設コア交差は破壊せず停止する仕様に変更した。
+  確認方法: 必ずバックアップ済みテストワールドを使用し、上記「次に行うこと」1〜12と `docs/user-guide/builder1.md` の実機検証を確認する。既設コア交差は破壊せず停止する仕様に変更した。
   結果の記入先: 結果をチャットで共有し、`logs/latest.log` を配置する。クラッシュ時はクラッシュログも配置する。
 
 - 2026-09-01 ローカルCodex:
@@ -182,7 +182,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 初回`pnpm build`で、共通コードがmc1710に存在しない`RailMap#getRailYaw`を直接使用している型エラーを確認した。
 - `render_double_track_copy.ts`の呼び出しを、各ターゲットで`getRailYaw`または`getRailRotation`を選ぶ既存の`RTMApiCompat.getRailYaw`経由へ変更した。参照専用ツールキット自体は変更していない。
 - 修正後、対象ファイルのPrettierと`git diff --check`が成功し、`pnpm build`もcommon・全3ターゲットで成功した。
-- 未検証: `docs/double-track-copy.md`に記載したゲーム内プレビュー・生成・接続・走行・ロールバック・Undo。必ずバックアップ済みワールドで実施する。
+- 未検証: `docs/user-guide/double-track-copy.md`に記載したゲーム内プレビュー・生成・接続・走行・ロールバック・Undo。必ずバックアップ済みワールドで実施する。
 - 既存の未追跡資料 `.tmp-kaizpatchx-source/` と `logs/latest.log` は変更せず、コミット対象外とした。
 - コミット: https://github.com/hi03s/SuperRailBuilderX/commit/d8fe798
 - 同期: `origin/main`へ同期済み。
@@ -192,7 +192,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - `git fetch origin --prune`後、`main`と`origin/main`がahead 0・behind 0で一致することを確認した。
 - `pnpm gen`を実行し、kaizpatch・mc1710・mc1122の型定義とマッピング生成に成功した。
 - `pnpm build`を実行し、commonと全3ターゲットのビルドに成功した。型・ビルドエラーはなく、コード修正は不要だった。
-- 未検証: `docs/rail-splitter.md`に記載したゲーム内確認。破壊的なロールバック・Undo試験を含むため、必ずバックアップ済みワールドで実施する。
+- 未検証: `docs/user-guide/rail-splitter.md`に記載したゲーム内確認。破壊的なロールバック・Undo試験を含むため、必ずバックアップ済みワールドで実施する。
 - 既存の未追跡資料 `.tmp-kaizpatchx-source/` と `logs/latest.log` は変更せず、コミット対象外とした。
 - コミット: https://github.com/hi03s/SuperRailBuilderX/commit/3de4133
 - 同期: `origin/main`へ同期済み。
@@ -276,7 +276,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 既設端同士はSRB3と同じく、まず直線距離の2/3アンカーでベジェ長を近似し、その1/3を両端の最終アンカー長にするよう変更。
 - 既設端と自由点は、固定端接線との交点、3点の円弧角・符号付き半径、`4r/3*tan(theta/4)`から正円近似アンカーを構成。自由端の向き・direction・所有ブロックも接線に合わせ、既存モデル部品でカーブ半径を表示する。
 - 生成失敗の再調査用に、生成計画の両RailPosition情報と、道床設置前後のブロック・metadata・`setBlock`結果・TileEntityを`NGTLog`へ追加。
-- `docs/builder1.md`、`docs/rail-generation-and-free-positioning.md`、`docs/rail-position-free-positioning.md`へ今回の構造・計算上の発見を反映。共有参照専用の`lib_hi03toolkit_1_0`は変更していない。
+- `docs/user-guide/builder1.md`、`docs/development/rail-generation-and-free-positioning.md`、`docs/research/rail-transition-research.md`へ今回の構造・計算上の発見を反映。共有参照専用の`lib_hi03toolkit_1_0`は変更していない。
 - `pnpm gen`と`pnpm build`はkaizpatch・mc1710・mc1122の全ターゲットで成功。変更ファイルのPrettier、純粋計算テスト、生成JavaScriptの1.7.10マッピング、`git diff --check`を確認済み。ゲーム内再検証は未実施。
 - 開発者の指示により、提供された生ログはそのままGitへ追加せず、対象機能の診断・関連例外・必要な文脈だけを抜粋して保存する恒久運用を`AGENTS.md`へ追加。今回の未公開コミットも生ログが履歴へ残らないよう組み直す。
 - 実装コミット: https://github.com/hi03s/SuperRailBuilderX/commit/f4a9c23
@@ -289,7 +289,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - SRB3参照実装とNGTLib `Vec3`のバイトコードを照合し、RTMのYaw 0度=+Z、90度=+Xへ自由点方向計算を修正。自由点RailPositionにはプレビューと同じ水平アンカー長を明示保存。
 - 精密カーソルとマーカーブロック表示位置を分離。自由点markerは所有ブロック中央、既設端点markerは`getNeighborPos()`側の接続ブロック中央に表示する。
 - `selectedLine`を直線1本から、生成予定のYaw・Pitch・アンカー長で制御点を作る分割3次ベジェ描画へ変更。既設端部同士の曲線プレビューを実生成値へ合わせた。
-- SRB3参照ファイルはローカル参照だけに使用し、配布条件と再現に必須でないためGit管理へ追加していない。知見は`docs/builder1.md`、`docs/rail-generation-and-free-positioning.md`、`docs/rail-position-free-positioning.md`へ記録。
+- SRB3参照ファイルはローカル参照だけに使用し、配布条件と再現に必須でないためGit管理へ追加していない。知見は`docs/user-guide/builder1.md`、`docs/development/rail-generation-and-free-positioning.md`、`docs/research/rail-transition-research.md`へ記録。
 - `pnpm gen`と`pnpm build`はkaizpatch・mc1710・mc1122の全ターゲットで成功。変更ファイルのPrettier、`git diff --check`、KaizPatchX生成JavaScriptの1.7.10マッピングを確認済み。ゲーム内再検証は未実施。
 - 実装コミット: https://github.com/hi03s/SuperRailBuilderX/commit/d5afc99
 - 同期: 開発者から診断ログ公開の明示承認を受け、`origin/main`へ同期済み。
@@ -303,7 +303,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 自由点同士はアンカーを一直線上の反対向きに設定し、directionを8方向へ設定。既設端部同士は `getNeighborPos()` 側へ端点を反転して既存コアとの直接衝突を避け、精密位置を一致、アンカー角・勾配を反転、水平アンカー長を端部間距離の2/3に設定。
 - 手持ちレールのRailPropertyをサーバー側で再取得・複製し、`autoSplit=true` を設定。経路全ブロックを強制的に道床へ置換し、複数セクションは `RailChunkSectioner.split` から直接構築する。経路チャンクは変更前に全件ロード確認する。
 - Ctrl+Zは生成コアの論理識別子を再検証して在線中でない直前レールだけを撤去し、クライアント選択を復元する。破壊した元ブロックは復元しない。
-- `references/srb3` を追加し、READMEとignore設定以外はGit管理しない参照置き場を用意。基本仕様・危険性・実機検証を `docs/builder1.md` に記録。
+- `references/srb3` を追加し、READMEとignore設定以外はGit管理しない参照置き場を用意。基本仕様・危険性・実機検証を `docs/user-guide/builder1.md` に記録。
 - `pnpm gen` は全3ターゲットで成功。`pnpm build` も全3ターゲットで成功し、10アセットを出力。生成JavaScriptの1.7.10マッピング、SRBXApiCompatターゲット選択、builder1出力、JSON解析、変更ファイルのPrettier、`git diff --check` を確認済み。
 - 全体の `pnpm format:check` は参照専用ツールキットとNGTOBuilder2サンプルを含む既存26ファイルのみ失敗。今回変更したSuperRailBuilderXファイルは整形済み。
 - ゲーム内動作は未検証。破壊的敷設のため、上記手順を必ずバックアップ済みワールドで再デバッグする必要がある。
@@ -317,7 +317,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 複数セクションの自動分割再生成は標準 `BlockMarker.createRail` の一括配置判定を使わず、`RailChunkSectioner.split` の結果から直接構築する経路へ統一。各ルートの道床は空気部分だけ追加し、既存道床・既存ブロックを保持する。
 - 予定セクションコア位置にある非コア道床だけはコアへ破壊的に置換し、`replacedRoadbedsWithCores` をログへ記録する。既存コアや通常ブロックとは共存できないため安全停止する。途中失敗時は置換前の道床と所有コア座標を復元してから元レールを再生成する。
 - 通常レール生成版も `RailMapBasic#setRail` を廃止し、空気部分への道床追加と単一コアの直接配置へ変更。通常の交差しない移動も止めていた `markDirty` 例外を同時に解消した。
-- 調査結果を `docs/rail-position-free-positioning.md` と `docs/rail-generation-and-free-positioning.md` へ追記。ログを `logs/rail-position-air-only-roadbed-normal-rebuild-20260901-175629-client.log` へ改名して保存。
+- 調査結果を `docs/research/rail-transition-research.md` と `docs/development/rail-generation-and-free-positioning.md` へ追記。ログを `logs/rail-position-air-only-roadbed-normal-rebuild-20260901-175629-client.log` へ改名して保存。
 - `pnpm gen` と `pnpm build` はkaizpatch・mc1710・mc1122の全ターゲットで成功。生成JavaScriptのメソッド名・空気限定道床ログ・`setRail` 不使用、変更compatのPrettier、`git diff --check` を確認済み。全体の `pnpm format:check` は31個の既存ファイルのみ失敗。
 - ゲーム内動作は未検証。予定コア位置の道床を実際に置換するため、必ずバックアップ済みワールドで上記手順を再デバッグする必要がある。
 - 実装コミット: https://github.com/hi03s/SuperRailBuilderX/commit/8d58d5ca14d3bfb9098bb510ce2a230f0955ec83
@@ -336,7 +336,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 
 ### 2026-09-01 Web側Codex — レール生成・自由点移動の技術資料
 
-- KaizPatchX v1.10.3一次ソースと現行compat実装を照合し、`docs/rail-generation-and-free-positioning.md` を追加。
+- KaizPatchX v1.10.3一次ソースと現行compat実装を照合し、`docs/development/rail-generation-and-free-positioning.md` を追加。
 - RailPositionの基準ブロック座標・精密座標・オフセット、RailMapBasic、コアと道床TileEntityの関係を整理。
 - 通常レールの直接生成と `BlockMarker.createRail` の違い、`RailProperty.autoSplit`、チャンク境界によるセクション生成を説明。
 - 通常レールと自動分割レールそれぞれの自由点移動、道床の差分追加、論理レールの撤去・再生成、失敗時復元を手順化。
@@ -368,7 +368,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 曲線途中だけが他レールコアを横切る場合は、既存コアを保持してその座標への道床設置を省略し、各セクションを再構築する試験経路を追加。標準構成手順を維持し、標準の一律障害判定のみを置き換える。
 - 試験経路の例外・作成失敗時は作成途中の新規セクションコアを除去し、既存の復元処理へ移る。
 - ログに1回 `Rail not found > x:402 z:-159` があるが、開発者報告では成功交差を両線とも正常通過しており、発生試行は未特定。
-- 調査結果を `docs/rail-position-free-positioning.md` へ追記。ログを `logs/rail-position-section-core-crossing-20260901-015858-client.log` へ改名して保存。
+- 調査結果を `docs/research/rail-transition-research.md` へ追記。ログを `logs/rail-position-section-core-crossing-20260901-015858-client.log` へ改名して保存。
 - 翌日にWeb側Codexへ依頼予定の、現行テストツールを基にした通常レール生成版（別の自動車モデルとして新規追加、現行モデルは維持）を開発者連絡欄と次の作業へ記載。
 - `pnpm gen` と `pnpm build` はkaizpatch・mc1710・mc1122の全ターゲットで成功。変更TypeScriptのPrettier確認、生成JavaScriptの実行名確認、`git diff --check` も成功。全体の `format:check` は上記26個の既存ファイルのみ失敗。
 - ゲーム内で今回のコア交差処理は未検証。バックアップ済みテストワールドで上記手順による再デバッグが必要。
@@ -382,7 +382,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 通常レールは障害物を壊さず、その座標への不足道床追加だけを省略して端点・RailMapを移動できるよう変更。省略座標と既存ブロックは `normal roadbed obstacles retained` へ記録する。
 - 自動分割レールは物理セクションコアの再配置が必要なため衝突判定を緩和せず、変更後のセクションコア候補座標・既存ブロックを `planned section cores` へ記録する診断を追加。
 - 試験後のワールドにあった論理RailPosition未初期化のセクションコアで候補探索例外が繰り返されないよう、`sectioned_uninitialized` として無視するガードを追加。
-- 調査結果を `docs/rail-position-free-positioning.md` へ追記。ログを `logs/rail-position-crossing-section-failure-20260901-013727-client.log` へ改名して保存。
+- 調査結果を `docs/research/rail-transition-research.md` へ追記。ログを `logs/rail-position-crossing-section-failure-20260901-013727-client.log` へ改名して保存。
 - `pnpm gen` と `pnpm build` はkaizpatch・mc1710・mc1122の全ターゲットで成功。変更TypeScriptのPrettier確認と `git diff --check` も成功。全体の `format:check` は上記27個の既存ファイルのみ失敗。
 - ゲーム内で今回の交差緩和・追加診断は未検証。上記手順による再デバッグが必要。
 - コミット: https://github.com/hi03s/SuperRailBuilderX/commit/a74667d03c362fb74213b5b10390f1805002fa3e
@@ -394,7 +394,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 同じ端点2本の移動では、1本目が追加した道床2個を2本目の自動分割レールが衝突扱いし、`partial_target_1:roadbed_conflict(2)` になっていた。
 - RTM標準の `RailMap.canPlaceRail` と同様に、他レールの非コア道床は重なりを許可するよう修正。レールコアと草などの非レールブロックだけを真の衝突として停止する。
 - 分岐器について再確認。`RailPosition#setPosition` は分岐器の端点にも利用できるが、分岐器コアが複数RailMapからなる分岐オブジェクトをキャッシュするため、通常レールと同じ端点更新だけでは再生成されず描画・走行情報が不一致になる。現在の試験ツールには専用再構築を未実装であり、安全のため対象外としている。
-- `docs/rail-position-free-positioning.md` へ重複道床の扱いと分岐器が専用対応を要する理由を追記。
+- `docs/research/rail-transition-research.md` へ重複道床の扱いと分岐器が専用対応を要する理由を追記。
 - ログを `logs/rail-position-roadbed-conflict-regression-20260901-005513-client.log` へ改名して保存。
 - `pnpm build` はkaizpatch・mc1710・mc1122の全ターゲットで成功。Prettier確認と `git diff --check` も成功。
 - ゲーム内で回帰修正は未検証。上記手順による再デバッグが必要。
@@ -410,7 +410,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 全対象の移動後道床範囲を適用前に検証。自動分割再構築が他レール道床や障害物を上書きする場合は `roadbed_conflict(N)` で停止し、最大8件の座標とブロック名をログへ出す。2本目の既知衝突なら1本目を動かす前に停止できる。
 - 分岐器は3個以上のRailPositionと複数RailMapを持つ専用構造であるため、通常レール処理から除外し、専用対応まで選択不可とした。
 - 同じサーバー結果を描画パスごとに3回チャット表示していた処理を、要求ごとに1回だけ処理するよう修正。
-- 調査内容を `docs/rail-position-free-positioning.md` へ追記。ログを `logs/rail-position-roadbed-switch-retest-20260831-234758-client.log` へ改名して保存。
+- 調査内容を `docs/research/rail-transition-research.md` へ追記。ログを `logs/rail-position-roadbed-switch-retest-20260831-234758-client.log` へ改名して保存。
 - `pnpm build` はkaizpatch・mc1710・mc1122の全ターゲットで成功。変更ファイルのPrettier確認と `git diff --check` も成功。
 - ゲーム内で新しい道床追加・分岐器ガード・衝突診断は未検証。上記手順による再デバッグが必要。
 - コミット: https://github.com/hi03s/SuperRailBuilderX/commit/228f970da3c1a4bbc854b32194bfe3adede685ed
@@ -423,7 +423,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 同じ精密座標（許容差1 mm）を共有する端点候補を接続点としてまとめ、1回の要求ですべて同じ移動先へ送るよう変更。ログでは同じ接続点で `candidates=2, uniqueCores=2` が記録されていた。
 - サーバー側で対象数、同一元座標、端点の未変更、全セクションのロード・同一グループ・在線状態を全対象について事前検証してから順次適用するよう変更。適用途中の失敗は `partial_target_...` と適用済み件数をログへ残す。
 - 適用処理を `try/finally` で保護し、例外時も要求を消費して毎tickの再実行を防止。
-- 調査結果と接続端点の扱いを `docs/rail-position-free-positioning.md` へ追記。ログを `logs/rail-position-section-error-connected-endpoint-20260831-221005-client.log` へ改名して保存。
+- 調査結果と接続端点の扱いを `docs/research/rail-transition-research.md` へ追記。ログを `logs/rail-position-section-error-connected-endpoint-20260831-221005-client.log` へ改名して保存。
 - `pnpm build` はkaizpatch・mc1710・mc1122の全ターゲットで成功。変更ファイルのPrettier確認と `git diff --check` も成功。
 - ゲーム内検証は未実施。上記の「次に行うこと」に沿った再デバッグが必要。
 - コミット: https://github.com/hi03s/SuperRailBuilderX/commit/25f5778f0177a73e49bbd0284ce358ca99562c86
@@ -436,7 +436,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 候補探索をグループUUIDで重複排除し、各コア共通の `getLogicalRailPositions()` が返す論理始点・終点を候補にするよう変更。
 - 適用時はグループ座標リスト全件のロード・同一グループ判定と在線確認を行い、論理端点・レールプロパティ・信号・サブレールを退避するよう実装。
 - KaizPatchX標準の `breakLogicalRail()` と `BlockMarker.createRail()` で変更後の曲線を再生成し、チャンク境界に応じてセクション数を再計算する処理を追加。失敗時には元端点から復元する。
-- `docs/rail-position-free-positioning.md` へ自動分割構造、端部判定、可変セクション数、再構築手順と安全上の注意を追記。
+- `docs/research/rail-transition-research.md` へ自動分割構造、端部判定、可変セクション数、再構築手順と安全上の注意を追記。
 - ログを `logs/rail-position-section-diagnostic-20260831-214139-client.log` へ改名して保存。
 - `pnpm build` はkaizpatch・mc1710・mc1122の全ターゲットで成功。
 - ゲーム内検証は未実施。レールを一度撤去・再配置する試験機能のため、バックアップ済みテストワールドで上記手順による再デバッグが必要。
@@ -542,7 +542,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 手持ち大型レールがあればそのRailProperty、なければ各複製元RailPropertyを使用する。生成途中失敗時は要求内の生成分を逆順ロールバックし、Ctrl+Zで直前の一括生成を撤去する。
 - 既存`builder1.mqo`とテクスチャを共有し、ボタンは未配置の`textures/superrailbuilderx/button_double_track_copy.png`を仮指定した。共有参照専用ツールキットは変更していない。
 - 検証済み: 変更ファイルのPrettier、TypeScript ES5構文変換、モデルJSON解析、`git diff --check`。純粋計算で直線倍率1.000、90度曲線の内側0.800・外側1.200を確認した。
-- 未検証: `pnpm gen`、`pnpm build`、ゲーム内プレビュー・生成・接続・走行・ロールバック・Undo。`docs/double-track-copy.md`の確認項目をバックアップ済みワールドで実施する。
+- 未検証: `pnpm gen`、`pnpm build`、ゲーム内プレビュー・生成・接続・走行・ロールバック・Undo。`docs/user-guide/double-track-copy.md`の確認項目をバックアップ済みワールドで実施する。
 - 実装コミット: https://github.com/hi03s/SuperRailBuilderX/commit/0e2b30e87f4b6f0d88c0bcd1433f8f3c712af1f4
 - 同期: `origin/main`へ同期済み。
 
@@ -617,7 +617,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 ### 2026-09-07 ローカルCodex — alpha-0.1.0配布整備
 
 - NGTOBuilder2の現行READMEと同梱readme.txtを参照し、トップ`README.md`を概要、強調したバックアップ警告、動作環境、導入、収録ツール、開発方法、ライセンスを含む構成へ更新した。
-- 4ツールの概要と操作を1つにまとめた`docs/usage.md`を追加した。レール・道床・RailPositionの再生成によるワールド破損可能性を明記し、READMEと同梱`readme.txt`にも「使用前に必ずバックアップ」と記載した。
+- 4ツールの概要と操作を1つにまとめた`docs/user-guide/usage.md`を追加した。レール・道床・RailPositionの再生成によるワールド破損可能性を明記し、READMEと同梱`readme.txt`にも「使用前に必ずバックアップ」と記載した。
 - リリース表記を`alpha-0.1.0`へ統一した。npm内部は有効なSemVerの`0.1.0-alpha.0`とし、rtm-tsのパック名を`SuperRailBuilderX-alpha-0.1.0`へ変更した。配布物へ`readme.txt`とMIT `LICENSE`を同梱した。
 - 開発者が更新した4ツールの本体・ボタン・アイコンテクスチャを保持して配布物へ反映した。
 - 検証済み: 対象ファイルのPrettier、`git diff --check`、`pnpm gen`、`pnpm zip`。kaizpatch・mc1710・mc1122のビルドが成功し、`artifacts/SuperRailBuilderX-alpha-0.1.0.zip`へ57ファイル、更新テクスチャ、`readme.txt`、`LICENSE`が格納されることを確認した。
@@ -713,7 +713,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 
 ### 2026-09-12 ローカルCodex — AppleExtended通常レール生成compat
 
-- KaizPatchXとAE `ca255fd`の生成API差分を比較し、自動分割、Section core、論理レール、設定型、座標API、NBT復元の違いとSRBX側の対応方針を`docs/appleextended-target.md`へ整理した。
+- KaizPatchXとAE `ca255fd`の生成API差分を比較し、自動分割、Section core、論理レール、設定型、座標API、NBT復元の違いとSRBX側の対応方針を`docs/development/appleextended-target.md`へ整理した。
 - AE専用の`AppleExtendedRailCompat.ts`を追加した。レール生成Aと複線コピーの`createBuilderRail`をAE標準`BlockMarker.createRail`による通常レール生成へ接続し、自由座標RailPosition、モデル選択、複製元再検証、通常レールUndoを補完した。
 - 自動分割構造に依存する分割・分岐・カントSection更新・既設レール再生成は、引き続き安全スタブで無効化した。AE側に同等公開APIが追加された補完から順次削除する。
 - 検証済み: `pnpm format:check`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、AE生成JavaScriptへの専用compat includeと通常レール生成呼び出しの出力、`git diff --check`。
@@ -799,7 +799,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - `generated/`はGit管理外であり、各tsconfigがその型定義を参照するため、クリーンrunnerでは`rtmx generate`が必須と判断した。リポジトリのWindows固有`gradle-java-home`をrunnerへ持ち込まないよう、workflowではsetup-javaの`JAVA_HOME`を生成処理へ明示する。
 - 型定義生成後に`rtmx build`と`rtmx zip`を実行する。`artifacts/`直下のZIPが1個でない場合は失敗させ、実際のZIP名からpack名を取得してタグ名付きへ変更する。
 - `release-notes.md`を初期化し、同ファイルを本文として`github.token`でDraft Releaseを作成する。再実行時は既存Draftの本文・同名Assetを更新し、公開済みReleaseは変更せず失敗させる。
-- `docs/releasing.md`へ手動Publishまでの正式手順、誤タグの削除・修正方法、workflow再実行時の挙動を記載した。
+- `docs/development/releasing.md`へ手動Publishまでの正式手順、誤タグの削除・修正方法、workflow再実行時の挙動を記載した。
 - 検証済み: `pnpm install --frozen-lockfile`、`pnpm gen`、`pnpm build`（common・kaizpatch・mc1710・appleextended・mc1122）、`pnpm exec rtmx zip`（`SuperRailBuilderX-alpha-0.1.0.zip`、71ファイル）、対象Prettier、`git diff --check`、workflow内Bash 2ブロックの`bash -n`。
 - 未検証: 実際の`v*`タグpushによるGitHub-hosted runnerでの依存取得・Gradle生成・Draft Release作成。検証するとDraft Releaseを作成するため、次回の正式リリースタグで確認する。
 - 実装コミット: `fa57990`
@@ -964,7 +964,7 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 2026-09-04 ローカルCodex:
     - `pnpm gen`は成功。mc1710にない`RailMap#getRailYaw`の直接呼び出しを既存compat経由へ修正し、`pnpm build`も全3ターゲットで成功した。
     - 修正コミット `d8fe798` は`origin/main`へ同期済み。
-    - 次はバックアップ済みワールドで`docs/double-track-copy.md`の実機確認を行う。
+    - 次はバックアップ済みワールドで`docs/user-guide/double-track-copy.md`の実機確認を行う。
 
 - 2026-09-03 Web側Codex:
     - 線路分割ツールをコミット `70fe67e` でGitHubへ同期済み。
@@ -973,4 +973,4 @@ Codexは内容を確認後、処理済みの項目を作業記録へ移すか、
 - 2026-09-03 ローカルCodex:
     - 最新`main`で`pnpm gen`と`pnpm build`が成功。コード修正は不要だった。
     - 検証記録コミット `3de4133` は`origin/main`へ同期済み。
-    - 次はバックアップ済みワールドで`docs/rail-splitter.md`の実機確認を行う。
+    - 次はバックアップ済みワールドで`docs/user-guide/rail-splitter.md`の実機確認を行う。

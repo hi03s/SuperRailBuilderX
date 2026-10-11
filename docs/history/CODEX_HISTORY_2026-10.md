@@ -133,13 +133,13 @@
 - 開発者から概ね不具合解消の報告とmain統合・0.2.0設定の依頼を受領。origin/mainとの差分を取得し、feature/appleextended-compatをmainへno-ffマージ（a769e94）、競合なし。ユーザー未追跡gui_base.xcfを保持。
 - package.json=0.2.0、rtmx配布名SuperRailBuilderX-0.2.0、7箇所のツールVERSION、README/usage/同梱readmeの表記を更新。古いAE実験対象/端点移動のみという説明を現行対応に修正。release-notes.mdへv2.5.3の生成・論理Section編集・Undo・接続カント/クラッシュ修正を記載。rtm-ts/参照toolkit未変更。
 - 実行済み: pnpm zip（全4ターゲット、警告0、89ファイル）、test:appleextended 10スイートとtest:input/test:rail-patch/test:runtime-dispatch、変更TS/JSONのPrettier確認・git diff --check、ZIP内バージョン確認。
-- 今回未実施: Minecraft実機。開発者の概ね解消という報告を記録し、個別全ケースの確認完了とは扱わない。今回の依頼はバージョン設定とmain統合のため、v0.2.0タグ作成/Release公開は実施しない。正式配布時はdocs/releasing.mdの手順を使用する。
+- 今回未実施: Minecraft実機。開発者の概ね解消という報告を記録し、個別全ケースの確認完了とは扱わない。今回の依頼はバージョン設定とmain統合のため、v0.2.0タグ作成/Release公開は実施しない。正式配布時はdocs/development/releasing.mdの手順を使用する。
 - main統合a769e94・0.2.0設定10a7955をorigin/mainへpush済み、差分0/0。引継ぎ記録も同期する。
 
 ## 2026-10-04 ローカルCodex: v0.2.0リリース実行
 
 - ユーザーから公開までの指示を受領。mainの検証済み0.2.0へannotated tagを作成・pushし、リリースActionsを起動。ローカルghは未導入のため既存Git認証をGitHub APIに使用（認証情報は出力/保存しない）。
-- 初回Actionsは生成前にGradleファイルがないためsetup-java cacheで失敗。cache-dependency-pathをpnpm-lock.yaml/rtmx.jsonへ指定（9c6c14b）。次はgtnhgradle 2.0.24がJVM 25必須のためJava 17で失敗し、Java 25へ変更（1c73128）。未公開タグはdocs/releasing.mdに従って修正コミットへ付け直し、公開済みタグには触れない。rtm-ts本体未変更。
+- 初回Actionsは生成前にGradleファイルがないためsetup-java cacheで失敗。cache-dependency-pathをpnpm-lock.yaml/rtmx.jsonへ指定（9c6c14b）。次はgtnhgradle 2.0.24がJVM 25必須のためJava 17で失敗し、Java 25へ変更（1c73128）。未公開タグはdocs/development/releasing.mdに従って修正コミットへ付け直し、公開済みタグには触れない。rtm-ts本体未変更。
 - 成功run https://github.com/hi03s/SuperRailBuilderX/actions/runs/37143858616 で型生成・ビルド・ZIP生成・Draft作成まで全ステップ成功。最終v0.2.0タグは1c73128、未公開時のみ付け直した。
 - Draft id 402638176の本文をrelease-notes.mdと照合。添付SuperRailBuilderX-0.2.0-v0.2.0.zip（226672 bytes、88ファイル）を取得し、readme=0.2.0と4ターゲット収録、SHA-256 de25d9efb8cf9e597f84f87331934fd3668338724d2232223d73c85eb369bcdfを検証。ローカルのユーザー未追跡XCFは配布へ含まれない。
 - 2026-10-04 03:30 JST、Releaseをdraft=false/make_latest=trueで公開し、タグから取得可能な正式Releaseを確認: https://github.com/hi03s/SuperRailBuilderX/releases/tag/v0.2.0 。実機再テストは今回未実施（直前の回帰13スイート成功・開発者の概ね不具合解消報告を継承）。設定修正コミットはorigin/mainへpush済み、完了記録も同期する。
@@ -148,7 +148,7 @@
 
 - KaizPatchの生成Aで接続カント反転を再現する実機報告を受領。複製した接続RPのcantEdgeをyaw/direction反転と同時に反転し、既設RP/cantCenterを維持。usesGeometryRailHighlightをtrueとしAEと同じ論理線形描画に統一。
 - Kaiz共通道床配置は既存Base tile/BlockLargeRailBaseなら無条件skip。終端・所有先なし・tile欠損・overwriteForeign指定も保持。コア設置は別工程。AEは保持付き道床placement helperを追加し、重なる通常生成/Section/分岐を適用。通常コアはNBTでversion/State/RPを初期化し、失敗時は作成したコアだけ除去。Section ownersはJava int[]で格納。capture/restoreは非コアだけ、実変更時のみ同期。
-- 独立したネイティブマーカー比較とKaiz実装/新規VM回帰をサブエージェントへ委譲し、親がAE実装・統合・差分確認。一次ソース/JARでは両環境とも同じ通常道床を再配置して所有先を新コアへ更新し、別種類のレールブロックは道床工程で保持。prepareBaseBlocksの地形コピーも既存道床は保持。Creativeはnative canPlaceRailの障害物拒否を迂回するため旧資料を訂正。調査詳細/根拠/比較手順はdocs/roadbed-ownership-investigation.md。
+- 独立したネイティブマーカー比較とKaiz実装/新規VM回帰をサブエージェントへ委譲し、親がAE実装・統合・差分確認。一次ソース/JARでは両環境とも同じ通常道床を再配置して所有先を新コアへ更新し、別種類のレールブロックは道床工程で保持。prepareBaseBlocksの地形コピーも既存道床は保持。Creativeはnative canPlaceRailの障害物拒否を迂回するため旧資料を訂正。調査詳細/根拠/比較手順はdocs/research/roadbed-ownership-investigation.md。
 - 実行済み: pnpm zip（全4ターゲット・警告0）、test:appleextended 11スイート/test:kaizpatch/test:input/test:rail-patch/test:runtime-dispatch計15スイート、変更ソース/テスト整形確認、git diff --check。実機未実施。低速片方向引っかかりと所有先上書きの因果は未確定で、新規敷設の生成順・双方向低速/通常速度・標準マーカー対照・移動/Undoを比較しlogs/latest.log提出を依頼。
 - rtm-ts/参照toolkit/Mod本体/標準マーカー/公開Releaseは変更しない。ユーザーXCFを保持し、リリースタグ作成/Publishは実行しない。
 - 修正コミットab806d8をorigin/mainへpush済み、HEAD/origin差分0/0。引継ぎ帳へ同期結果を反映。
@@ -162,7 +162,7 @@
 - サーバーonUpdateの当tick編成移動前に車体速度/ノッチ/方向/位置と前後台車実追従状態・道床所有先を記録。通常10 tick、停止100 tick、遷移は即時。力行中40 tickの微小移動時に直前20 tickの履歴を一度出力。ログ例外は抑制・復帰でき、クライアントでは実行しない。停止判定はブレーキ緩解待ち等も含む可能性がある。
 - 検証済み: pnpm zip（全4target、警告0）、test:train-debug、test:appleextended（11件）、test:kaizpatch、test:input、test:rail-patch、test:runtime-dispatch、対象Prettier/diff check。新規テストは台車生成API未使用、実追従フィールド、ログ頻度・履歴上限、前台車欠落時の後台車番号、クライアント除外、例外抑制/復帰、モデル参照を検証。
 - ZIP再梱包は100ファイル。開発者の未追跡gui_base.xcfはソースに保持し、配布用distコピーだけ除外。公開済みRelease/タグは変更しない。
-- 未実施: Minecraft実機のモデル表示/設置/運転、KaizPatch/AEで接続部双方向低速走行。docs/train-debug-vehicle.mdの手順でlogs/latest.logを再提出する。
+- 未実施: Minecraft実機のモデル表示/設置/運転、KaizPatch/AEで接続部双方向低速走行。docs/research/rail-transition-research.mdの手順でlogs/latest.logを再提出する。
 - 同期: 実装コミット `652be14` をorigin/mainへpush済み。コミット記録を引継ぎ帳へ反映して文書同期する。
 
 ## 2026-10-10 ローカルCodex: デバッグ車両モデル構築クラッシュ
@@ -171,7 +171,7 @@
 - 公式AE JARの行番号/bytecodeからgetMaterials:284が材質一覧空のdefault参照であることを確認。PolygonModelのコンストラクタからinitが呼ばれ、MqoModel.currentType=-1代入はsuperから戻った後。Sceneの無い今回MQOでは初期mode=0のままMaterialブロックが無視され、材質空/default未設定でNPEになっていた。KaizPatchXも同じ初期化順。
 - train_debug.mqo/train_debug_bogie.mqoへSceneブロックを追加。AEのtextures第三要素は配列長3未満で空文字列へfallbackするため、省略は原因ではない。不透明モデルのJSONは維持。rtm-ts/参照ツールキット/車両走行処理は未変更。
 - test:train-debugに外部ネイティブ初期解析状態に基づくMQO材質抽出・JSONとの解決/ファイル確認、Scene除去時の失敗再現を追加。以前のファイル存在確認だけでは材質欠落を検出できなかったため補完。
-- 検証済み: pnpm zip（全4target、警告0）、test:train-debug、対象Prettier、diff check、配布ZIP再梱包100ファイル。開発者のgui_base.xcfはソースに保持し、distコピーのみ配布から除外。実機モデルローダーでの再起動/表示/設置/走行は未実施。docs/train-debug-vehicle.mdの手順で再確認しlogs/latest.logを共有する。
+- 検証済み: pnpm zip（全4target、警告0）、test:train-debug、対象Prettier、diff check、配布ZIP再梱包100ファイル。開発者のgui_base.xcfはソースに保持し、distコピーのみ配布から除外。実機モデルローダーでの再起動/表示/設置/走行は未実施。docs/research/rail-transition-research.mdの手順で再確認しlogs/latest.logを共有する。
 - 同期: 修正コミット `b822958` をorigin/mainへpush済み。SHA/同期結果を引継ぎ帳へ記録。
 
 ## 2026-10-10 ローカルCodex: AE方向別走行遷移の責任切り分け
@@ -179,7 +179,7 @@
 - 依頼: logs/latest.logを受領。A方向で低速停止、逆方向Bで台車切替時に微小加速/瞬間移動。追加指示はSRBX側なら修正、AE側なら制作者へ対応依頼を検討すること。
 - AE id=123はtick506～538でP2/約2 km/hなのに車体不変、先頭旧map index=0。速度0.201352 m/tickで次コアへ移行。id=151はtick390→391の速度0.028520一定で車体約0.21960 m変位（通常移動より約0.19108 m超過）。後台車もtick474でbufが精密端点へ約0.08744 m投影されている。関連train-debug/nearbyだけlogs/appleextended-directional-transition-20261010.logへ抜粋。
 - 接続点(1405.85950,4.06250,-1600.85950)は旧コアのブロック内部。公式AE v2.5.3のEntityBogie.updateBogiePos/resetRailObj/getRail、Base.getRailFromCoordinates、RailMapの最近傍処理を確認。予測点のfloor X/Zにある単一道床の所有コアを先に選び、map端へ投影するため、小移動でセルを出られない方向は端に戻り、逆方向は精密端点より早く切替先の端へ飛ぶ。45度直線のセル境界まで約0.198697 m（約14.31 km/h）という見積もりが通過速度と整合。
-- 限定readonlyのnative API評価をselection_auditへ委譲し、同じ責任境界を確認。ブロック内部自由端点を任意精度のまま低速走行可能にするにはAE側の探索対応が必要。setPositionの接続保証範囲は未確定なのでAE契約違反とは断定せず、制約/対応可否相談としてdocs/appleextended-free-endpoint-transition-report.mdを用意。道床所有先を変更するだけでは双方向を保証できない。
+- 限定readonlyのnative API評価をselection_auditへ委譲し、同じ責任境界を確認。ブロック内部自由端点を任意精度のまま低速走行可能にするにはAE側の探索対応が必要。setPositionの接続保証範囲は未確定なのでAE契約違反とは断定せず、制約/対応可否相談としてdocs/research/rail-transition-research.mdを用意。道床所有先を変更するだけでは双方向を保証できない。
 - SRBX側回避は接続両側の座標を境界に合わせる/自由端点を制限する仕様変更であり、現時点では特定敷設処理の誤りだけが原因とは確認できない。精密線形・保存ワールドを自動変更しない。Mod/rtm-ts/車両挙動コードも未変更。作者への送信は行わず開発者用相談文を作成。
 - 確認済み: ログ抽出・座標/1 tick変位/セル境界距離の計算、公式JAR bytecodeと探索/投影の照合、差分/個人情報除去確認。コード変更なしにつきビルド/既存テスト再実行なし。デバッグ車両のAEモデル読み込みと走行ログ取得は今回の実機ログで確認。未実施: 標準マーカー＋offsetによる同状態再現、境界接続との対照、KaizPatch同条件の実機比較。
 - 同期: 調査コミット `c7c62ea` をorigin/mainへpush済み。SHA/同期結果を引継ぎ帳へ記録。
@@ -188,7 +188,7 @@
 
 - 依頼: logs/fml-client-latest.logを受領し、AEと同原因か、KaizPatch制作者への相談が必要か調査。ログ宣言と実使用JARから実行版1.10.4を確認。型生成/過去の道床規則調査のv1.10.3とは区別した。
 - 接続点(-709.8595,4.0625,31.8595)、旧所有床(-710,4,31)、新短区間0.19871 m。id410082のtick410～496全87tickで新旧コアが交互に切り替わり、旧コアへ戻るたび旧終端へ投影。tick497で次区間へ抜ける。逆方向id505263のtick347→348は速度減少で車体変位約0.188196 m、501→502は速度一定0.015416 m/tickで約0.106285 m変位。
-- 実インストールJARを読取専用で調査キャッシュへコピーし、javapでEntityBogie/RailTransitionResolverを確認。findCrossedConnectedCore→床探索getRailFromCoordinates→keepCurrentSectionCoreの探索順と、別論理グループでは現在コアを保持しないことが往復の説明に整合。resetRailObjのcanConnectとfindConnectedEntryIndex/map投影も照合。これはAEの端点探索なしとは異なる1.10.4の挙動で、Kaiz制作者への対応可否相談資料をdocs/kaizpatch-free-endpoint-transition-report.mdに準備。作者への送信はしていない。
+- 実インストールJARを読取専用で調査キャッシュへコピーし、javapでEntityBogie/RailTransitionResolverを確認。findCrossedConnectedCore→床探索getRailFromCoordinates→keepCurrentSectionCoreの探索順と、別論理グループでは現在コアを保持しないことが往復の説明に整合。resetRailObjのcanConnectとfindConnectedEntryIndex/map投影も照合。これはAEの端点探索なしとは異なる1.10.4の挙動で、Kaiz制作者への対応可否相談資料をdocs/research/rail-transition-research.mdに準備。作者への送信はしていない。
 - SRBX自由端点/極短自動分割が再現条件だが、特定敷設ミスとは確認できず、Mod側サポート範囲も未確定。既存精密線形、道床所有先、車両、rtm-ts、Modを自動変更しない。関連ログ54行をlogs/kaizpatch-104-transition-oscillation-20261010.logへ抜粋し、原本を.gitignoreへ追加。ユーザー所有gui_base.xcfは保持・未追加。
 - 実施: 全tick/座標/単tick変位計算、生成/床所有ログと実JAR探索順の照合、ログ匿名化/差分確認。提出実機ログによりKaizのモデル読み込みと台車診断取得も確認。未実施: SRBX非経由の同配置対照、境界接続比較、修正版での再走行。ソース変更なしのためビルド/テスト再実行なし。
 - 同期: 調査コミット `aec3501` をorigin/mainへpush済み。同期結果を引継ぎ帳へ記録。
@@ -205,7 +205,7 @@
 
 - 開発者からKaiz制作者の見解とSRBXからのパッチ実現性検討依頼を受領。GitHub公開APIでIssue #534/comment6086321090を確認。制作者はブロック端への曲線端点配置をスクリプト側の責務とし、今回配置は遷移不可が正しいという見解。原因観測は維持し、Kaiz側の修正依頼という結論をSRBXの生成条件対応へ変更。AEへは同見解を適用しない。
 - 現行ScriptEngine.evalの描画関数差替え、専用車両onUpdateの読取り範囲、実Kaiz JARのprivate getRail/resetRailObj・final/static resolver・controller/setBogieを確認。既存描画方式ではJava探索を直接差替え不可。パック単独の台車/controller置換は広い車両処理互換性が未成立。探索hook用の別途coremodが有力で、追加JARなしなら標準境界配置による自由端点制限が候補。
-- docs/free-endpoint-transition-patch-feasibility.mdに対象別のhook案、候補比較、台車単位のmap保持/実端点越え/残距離/分岐経路の設計条件を記録。床所有先の動的変更や毎tickのフィールド補正は汎用対処に採用しない。配布形態・対象限定方法・仕様判断待ち。
+- docs/research/rail-transition-research.mdに対象別のhook案、候補比較、台車単位のmap保持/実端点越え/残距離/分岐経路の設計条件を記録。床所有先の動的変更や毎tickのフィールド補正は汎用対処に採用しない。配布形態・対象限定方法・仕様判断待ち。
 - 実施: Issue本文/制作者コメントの一次情報確認、既存TS/実Java bytecodeの照合、資料/リンク/差分確認。未実施: 実装、クラス変換、台車差替え、全実機パッチ試験。コード/rtm-ts/Mod/ワールドは未変更、資料のみにつきビルド/テスト再実行なし。
 - 同期: 実現性調査コミット `fe3218e` をorigin/mainへpush済み。同期結果を引継ぎ帳へ記録。
 
@@ -214,7 +214,7 @@
 - 依頼: 自由端点で走行接続可能と思っていたため、導入経緯と意図を実装から推定。Kaiz公式履歴でa8664a7（JST 7/18）を確認。continuous sampling/ChunkSectioner/MapSectionとoffset/setPosition/NBTを同時追加。初回Javadocとv1.10.2公開説明の両方に、ブロック端保証は設定側の責務と記載。
 - 区間を元曲線へ委譲して勾配/カント/接線を維持し、チャンク境界上の面中央ではない任意座標を表すためのAPIと推定。ブロック座標/所有/同一性が分離されたままで、canConnectの幾何一致だけでは台車探索を保証しない。resolverは7/26追加、8/31内部section往復/境界探索修正という後続履歴を確認。1.10.4新設という解釈はしない。
 - AE 74fe2ed（9/8）はRailPositionとRailPartsRendererBaseのみ変更。offset/NBTと描画原点へ対応し、台車探索は同commit未変更。Kaizと同構造だが直接移植や作者の全意図は断定しない。
-- docs/rail-position-free-endpoint-intent.mdへ事実/推定/一次リンクを整理。既存自由化文書の「端点一致なら前方探索で対処」という広い解釈を修正。SRBXの自由端点走行を保証する解釈は導入説明より広かったことを明記。
+- docs/research/rail-transition-research.mdへ事実/推定/一次リンクを整理。既存自由化文書の「端点一致なら前方探索で対処」という広い解釈を修正。SRBXの自由端点走行を保証する解釈は導入説明より広かったことを明記。
 - 実施: 公式commit/release/APIで導入・後続差分、該当ソースとAE実JARの照合、資料/リンク/差分確認。未実施: 作者への追加問い合わせ、新規実機対照。コード変更なしのためビルド/テスト再実行なし。Mod/rtm-ts/既存ワールドを変更せずユーザー所有xcfは未追加。
 - 同期: 導入経緯調査コミット `7342ba2` をorigin/mainへpush済み。同期結果を引継ぎ帳へ記録。
 
@@ -223,7 +223,7 @@
 - 依頼: 内側自由端点の遷移問題に対し、ブロック縁上へ配置可能か検討し全生成/整形ツールへ対応。全6ツールと両compatに境界条件を実装。精密anchorYawを保持し、ownerは内向き接線側、native directionは横切る面に合わせる。円弧/分割は元曲線の境界交点、共有移動/縦曲線は同一共有点を使う。縦曲線補正で厳密な半径は変わり得ることを文書化。
 - 非境界の既設接続/カント/分割/分岐は破壊前に拒否。移動Undoと内部rollbackは保存座標・方向・ownerを維持。既存ワールド一括変更なし、rtm-ts/共有toolkit変更なし、ユーザーxcfは未追加。
 - 実施: 全4ターゲットbuild warning 0、boundary幾何/所有/円弧/縦共有点、AE11本、Kaiz、描画patch/include展開、dispatch、入力、デバッグ車両の回帰検証。target→common helperは@common importとし配布include参照も検証。変更TSの整形確認。全体format:checkは既存未変更ファイルの整形違反が残る。
-- 未実施: Minecraftでの両方向低速走行、全ツール操作とUndo実機検証。手順/限界はdocs/rail-boundary-endpoints.md。修正版ZIP artifacts/SuperRailBuilderX-0.2.0.zipを101ファイルで生成し、4ターゲット・helper・include138参照・ユーザーgui_base.xcf除外を確認。SHA256 FEB08D6EA9962FAA49866A147875E2267F3BDD2001FD2C8008A8CB6E2F93831C。同期結果は完了後記録する。
+- 未実施: Minecraftでの両方向低速走行、全ツール操作とUndo実機検証。手順/限界はdocs/research/rail-transition-research.md。修正版ZIP artifacts/SuperRailBuilderX-0.2.0.zipを101ファイルで生成し、4ターゲット・helper・include138参照・ユーザーgui_base.xcf除外を確認。SHA256 FEB08D6EA9962FAA49866A147875E2267F3BDD2001FD2C8008A8CB6E2F93831C。同期結果は完了後記録する。
 
 - 最終レビュー: endpoint Undoのサーバー記録へoriginalPointを追加し、変更前owner/directionをKaiz通常/分岐とAEへ渡して復元。AEの公開compat経由で復元flag/snapshotが届く回帰ケースも追加。縦区間長は共有点snap前に保存してアンカー比補正し、短区間のクライアント配列参照を防止。追加修正後もbuild/境界/AE11本/Kaiz/描画/include/入力等が成功。
 
@@ -266,7 +266,7 @@
 - Java: 両版の挙動テスト、実KaizPatchX 1.10.4/AE 2.5.3へのASM BasicVerifier/native call保持検証に成功。異常bytecode無効化・冪等変換・client除外・切断/高低差/再生成map・AE逆方向/active分岐/競合/stale位置を確認。Java8 major52、資産/依存/テスト非同梱、テストあり/なし出力一致を検証。
 - 成果物: SRBXPatch-v1.0-1.7.10.jar SHA256 f6490d1acad0b948b96bd4e20d2ac86e4ba05bf6e12cd1886338f4a67099a886、SRBXPatch-v1.0-1.12.2.jar SHA256 1e523739f9eba6c776512de7f2c43344c256331cd142c4c7d6d782ec2bc51f55。SuperRailBuilderX-0.2.0.zipは101ファイル、include参照欠落なし、JSON除去/再利用資産保持を確認。ZIP SHA256 438859bacd644cd7cf5aa236a2b1f666cddd263972d11039679434ee203dacb1。
 - CIはmain/専用ブランチで独立ZIP＋2 JARを生成。タグworkflowも3配布物をDraftへ添付し、既存公開Release変更拒否と手動Publishを維持。今回はタグ/Release/Publishを実行しない。rtm-ts/共有ツールキットは変更しない。
-- 未実施: Minecraft起動/両方向低速走行、CrossTie併用、JARなしクライアント接続、実機全ツール/Undo。通常車両での確認手順とログ提出先をdocs/srbx-free-endpoint-mod.mdへ記載。同セルコア競合、複数極短区間の1 Tick通過、Kaiz nativeが見つけられない配置、AE周辺探索範囲外の候補は保証外。
+- 未実施: Minecraft起動/両方向低速走行、CrossTie併用、JARなしクライアント接続、実機全ツール/Undo。通常車両での確認手順とログ提出先をdocs/user-guide/srbx-free-endpoint-mod.mdへ記載。同セルコア競合、複数極短区間の1 Tick通過、Kaiz nativeが見つけられない配置、AE周辺探索範囲外の候補は保証外。
 - 同期: 実装c04e530をorigin/mainへpush成功（01e5197→c04e530）。引継ぎ同期記録を追記後、既存feature/kaizpatch-free-endpoint-modもmainへfast-forwardして両ブランチを同期する。
 
 ## 2026-10-10 ローカルCodex: AE起動停止のMod依存ID修正
@@ -281,7 +281,7 @@
 ## 2026-10-10 ローカルCodex: 終了ブランチ整理、CrossTie分割診断、GUI最新化
 
 - mainに全コミットが含まれることを確認し、feature/appleextended-compat（77139ef）、feature/kaizpatch-free-endpoint-mod（2defa0c）、fix/rail-render-offset-compat-patch（08756a7）をremote/localで削除。GUIブランチは未統合コミットがあるので保持。
-- 保存済みfml-server-latest - コピー.logをcp932で解析。CrossTie Alpha14のNBT未読込警告26件、分割6回はいずれもresult=ok。公開Alpha14タグcf3ce92の診断とSRBX生成/同期コードを照合し、新規setter初期化TEのreadFromNBT未通過による誤検出と判断。SRBX変更不要。詳細docs/crosstie-split-diagnostic.mdと個人情報除去済み抜粋へ保存。生サーバーログはignoreへ追加。
+- 保存済みfml-server-latest - コピー.logをcp932で解析。CrossTie Alpha14のNBT未読込警告26件、分割6回はいずれもresult=ok。公開Alpha14タグcf3ce92の診断とSRBX生成/同期コードを照合し、新規setter初期化TEのreadFromNBT未通過による誤検出と判断。SRBX変更不要。詳細docs/research/roadbed-ownership-investigation.mdと個人情報除去済み抜粋へ保存。生サーバーログはignoreへ追加。
 - 本番サーバーへ接続/変更/再起動/テストは一切行わない。必要な再読込/走行試験は本番以外のバックアップワールドで行う手順を残す。
 - CI対象の削除済み自由点ブランチをGUIブランチへ置換し、GUIでも最新mainの回帰と配布物ビルドを行う。
 - main検証/同期: pnpm test:kaizpatch、diff --check成功。調査45a941fをorigin/mainへpush済み。GUIのビルド結果/同期は同ブランチの続きに記録する。
@@ -297,7 +297,7 @@
 - 初回のみ[SuperRailBuilderX GUI] fog isolatedにworldFog/guiFog/サイズを出力。実機でworldFog=true/guiFog=falseを確認でき、再発時の調査材料にする。診断はクライアント描画スクリプト内。サーバー/Javaパッチ/共有ツールキットは変更なし。
 - 検証済み: pnpm build全4ターゲット（warningなし）、rail-patch/runtime-dispatch回帰、対象TSのPrettier/diff --check。生成JSのrenderToolGuiをローカル模擬GL状態で実行し、初期霧ON/OFF各ケースと描画例外時も色描画中の霧OFF・終了時の元霧/texture unit/属性/行列復元を確認。これは実GPUの画像検証ではない。
 - 更新SuperRailBuilderX-0.2.0-builder1-gui.zipは102ファイル、霧無効化/診断ログを確認。不要debug JSON/ユーザーgui_base.xcfは非同梱。main ZIPと両SRBXPatch JARは維持。ユーザーの画像/xcfは未追跡のまま保持し、Gitへ追加しない。
-- 未実施: 修正後Minecraft実機の昼/夕方GUI色・文字・透明部分、ツール終了後のワールド描画。更新ZIPへ置換し確認、再発時は画像とlogs/latest.log（fog isolatedを含む）を提出する手順をdocs/builder1.mdへ追記。
+- 未実施: 修正後Minecraft実機の昼/夕方GUI色・文字・透明部分、ツール終了後のワールド描画。更新ZIPへ置換し確認、再発時は画像とlogs/latest.log（fog isolatedを含む）を提出する手順をdocs/user-guide/builder1.mdへ追記。
 - 同期: 修正1cdd292をorigin/feature/builder1-guiへpush成功。更新GUI ZIP SHA256 791d5792a383d22fa6bf971402f85d13817acbcb29eb7d7a5511d038a568ea81。
 
 ## 2026-10-10 ローカルCodex: builder1 GUI状態アイコン/数値
@@ -372,7 +372,7 @@
 - 分岐生成はレール生成Aと同様に固定ONなら設定半径、OFFでプレビューがあれば近似半径を表示し、無限大は「直線」。起点選択中の新線長を描画済み48分割の3D折線から集計する。終点候補なしは0.00 m、起点未選択は空欄。元レール側の残存区間は含めない。GUIによるRailMap新規作成/ワールド書込なし。
 - 検証済み: 全4ターゲットbuild（warningなし）、全package回帰スクリプト、変更TS/テスト整形、diff --check。test:guiは共通描画の全GL状態復元/エラー停止/アイコン座標/白文字、各ツールの表示値、実renderでの分割ホバー/選択/無効候補/描画pass・Minecraft画面条件、分岐の実プレビュー3D長を検証。実Java 8u51で全6ツールの生成アダプターと共通GUIの文字/空行/投影維持を実行し成功（GLは模擬）。
 - main ZIPを更新し、共通GUIと全6ツールの呼出、gui_base.xcf非同梱を確認（103ファイル）。SHA256 d584a613d1d2385d3991fc30dc9caddb6cf343bd22c418ef7ac1aef6ef9cf678。
-- 未実施: KaizPatch/AEでの実GPU・実ワールド表示確認。更新ZIPへ置換して再起動し、全ツールの設定変更/選択/解除、別画面開閉、ツール切替/終了、GLエラーとレール描画の正常性を確認する。異常時はツール名、操作、logs/latest.logを共有。[共通GUI仕様/手順](../tool-gui.md)。
+- 未実施: KaizPatch/AEでの実GPU・実ワールド表示確認。更新ZIPへ置換して再起動し、全ツールの設定変更/選択/解除、別画面開閉、ツール切替/終了、GLエラーとレール描画の正常性を確認する。異常時はツール名、操作、logs/latest.logを共有。[共通GUI仕様/手順](../user-guide/tool-gui.md)。
 - 同期: 実装9a1f77aをorigin/mainへpush成功。完了項目を引継ぎ帳の作業中から除去。
 
 ## 2026-10-11 ローカルCodex: カントのレール単位選択と操作・ヘルプ改善
@@ -393,7 +393,7 @@
 - 全6ツールにTAB長押しホイールを追加。真上から時計回りに生成A/分割/移動/複線/カント/分岐。専用GuiScreenの上に暗い背景、アイコン/名前を表示し、マウス方向と←→で選択、TAB解除で確定、ESCで取消。ゲームは一時停止しない。中心付近/静止マウスではキー選択を維持する。通常ツール入力とプレビューを停止し、ボタン/矢印を離すまでの抑止をDataMap経由で新モデルにも引き継ぐ。
 - モデル切り替えは全サーバースクリプトから共通処理へ渡し、6モデルの許可リスト、所有プレイヤーと騎乗関係、モデル存在、生成/移動/Undo要求との競合を検証する。Kaiz/1.7はsetModelNameとモデル更新、AE/1.12はResourceState.setResourceNameと同期をcompatに分離。エンティティを保持するためレールへの書き込みはない。
 - 標準画面を開く際のキー解除でプレイヤーリスト入力を抑える構成で、表示が残っても画面はHUDより上に描画する。実マルチプレイでの非表示は未確認。キー設定やrtm-ts/共有ツールキットは変更しない。
-- 共通GUIのスタックを使わない状態保存/復元を利用する。矩形はGlStateManagerのキャッシュとアイコン色/Blendを乱さないよう、GUI内で直接描画して白色/テクスチャを復元。GUI/ホイール失敗時は閉じて診断を出す。新しいヘルプ案内とdocs/tool-wheel.mdを追加。
+- 共通GUIのスタックを使わない状態保存/復元を利用する。矩形はGlStateManagerのキャッシュとアイコン色/Blendを乱さないよう、GUI内で直接描画して白色/テクスチャを復元。GUI/ホイール失敗時は閉じて診断を出す。新しいヘルプ案内とdocs/user-guide/tool-wheel.mdを追加。
 - 検証済み: 全4build（warningなし）、全package回帰、マウス/キー/解除/ESC/処理中/所有者/モデル不足/例外/新モデルの押しっぱなし/6ツールへの組込テスト、カント解除色/カーソル除去、ホイール6アイコン/名前/GL全状態復元、変更TS/テスト整形、diff --check。ゲーム同梱Java 8u51で全ツール/ホイールのGUI（GL模擬）と、検証用Javaクラスに対する実Java.extendのSRGコールバック/非停止/矢印/解除を確認。実Minecraft画面の試験とは区別する。
 - 更新ZIP106ファイル、ホイール/サーバー処理/ツール定義の同梱とxcf非同梱を確認。SHA256 3e27e070cebe6195535594993d4d6693afa4384f99f659347153234013c1e65e。ユーザーの編集用xcf/参照画像、生ログは追加しない。
 - 未実施: KaizPatch/AEの実GPU/実画面/マルチプレイ。更新ZIPへ置換して再起動し、カント解除色/カーソル非表示、各ツールでTABを開き配置/暗い背景/マウス/←→/解除/ESC/クリック抑止/生成・適用・Undo、リスト表示を確認。異常時は操作順とlogs/latest.logを共有する。本番サーバーは操作していない。
@@ -405,7 +405,7 @@
 - 描画とマウス判定は同じ内径を使用する。中央へカーソルを戻すと使用中のツールへ戻る。左クリックは最新のクリック座標で決定し、中央なら変更せず閉じる。右クリックは決定しない。
 - TAB解除での決定、ESC取消、矢印操作を維持。左クリック後の重複決定、TAB押下継続中の再表示、切り替え直後の誤クリックを抑止する。
 - 検証済み: pnpm build（全4ターゲット）、pnpm test:input、pnpm test:gui。Java 8u51でGUIのGL模擬復元と実際のJava.extend/SRGクリックコールバック・座標フィールドを検証。リング頂点の内外径と画面サイズ別の中央判定も確認。
-- 実GPU、実Minecraft画面、KaizPatch/AE実機、マルチプレイのリスト非表示は未検証。更新ZIPでリング・左クリック・中央取消・押しっぱなし動作を確認し、不具合時は操作手順とlogs/latest.logを共有する（docs/tool-wheel.md）。
+- 実GPU、実Minecraft画面、KaizPatch/AE実機、マルチプレイのリスト非表示は未検証。更新ZIPでリング・左クリック・中央取消・押しっぱなし動作を確認し、不具合時は操作手順とlogs/latest.logを共有する（docs/user-guide/tool-wheel.md）。
 - ZIP更新: artifacts/SuperRailBuilderX-0.2.0.zip（106ファイル）、SHA256: 9732C8C5D7DAAAE2AD6536D09DEEEE9AFD3E9F44465B0356A84A717C22116B1A。ユーザーのgui_base.xcfは変更せず、生成先コピーのみZIPから除外。従来のbutton_template.xcfは維持。
 - 同期: d51c996（ホイールを中央取消付きリングへ変更し左クリック決定を追加）をorigin/mainへpush完了。
 
@@ -424,7 +424,7 @@
 - 消失防止のため旧所有先の履歴をForge NBTに保存し、SRBXで移動・分割・Undoする前に生存する旧所有先へ復元する。通常道床→コア/分岐道床の昇格時も元のブロック/TileEntity NBTを保存し、旧コアから切り離してから置換する。削除/Undo・初期化失敗・配置拒否で元の道床を復元し、既設コアを置換しない。KaizのloadedTileEntityListを型付きAPIで参照しSRG変換を保証した。
 - 検証: 全4ターゲットpnpm build（警告なし）、test:rail-transition（所有先履歴・保存再読込・コア保護・端点スナップ/競合・逆順/設定上限・Kaiz昇格/Undo/初期化失敗/配置拒否）、test:appleextended（同じAE昇格保護と既存の移動/分割/カント/Undo）、test:kaizpatch、test:input、test:gui、test:free-endpoint、test:runtime-dispatch成功。変更TSのPrettier確認とgit diff --check成功。
 - ZIP: artifacts/SuperRailBuilderX-0.2.0.zipを107ファイルで再生成。新共通ヘルパー/全4ターゲットを確認し、利用者の未追跡gui_base.xcfは元ファイルを保持し配布物からのみ除外。SHA256: D3473DA2212E857D3FDE7B7C09D1DBFE9D8A4A9D8BBF628FF0F865FF6430B2BB。
-- 実ワールド/実走行は未検証。手順はdocs/roadbed-ownership-investigation.mdへ記載。標準マーカー/手動破壊をフックせず、過去レールの自動修復もしない。同セルには所有先1つのみで、全ての重なりの双方向走行を保証するものではない。SRBXPatchは引き続き必要。本番サーバー・rtm-ts・共有ツールキットは変更していない。
+- 実ワールド/実走行は未検証。手順はdocs/research/roadbed-ownership-investigation.mdへ記載。標準マーカー/手動破壊をフックせず、過去レールの自動修復もしない。同セルには所有先1つのみで、全ての重なりの双方向走行を保証するものではない。SRBXPatchは引き続き必要。本番サーバー・rtm-ts・共有ツールキットは変更していない。
 - コミット: a945d9b（未接続端点の移動スナップと重複敷設時の道床保護を実装）。origin/mainへpush成功、HEAD...origin/mainの差分0/0を確認。
 
 ## 2026-10-11 ローカルCodex: KaizPatchの道床履歴API未定義エラーを修正
@@ -440,7 +440,7 @@
 ## 2026-10-11 ローカルCodex: AEの読込時の道床復元経路を調査
 
 - 正式v2.5.3 Forge JARの通常/Section/分岐コア、道床、RailMap、NBT/パケット同期をjavapで確認。全classの定数プールから道床配置/ChunkEventの候補を抽出し呼出し元を追跡した。通常読込は保存spX/spY/spZとRP/線形キャッシュを復元するが、道床の自動再敷設は確認できない。
-- 道床配置は標準マーカー生成とTileEntityLargeRailCore.relocateRailの明示操作経路。同種の既設道床はsetStartPointで所有先が変わり得るが、通常読込による上書きとは区別する。replaceRailのモデル変更も再敷設しない。詳細/対象JARハッシュ/実機切り分けはdocs/roadbed-ownership-investigation.mdに追記した。
+- 道床配置は標準マーカー生成とTileEntityLargeRailCore.relocateRailの明示操作経路。同種の既設道床はsetStartPointで所有先が変わり得るが、通常読込による上書きとは区別する。replaceRailのモデル変更も再敷設しない。詳細/対象JARハッシュ/実機切り分けはdocs/research/roadbed-ownership-investigation.mdに追記した。
 - 検証は実バイトコードの静的追跡。実ワールドでの再入場前後の所有先は未検証、第三者Mod/任意モデルスクリプトは範囲外。コード変更なしの資料作業なのでbuild/回帰は再実施していない。本番サーバー・rtm-ts・ユーザーアセットは未操作。
 - 同期: 043b53a（AEのレール読込と道床再配置の経路を調査して記録）をorigin/mainへpush成功。
 
@@ -449,7 +449,7 @@
 - AE実バイトコードのgetRailは予測道床のgetRailCoreを返し、resetRailObjはコアが違えば接続性の確認なしにmapを入れ替える。現行SRBXPatchの保持が自由端点付近だけだったため、途中の重複道床で標準探索へ戻る経路を特定した。Kaiz v1.10.4一次ソースの接続探索優先/セクション保持/canConnect検査との差も確認。今回の走行ログは未取得なので報告現象の直接捕捉は未完。
 - AEFreeEndpointHookの現在map保持を区間全体へ拡張し、予測には現在サンプルの接線を使用。近い端点外では保持を解除し、自由点の精密遷移/境界点の標準遷移を維持する。削除/置換/未ロード/位置や高さの不整合は標準復帰。初回取得や既に吸着済みの台車は対象外。Kaiz JAR、道床所有先、パックは変更しない。
 - Java 8挙動テストと実AE v2.5.3へのASM BasicVerifier/二重適用防止が成功。追加した重複区間双方向・曲線接線/探索量・境界端点両側・線形外/map置換/初回取得のテストと従来回帰を確認。JVM診断引数ON/OFFとも成功。実ワールド・実走行・マルチ同期・負荷は未検証。Javaのみ変更でTypeScript build/ZIPは未更新。
-- AE JARを更新: artifacts/SRBXPatch-v1.0-1.12.2.jar、SHA256: 2974CFF2259124996598A3C78D413556FF9D04593FC623B98E1D741D5B3AA0FD。Java 8形式・資産/依存/テスト非同梱の検証成功。診断は-Dsrbxpatch.debugRailLookup=true、最大1秒に1行。仕様/制約/確認手順はdocs/appleextended-overlap-rail-patch.md。本番サーバー・rtm-ts・共有ツールキット・ユーザーアセットは未操作。
+- AE JARを更新: artifacts/SRBXPatch-v1.0-1.12.2.jar、SHA256: 2974CFF2259124996598A3C78D413556FF9D04593FC623B98E1D741D5B3AA0FD。Java 8形式・資産/依存/テスト非同梱の検証成功。診断は-Dsrbxpatch.debugRailLookup=true、最大1秒に1行。仕様/制約/確認手順はdocs/research/appleextended-overlap-rail-patch.md。本番サーバー・rtm-ts・共有ツールキット・ユーザーアセットは未操作。
 - 同期: cb406bb（AEの重複区間で現在レールを保持するパッチを追加）をorigin/mainへpush成功。
 
 ## 2026-10-11 ローカルCodex: AE自動分割境界の同一グループ優先遷移
@@ -457,7 +457,7 @@
 - 既設コアの上書き説を調査。SRBX道床配置は既設レールを保持、端部の所有先変更はCoreを除外、新Section配置は全ownerを変更前に再検証する。AE prepareBaseBlocksもBlockLargeRailBaseを除外。既設Sectionコアを置いた生成直前競合テストで生成拒否と対象保持を確認。通常道床の新コア昇格は行うが、既設コアの上書きではない。
 - 前回AEパッチが物理区間境界で標準道床探索へ戻る経路を原因候補として特定。getRailGroupCorePositions/isSameLogicalRailから、ロード済み・生存・同一グループかつ物理端点/進行方向/予測位置/高さに一致する隣接コアを優先する処理を追加。道床所有先が別線でもコア座標から探索し、チャンク強制ロードや道床書換えは行わない。候補なし/曖昧は従来復帰。
 - AE Javaテスト/実v2.5.3 ASM BasicVerifier/二重適用防止とpnpm test:appleextended成功。重複道床の両方向Section遷移、別グループ/削除/接続点ずれ拒否を追加。診断ONも検証。実機走行/コア消失有無は未検証。現在のlatest.logは以前のKaiz API例外でAE走行ログではない。
-- AE JAR更新: artifacts/SRBXPatch-v1.0-1.12.2.jar、SHA256: 9074F0C50BA284F659426C764ED12FD466E536EBDAB45506F95AFE0D52298B41。パック/Kaiz JAR/敷設スクリプト本体の変更なし。TypeScript build/ZIPは再実施不要。最大1秒1行の診断にsection transitionの元/先コア座標を追加。確認手順はdocs/appleextended-overlap-rail-patch.md。本番サーバーは未操作。
+- AE JAR更新: artifacts/SRBXPatch-v1.0-1.12.2.jar、SHA256: 9074F0C50BA284F659426C764ED12FD466E536EBDAB45506F95AFE0D52298B41。パック/Kaiz JAR/敷設スクリプト本体の変更なし。TypeScript build/ZIPは再実施不要。最大1秒1行の診断にsection transitionの元/先コア座標を追加。確認手順はdocs/research/appleextended-overlap-rail-patch.md。本番サーバーは未操作。
 - 同期: 4296d76（AE自動分割境界で同一グループの隣接コアを優先する）をorigin/mainへpush成功。
 
 ## 2026-10-11 ローカルCodex: SRBX 0.3.0のリリース準備
@@ -478,16 +478,16 @@
 - Bは共有描画/サーバー処理に設計パラメータを追加し、サーバーで終点を再計算して検証する。初期40m、ホイール上/下±1m、Ctrl併用±10m、J/K±0.1m。L/R半径は常時固定、始点だけスナップ。180度以上の単一円弧は拒否。ユーザー提供PNGを使用。
 - 7ツールのホイールに対応。AE includeの置換によるUnicodeエスケープ破損を数値からの文字列復元で回避し、ツール名/TAB/スクロール案内を修正。生ログから必要なチャットのみ抽出した appleextended-help-include-unicode-20261011.log を保存。
 - 検証: 全4ターゲットビルド、test:gui、test:input、test:appleextended、test:rail-transition、test:rail-boundary、test:runtime-dispatch、test:free-endpoint、Java8 NashornのGUI/ネイティブホイールテスト成功。無効設計での書込拒否、サーバー再計算とUndoを確認。実機GPU描画・ワールド生成は未実施。
-- v0.3.0の既存Draft/タグ/Assetsは変更せず、開発版ZIPを別名で用意する。実機確認は docs/builder2.md を参照。
+- v0.3.0の既存Draft/タグ/Assetsは変更せず、開発版ZIPを別名で用意する。実機確認は docs/user-guide/builder2.md を参照。
 - 整形: 今回変更したTypeScript全7ファイルはPrettier確認成功。全体のformat:checkは未変更の既存24ファイルに警告があり未通過。検証用ZIPは113ファイル、BのJSON/3テクスチャを確認し、編集中のgui_base.xcfは除外した。
-- 実装コミット: 790f4de。origin/mainへのpush成功・同期済み。検証ZIP: artifacts/SuperRailBuilderX-0.3.0-builder-ab-test.zip。
+- 実装コミット: 790f4de。origin/mainへのpush成功・同期済み。検証ZIP: artifacts/SuperRailBuilderX-0.3.0.zip。
 
 ## 2026-10-12 ローカルCodex: AEのTAB切り替え拒否対策と診断
 
 - latest.logの00:01:49/55/58にB・分割・移動への要求がinvalid_toolで拒否されたことを確認。モデル変更APIの呼出し前の検証で失敗しており、旧ログはツール名/所有者/追従先のどの条件で失敗したかを区別できない。原因の断定は保留。
 - Java由来のツール名と所有者IDをJS文字列へ正規化。追従先とホストの比較をラッパーの厳密参照一致から、同じサーバーワールド内のEntity ID一致へ変更。所有者・追従先・未処理要求のチェックは継続。invalid_owner/invalid_mountとindex/host/owner/ridingをログへ追加。
 - test:inputで文字列ラッパー・同一IDの別ラッパーでの切替成功、他人/所有者不一致/追従先なしの拒否を検証。全4ターゲットbuild、test:gui、test:runtime-dispatch、Java8 Nashornホイールテスト成功。実機再確認は未実施。
-- 抜粋ログ: logs/appleextended-wheel-invalid-tool-20261012.log（SRBX要求3行のみ）。更新ZIP: artifacts/SuperRailBuilderX-0.3.0-ae-wheel-fix.zip。AEでTAB解除/左クリックのモデル変更を再確認し、不具合時はlogs/latest.logを共有する。既存Draft/タグ/Assetsは変更しない。
+- 抜粋ログ: logs/appleextended-wheel-invalid-tool-20261012.log（SRBX要求3行のみ）。更新ZIP: artifacts/SuperRailBuilderX-0.3.0.zip。AEでTAB解除/左クリックのモデル変更を再確認し、不具合時はlogs/latest.logを共有する。既存Draft/タグ/Assetsは変更しない。
 - 実装コミットa79d4b9はorigin/mainへpush・同期済み。
 
 ## 2026-10-12 ローカルCodex: AEの非乗車追従とホイール切替のホスト引継ぎ
@@ -496,5 +496,13 @@
 - AEが継承するmc1122 compatのstartRidingは意図的に何もしない。doFollowingがツール座標をプレイヤーへ追従させているため、getRidingEntityはnullが正常。1.12.2は非乗車追従、1.7.10は乗車追従をcompatで区別し、所有者IDチェックと異なる乗車先の拒否は維持する。
 - モデル切替後はサーバースクリプトのhostsキャッシュが新しくなるため、成功する切替でサーバーが保存したホストIDを次のスクリプトで消費し、同じワールドの生存EntityPlayerを復元する。全6サーバースクリプト（A/B共用）へ追加。失敗時の引継ぎ消去・所有者不一致・終了済み・不正ID・プレイヤー不在をガードする。
 - 全4ターゲットbuild、test:input、test:gui、test:runtime-dispatch、test:appleextended、Java8 Nashornホイールテスト成功。1.12.2の乗車先なしで切替成功・ホスト引継ぎと1.7.10の乗車先必須を回帰テスト。実機再確認は未実施。
-- 必要なwheel診断7行を logs/appleextended-wheel-unmounted-host-20261012.log へ抜粋。再確認用ZIP: artifacts/SuperRailBuilderX-0.3.0-ae-wheel-host-fix.zip。AEでTAB解除/左クリックの切替と切替後の選択・生成・再切替を確認し、異常時はlogs/latest.logを共有する。既存Draft/タグ/Assetsは変更しない。
+- 必要なwheel診断7行を logs/appleextended-wheel-unmounted-host-20261012.log へ抜粋。再確認用ZIP: artifacts/SuperRailBuilderX-0.3.0.zip。AEでTAB解除/左クリックの切替と切替後の選択・生成・再切替を確認し、異常時はlogs/latest.logを共有する。既存Draft/タグ/Assetsは変更しない。
 - 実装コミットbb224faはorigin/mainへpush・同期済み。
+
+## 2026-10-12 ローカルCodex: 成果物・ログ・文書の整理
+
+- 開発者の方針に従い、artifactsは環境別SRBXPatch JAR 2個、最新mainパックZIP、タグv0.3.0時点のリリース用ZIPの4成果物だけに整理。古い0.2.0/重複検証ZIPを削除し、test-classesとテストログは.cacheへ移動。最新ZIPと直前検証ZIPのSHA-256が一致することを確認した。既存Release/タグ/Assetsは変更しない。
+- 調査済みのローカルログ/クラッシュレポート58件を削除。継続確認に必要なlatest.log、AE非乗車診断、Kaiz保存API診断だけローカルに保持し、追跡済みlogsはすべてGitから削除。logs全体を.gitignoreへ追加し、調査結果は文書へ要約する方針へAGENTSを変更。
+- docs直下は文書案内READMEとCODEX_HANDOFFだけとし、user-guide/development/research/historyへ分類。自由端点・台車遷移・導入意図・撤回境界案・旧デバッグ車両の7資料をrail-transition-researchへ統合。CrossTie診断は道床調査、探索性能比較はSRBXPatch開発へ統合。一次資料リンクと原因判断に必要な観測数値は保持。
+- 9ツール/共通説明書とSRBXPatch導入案内を利用者向けの操作・表示・制限優先に整理。実装情報は末尾または開発文書へ移動し、調査履歴・実機チェックリスト・検証コマンドを説明書から除去。Kaiz限定や旧カント任意点分割などの古い記述を現仕様へ更新。
+- 引継ぎ帳を現在の状態と未解決の実機確認に圧縮。Markdownリンクと本文中の文書パスを更新し、削除ログへのリンクを解消。ローカルリンク検証は欠落0件、Prettier確認とgit diff --check成功。.cacheへ移したfixtureでJava8 Nashornホイールテスト成功。コードの動作変更がないため新たなゲームビルド・実機検証は実施しない。

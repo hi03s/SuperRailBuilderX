@@ -29,7 +29,7 @@ SuperRailBuilderXは、KaizPatchX向けのレール制作支援ツール集で�
 
 主要機能はKaizPatchXとAppleExtended v2.5.3に対応しています。通常RTM 1.7.10およびMinecraft 1.12.2向けの共通コードもビルドされますが、非対応機能はワールドを変更せず安全に停止します。
 
-AppleExtended v2.5.3では、通常・自動分割レールの生成、複線コピー、分割、移動、カント整形、分岐生成とUndoに対応しています。詳細は[AppleExtended target](docs/appleextended-target.md)を参照してください。
+AppleExtended v2.5.3では、通常・自動分割レールの生成、複線コピー、分割、移動、カント整形、分岐生成とUndoに対応しています。詳細は[AppleExtended target](docs/development/appleextended-target.md)を参照してください。
 
 ## 導入方法
 
@@ -46,16 +46,16 @@ SRBX 0.3.0は完全自由点仕様です。KaizPatchX 1.10.4 / AppleExtended v2.
 | Minecraft 1.7.10 / KaizPatchX 1.10.4 | SRBXPatch-v1.0-1.7.10.jar |
 | Minecraft 1.12.2 / AppleExtended v2.5.3 | SRBXPatch-v1.0-1.12.2.jar |
 
-[導入・確認手順](docs/srbx-free-endpoint-mod.md)も参照してください。
+[導入・確認手順](docs/user-guide/srbx-free-endpoint-mod.md)も参照してください。
 ## 収録ツール
 
 - **レール生成A** — 2点を選択してレールを新規敷設します。曲線半径、勾配、縦曲線、既設端点への接続に対応します。
-- **レール生成B** — 半径・長さを設定し、始点だけを選択して敷設します。[操作と設定](docs/builder2.md)。
+- **レール生成B** — 半径・長さを設定し、始点だけを選択して敷設します。[操作と設定](docs/user-guide/builder2.md)。
 - **複線コピーツール** — 既設レールを複数選択し、指定間隔で平行なレールを生成します。
 - **線路分割ツール** — 既設レールを指定位置で2本へ分割します。
 - **レール移動ツール** — 既設レールの端点移動、単体または複数レールの平行移動を行います。
 
-共通操作は、右クリックが選択・確定、左クリックが1段階戻る、`Enter`が適用、`H`がヘルプ、`Q`が終了です。詳細は[ツール概要・操作ガイド](docs/usage.md)を参照してください。
+共通操作は、右クリックが選択・確定、左クリックが1段階戻る、`Enter`が適用、`H`がヘルプ、`Q`が終了です。詳細は[ツール概要・操作ガイド](docs/user-guide/usage.md)を参照してください。
 
 ## 開発
 
@@ -70,7 +70,7 @@ pnpm zip
 - KaizPatchX固有コード: `src/kaizpatch`
 - multi-target設定: `rtmx.json`
 
-技術仕様と検証資料は[`docs`](docs/)にあります。
+説明書・開発手順・調査資料は[文書案内](docs/README.md)にあります。
 
 ## ライセンス
 

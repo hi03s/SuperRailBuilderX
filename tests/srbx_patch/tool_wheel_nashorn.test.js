@@ -1,4 +1,5 @@
-// jjs -cp artifacts/test-classes -scripting tests/srbx_patch/tool_wheel_nashorn.test.js
+// javac -d .cache/test-classes tests/srbx_patch/ToolWheelScreenFixture.java
+// jjs -cp .cache/test-classes -scripting tests/srbx_patch/tool_wheel_nashorn.test.js
 var GuiScreen = Java.type("ToolWheelScreenFixture");
 var values = { hostPlayerEntityId: "7" },
 	tab = true;
