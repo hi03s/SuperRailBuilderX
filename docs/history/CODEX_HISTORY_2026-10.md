@@ -426,3 +426,12 @@
 - ZIP: artifacts/SuperRailBuilderX-0.2.0.zipを107ファイルで再生成。新共通ヘルパー/全4ターゲットを確認し、利用者の未追跡gui_base.xcfは元ファイルを保持し配布物からのみ除外。SHA256: D3473DA2212E857D3FDE7B7C09D1DBFE9D8A4A9D8BBF628FF0F865FF6430B2BB。
 - 実ワールド/実走行は未検証。手順はdocs/roadbed-ownership-investigation.mdへ記載。標準マーカー/手動破壊をフックせず、過去レールの自動修復もしない。同セルには所有先1つのみで、全ての重なりの双方向走行を保証するものではない。SRBXPatchは引き続き必要。本番サーバー・rtm-ts・共有ツールキットは変更していない。
 - コミット: a945d9b（未接続端点の移動スナップと重複敷設時の道床保護を実装）。origin/mainへpush成功、HEAD...origin/mainの差分0/0を確認。
+
+## 2026-10-11 ローカルCodex: KaizPatchの道床履歴API未定義エラーを修正
+
+- latest.logの生成（11:54:50）、移動（11:55:08）、分割（11:55:16）がgetTileData未定義で失敗。前回SRBXが1.7.10に存在しないAPIを呼び、テストも誤ったAPIを模擬していたことが原因。KaizPatch一次ソース/生成型/実機ログで確認した。最小抜粋をlogs/kaizpatch-roadbed-metadata-api-error-20261011.logへ保存し、生ログは追加しない。
+- Kaiz専用SRBXKaizRoadbedDataを追加し、MapStorageと具象NBTコンテナMapGenStructureDataで独立WorldSavedDataへ保存する。ディメンション分離・所有先/グループ照合・新規配置/削除時の記録消去・昇格退避への履歴包含・クライアント書込抑止を実装。setDataのMCP呼出しは型コンパイラで変換されないため、この1.7.10 compat内で確認済みSRG func_75745_aを使用。rtm-tsは未変更。
+- 共通releaseの変更通知へ更新NBTを渡し、所有先変更後の永続化を確実にする。Kaizの借用道床を削除前に戻し、コア昇格の復元も元の履歴を戻す。AEはTileEntityの永続NBT方式を維持し、共有コールバック変更による回帰がないことを確認した。
+- 検証済み: 全4ターゲットpnpm build（警告なし）、test:rail-transition、test:kaizpatch、test:appleextended、test:free-endpoint、test:runtime-dispatch。getTileDataなし/SRG名だけのKaiz模擬環境で昇格/Undo、端部所有先保存再読込、借用端部の昇格後の段階復元、初期化失敗/配置拒否、旧所有先/旧グループ拒否、ディメンション分離、クライアント書込抑止を検証。変更TSのPrettier確認とgit diff --check成功。
+- pnpm format:checkは変更していない25ファイルの既存整形差分で失敗。今回の変更TSは個別確認で成功し、無関係な整形は行わない。実Minecraftの保存再読込・実走行・本番サーバーは未検証/未操作。
+- ZIP: artifacts/SuperRailBuilderX-0.2.0.zip（108ファイル）、SHA256: 26B53FFDD98145047D730AE40B3725B29C9E0F371ED14A5306E07B9C30EFBB63。Kaiz専用保存ヘルパーの収録とgui_base.xcf除外を確認。ユーザーの元アセットは保持。更新ZIPで生成/接続移動/分割/Undoと保存再入場後の未選択レール保持を確認し、異常時は操作順とlogs/latest.logを共有する。

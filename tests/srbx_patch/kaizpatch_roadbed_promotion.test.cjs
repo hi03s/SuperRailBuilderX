@@ -20,20 +20,22 @@ class Nbt {
 		return k in this.values;
 	}
 	func_74775_l(k) {
-		return this.values[k];
+		return this.values[k] || new Nbt();
 	}
 	func_74762_e(k) {
 		return this.values[k];
 	}
 	func_74779_i(k) {
-		return this.values[k];
+		return this.values[k] || "";
+	}
+	func_82580_o(k) {
+		delete this.values[k];
 	}
 }
 class Base {
 	constructor(pos, owner = pos) {
 		[this.field_145851_c, this.field_145848_d, this.field_145849_e] = pos;
 		this.owner = owner;
-		this.data = new Nbt();
 	}
 	getStartPoint() {
 		return this.owner;
@@ -45,8 +47,8 @@ class Base {
 		const tile = cells.get(key(this.owner))?.tile;
 		return tile instanceof Core ? tile : null;
 	}
-	getTileData() {
-		return this.data;
+	func_145831_w() {
+		return world;
 	}
 	func_70296_d() {}
 	func_145841_b(nbt) {
@@ -61,11 +63,9 @@ class Base {
 		["spX", "spY", "spZ"].forEach((k, i) =>
 			nbt.func_74768_a(k, this.owner[i]),
 		);
-		nbt.func_74782_a("ForgeData", this.data);
 	}
 	func_145839_a(nbt) {
 		this.owner = ["spX", "spY", "spZ"].map((k) => nbt.func_74762_e(k));
-		this.data = nbt.func_74775_l("ForgeData");
 	}
 }
 let fail = false;
@@ -90,11 +90,37 @@ class Core extends Base {
 		for (const [p] of owned) cells.delete(p);
 	}
 }
-class Section extends Core {}
+class Section extends Core {
+	getRailGroupId() {
+		return this.group;
+	}
+}
 class RailBlock {}
 const baseBlock = new RailBlock(),
 	coreBlock = new RailBlock();
+class SavedData {
+	constructor(name) {
+		this.name = name;
+		this.root = new Nbt();
+		this.dirty = false;
+	}
+	func_143041_a() {
+		return this.root;
+	}
+	func_76185_a() {
+		this.dirty = true;
+	}
+}
+SavedData.class = SavedData;
+const savedRecords = new Map();
+const storage = {
+	func_75742_a: (_class, name) => savedRecords.get(name) || null,
+	func_75745_a: (name, data) => savedRecords.set(name, data),
+};
 const world = {
+	field_72988_C: storage,
+	field_73011_w: { field_76574_g: 0 },
+	field_72995_K: false,
 	field_147482_g: {
 		size: () => cells.size,
 		get: (i) => Array.from(cells.values())[i].tile,
@@ -122,6 +148,9 @@ const context = {
 	Packages: {
 		net: {
 			minecraft: {
+				world: {
+					gen: { structure: { MapGenStructureData: SavedData } },
+				},
 				nbt: { NBTTagCompound: Nbt },
 				block: {
 					Block: {
@@ -164,6 +193,10 @@ vm.runInContext(
 );
 const dir =
 	"dist/assets/minecraft/__targets__/kaizpatch/scripts/superrailbuilderx/";
+vm.runInContext(
+	fs.readFileSync(dir + "SRBXKaizRoadbedData.js", "utf8"),
+	context,
+);
 vm.runInContext(
 	fs.readFileSync(
 		dir +
@@ -211,7 +244,27 @@ assert.strictEqual(
 	donor,
 	"promotion must not invoke donor deletion",
 );
-assert(core.getTileData().func_74764_b("SRBXPromotedRoadbed"));
+assert.equal(typeof core.getTileData, "undefined");
+assert(
+	context.SRBXKaizRoadbedData.get(core).func_74764_b("SRBXPromotedRoadbed"),
+);
+// Rebuild the saved-data container from detached NBT, as after world reload.
+function cloneNbt(value) {
+	if (!(value instanceof Nbt)) return value;
+	const result = new Nbt();
+	for (const [k, v] of Object.entries(value.values))
+		result.values[k] = cloneNbt(v);
+	return result;
+}
+function reloadSavedData() {
+	for (const [name, data] of savedRecords) {
+		const restored = new SavedData(name);
+		restored.root = cloneNbt(data.root);
+		savedRecords.set(name, restored);
+	}
+}
+assert(savedRecords.get("SRBXRoadbedOwnership_0").dirty);
+reloadSavedData();
 api.breakOwnedRail(core);
 assert.strictEqual(cells.get("80,4,5").tile, donor);
 assert.deepEqual(
@@ -258,6 +311,107 @@ assert.deepEqual(
 	"rejected core placement restores detached owner",
 );
 assert.strictEqual(cells.get("80,4,5").tile, donor);
+rejectCorePlacement = false;
+
+// Endpoint ownership must survive reload, then restore before native deletion.
+donor = setup();
+const borrower = new Core([40, 4, 5]);
+cells.set("40,4,5", { tile: borrower, block: coreBlock });
+let bed = cells.get("20,4,5").tile;
+api.assignEndpointRoadbeds(
+	world,
+	{
+		getLength: () => 20,
+		getRailPos: (_split, i) => [5.1, i === 1 ? 20.1 : 40.1],
+		getRailHeight: () => 4,
+	},
+	[positions[1], positions[1]],
+);
+assert.deepEqual(bed.owner, [40, 4, 5]);
+assert(
+	context.SRBXKaizRoadbedData.get(bed).func_74764_b(
+		"SRBXEndpointRoadbedLoan",
+	),
+);
+reloadSavedData();
+api.breakOwnedRail(borrower);
+assert.strictEqual(cells.get("20,4,5").tile, bed);
+assert.deepEqual(bed.owner, [80, 4, 5]);
+assert(
+	!context.SRBXKaizRoadbedData.get(bed).func_74764_b(
+		"SRBXEndpointRoadbedLoan",
+	),
+);
+assert.strictEqual(cells.get("80,4,5").tile, donor);
+
+const dataApi = context.SRBXKaizRoadbedData;
+// Promotion of an already borrowed endpoint must also retain its older loan.
+const nextBorrower = new Core([40, 4, 5]);
+cells.set("40,4,5", { tile: nextBorrower, block: coreBlock });
+api.assignEndpointRoadbeds(
+	world,
+	{
+		getLength: () => 20,
+		getRailPos: (_split, i) => [5.1, i === 1 ? 20.1 : 40.1],
+		getRailHeight: () => 4,
+	},
+	[positions[1], positions[1]],
+);
+const promoted = api.createBuilderNormalRail(
+	world,
+	{ fixRTMRailMapVersion: 1 },
+	positions,
+	property,
+	{},
+);
+reloadSavedData();
+api.breakOwnedRail(promoted);
+const restoredBorrowedBed = cells.get("20,4,5").tile;
+assert.deepEqual(restoredBorrowedBed.owner, [40, 4, 5]);
+assert(
+	dataApi.get(restoredBorrowedBed).func_74764_b("SRBXEndpointRoadbedLoan"),
+);
+reloadSavedData();
+api.breakOwnedRail(nextBorrower);
+assert.strictEqual(cells.get("20,4,5").tile, restoredBorrowedBed);
+assert.deepEqual(restoredBorrowedBed.owner, [80, 4, 5]);
+assert.strictEqual(cells.get("80,4,5").tile, donor);
+bed = restoredBorrowedBed;
+const marker = new Nbt();
+marker.func_74778_a("test", "retained");
+dataApi.set(bed, marker);
+bed.setStartPoint(90, 4, 5);
+assert(
+	!dataApi.get(bed).func_74764_b("test"),
+	"different owner cannot inherit stale metadata",
+);
+bed.setStartPoint(80, 4, 5);
+assert.equal(dataApi.get(bed).func_74779_i("test"), "retained");
+world.field_73011_w.field_76574_g = 1;
+assert(
+	!dataApi.get(bed).func_74764_b("test"),
+	"dimensions must have separate records",
+);
+world.field_73011_w.field_76574_g = 0;
+world.field_72995_K = true;
+dataApi.set(bed, new Nbt());
+dataApi.remove(bed);
+world.field_72995_K = false;
+assert.equal(
+	dataApi.get(bed).func_74779_i("test"),
+	"retained",
+	"client cleanup must not modify persistence",
+);
+const section = new Section([100, 4, 5]);
+section.group = "first-group";
+dataApi.set(section, marker);
+section.group = "replacement-group";
+assert(
+	!dataApi.get(section).func_74764_b("test"),
+	"section replacement cannot inherit metadata",
+);
+dataApi.remove(bed);
+assert(!dataApi.get(bed).func_74764_b("test"));
 console.log(
-	"KaizPatch native-style destructive promotion, deletion/Undo and failed initialization protection passed",
+	"KaizPatch SRG-only persistence, reload, endpoint restoration, promotion/Undo and initialization protection passed",
 );

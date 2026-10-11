@@ -1,0 +1,12 @@
+# KaizPatch 1.10.4: SRBX roadbed metadata API failure (2026-10-11)
+[11:54:50] [Server thread/INFO]: [SuperRailBuilderX builder1] destructive rail creation exception: TypeError: jp.kaiz.kaizpatch.rtm.rail.TileEntityLargeRailSectionCore has no such function "getTileData"
+[11:54:50] [Server thread/INFO]: [SuperRailBuilderX builder1] request completed: action=create, result=create_failed
+[11:55:08] [Server thread/INFO]: ###  SuperRailBuilderX RailPosition apply ERROR (detailed)  ###
+[11:55:08] [Server thread/INFO]: exception:TypeError: jp.ngt.rtm.rail.TileEntityLargeRailNormalCore has no such function "getTileData"
+	at RTMX_loadCompatTarget_kaizpatch_scripts_superrailbuilderx_SRBXApiCompat_1js5ute-1$SRBXRoadbedOwnership$promotions (scripts/superrailbuilderx/server_rail_mover.js:18998)
+[11:55:08] [Server thread/INFO]: ###  SuperRailBuilderX RailPosition apply ERROR END  ###
+[11:55:08] [Client thread/INFO]: [CHAT] §c[SuperRailBuilderX] 適用失敗: internal_error
+[11:55:16] [Server thread/INFO]: ###  SuperRailBuilderX splitter ERROR (detailed)  ###
+[11:55:16] [Server thread/INFO]: exception:TypeError: jp.ngt.rtm.rail.TileEntityLargeRailNormalCore has no such function "getTileData"
+	at RTMX_loadCompatTarget_kaizpatch_scripts_superrailbuilderx_SRBXApiCompat_1js5ute-1$SRBXRoadbedOwnership$promotions (scripts/superrailbuilderx/server_rail_splitter.js:18997)
+[11:55:16] [Server thread/INFO]: ###  SuperRailBuilderX splitter ERROR END  ###

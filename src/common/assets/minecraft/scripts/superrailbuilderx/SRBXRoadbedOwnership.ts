@@ -127,7 +127,7 @@ export class SRBXRoadbedOwnership {
 		resolve: (position: Position) => TileEntityLargeRailCore | null,
 		keyOf: (core: TileEntityLargeRailCore) => string,
 		getData: (tile: TileEntityLargeRailBase) => NBTTagCompound,
-		changed?: (tile: TileEntityLargeRailBase) => void,
+		changed?: (tile: TileEntityLargeRailBase, data: NBTTagCompound) => void,
 	): void {
 		for (let i = 0; i < tiles.size(); i++) {
 			const tile = tiles.get(i);
@@ -161,11 +161,12 @@ export class SRBXRoadbedOwnership {
 						);
 					else data.removeTag(loanTag);
 					tile.markDirty();
-					if (changed) changed(tile);
+					if (changed) changed(tile, data);
 					break;
 				}
 				if (!record.hasKey("previous")) {
 					data.removeTag(loanTag);
+					if (changed) changed(tile, data);
 					break;
 				}
 				record = record.getCompoundTag("previous");

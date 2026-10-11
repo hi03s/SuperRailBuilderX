@@ -1,4 +1,5 @@
 import { ModelPackManager } from "jp.ngt.rtm.modelpack";
+import { SRBXKaizRoadbedData } from "./SRBXKaizRoadbedData";
 import { SRBXRoadbedOwnership } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXRoadbedOwnership";
 import { SRBXFreeEndpointPolicy as SRBXRailBoundary } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXFreeEndpointPolicy";
 import { SRBXRailBoundary as NativeRailBoundary } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXRailBoundary";
@@ -22,7 +23,7 @@ import {
 } from "jp.ngt.rtm.rail.util";
 import { EntityPlayer } from "net.minecraft.entity.player";
 import { Block } from "net.minecraft.block";
-import { NBTTagCompound } from "net.minecraft.nbt";
+import { NBTBase, NBTTagCompound } from "net.minecraft.nbt";
 import { ArrayList } from "java.util";
 
 type RailSectionCore = TileEntityLargeRailCore & {
@@ -774,6 +775,7 @@ export class SRBXApiCompat {
 			}
 			tile.setStartPoint(coreX, coreY, coreZ);
 			tile.markDirty();
+			SRBXKaizRoadbedData.remove(tile);
 			added++;
 		}
 		NGTLog.debug(
@@ -2522,6 +2524,7 @@ export class SRBXApiCompat {
 						owner.blockZ,
 					);
 					tile.markDirty();
+					SRBXKaizRoadbedData.remove(tile);
 					world.markBlockForUpdate(pos[0], pos[1], pos[2]);
 				}
 			}
@@ -2529,16 +2532,16 @@ export class SRBXApiCompat {
 				tile instanceof TileEntityLargeRailBase &&
 				!(tile instanceof TileEntityLargeRailCore)
 			) {
+				const data = SRBXKaizRoadbedData.get(tile);
 				if (
 					SRBXRoadbedOwnership.transfer(
 						tile,
 						[owner.blockX, owner.blockY, owner.blockZ],
 						(c) => this.getRailPositionCandidateKey(c),
-						(
-							tile as unknown as { getTileData(): NBTTagCompound }
-						).getTileData(),
+						data,
 					)
 				) {
+					SRBXKaizRoadbedData.set(tile, data);
 					world.markBlockForUpdate(pos[0], pos[1], pos[2]);
 					NGTLog.debug(
 						`[SuperRailBuilderX transition] endpoint roadbed claimed: target=kaizpatch, tile=${pos.join(",")}, owner=${owner.blockX},${owner.blockY},${owner.blockZ}`,
@@ -2561,12 +2564,11 @@ export class SRBXApiCompat {
 				return tile instanceof TileEntityLargeRailCore ? tile : null;
 			},
 			(c) => this.getRailPositionCandidateKey(c),
-			(tile) =>
-				(
-					tile as unknown as { getTileData(): NBTTagCompound }
-				).getTileData(),
-			(tile) =>
-				world.markBlockForUpdate(tile.xCoord, tile.yCoord, tile.zCoord),
+			(tile) => SRBXKaizRoadbedData.get(tile),
+			(tile, data) => {
+				SRBXKaizRoadbedData.set(tile, data);
+				world.markBlockForUpdate(tile.xCoord, tile.yCoord, tile.zCoord);
+			},
 		);
 	}
 
@@ -2576,13 +2578,31 @@ export class SRBXApiCompat {
 			world.loadedTileEntityList as java.util.List<unknown>,
 			this.getRailPositionCandidateKey(core),
 			(c) => this.getRailPositionCandidateKey(c),
-			(c) =>
-				(
-					c as unknown as { getTileData(): NBTTagCompound }
-				).getTileData(),
+			(c) => SRBXKaizRoadbedData.get(c),
 		);
 		this.releaseBorrowedRoadbeds(core);
+		const owned: TileEntityLargeRailBase[] = [];
+		const loaded = world.loadedTileEntityList;
+		for (let i = 0; i < loaded.size(); i++) {
+			const tile = loaded.get(i);
+			if (!(tile instanceof TileEntityLargeRailBase)) continue;
+			const owner = tile.getRailCore();
+			if (
+				owner &&
+				this.getRailPositionCandidateKey(owner) ===
+					this.getRailPositionCandidateKey(core)
+			)
+				owned.push(tile);
+		}
 		core.breakLogicalRail();
+		for (let i = 0; i < owned.length; i++) {
+			const tile = owned[i];
+			if (
+				world.getTileEntity(tile.xCoord, tile.yCoord, tile.zCoord) !==
+				tile
+			)
+				SRBXKaizRoadbedData.remove(tile);
+		}
 		for (let i = 0; i < records.length; i++)
 			this.restorePromotedRoadbed(world, records[i]);
 	}
@@ -2635,10 +2655,31 @@ export class SRBXApiCompat {
 				)
 					return;
 				tile.readFromNBT(nbt);
+				SRBXKaizRoadbedData.set(
+					tile,
+					nbt.getCompoundTag("SRBXRoadbedData"),
+				);
 				tile.markDirty();
 				world.markBlockForUpdate(x, y, z);
 			}
 		}
+	}
+
+	private static writeRoadbedSnapshot(
+		tile: TileEntityLargeRailBase,
+		nbt: NBTTagCompound,
+	): void {
+		tile.writeToNBT(nbt);
+		nbt.setTag("SRBXRoadbedData", SRBXKaizRoadbedData.get(tile) as NBTBase);
+	}
+
+	private static savePromotionMetadata(
+		core: TileEntityLargeRailCore,
+		promotion: NBTTagCompound | null,
+	): void {
+		const data = new NBTTagCompound();
+		SRBXRoadbedOwnership.attachPromotion(data, promotion);
+		SRBXKaizRoadbedData.set(core, data);
 	}
 
 	private static placeBuilderRoadbed(
@@ -2971,7 +3012,7 @@ export class SRBXApiCompat {
 						),
 						(c) => this.getRailPositionCandidateKey(c),
 						(tile, nbt) => {
-							tile.writeToNBT(nbt);
+							this.writeRoadbedSnapshot(tile, nbt);
 						},
 					)
 				: null;
@@ -3005,12 +3046,7 @@ export class SRBXApiCompat {
 			core.setStartPoint(start.blockX, start.blockY, start.blockZ);
 			core.fixRTMRailMapVersion = source.fixRTMRailMapVersion;
 			core.createRailMap();
-			SRBXRoadbedOwnership.attachPromotion(
-				(
-					core as unknown as { getTileData(): NBTTagCompound }
-				).getTileData(),
-				promotion,
-			);
+			this.savePromotionMetadata(core, promotion);
 			this.markCoreDirty(core);
 			this.sendRailCorePacket(core);
 			world.markBlockForUpdate(start.blockX, start.blockY, start.blockZ);
@@ -3127,7 +3163,7 @@ export class SRBXApiCompat {
 								beforeMetadata,
 								(c) => this.getRailPositionCandidateKey(c),
 								(tile, nbt) => {
-									tile.writeToNBT(nbt);
+									this.writeRoadbedSnapshot(tile, nbt);
 								},
 							)
 						: null;
@@ -3184,12 +3220,7 @@ export class SRBXApiCompat {
 				);
 				tile.fixRTMRailMapVersion = source.fixRTMRailMapVersion;
 				tile.createRailMap();
-				SRBXRoadbedOwnership.attachPromotion(
-					(
-						tile as unknown as { getTileData(): NBTTagCompound }
-					).getTileData(),
-					promotion,
-				);
+				this.savePromotionMetadata(tile, promotion);
 				this.markCoreDirty(tile);
 				this.sendRailCorePacket(tile);
 				world.markBlockForUpdate(
@@ -4706,7 +4737,7 @@ export class SRBXApiCompat {
 						world.getBlockMetadata(rp.blockX, rp.blockY, rp.blockZ),
 						(c) => this.getRailPositionCandidateKey(c),
 						(base, nbt) => {
-							base.writeToNBT(nbt);
+							this.writeRoadbedSnapshot(base, nbt);
 						},
 					);
 					if (record) promotions.push(record);
@@ -4750,13 +4781,13 @@ export class SRBXApiCompat {
 			(tile as unknown as NormalRailCore).fixRTMRailMapVersion =
 				RailMapBasic.fixRTMRailMapVersionCurrent;
 			tile.createRailMap();
+			const promotionData = new NBTTagCompound();
 			for (let i = 0; i < promotions.length; i++)
 				SRBXRoadbedOwnership.attachPromotion(
-					(
-						tile as unknown as { getTileData(): NBTTagCompound }
-					).getTileData(),
+					promotionData,
 					promotions[i],
 				);
+			SRBXKaizRoadbedData.set(tile, promotionData);
 			this.markCoreDirty(tile);
 			this.sendRailCorePacket(tile);
 			world.markBlockForUpdate(root.blockX, root.blockY, root.blockZ);

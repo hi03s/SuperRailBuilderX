@@ -49,6 +49,7 @@ class RailPosition {
 	}
 }
 const context = {
+	SRBXKaizRoadbedData: {remove() {}},
 	RTMX_COMPAT_TARGETS: {},
 	Packages: {
 		jp: {
