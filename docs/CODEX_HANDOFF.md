@@ -6,6 +6,8 @@
 
 ## 現在の状態
 
+- AE v2.5.3の通常/Section/分岐の読込は保存NBTと線形キャッシュを復元し、道床の自動再敷設は確認できない。再配置は標準マーカー生成/明示的なrelocateRail経路。[調査](roadbed-ownership-investigation.md)。
+
 - KaizPatch/AEの未接続端点移動に0.5mの接続スナップを追加。共通生成は理論両端各1タイルの所有先変更、競合時の逆順→設定上限内の通常生成に対応。移動・分割・Undo前の所有先復元とコア昇格の復元を追加。[規則/検証手順](roadbed-ownership-investigation.md)。
 
 - 現在main。KaizPatch/AE実機確認済みbuilder1 GUIを791d2a5で統合してpush済み。feature/builder1-guiはローカル/リモートとも削除済み。距離/ブロックスナップと「直線」表示をmainへ追加。

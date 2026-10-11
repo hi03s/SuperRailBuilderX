@@ -94,3 +94,22 @@ KaizPatchX **1.10.4** の追加ログでは、同じブロック内部接続に�
 検証済み: 実機と同じくgetTileDataを持たずSRG名だけを持つ模擬環境で、コア昇格/Undo・端部所有先の保存再読込/削除前復元・初期化失敗/配置拒否・ディメンション分離・旧所有先/旧グループ記録の拒否・クライアント書込抑止。全4ターゲットbuildとKaizPatch/AE関連回帰も成功。実Minecraftでの保存再読込と走行は未検証。
 
 更新ZIPで通常/自動分割レールの生成・接続移動・分割・Undoを確認し、保存/再入場後にも未選択レールが残ることを確認する。失敗した場合は操作順とlogs/latest.logを共有する。[例外の最小抜粋](../logs/kaizpatch-roadbed-metadata-api-error-20261011.log)。本番サーバーは操作していない。
+## 2026-10-11 AE v2.5.3の読込時の道床復元調査
+
+結論: 保存済み道床の所有先をNBTから読む処理はあるが、通常のレール/チャンク読込に伴って線形から道床を再配置・再所有する自動修復経路は確認できない。レールのモデル/線形キャッシュ再構築と、ワールドの道床再配置を区別する。
+
+| 経路 | 確認した動作 | 道床再配置 |
+| --- | --- | --- |
+| TileEntityLargeRailBase.readFromNBT（func_145839_a） | 保存したspX/spY/spZをsetStartPointへ渡す。保存時の所有先を読む | しない |
+| TileEntityLargeRailCore.readFromNBT/readRailData | レール状態、StartRP/EndRP、線形バージョンを読む | しない |
+| getRailMap → createRailMap | キャッシュが空ならRailMapBasic/Customを構築 | しない |
+| TileEntityLargeRailSectionCore.readRailData/createRailMap | 論理端点、区間比率、グループ情報を読みRailMapSectionを構築 | しない |
+| 分岐コアcreateRailMap/update | SwitchType/線形構築と分岐状態の更新 | 道床の再敷設経路なし |
+| 標準マーカーのcreateNormalRail/createCustomRail/createSwitchRail/createSectionedRail | setRail/placeRailBlocksで道床を配置し所有先を設定 | する |
+| TileEntityLargeRailCore.relocateRail | 旧道床をclearBallastで掃除し、新線形へsetRailする | する（サーバー側の明示的な移動） |
+
+RailMap.placeRailBlocksは、既存BlockLargeRailBaseが指定道床とは別ブロックなら省略し、同じ道床ブロックの場合は配置呼出し後にsetStartPointで所有先を設定する。この経路が呼ばれれば重複道床の所有先が変わる可能性はあるが、読込時に自動的に呼ばれる処理ではない。replaceRailはResourceStateを変更/同期し、自動分割版はグループへ伝播する処理で、道床の再敷設を直接行わない。
+
+確認対象はAppleExtended-forge1.12.2-v2.5.3.jar（SHA256: 25296F16E99C65A58A6F2A4699224A241460306C7AF8D1E3F4244E0B94B43840）。javap -p -cで通常/分岐/Sectionコア、道床、RailMap、NBT/パケット同期の実バイトコードを確認した。さらにJAR内全classの定数プールからplaceRailBlocks、RailMapを参照するsetRail、ChunkEventを検索し、該当クラスの呼出し元を追跡した。道床敷設の呼出し元は上表のマーカー生成/relocateRailとsetRail自身で、チャンク読込イベントの修復経路は見つからなかった。第三者Mod・任意モデルスクリプトの介入はこの確認範囲に含まない。
+
+実機で「再入場後に所有先が変わる」こと自体は未確認。もし再現する場合、AEの自動修復と断定せず、保存前/再読込後のspX/spY/spZ、端部所有先変更の成功/例外、サーバーの保存、明示的な移動/再生成や他Modの処理を切り分ける。保存された所有先が新しいレールを指していれば、通常読込ではその所有先が復元されるはずであり、元のレールへ戻すのはSRBXの削除前復元など別経路になる。
