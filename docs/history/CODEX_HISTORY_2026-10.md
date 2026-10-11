@@ -532,3 +532,5 @@
 - 開発者から直近不具合の実機解消確認を受領。package.json・rtmx.json・ツールVERSION・READMEを0.3.1へ更新し、release-notes.mdをv0.3.0以降の機能追加とAE修正に更新した。SRBXPatchはv1.0を継続し、クライアント/サーバー両側導入・パック未導入クライアントは不要・本家対応までの暫定処理を明記した。
 - 全4ターゲットbuild、test:appleextended、test:input、test:gui、test:runtime-dispatch、test:rail-patch成功。artifactsは0.3.1のリリースZIPと2 JARへ整理。ユーザーのgui_base.xcfは保持し、配布ZIPから除外した。
 - GitHub APIでv0.3.0は公開済みPrereleaseと確認。既存Release/Assetsへ変更せず、v0.3.1タグからDraftを新規準備する。公開は開発者の手動Publish。
+- リリース対象コミット32e2467とv0.3.1タグをoriginへpush・同期済み。Build draft release（38170613359）とmainのBuild SRBX pack and temporary patches（38170608661）は両方成功。クリーン環境の型定義生成・全ターゲットbuild・両版Modビルド/テストも成功。
+- Draft: https://github.com/hi03s/SuperRailBuilderX/releases/tag/untagged-c0ca067f4b5e8b3bf12f 。APIでdraft=true、prerelease=false、release-notes.mdとの本文一致、ZIP283588 bytes・1.7.10 JAR10661 bytes・1.12.2 JAR13754 bytesを確認。3ファイルを.cache/release-v031へダウンロード検証し、artifactsも同じActions成果物へ揃えた。Publishは実施していない。

@@ -10,13 +10,13 @@
 - AE重複区間・自動分割境界対策は実機確認済み（2026-10-11）。KaizのCrossTieあり/なしも実機動作を確認済み。[AE対策](research/appleextended-overlap-rail-patch.md)。
 - 生成Aの自由点間はカーソルXZと目標勾配から高さを決める。Bは始点・半径・長さから終点を計算（初期40m、ホイール±1m/Ctrl±10m、J/K±0.1m）。勾配/縦曲線GUI、7ツールのホイール、AE日本語ヘルプを追加。実機確認待ち。[A](user-guide/builder1.md)・[B](user-guide/builder2.md)。
 - AEのTAB拒否は非乗車追従へ乗車必須チェックを適用していたことが原因。bb224faでcompat判定と切替後のサーバーホスト引継ぎを修正しpush済み。全4build・入力/GUI/dispatch/AE回帰・Java8ホイール成功、実機再確認待ち。
-- [v0.3.0](https://github.com/hi03s/SuperRailBuilderX/releases/tag/v0.3.0)は公開済みPrereleaseとAPIで確認。既存Assetsは変更しない。v0.3.1は手動Publish用Draftとして準備中。[リリース手順](development/releasing.md)。
+- [v0.3.1 Draft](https://github.com/hi03s/SuperRailBuilderX/releases/tag/untagged-c0ca067f4b5e8b3bf12f)を作成済み。タグは32e2467。Actions成功、本文一致・draft=true・ZIPと2 JARの添付/ダウンロード検証済み。公開は開発者の手動Publish。[リリース手順](development/releasing.md)。
 - artifactsには`SuperRailBuilderX-0.3.1-v0.3.1.zip`と環境別SRBXPatch v1.0 JARだけを保持。テスト生成物は.cacheへ配置。
 - docsは[user-guide](user-guide/)、[development](development)、[research](research/)、[history](history)へ分類。文書入口は[README](README.md)。logsは原則Git保存しない。
 
 ## 作業中
 
-- ローカルCodex: 実機解消確認を反映し、SRBX 0.3.1のバージョン・本文・成果物と手動Publish用Draftを準備する。
+- なし。
 
 ## 優先確認事項
 
@@ -31,7 +31,7 @@
 
 1. 最新main ZIPで上記の実機確認を行う。異常時は機能・操作順・時刻とlogs/latest.logを共有する。
 2. 確認結果を引継ぎ帳へ反映し、不要になったローカルログを削除する。調査結果は文書へ要約し、生ログをGitへ追加しない。
-3. リリースするコード範囲を確認し、手動Publishを行う。
+3. v0.3.1 Draftの本文とAssetsを確認し、開発者が手動Publishを行う。
 
 ## 双方向連絡
 
@@ -40,6 +40,8 @@
 - ローカルに保持する調査ログは、最新AEログとKaiz保存APIの例外抜粋。解消を確認した分岐クラッシュの旧抜粋は削除。実機再確認後に不要なら削除する。
 
 ## 直近の完了
+
+- 2026-10-12 ローカルCodex: SRBX 0.3.1へ更新し、ZIPと2 JAR付きDraftを準備。ローカル回帰と両Actions成功、未公開・本文・添付検証済み。[32e2467](https://github.com/hi03s/SuperRailBuilderX/commit/32e2467)とv0.3.1タグはpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 - 2026-10-12 ローカルCodex: AE中間点分岐の生成順序・Undo対象・失敗時再描画と描画パッチ列挙先を修正。全4build・関連回帰成功、最新ZIP更新、実機再確認待ち。[244e4e2](https://github.com/hi03s/SuperRailBuilderX/commit/244e4e2)はmainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 

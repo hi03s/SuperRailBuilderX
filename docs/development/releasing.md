@@ -21,4 +21,4 @@ GitHub Actionsは、`v`から始まるタグがpushされたときだけモデ�
 
 workflowが実行中なら、まずGitHub Actions上で停止します。Draft Releaseが作成済みならGitHub上で削除し、誤ったリモートタグを`git push origin --delete vX.Y.Z`、ローカルタグを`git tag -d vX.Y.Z`で削除してください。修正をmainへ反映した後、正しいコミットへタグを付け直してpushします。公開済みReleaseのタグは移動せず、別バージョンとして修正リリースを作成してください。
 
-0.3.0のAssetsはパックZIPとSRBXPatchの1.7.10/1.12.2 JAR。本文に両側導入の基本方針、SRBX未導入クライアントにはJAR不要、本家対応までの暫定処理を明記する。Draftを確認し、公開は手動Publishで行う。
+AssetsはパックZIPとSRBXPatchの1.7.10/1.12.2 JAR。本文に両側導入の基本方針、SRBX未導入クライアントにはJAR不要、本家対応までの暫定処理を明記する。Draftを確認し、公開は手動Publishで行う。
