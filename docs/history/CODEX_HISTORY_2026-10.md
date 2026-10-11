@@ -458,3 +458,4 @@
 - 前回AEパッチが物理区間境界で標準道床探索へ戻る経路を原因候補として特定。getRailGroupCorePositions/isSameLogicalRailから、ロード済み・生存・同一グループかつ物理端点/進行方向/予測位置/高さに一致する隣接コアを優先する処理を追加。道床所有先が別線でもコア座標から探索し、チャンク強制ロードや道床書換えは行わない。候補なし/曖昧は従来復帰。
 - AE Javaテスト/実v2.5.3 ASM BasicVerifier/二重適用防止とpnpm test:appleextended成功。重複道床の両方向Section遷移、別グループ/削除/接続点ずれ拒否を追加。診断ONも検証。実機走行/コア消失有無は未検証。現在のlatest.logは以前のKaiz API例外でAE走行ログではない。
 - AE JAR更新: artifacts/SRBXPatch-v1.0-1.12.2.jar、SHA256: 9074F0C50BA284F659426C764ED12FD466E536EBDAB45506F95AFE0D52298B41。パック/Kaiz JAR/敷設スクリプト本体の変更なし。TypeScript build/ZIPは再実施不要。最大1秒1行の診断にsection transitionの元/先コア座標を追加。確認手順はdocs/appleextended-overlap-rail-patch.md。本番サーバーは未操作。
+- 同期: 4296d76（AE自動分割境界で同一グループの隣接コアを優先する）をorigin/mainへpush成功。

@@ -119,7 +119,7 @@
 
 ## 直近の完了
 
-- 2026-10-11 ローカルCodex: AE重複区間の現在map保持を試作しJAR更新。Java挙動/実AE ASM検証成功、実機確認待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[cb406bb](https://github.com/hi03s/SuperRailBuilderX/commit/cb406bb)をorigin/mainへpush済み、同期確認済み。
+- 2026-10-11 ローカルCodex: 既設Sectionコア保護を確認し、AE自動分割境界の同一グループ優先遷移を追加。Java/ASM/AE回帰成功、実機確認待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[4296d76](https://github.com/hi03s/SuperRailBuilderX/commit/4296d76)をorigin/mainへpush済み、同期確認済み。
 
 ## 関連資料
 
