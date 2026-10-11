@@ -35,7 +35,7 @@
 
 ## 作業中
 
-- なし。
+- ローカルCodex: SRBX 0.3.0の版更新・導入案内・3 Assets付きDraft Releaseを準備する（手動Publish待ち）。
 
 ## 優先確認事項
 

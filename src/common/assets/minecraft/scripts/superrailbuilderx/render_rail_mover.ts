@@ -42,7 +42,7 @@ const GUI_TOOL_ICON = new ResourceLocation(
 	"textures/superrailbuilderx/icon_rail_mover.png",
 );
 
-const VERSION = "0.2.0";
+const VERSION = "0.3.0";
 const SEARCH_RADIUS = 1.05;
 const CONNECTED_ENDPOINT_TOLERANCE = 0.001;
 const NORMAL_RAIL_HEIGHT = 1 / 16;

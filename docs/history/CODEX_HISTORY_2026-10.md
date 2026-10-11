@@ -459,3 +459,11 @@
 - AE Javaテスト/実v2.5.3 ASM BasicVerifier/二重適用防止とpnpm test:appleextended成功。重複道床の両方向Section遷移、別グループ/削除/接続点ずれ拒否を追加。診断ONも検証。実機走行/コア消失有無は未検証。現在のlatest.logは以前のKaiz API例外でAE走行ログではない。
 - AE JAR更新: artifacts/SRBXPatch-v1.0-1.12.2.jar、SHA256: 9074F0C50BA284F659426C764ED12FD466E536EBDAB45506F95AFE0D52298B41。パック/Kaiz JAR/敷設スクリプト本体の変更なし。TypeScript build/ZIPは再実施不要。最大1秒1行の診断にsection transitionの元/先コア座標を追加。確認手順はdocs/appleextended-overlap-rail-patch.md。本番サーバーは未操作。
 - 同期: 4296d76（AE自動分割境界で同一グループの隣接コアを優先する）をorigin/mainへpush成功。
+
+## 2026-10-11 ローカルCodex: SRBX 0.3.0のリリース準備
+
+- package.json/rtmx.json/READMEと各ツールVERSIONを0.3.0へ更新。release-notes.mdをv0.2.0以降のGUI/ホイール/スナップ/カント選択/自由点パッチ/道床保護へ書き換えた。直近AE対策の実機確認待ちと制約も明記。
+- 導入案内はSRBX使用時にクライアント/サーバー双方へSRBXPatchを導入することを基本とし、SRBXを入れないマルチクライアントにはパッチ不要、本家KaizPatch/AE対応までの暫定処理と明記。パッチの実処理は引き続きサーバーワールド限定。
+- 全4build（警告なし）、rail-transition/appleextended/input/gui/free-endpoint/runtime-dispatch回帰、両Javaパッチテスト成功。ツールVERSION修正後も全4build成功。ZIP108ファイル、JARはJava8・資産/依存/テスト非同梱を検証。実機未確認事項は引継ぎのまま。ユーザーの未追跡アセットは保持しgui_base.xcfは生成コピーだけ除外。
+- ローカル成果物SHA256: ZIP 00CCC684E109C2159F08DDE71834890842586F3E7523ED6530F4B3C645A6A5C3、Kaiz JAR F6490D1ACAD0B948B96BD4E20D2AC86E4BA05BF6E12CD1886338F4A67099A886、AE JAR 9074F0C50BA284F659426C764ED12FD466E536EBDAB45506F95AFE0D52298B41。
+- release.ymlはDraft明示、公開済みReleaseの更新拒否、ZIP/2 JAR添付を確認。タグpush後にWorkflow完了とDraft/Assetsを確認し、手動Publish待ちで止める。

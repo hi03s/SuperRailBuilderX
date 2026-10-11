@@ -14,7 +14,7 @@ import {
 } from "@target/assets/minecraft/scripts/superrailbuilderx/SRBXApiCompat";
 import { SRBXMath } from "./SRBXMath";
 
-const VERSION = "0.2.0";
+const VERSION = "0.3.0";
 const MAX_COPY_RAILS = 128;
 const MIN_RAIL_LENGTH = 2;
 

@@ -1,4 +1,4 @@
-# SRBXPatch: 自由端点接続の暫定サーバーパッチ
+# SRBXPatch: 自由端点接続の暫定パッチ
 
 mainはKaizPatch/AEとも完全自由点仕様を使用する。生成・複線・分割・移動・カント整形・分岐生成で端点をブロック境界へ丸めない。本家の走行接続対応まで、SRBXパックと独立したSRBXPatchを併用する。
 
@@ -9,9 +9,9 @@ mainはKaizPatch/AEとも完全自由点仕様を使用する。生成・複線�
 | Minecraft 1.7.10 / KaizPatchX 1.10.4 | `SRBXPatch-v1.0-1.7.10.jar` |
 | Minecraft 1.12.2 / AppleExtended 2.5.3 | `SRBXPatch-v1.0-1.12.2.jar` |
 
-対象JARをサーバーの`mods`へ入れ、SRBXモデルパックZIPを従来どおりサーバーとクライアントへ別途導入する。JARにはパック資産を含めない。旧試作`SRBXMod-0.1.0-experimental.jar`を置き換え、パックを重複配置しない。
+SRBXパックを使用する場合、基本的にクライアント/サーバーの両方へ対象SRBXPatch JARとパックZIPを導入する。マルチプレイでSRBXパックを導入しないクライアントにはSRBXPatchも不要。サーバー側には導入する。KaizPatch/AE本家が対応するまでの暫定処理である。JARにはパック資産を含めない。旧試作`SRBXMod-0.1.0-experimental.jar`を置き換え、パックを重複配置しない。
 
-Javaパッチはサーバーワールドだけで動作し、独自通信は追加しない。クライアントへのJAR導入を必須にしない設計（`acceptableRemoteVersions="*"`）。シングルプレイは統合サーバーがあるため、そのMinecraftへJARを導入する。JARなしクライアントの接続と実機走行は未検証。
+Javaパッチはサーバーワールドだけで動作し、独自通信は追加しない。接続条件はJARなしのクライアントも許可する設計（`acceptableRemoteVersions="*"`）だが、SRBXパックを使うクライアントにもJARを導入する運用を基本とする。シングルプレイは統合サーバーがあるため、そのMinecraftへJARを導入する。JARなしクライアントの接続と実機走行は未検証。
 
 通常RTM向けmc1710/mc1122は変更しない。KaizPatch/AE向けはサーバーでパッチの有効化を確認できない場合、生成・移動・分割・カント・分岐の書き込みを`srbxpatch_required`で拒否する。既存線を自動変換しない。
 
@@ -50,7 +50,7 @@ python3 mod/build.py --test --kaizpatch-jar /path/to/KaizPatchX.jar --appleexten
 2. ブロック内側の共有端点を作り、座標が境界へ丸められないこと、全6ツールの適用/Undoを確認する。
 3. 通常車両で旧道床を共有する接続を両方向から微速通過し、停止/引き戻し/瞬間的加速がないか確認する。
 4. 停止/後退、短区間、曲線、勾配、カント、分岐切替、複数車両、再ログイン、チャンク再読込を確認する。
-5. KaizではCrossTieなし/ありを比較する。サーバーだけJAR、クライアントはZIPだけの接続と操作も確認する。
+5. KaizではCrossTieなし/ありを比較する。両側にZIP/JARを入れた操作と、SRBX未導入クライアント（JARもなし）の接続を確認する。
 
 問題時は操作順、時刻、方向、接続座標とlogs/latest.log（Kaizはlogs/fml-client-latest.log）、専用サーバーログを共有する。デバッグ車両の登録JSONは除去済みで、モデル/テクスチャ/診断スクリプトは再利用用に残している。
 

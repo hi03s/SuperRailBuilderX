@@ -1,11 +1,11 @@
 # SuperRailBuilderX
 
-**Release: 0.2.0**
+**Release: 0.3.0**
 
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.7.10-62b47a)](https://www.minecraft.net/)
 [![KaizPatchX](https://img.shields.io/badge/KaizPatchX-1.10.3%2B-57b57b)](https://github.com/Kai-Z-JP/KaizPatchX)
 [![AppleExtended](https://img.shields.io/badge/AppleExtended-v2.5.3-c96f4a)](https://github.com/Kirtmuna/AppleExtended/releases/tag/v2.5.3)
-[![Release](https://img.shields.io/badge/release-0.2.0-blue)](https://github.com/hi03s/SuperRailBuilderX/releases)
+[![Release](https://img.shields.io/badge/release-0.3.0-blue)](https://github.com/hi03s/SuperRailBuilderX/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 ## 概要
@@ -24,7 +24,7 @@ SuperRailBuilderXは、KaizPatchX向けのレール制作支援ツール集で�
 ## 動作環境
 
 - Minecraft 1.7.10
-- RealTrainModとKaizPatchX 1.10.3以降
+- RealTrainModとKaizPatchX 1.10.4
 - またはMinecraft 1.12.2とAppleExtended v2.5.3
 
 主要機能はKaizPatchXとAppleExtended v2.5.3に対応しています。通常RTM 1.7.10およびMinecraft 1.12.2向けの共通コードもビルドされますが、非対応機能はワールドを変更せず安全に停止します。
@@ -33,13 +33,20 @@ AppleExtended v2.5.3では、通常・自動分割レールの生成、複線コ
 
 ## 導入方法
 
-開発中のmain版は完全自由点仕様に戻し、KaizPatchX 1.10.4 / AppleExtended 2.5.3で暫定パッチModを併用します。パックZIPは従来どおり導入し、サーバーの`mods`へ`SRBXPatch-v1.0-1.7.10.jar`または`SRBXPatch-v1.0-1.12.2.jar`を別途配置してください。シングルプレイではプレイするMinecraftへJARを導入します。JAR内にパックは含まれません。[導入・実機確認手順](docs/srbx-free-endpoint-mod.md)を参照してください。公開済みv0.2.0は従来の配布内容です。
+SRBX 0.3.0は完全自由点仕様です。KaizPatchX 1.10.4 / AppleExtended v2.5.3側で対応されるまで、暫定パッチMod **SRBXPatch** を併用してください。JAR内にパックは含まれません。
 
-1. RealTrainModとKaizPatchX、またはAppleExtended v2.5.3を導入します。
-2. [Releases](https://github.com/hi03s/SuperRailBuilderX/releases)から配布パックをダウンロードします。
-3. ダウンロードしたパックをMinecraftの`mods`フォルダーへ入れます。
-4. 起動後、自動車モデル選択画面から`SuperRailBuilderX_builder1`（機能名: レール生成A）または`SuperRailBuilderX`で始まるツールを選びます。
+1. KaizPatchX 1.10.4またはAppleExtended v2.5.3を導入します。
+2. [Releases](https://github.com/hi03s/SuperRailBuilderX/releases)のAssetsから、SRBXパックZIPと環境に合うSRBXPatch JARをダウンロードします。
+3. SRBXを導入するクライアントとサーバーの両方で、パックZIPとSRBXPatch JARをそれぞれmodsへ配置します。シングルプレイも両方を導入してください。
+4. マルチプレイでクライアント側にSRBXパックを導入しない場合、そのクライアントにはSRBXPatchも不要です。サーバー側には導入してください。
+5. 起動後、自動車モデル選択画面からSuperRailBuilderXで始まるツールを選びます。
 
+| 環境 | SRBXPatch |
+| --- | --- |
+| Minecraft 1.7.10 / KaizPatchX 1.10.4 | SRBXPatch-v1.0-1.7.10.jar |
+| Minecraft 1.12.2 / AppleExtended v2.5.3 | SRBXPatch-v1.0-1.12.2.jar |
+
+[導入・確認手順](docs/srbx-free-endpoint-mod.md)も参照してください。
 ## 収録ツール
 
 - **レール生成A** — 2点を選択してレールを新規敷設します。曲線半径、勾配、縦曲線、既設端点への接続に対応します。
