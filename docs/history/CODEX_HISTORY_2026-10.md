@@ -451,3 +451,10 @@
 - Java 8挙動テストと実AE v2.5.3へのASM BasicVerifier/二重適用防止が成功。追加した重複区間双方向・曲線接線/探索量・境界端点両側・線形外/map置換/初回取得のテストと従来回帰を確認。JVM診断引数ON/OFFとも成功。実ワールド・実走行・マルチ同期・負荷は未検証。Javaのみ変更でTypeScript build/ZIPは未更新。
 - AE JARを更新: artifacts/SRBXPatch-v1.0-1.12.2.jar、SHA256: 2974CFF2259124996598A3C78D413556FF9D04593FC623B98E1D741D5B3AA0FD。Java 8形式・資産/依存/テスト非同梱の検証成功。診断は-Dsrbxpatch.debugRailLookup=true、最大1秒に1行。仕様/制約/確認手順はdocs/appleextended-overlap-rail-patch.md。本番サーバー・rtm-ts・共有ツールキット・ユーザーアセットは未操作。
 - 同期: cb406bb（AEの重複区間で現在レールを保持するパッチを追加）をorigin/mainへpush成功。
+
+## 2026-10-11 ローカルCodex: AE自動分割境界の同一グループ優先遷移
+
+- 既設コアの上書き説を調査。SRBX道床配置は既設レールを保持、端部の所有先変更はCoreを除外、新Section配置は全ownerを変更前に再検証する。AE prepareBaseBlocksもBlockLargeRailBaseを除外。既設Sectionコアを置いた生成直前競合テストで生成拒否と対象保持を確認。通常道床の新コア昇格は行うが、既設コアの上書きではない。
+- 前回AEパッチが物理区間境界で標準道床探索へ戻る経路を原因候補として特定。getRailGroupCorePositions/isSameLogicalRailから、ロード済み・生存・同一グループかつ物理端点/進行方向/予測位置/高さに一致する隣接コアを優先する処理を追加。道床所有先が別線でもコア座標から探索し、チャンク強制ロードや道床書換えは行わない。候補なし/曖昧は従来復帰。
+- AE Javaテスト/実v2.5.3 ASM BasicVerifier/二重適用防止とpnpm test:appleextended成功。重複道床の両方向Section遷移、別グループ/削除/接続点ずれ拒否を追加。診断ONも検証。実機走行/コア消失有無は未検証。現在のlatest.logは以前のKaiz API例外でAE走行ログではない。
+- AE JAR更新: artifacts/SRBXPatch-v1.0-1.12.2.jar、SHA256: 9074F0C50BA284F659426C764ED12FD466E536EBDAB45506F95AFE0D52298B41。パック/Kaiz JAR/敷設スクリプト本体の変更なし。TypeScript build/ZIPは再実施不要。最大1秒1行の診断にsection transitionの元/先コア座標を追加。確認手順はdocs/appleextended-overlap-rail-patch.md。本番サーバーは未操作。

@@ -53,9 +53,9 @@ public final class AEFreeEndpointHook {
             // Still release it at either nearby endpoint plane: boundary endpoints
             // use native lookup, free interior endpoints use precise connection lookup.
             if(previous <= margin && projection(x-sx,z-sz,sy)<-1E-7)
-                return freeStart ? connected(world,bogie,core,start,sy+180,x,y,z,bx,bz,movement) : null;
+                return crossed(world,bogie,core,start,sy+180,x,y,z,bx,bz,movement,freeStart);
             if(split-previous <= margin && projection(x-ex,z-ez,ey)>1E-7)
-                return freeEnd ? connected(world,bogie,core,end,ey,x,y,z,bx,bz,movement) : null;
+                return crossed(world,bogie,core,end,ey,x,y,z,bx,bz,movement,freeEnd);
             int search = (int) Math.ceil((movement + 0.25) * 360.0);
             int low = Math.max(0, previous - search), high = Math.min(split, previous + search);
             double best = Double.MAX_VALUE;
@@ -91,13 +91,16 @@ public final class AEFreeEndpointHook {
     private static Object retained(Object core, int previous, int split, double x, double y, double z)
             throws ReflectiveOperationException {
         // Opt-in, at most one message per second globally; no world/entity cache.
-        if (debugLookup) {
-            long now = System.nanoTime(), next = nextTrace.get();
-            if (now >= next && nextTrace.compareAndSet(next, now + 1000000000L))
+        if (traceAllowed()) {
                 System.out.println("[SRBXPatch AE lookup] retained: core=" + call(core,"getPos|func_174877_v")
                     + ", index=" + previous + "/" + split + ", predicted=" + x + "," + y + "," + z);
         }
         return core;
+    }
+    private static boolean traceAllowed() {
+        if (!debugLookup) return false;
+        long now=System.nanoTime(), next=nextTrace.get();
+        return (next==0 || now-next>=0) && nextTrace.compareAndSet(next,now+1000000000L);
     }
     private static double projection(double x,double z,double yaw) {
         double angle=Math.toRadians(yaw); return x*Math.sin(angle)+z*Math.cos(angle);
@@ -139,9 +142,53 @@ public final class AEFreeEndpointHook {
             if(candidate==null || candidate==current || !visited.add(candidate) || !live(world,candidate)) continue;
             Object map=activeMap(candidate,bogie,world);
             if(map==null || map==field(bogie,"currentRailMap")) continue;
+            if(fitsConnection(map,bogie,endpoint,exitYaw,x,y,z,movement)) {
+                if(selected!=null && selected!=candidate) return null;
+                selected=candidate;
+            }
+        }
+        return selected;
+    }
+    private static Object crossed(Object world,Object bogie,Object current,Object endpoint,double exitYaw,
+                                  double x,double y,double z,double bx,double bz,double movement,boolean free)
+            throws ReflectiveOperationException {
+        double ex=number(endpoint,"posX").doubleValue(), ez=number(endpoint,"posZ").doubleValue();
+        if(projection(x-bx,z-bz,exitYaw)<=0 || Math.hypot(x-ex,z-ez)>movement+0.25) return null;
+        // Section owner positions survive overlapping ballast ownership. Prefer only a
+        // live member of the same logical group with a matching physical endpoint.
+        if(current.getClass().getName().contains("SectionCore") && (Boolean)call(current,"isRailSection")) {
+            Object positions=call(current,"getRailGroupCorePositions"), selected=null;
+            int size=((Number)call(positions,"size")).intValue();
+            if(size>=0 && size<=4096) for(int i=0;i<size;i++) {
+                int[] p=(int[])call(positions,"get",i);
+                if(p==null || p.length<3) continue;
+                Object position=pos(current,p[0],p[1],p[2]);
+                if(!(Boolean)call(world,"isBlockLoaded|func_175667_e",position)) continue;
+                Object candidate=call(world,"getTileEntity|func_175625_s",position);
+                if(candidate==null || candidate==current || !candidate.getClass().getName().contains("SectionCore")
+                    || !(Boolean)call(current,"isSameLogicalRail",candidate) || !live(world,candidate)) continue;
+                Object map=activeMap(candidate,bogie,world);
+                if(map!=null && fitsConnection(map,bogie,endpoint,exitYaw,x,y,z,movement)) {
+                    if(selected!=null && selected!=candidate) return null;
+                    selected=candidate;
+                }
+            }
+            if(selected!=null) {
+                if(traceAllowed()) System.out.println("[SRBXPatch AE lookup] section transition: from="
+                    +call(current,"getPos|func_174877_v")+", to="+call(selected,"getPos|func_174877_v"));
+                return selected;
+            }
+        }
+        return free ? connected(world,bogie,current,endpoint,exitYaw,x,y,z,bx,bz,movement) : null;
+    }
+    private static boolean fitsConnection(Object map,Object bogie,Object endpoint,double exitYaw,
+                                          double x,double y,double z,double movement)
+            throws ReflectiveOperationException {
+            double ex=number(endpoint,"posX").doubleValue(), ez=number(endpoint,"posZ").doubleValue();
+            double ey=number(endpoint,"posY").doubleValue();
             Object start=call(map,"getStartRP"), end=call(map,"getEndRP");
             double length=((Number)call(map,"getLength")).doubleValue();
-            if(!EndpointGeometry.finite(length) || length<=0 || length>Integer.MAX_VALUE/360.0) continue;
+            if(!EndpointGeometry.finite(length) || length<=0 || length>Integer.MAX_VALUE/360.0) return false;
             int count=Math.max(1,(int)(length*360.0));
             boolean fits=false;
             for(int side=0;side<2;side++) {
@@ -163,9 +210,7 @@ public final class AEFreeEndpointHook {
                 }
                 if(best<=0.015625 && validHeight(map,bogie,count,nearest,y)) fits=true;
             }
-            if(fits) { if(selected!=null && selected!=candidate) return null; selected=candidate; }
-        }
-        return selected;
+            return fits;
     }
     private static boolean validHeight(Object map, Object bogie, int split, int index, double y)
             throws ReflectiveOperationException {

@@ -377,7 +377,8 @@ const planned = placement.plan(
 	property,
 	(p) => !!tiles.get(key([p.blockX, p.blockY, p.blockZ]))?.getRailCore(),
 );
-const collision = new CoreBase([1, 4, 0], [1, 4, 0]);
+const collision = new Section([1, 4, 0]);
+const createdBeforeCollision = created;
 collision.getRailCore = () => collision;
 tiles.set("1,4,0", collision);
 assert.equal(
@@ -385,7 +386,12 @@ assert.equal(
 	false,
 	"all owners revalidated before any mutation",
 );
-assert.equal(created, 0);
+assert.equal(created, createdBeforeCollision);
+assert.strictEqual(
+	tiles.get("1,4,0"),
+	collision,
+	"foreign Section core remains unchanged",
+);
 reset();
 const failedPlan = placement.plan(
 	world,

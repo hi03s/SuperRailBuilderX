@@ -35,6 +35,13 @@ public final class AEPatchTest {
   public Object getActiveRailMap(Object world){return active;}
  }
  public static class Tile { Core core; Tile(Core c){core=c;} public Object getRailCore(){return core;} }
+ public static class SectionCore extends Core {
+  String group; List<int[]> positions;
+  SectionCore(Map m,Pos p,String group,List<int[]> positions){super(m,p);this.group=group;this.positions=positions;}
+  public boolean isRailSection(){return true;}
+  public List<int[]> getRailGroupCorePositions(){return positions;}
+  public boolean isSameLogicalRail(Object core){return core instanceof SectionCore && group.equals(((SectionCore)core).group);}
+ }
  public static class World {
   public boolean isRemote,loaded=true; public java.util.Map<String,Object> tiles=new HashMap<String,Object>();
   public boolean isBlockLoaded(Pos p){return loaded;} public Object getTileEntity(Pos p){return tiles.get(p.toString());}
@@ -95,6 +102,24 @@ public final class AEPatchTest {
   curved.posX=previousCurve[1];curved.posZ=previousCurve[0];curve.samples=0;
   expect(AEFreeEndpointHook.resolve(curved,nextCurve[1],4.0625,nextCurve[0])==curved.currentRailObj,"curve middle retention follows local tangent");
   expect(curve.samples<=3,"curve local tangent avoids dense scan on a matching prediction");
+  Bogie sectioned=new Bogie();List<int[]> groupPositions=Arrays.asList(new int[]{0,4,5},new int[]{0,4,15});
+  SectionCore first=new SectionCore(new Map(.2,10),new Pos(0,4,5),"group-a",groupPositions);
+  SectionCore second=new SectionCore(new Map(10,20),new Pos(0,4,15),"group-a",groupPositions);
+  sectioned.world.put(first.position,first);sectioned.world.put(second.position,second);
+  sectioned.currentRailObj=first;sectioned.currentRailMap=first.map;sectioned.split=(int)(first.map.getLength()*360);
+  sectioned.prevPosIndex=sectioned.split-3;sectioned.posZ=first.map.getRailPos(sectioned.split,sectioned.prevPosIndex)[0];
+  Core crossing=new Core(new Map(10,20),new Pos(1,4,10));sectioned.world.put(crossing.position,crossing);
+  sectioned.world.put(new Pos(0,4,10),new Tile(crossing));
+  expect(AEFreeEndpointHook.resolve(sectioned,.3,4.0625,10.01)==second,"boundary transition selects same group core despite foreign ballast");
+  second.group="group-b";
+  expect(AEFreeEndpointHook.resolve(sectioned,.3,4.0625,10.01)==null,"stale group position cannot select another group");
+  second.group="group-a";second.invalid=true;
+  expect(AEFreeEndpointHook.resolve(sectioned,.3,4.0625,10.01)==null,"deleted section core not selected");
+  second.invalid=false;second.map.start.posZ=10.02;
+  expect(AEFreeEndpointHook.resolve(sectioned,.3,4.0625,10.01)==null,"group membership alone cannot bridge disconnected endpoints");
+  second.map.start.posZ=10;sectioned.currentRailObj=second;sectioned.currentRailMap=second.map;
+  sectioned.split=3600;sectioned.prevPosIndex=3;sectioned.posZ=10+3.0/360;
+  expect(AEFreeEndpointHook.resolve(sectioned,.3,4.0625,9.99)==first,"reverse boundary transition selects previous group member");
   Bogie b=new Bogie();Core c=next(b);
   expect(AEFreeEndpointHook.resolve(b,.3,4.0625,10.19)==b.currentRailObj,"retain before exact endpoint despite next bed");
   expect(AEFreeEndpointHook.resolve(b,.3,4.0625,10.21)==c,"cross exact endpoint despite old bed");
