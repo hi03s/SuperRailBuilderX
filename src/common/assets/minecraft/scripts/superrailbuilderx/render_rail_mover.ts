@@ -31,6 +31,7 @@ import {
 import { SRBXMath, SRBXVec3 } from "./SRBXMath";
 import {
 	RailPositionConnectedMove,
+	RailPositionMoveTarget,
 	RailPositionMoveRequest,
 	RailPositionParallelMoveRequest,
 } from "./server_rail_mover";
@@ -88,6 +89,7 @@ type EditorState = {
 	selected: SelectedEndpoint | null;
 	selectedRails: SelectedRail[];
 	destination: [number, number, number] | null;
+	destinationEndpoint?: RailPositionMoveTarget;
 	parallelPlans: ParallelPlan[];
 	awaitingResult: boolean;
 	pendingAction: "move" | "undo" | null;
@@ -270,6 +272,46 @@ function getDestination(
 		roundHorizontal(looking.posZ),
 	];
 	const selected = getState(entity).selected;
+	const state = getState(entity);
+	state.destinationEndpoint = undefined;
+	if (selected && selected.candidates.length === 1) {
+		const candidates = findCandidates(entity, partialTicks);
+		let best = ENDPOINT_SNAP_RADIUS * ENDPOINT_SNAP_RADIUS;
+		let target: Candidate | null = null;
+		for (let i = 0; i < candidates.length; i++) {
+			const c = candidates[i];
+			if (c.railKey === selected.candidates[0].railKey) continue;
+			const distance = Math.pow(
+				SRBXMath.distance(position, c.position),
+				2,
+			);
+			if (distance > best) continue;
+			if (
+				candidates.some(
+					(other) =>
+						other.railKey !== c.railKey &&
+						Math.pow(
+							SRBXMath.distance(other.position, c.position),
+							2,
+						) <=
+							CONNECTED_ENDPOINT_TOLERANCE *
+								CONNECTED_ENDPOINT_TOLERANCE,
+				)
+			)
+				continue;
+			best = distance;
+			target = c;
+		}
+		if (target) {
+			state.destinationEndpoint = {
+				core: [target.coreX, target.coreY, target.coreZ],
+				railKey: target.railKey,
+				index: target.index,
+				original: target.position,
+			};
+			return target.position.slice() as SRBXVec3;
+		}
+	}
 	if (
 		selected &&
 		selected.candidates.length > 0 &&
@@ -1324,6 +1366,7 @@ function handleInput(
 					original: candidate.position,
 				})),
 				destination: state.destination,
+				destinationEndpoint: state.destinationEndpoint,
 			};
 		else if (state.parallelPlans.length > 0) {
 			const excluded: { [key: string]: boolean } = {};

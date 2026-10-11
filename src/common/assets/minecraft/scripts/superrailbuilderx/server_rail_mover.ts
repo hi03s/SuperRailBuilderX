@@ -52,6 +52,7 @@ export type RailPositionMoveRequest =
 			mode?: "endpoint";
 			targets: RailPositionMoveTarget[];
 			destination: RailCorePos;
+			destinationEndpoint?: RailPositionMoveTarget;
 	  }
 	| RailPositionParallelMoveRequest
 	| {
@@ -83,6 +84,65 @@ type ParallelUndoOperation = {
 type UndoOperation = EndpointUndoOperation | ParallelUndoOperation;
 const undoRecords: WeakHashMap<EntityVehicle, { operations: UndoOperation[] }> =
 	new WeakHashMap();
+
+function validateEndpointSnap(
+	world: net.minecraft.world.World,
+	request: Extract<RailPositionMoveRequest, { targets: unknown }>,
+): string {
+	if (!request.destinationEndpoint) return "ok";
+	const endpoint = request.destinationEndpoint;
+	if (
+		request.targets.length !== 1 ||
+		!request.targets[0] ||
+		!request.targets[0].core ||
+		!request.targets[0].original ||
+		!endpoint.core ||
+		!endpoint.original ||
+		!samePosition(endpoint.original, request.destination) ||
+		!isFinite(endpoint.index) ||
+		Math.floor(endpoint.index) !== endpoint.index
+	)
+		return "invalid_destination_endpoint";
+	const core = resolveCurrentCore(world, endpoint.core, endpoint.railKey);
+	const source = resolveCurrentCore(
+		world,
+		request.targets[0].core,
+		request.targets[0].railKey,
+	);
+	if (
+		!core ||
+		!source ||
+		SRBXApiCompat.getRailPositionCandidateKey(source) ===
+			SRBXApiCompat.getRailPositionCandidateKey(core)
+	)
+		return "destination_endpoint_changed";
+	const positions = SRBXApiCompat.getEditableRailPositions(core);
+	const rp = positions[endpoint.index];
+	if (!rp || !samePosition([rp.posX, rp.posY, rp.posZ], request.destination))
+		return "destination_endpoint_changed";
+	const near = SRBXApiCompat.getLoadedRailCores(world, rp.posX, rp.posZ, 48);
+	for (let i = 0; i < near.length; i++) {
+		const key = SRBXApiCompat.getRailPositionCandidateKey(near[i]);
+		const ends = SRBXApiCompat.getEditableRailPositions(near[i]);
+		for (let j = 0; j < ends.length; j++) {
+			const p = ends[j];
+			if (
+				key !== SRBXApiCompat.getRailPositionCandidateKey(core) &&
+				samePosition([p.posX, p.posY, p.posZ], request.destination)
+			)
+				return "destination_endpoint_connected";
+			if (
+				key !== SRBXApiCompat.getRailPositionCandidateKey(source) &&
+				samePosition(
+					[p.posX, p.posY, p.posZ],
+					request.targets[0].original,
+				)
+			)
+				return "source_endpoint_connected";
+		}
+	}
+	return "ok";
+}
 
 function isMoveSuccess(result: string): boolean {
 	return (
@@ -624,6 +684,8 @@ function applyRequest(
 		!isFinite(request.destination[2])
 	)
 		return "invalid_destination";
+	const snapValidation = validateEndpointSnap(world, request);
+	if (snapValidation !== "ok") return snapValidation;
 	const sharedPosition = request.targets[0].original;
 	if (!sharedPosition) return "invalid_target";
 	const resolved: Array<{

@@ -55,6 +55,7 @@ function makeCore(positions, key) {
 	};
 }
 const helper = {
+	breakRail: (_world, core) => core.breakLogicalRail(),
 	coreKey: (core) => core.key,
 	planCreation: () => ({}),
 	getCore: (_world, position) => (position[0] === 9 ? null : current),

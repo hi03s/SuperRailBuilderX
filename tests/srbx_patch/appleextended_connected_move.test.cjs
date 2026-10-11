@@ -21,6 +21,7 @@ class BlockPos {
 }
 const key = (pos) => pos.join(",");
 const world = {
+	field_147482_g: list([]),
 	func_175667_e: () => true,
 	func_175625_s: (p) => tiles.get(key(p.xyz)) || null,
 };
@@ -87,6 +88,13 @@ class MapBasic {
 		this.start = start;
 		this.end = end;
 	}
+	getLength() {
+		return Math.hypot(
+			this.end.posX - this.start.posX,
+			this.end.posY - this.start.posY,
+			this.end.posZ - this.start.posZ,
+		);
+	}
 }
 // Native split owners include the shared endpoint, while its logical other end is free.
 const split = (map) =>
@@ -97,6 +105,7 @@ const context = {
 		jp: {
 			ngt: {
 				rtm: {
+					RTMCore: { railGeneratingDistance: 64 },
 					rail: {
 						TileEntityLargeRailBase: Base,
 						TileEntityLargeRailCore: Core,
@@ -114,11 +123,23 @@ const context = {
 				},
 			},
 		},
-		net: { minecraft: { util: { math: { BlockPos } } } },
+		net: {
+			minecraft: {
+				nbt: { NBTTagCompound: class {} },
+				util: { math: { BlockPos } },
+			},
+		},
 		java: { util: { ArrayList: class {} } },
 	},
 };
 vm.createContext(context);
+vm.runInContext(
+	fs.readFileSync(
+		"dist/assets/minecraft/scripts/superrailbuilderx/SRBXRoadbedOwnership.js",
+		"utf8",
+	),
+	context,
+);
 vm.runInContext(
 	fs.readFileSync(
 		"dist/assets/minecraft/scripts/superrailbuilderx/SRBXRailBoundary.js",

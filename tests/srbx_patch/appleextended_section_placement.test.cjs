@@ -37,6 +37,7 @@ class Pos {
 }
 const key = (p) => p.join(",");
 const world = {
+	func_180495_p: () => ({}),
 	func_175667_e: () => true,
 	func_175625_s: (p) => tiles.get(key(p.xyz)) || null,
 	func_175698_g: (p) => {
@@ -89,7 +90,8 @@ class Base {
 		this.owner = owner;
 	}
 	getRailCore() {
-		return tiles.get(key(this.owner)) || null;
+		const tile = tiles.get(key(this.owner));
+		return tile instanceof CoreBase ? tile : null;
 	}
 	getStartPoint() {
 		return this.owner;
@@ -98,7 +100,8 @@ class Base {
 		this.owner = p;
 	}
 }
-class Section extends Base {
+class CoreBase extends Base {}
+class Section extends CoreBase {
 	constructor(xyz) {
 		super(xyz, xyz);
 		this.id = ++created;
@@ -263,7 +266,7 @@ context.Packages.jp.ngt.ngtlib = {
 				);
 			},
 			getTileEntity: (_w, x, y, z) => tiles.get(key([x, y, z])),
-			getBlock: () => ({}),
+			getBlock: () => ({ func_176201_c: () => 0 }),
 		},
 	},
 };
@@ -272,7 +275,7 @@ context.Packages.jp.ngt.rtm = {
 	rail: {
 		TileEntityLargeRailBase: Base,
 		BlockLargeRailBase: class {},
-		TileEntityLargeRailCore: Section,
+		TileEntityLargeRailCore: CoreBase,
 		util: { RailPosition: RP, RailMapBasic: Basic },
 	},
 	item: {
@@ -287,6 +290,7 @@ context.Packages.jp.ngt.rtm = {
 };
 context.Packages.net = {
 	minecraft: {
+		block: { Block: { func_149682_b: () => 1 } },
 		util: { math: { BlockPos: Pos } },
 		nbt: { NBTTagCompound: Nbt },
 	},
@@ -298,6 +302,13 @@ context.java = {
 	},
 };
 vm.createContext(context);
+vm.runInContext(
+	fs.readFileSync(
+		"dist/assets/minecraft/scripts/superrailbuilderx/SRBXRoadbedOwnership.js",
+		"utf8",
+	),
+	context,
+);
 const dir =
 	"dist/assets/minecraft/__targets__/appleextended/scripts/superrailbuilderx/";
 for (const n of [
@@ -319,7 +330,7 @@ function reset() {
 	packets = 0;
 	failCore = -1;
 	for (const x of [0, 10]) {
-		const foreign = new Base([x, 4, 0], [x, 4, 0]);
+		const foreign = new CoreBase([x, 4, 0], [x, 4, 0]);
 		foreign.foreign = true;
 		foreign.getRailCore = () => foreign;
 		tiles.set(key(foreign.xyz), foreign);
@@ -333,13 +344,13 @@ assert(
 	plan.sections,
 	"both logical endpoint owners occupied must try free section interior",
 );
-assert.equal(plan.root.blockX, 9);
+assert.equal(plan.root.blockX, 1);
 assert.equal(
 	plan.root.posX,
-	end.posX,
+	start.posX,
 	"logical source orientation remains the native equal-height orientation",
 );
-// Equal height chooses end as logical start; use its own section roadbed at x=9.
+// A core conflict tries the reverse section plan before normal fallback.
 const logicalBefore = JSON.stringify([start, end]);
 assert.equal(placement.create(world, plan.sections, property, true), true);
 assert.equal(events.filter((e) => e instanceof Section).length, 2);
@@ -350,8 +361,8 @@ assert.deepEqual(foreignStart.owner, [0, 4, 0]);
 assert.deepEqual(foreignEnd.owner, [10, 4, 0]);
 assert.equal(JSON.stringify([start, end]), logicalBefore);
 for (const e of events.filter((e) => e instanceof Section)) {
-	assert.equal(e.logical[0].posX, end.posX);
-	assert.equal(e.logical[1].posX, start.posX);
+	assert.equal(e.logical[0].posX, start.posX);
+	assert.equal(e.logical[1].posX, end.posX);
 	assert.equal(e.owners.size(), 2);
 }
 reset();
@@ -366,7 +377,7 @@ const planned = placement.plan(
 	property,
 	(p) => !!tiles.get(key([p.blockX, p.blockY, p.blockZ]))?.getRailCore(),
 );
-const collision = new Base([1, 4, 0], [1, 4, 0]);
+const collision = new CoreBase([1, 4, 0], [1, 4, 0]);
 collision.getRailCore = () => collision;
 tiles.set("1,4,0", collision);
 assert.equal(

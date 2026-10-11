@@ -22,6 +22,32 @@ class RailMapBasic {
 	getRailBlockList() {
 		return { size: () => 0 };
 	}
+	getLength() {
+		return Math.hypot(
+			this.end.posX - this.start.posX,
+			this.end.posY - this.start.posY,
+			this.end.posZ - this.start.posZ,
+		);
+	}
+	getStartRP() {
+		return this.start;
+	}
+	getEndRP() {
+		return this.end;
+	}
+	getRailPos(split, index) {
+		const t = index / split;
+		return [
+			this.start.posZ + (this.end.posZ - this.start.posZ) * t,
+			this.start.posX + (this.end.posX - this.start.posX) * t,
+		];
+	}
+	getRailHeight(split, index) {
+		return (
+			this.start.posY +
+			((this.end.posY - this.start.posY) * index) / split
+		);
+	}
 }
 class RailMapSection extends RailMapBasic {
 	constructor(_source, start, end) {
@@ -30,6 +56,7 @@ class RailMapSection extends RailMapBasic {
 }
 class SectionCore {}
 class RailBase {}
+class RailCore extends RailBase {}
 class BlockPos {
 	constructor(x, y, z) {
 		this.x = x;
@@ -37,7 +64,7 @@ class BlockPos {
 		this.z = z;
 	}
 }
-const world = { func_175625_s: () => null };
+const world = { func_175625_s: () => null, func_175623_d: () => false };
 class Thread {
 	constructor(task) {
 		this.task = task;
@@ -63,6 +90,7 @@ const context = {
 					},
 				},
 				rtm: {
+					RTMCore: { railGeneratingDistance: 64 },
 					item: {
 						ItemRail: {
 							getDefaultProperty: () => ({ readFromNBT() {} }),
@@ -70,7 +98,7 @@ const context = {
 					},
 					rail: {
 						TileEntityLargeRailBase: RailBase,
-						TileEntityLargeRailCore: class extends RailBase {},
+						TileEntityLargeRailCore: RailCore,
 						BlockMarker: { createRail: () => false },
 						util: { RailMapBasic },
 					},
@@ -90,6 +118,7 @@ const context = {
 		},
 		net: {
 			minecraft: {
+				nbt: { NBTTagCompound: class {} },
 				util: { math: { BlockPos } },
 				client: {
 					Minecraft: {
@@ -144,12 +173,82 @@ function loadCompat(dir, prefix) {
 	);
 }
 load("superrailbuilderx/AppleExtendedRailProtection.js");
+vm.runInContext(
+	fs.readFileSync(
+		"dist/assets/minecraft/scripts/superrailbuilderx/SRBXRoadbedOwnership.js",
+		"utf8",
+	),
+	context,
+);
 load("superrailbuilderx/AppleExtendedRailCompat.js");
 loadCompat("superrailbuilderx", "SRBXApiCompat.");
 const api = Object.values(context.RTMX_COMPAT_TARGETS.appleextended)[0]
 	.SRBXApiCompat;
 api.hasFreeEndpointPatch = () => true;
 const helper = context.AppleExtendedRailCompat;
+// Planning must honor the actual RTM config and try reversed sections before
+// normal fallback. All callbacks here are read-only; no creation API is used.
+{
+	const rp = (x) => ({
+		blockX: Math.floor(x),
+		blockY: 4,
+		blockZ: 0,
+		posX: x,
+		posY: 4.0625,
+		posZ: 0.5,
+	});
+	const config = context.Packages.jp.ngt.rtm.RTMCore;
+	const freeWorld = { func_175625_s: () => null };
+	assert.equal(
+		helper.planCreation(freeWorld, [rp(0.35), rp(80.35)], {
+			autoSplit: false,
+		}),
+		null,
+	);
+	config.railGeneratingDistance = 96;
+	assert(
+		helper.planCreation(freeWorld, [rp(0.35), rp(80.35)], {
+			autoSplit: false,
+		}),
+	);
+	config.railGeneratingDistance = 64;
+	const sectioner = context.Packages.jp.apple.rail.util.RailChunkSectioner;
+	const oldSplit = sectioner.split,
+		oldPlan = context.AppleExtendedSectionPlacementCompat.plan;
+	const conflict = new RailCore();
+	conflict.getRailCore = () => conflict;
+	const conflictWorld = {
+		func_175625_s: (p) => (p.x === 32 ? conflict : null),
+	};
+	sectioner.split = (map) => ({
+		size: () => 2,
+		get: (i) => ({ getStartRP: () => (i ? rp(32.35) : map.start) }),
+	});
+	let reversed = null;
+	context.AppleExtendedSectionPlacementCompat.plan = (_w, start, end) => {
+		reversed = [start.posX, end.posX];
+		return { source: new RailMapBasic(start, end), sections: [{ start }] };
+	};
+	const prop = { autoSplit: true, writeToNBT: () => ({}) };
+	assert(
+		helper.planCreation(conflictWorld, [rp(0.35), rp(80.35)], prop)
+			.sections,
+	);
+	assert.deepEqual(reversed, [0.35, 80.35]);
+	context.AppleExtendedSectionPlacementCompat.plan = () => null;
+	assert.equal(
+		helper.planCreation(conflictWorld, [rp(0.35), rp(80.35)], prop),
+		null,
+	);
+	const fallback = helper.planCreation(
+		conflictWorld,
+		[rp(0.35), rp(50.35)],
+		prop,
+	);
+	assert.equal(fallback.property.autoSplit, false);
+	sectioner.split = oldSplit;
+	context.AppleExtendedSectionPlacementCompat.plan = oldPlan;
+}
 // Connecting reverses the endpoint heading; edge cant must reverse with it.
 const savedClone = helper.cloneRailPosition;
 helper.cloneRailPosition = (rp) => ({ ...rp });
@@ -369,7 +468,7 @@ const autoProperty = { autoSplit: true, writeToNBT: () => ({}) };
 let createdOwner = null;
 let receivedProperty = null;
 let apiCalls = 0;
-const foreign = new RailBase();
+const foreign = new RailCore();
 foreign.getRailCore = () => core;
 context.Packages.jp.ngt.rtm.rail.BlockMarker.createRail = (
 	_world,
@@ -479,18 +578,19 @@ assert.strictEqual(
 context.Packages.jp.ngt.rtm.rail.BlockMarker.createRail = normalApi;
 
 // Overlapping roadbeds select the preserving placement path, including failure.
+const foreignRoadbed = new RailBase();
 context.AppleExtendedRoadbedPlacement = {
 	createNormal() {
 		return context.Packages.jp.ngt.rtm.rail.BlockMarker.createRail();
 	},
 };
-world.func_175625_s = (pos) => (pos.z === 77 ? foreign : null);
+world.func_175625_s = (pos) => (pos.z === 77 ? foreignRoadbed : null);
 let foreignOwner = [44, 4, 55];
-foreign.getStartPoint = () => foreignOwner;
-foreign.func_70296_d = () => {};
+foreignRoadbed.getStartPoint = () => foreignOwner;
+foreignRoadbed.func_70296_d = () => {};
 world.func_180495_p = () => ({});
 world.func_184138_a = () => {};
-foreign.setStartPoint = (...owner) => {
+foreignRoadbed.setStartPoint = (...owner) => {
 	foreignOwner = owner;
 };
 RailMapBasic.prototype.getRailBlockList = () => ({

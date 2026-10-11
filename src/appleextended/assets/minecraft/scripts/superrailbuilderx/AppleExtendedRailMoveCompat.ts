@@ -280,7 +280,7 @@ export class AppleExtendedRailMoveCompat {
 		};
 		let created: { core: Position; key: string } | null = null;
 		try {
-			core.breakLogicalRail();
+			AppleExtendedRailCompat.breakRail(world, core);
 			created = AppleExtendedRailCompat.createFromPositions(
 				world,
 				player,
@@ -320,7 +320,7 @@ export class AppleExtendedRailMoveCompat {
 					replacement &&
 					AppleExtendedRailCompat.coreKey(replacement) === created.key
 				)
-					replacement.breakLogicalRail();
+					AppleExtendedRailCompat.breakRail(world, replacement);
 			}
 			const restored = AppleExtendedRailCompat.createFromPositions(
 				world,

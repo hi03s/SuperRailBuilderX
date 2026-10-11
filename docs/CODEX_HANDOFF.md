@@ -6,6 +6,8 @@
 
 ## 現在の状態
 
+- KaizPatch/AEの未接続端点移動に0.5mの接続スナップを追加。共通生成は理論両端各1タイルの所有先変更、競合時の逆順→設定上限内の通常生成に対応。移動・分割・Undo前の所有先復元とコア昇格の復元を追加。[規則/検証手順](roadbed-ownership-investigation.md)。
+
 - 現在main。KaizPatch/AE実機確認済みbuilder1 GUIを791d2a5で統合してpush済み。feature/builder1-guiはローカル/リモートとも削除済み。距離/ブロックスナップと「直線」表示をmainへ追加。
 - 状態GUIをSRBXToolGuiへ共通化し、全6ツールへ実装。分割2区間長（ホバー対応）、移動スナップ状態、複線間隔、カント速度/種類、分岐半径/新線長を表示。複線間隔チャットのみ廃止。[GUI仕様](tool-gui.md)。
 - 全6ツールにTABホイールを追加。6区画リングをマウス/←→で選択し、左クリック/TAB解除で確定、ESC取消。中央へ戻すと現在ツールが選ばれ切り替えない。切り替え後の押しっぱなし入力も抑止する。[仕様・確認手順](tool-wheel.md)。
@@ -31,9 +33,11 @@
 
 ## 作業中
 
-- なし。
+- ローカルCodex: 移動先の未接続端点スナップと、共通生成の端部道床上書き/逆順・通常生成fallbackを実装・検証する。
 
 ## 優先確認事項
+
+- 新しい端部道床規則は実機未確認。更新ZIP（107ファイル）でKaizPatch/AEの重複敷設・双方向低速走行、接続移動・分割・分岐・Undoと保存/再入場後の未選択レール保持を確認する。全4build（警告なし）・関連回帰成功。[手順](roadbed-ownership-investigation.md)。本番サーバーは操作しない。
 
 - ホイールで選択名の黄色が次のアイコンへ残る実機報告を受け、各アイコン描画前に白色へ戻すよう修正。更新ZIPで全6項目の色をKaizPatch/AEで再確認する。全4build、GUI回帰、旧Java 8u51のGL模擬検証は成功。リング・左クリック・中央で変更なし・押しっぱなし抑止とマルチプレイのリスト非表示も継続確認する。[手順](tool-wheel.md)。
 
@@ -64,7 +68,7 @@
 - [自由化の導入意図](rail-position-free-endpoint-intent.md): Kaizはチャンク境界上の精密分割点を扱う目的でoffset/setPositionを追加し、導入時からブロック端保証は設定側の責務。AEの導入も座標/保存/描画対応で、任意点走行接続保証は確認できない。
 - [遷移パッチ実現性](free-endpoint-transition-patch-feasibility.md)の検討を経て、mainでも両版SRBXPatchを併用する方針へ変更済み。
 - デバッグ車両の登録JSONは除去済み。実機検証は通常車両を使用する。[保存した診断資産](train-debug-vehicle.md)。
-- KaizPatch/AEのSRBX敷設は既存通常道床を保持。標準マーカーは同じ通常道床の所有先を変更する。[道床の比較](roadbed-ownership-investigation.md)。AEログは当初敷設の履歴なし。Kaiz追加ログでは新短区間のadded=0/retained=0と接続セルの旧所有先保持を確認。
+- KaizPatch/AEのSRBX敷設は途中の既設道床を保持し、理論端部各1タイルだけ所有先を変更。SRBXでの削除前に旧所有先を復元する。標準マーカー/手動破壊は変更しない。[道床の比較/現行規則](roadbed-ownership-investigation.md)。
 
 ### レール移動ツール
 
@@ -85,7 +89,7 @@
 
 - 開発者から概ね不具合解消の報告を受領しmainへ統合。個別の全ケース確認済みとは扱わず、今後の再発時は操作順・時刻とlogs/latest.logを確認する。
 - 接続cantEdge反転・論理線形ハイライトはKaizPatch/AEで適用。旧コアのブロック/tile一括掃除はAEのみ。接続移動/Undo/走行は今後も継続確認する。
-- Section生成にコア配置競合があれば保護道床への代替配置、部分生成なしなら通常生成へfallback。失敗診断はsection creation failed/section owner relocation blockedを参照する。
+- Section生成の競合は代替配置と逆順を試し、配置不可なら設定上限（既定64m）内で通常生成へfallback。コア初期化失敗/配置拒否時は昇格前の道床を復元する。
 
 ## 次に行うこと
 

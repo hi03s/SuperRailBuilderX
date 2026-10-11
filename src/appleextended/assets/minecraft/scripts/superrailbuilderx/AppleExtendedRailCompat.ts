@@ -1,6 +1,7 @@
 import { SRBXFreeEndpointPolicy as SRBXRailBoundary } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXFreeEndpointPolicy";
+import { SRBXRoadbedOwnership } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXRoadbedOwnership";
 import { AppleExtendedRoadbedPlacement } from "./AppleExtendedRoadbedPlacement";
-import { RTMItem } from "jp.ngt.rtm";
+import { RTMCore, RTMItem } from "jp.ngt.rtm";
 import {
 	BlockMarker,
 	TileEntityLargeRailBase,
@@ -8,7 +9,12 @@ import {
 } from "jp.ngt.rtm.rail";
 import { ItemRail } from "jp.ngt.rtm.item";
 import { ResourceStateRail } from "jp.ngt.rtm.modelpack.state";
-import { RailMap, RailMapBasic, RailPosition } from "jp.ngt.rtm.rail.util";
+import {
+	RailMaker,
+	RailMap,
+	RailMapBasic,
+	RailPosition,
+} from "jp.ngt.rtm.rail.util";
 import { EntityPlayer } from "net.minecraft.entity.player";
 import { BlockPos } from "net.minecraft.util.math";
 import { World } from "net.minecraft.world";
@@ -22,6 +28,8 @@ import {
 	AppleExtendedSectionPlacementCompat,
 } from "./AppleExtendedSectionPlacementCompat";
 import { NGTLog } from "jp.ngt.ngtlib.io";
+import { BlockUtil } from "jp.ngt.ngtlib.block";
+import { RTMRail } from "jp.ngt.rtm";
 
 type RailCorePos = [number, number, number];
 
@@ -332,6 +340,33 @@ export class AppleExtendedRailCompat {
 					owners[key] = true;
 				}
 				if (collision) {
+					const reverse = AppleExtendedSectionPlacementCompat.plan(
+						world,
+						end,
+						root,
+						property,
+						(owner) =>
+							this.corePlacementBlocked(world, owner, ignoredKey),
+					);
+					if (reverse) {
+						NGTLog.debug(
+							"[SuperRailBuilderX AE] section core conflict resolved by reversed generation",
+						);
+						return {
+							ordered: ordered.slice().reverse(),
+							root: reverse.sections[0].start,
+							property,
+							sections: reverse,
+						};
+					}
+					if (
+						new RailMapBasic(
+							root,
+							end,
+							RailMapBasic.fixRTMRailMapVersionCurrent,
+						).getLength() > RTMCore.railGeneratingDistance
+					)
+						return null;
 					creationProperty = ItemRail.getDefaultProperty();
 					creationProperty.readFromNBT(property.writeToNBT());
 					creationProperty.autoSplit = false;
@@ -387,6 +422,16 @@ export class AppleExtendedRailCompat {
 				return null;
 			}
 		}
+		if (
+			ordered.length === 2 &&
+			!creationProperty.autoSplit &&
+			new RailMapBasic(
+				root,
+				root === ordered[0] ? ordered[1] : ordered[0],
+				RailMapBasic.fixRTMRailMapVersionCurrent,
+			).getLength() > RTMCore.railGeneratingDistance
+		)
+			return null;
 		return { ordered, root, property: creationProperty };
 	}
 
@@ -415,6 +460,17 @@ export class AppleExtendedRailCompat {
 		let preservingSections:
 			| import("./AppleExtendedSectionPlacementCompat").AppleExtendedSectionPlacement
 			| undefined;
+		if (ordered.length > 2) {
+			const maker = new RailMaker(
+				world,
+				list,
+				RailMapBasic.fixRTMRailMapVersionCurrent,
+			);
+			const railSwitch = maker.getSwitch();
+			if (!railSwitch) return null;
+			const maps = railSwitch.getAllRailMap();
+			for (let i = 0; i < maps.length; i++) placementMaps.push(maps[i]);
+		}
 		if (ordered.length === 2) {
 			const start =
 				ordered[0].blockY >= ordered[1].blockY
@@ -572,6 +628,68 @@ export class AppleExtendedRailCompat {
 		NGTLog.debug(
 			`[SuperRailBuilderX AE] creation confirmed: apiResult=${apiResult}, sectioned=${this.isSectionCore(core)}, positions=${ordered.length}`,
 		);
+		const endpointMaps =
+			ordered.length === 2
+				? [plan.sections ? plan.sections.source : placementMaps[0]]
+				: placementMaps;
+		for (let mapIndex = 0; mapIndex < endpointMaps.length; mapIndex++) {
+			const endpointTiles = SRBXRoadbedOwnership.endpointTiles(
+				endpointMaps[mapIndex],
+			);
+			const owners = plan.sections
+				? plan.sections.sections.map((s) => s.start)
+				: sectionOwners;
+			for (let i = 0; i < endpointTiles.length; i++) {
+				const p = endpointTiles[i];
+				const owner = owners.length
+					? owners[i === 0 ? 0 : owners.length - 1]
+					: root;
+				const tilePos = new BlockPos(p[0], p[1], p[2]);
+				let tile = world.getTileEntity(tilePos);
+				if (!tile && world.isAirBlock(tilePos)) {
+					BlockUtil.setBlock(
+						world,
+						p[0],
+						p[1],
+						p[2],
+						RTMRail.largeRailBase,
+						0,
+						2,
+					);
+					tile = world.getTileEntity(tilePos);
+					if (tile instanceof TileEntityLargeRailBase) {
+						tile.setStartPoint(
+							owner.blockX,
+							owner.blockY,
+							owner.blockZ,
+						);
+						tile.markDirty();
+						const state = world.getBlockState(tilePos);
+						world.notifyBlockUpdate(tilePos, state, state, 3);
+					}
+				}
+				if (
+					tile instanceof TileEntityLargeRailBase &&
+					!(tile instanceof TileEntityLargeRailCore)
+				) {
+					if (
+						SRBXRoadbedOwnership.transfer(
+							tile,
+							[owner.blockX, owner.blockY, owner.blockZ],
+							(c) => this.coreKey(c),
+							tile.getTileData(),
+						)
+					) {
+						const pos = new BlockPos(p[0], p[1], p[2]);
+						const state = world.getBlockState(pos);
+						world.notifyBlockUpdate(pos, state, state, 3);
+						NGTLog.debug(
+							`[SuperRailBuilderX transition] endpoint roadbed claimed: target=appleextended, tile=${p.join(",")}, owner=${owner.blockX},${owner.blockY},${owner.blockZ}`,
+						);
+					}
+				}
+			}
+		}
 		const pos = core.getPos();
 		return {
 			core: [pos.getX(), pos.getY(), pos.getZ()],
@@ -588,7 +706,7 @@ export class AppleExtendedRailCompat {
 			new BlockPos(owner.blockX, owner.blockY, owner.blockZ),
 		);
 		// Replacing even a foreign roadbed calls breakBlock -> breakLogicalRail.
-		if (!(tile instanceof TileEntityLargeRailBase)) return false;
+		if (!(tile instanceof TileEntityLargeRailCore)) return false;
 		const core = tile.getRailCore();
 		return !!core && (!ignoredKey || this.coreKey(core) !== ignoredKey);
 	}
@@ -710,8 +828,32 @@ export class AppleExtendedRailCompat {
 		);
 		if (validation !== "ok") return validation;
 		const core = this.getCore(world, corePos);
-		core.breakLogicalRail();
+		this.breakRail(world, core);
 		return "ok";
+	}
+
+	static breakRail(world: World, core: TileEntityLargeRailCore): void {
+		const records = SRBXRoadbedOwnership.promotions(
+			world.loadedTileEntityList,
+			this.coreKey(core),
+			(c) => this.coreKey(c),
+			(c) => c.getTileData(),
+		);
+		SRBXRoadbedOwnership.release(
+			world.loadedTileEntityList,
+			this.coreKey(core),
+			(p) => this.getCore(world, p),
+			(c) => this.coreKey(c),
+			(tile) => tile.getTileData(),
+			(tile) => {
+				const pos = tile.getPos(),
+					state = world.getBlockState(pos);
+				world.notifyBlockUpdate(pos, state, state, 3);
+			},
+		);
+		core.breakLogicalRail();
+		for (let i = 0; i < records.length; i++)
+			AppleExtendedRoadbedPlacement.restorePromotion(world, records[i]);
 	}
 
 	static validateUndoNormalRail(

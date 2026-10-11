@@ -42,6 +42,7 @@ class Base {
 		return core;
 	}
 }
+class Core extends Base {}
 class List {
 	constructor() {
 		this.values = [];
@@ -122,7 +123,7 @@ const context = {
 								changes++;
 							},
 							getTileEntity: () =>
-								ownerOccupied ? new Base() : core,
+								ownerOccupied ? new Core() : core,
 						},
 					},
 				},
@@ -134,6 +135,7 @@ const context = {
 					},
 					rail: {
 						TileEntityLargeRailBase: Base,
+						TileEntityLargeRailCore: Core,
 						util: {
 							RailPosition: RP,
 							RailMaker: Maker,
@@ -213,22 +215,29 @@ assert.ok(
 );
 assert.ok(section.nbt.values.RailSection.values.LogicalEndRP);
 const property = { writeToNBT: () => new NBT() };
+const world = { func_175625_s: () => null };
 const player = { field_71075_bZ: { field_75098_d: true } };
 const positions = [switched, new RP(), new RP()];
 ownerOccupied = true;
 assert.strictEqual(
-	context.AppleExtendedSwitchCompat.create({}, player, positions, property),
+	context.AppleExtendedSwitchCompat.create(
+		world,
+		player,
+		positions,
+		property,
+	),
 	false,
 );
-assert.strictEqual(
-	changes,
-	0,
-	"a connected roadbed owner must not be overwritten",
-);
+assert.strictEqual(changes, 0, "an existing core must not be overwritten");
 ownerOccupied = false;
 rejected = true;
 assert.strictEqual(
-	context.AppleExtendedSwitchCompat.create({}, player, positions, property),
+	context.AppleExtendedSwitchCompat.create(
+		world,
+		player,
+		positions,
+		property,
+	),
 	false,
 );
 assert.strictEqual(
@@ -239,13 +248,23 @@ assert.strictEqual(
 rejected = false;
 placeable = false;
 assert.strictEqual(
-	context.AppleExtendedSwitchCompat.create({}, player, positions, property),
+	context.AppleExtendedSwitchCompat.create(
+		world,
+		player,
+		positions,
+		property,
+	),
 	false,
 );
 assert.strictEqual(changes, 0, "all paths must be checked before placement");
 placeable = true;
 assert.strictEqual(
-	context.AppleExtendedSwitchCompat.create({}, player, positions, property),
+	context.AppleExtendedSwitchCompat.create(
+		world,
+		player,
+		positions,
+		property,
+	),
 	true,
 );
 assert.strictEqual(core.positions.length, positions.length);

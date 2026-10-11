@@ -4,7 +4,10 @@ import { BlockUtil } from "jp.ngt.ngtlib.block";
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { RTMRail } from "jp.ngt.rtm";
 import { ResourceStateRail } from "jp.ngt.rtm.modelpack.state";
-import { TileEntityLargeRailBase } from "jp.ngt.rtm.rail";
+import {
+	TileEntityLargeRailBase,
+	TileEntityLargeRailCore,
+} from "jp.ngt.rtm.rail";
 import { RailMap, RailMapBasic, RailPosition } from "jp.ngt.rtm.rail.util";
 import { RailChunkSectioner, RailMapSection } from "jp.apple.rail.util";
 import { TileEntityLargeRailSectionCore } from "jp.apple.rail";
@@ -12,6 +15,8 @@ import { World } from "net.minecraft.world";
 import { BlockPos } from "net.minecraft.util.math";
 import { NBTBase, NBTTagCompound } from "net.minecraft.nbt";
 import { AppleExtendedRailProtection } from "./AppleExtendedRailProtection";
+import { Block } from "net.minecraft.block";
+import { SRBXRoadbedOwnership } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXRoadbedOwnership";
 
 type Section = {
 	start: RailPosition;
@@ -137,8 +142,7 @@ export class AppleExtendedSectionPlacementCompat {
 			const tile = world.getTileEntity(
 				new BlockPos(owner[0], owner[1], owner[2]),
 			);
-			if (tile instanceof TileEntityLargeRailBase && tile.getRailCore())
-				return false;
+			if (tile instanceof TileEntityLargeRailCore) return false;
 			if (!sections[i].map.canPlaceRail(world, creative, property))
 				return false;
 		}
@@ -154,6 +158,7 @@ export class AppleExtendedSectionPlacementCompat {
 			property,
 		);
 		const created: TileEntityLargeRailSectionCore[] = [];
+		const promotions: NBTTagCompound[] = [];
 		let success = false;
 		try {
 			const logical = [
@@ -179,6 +184,44 @@ export class AppleExtendedSectionPlacementCompat {
 			for (let i = 0; i < sections.length; i++) {
 				const section = sections[i],
 					owner = section.owner;
+				const beforeCore = BlockUtil.getTileEntity(
+					world,
+					owner[0],
+					owner[1],
+					owner[2],
+				);
+				const beforeBlock = BlockUtil.getBlock(
+					world,
+					owner[0],
+					owner[1],
+					owner[2],
+				);
+				const promotion =
+					beforeCore instanceof TileEntityLargeRailBase
+						? SRBXRoadbedOwnership.capturePromotion(
+								beforeCore,
+								Block.getIdFromBlock(beforeBlock),
+								beforeBlock.getMetaFromState(
+									world.getBlockState(
+										new BlockPos(
+											owner[0],
+											owner[1],
+											owner[2],
+										),
+									),
+								),
+								(c) =>
+									AppleExtendedRoadbedPlacement.ownerKey(c),
+								(tile, nbt) => {
+									tile.writeToNBT(nbt);
+								},
+							)
+						: null;
+				if (promotion) promotions.push(promotion);
+				if (beforeCore instanceof TileEntityLargeRailBase) {
+					beforeCore.setStartPoint(owner[0], owner[1], owner[2]);
+					beforeCore.markDirty();
+				}
 				BlockUtil.setBlock(
 					world,
 					owner[0],
@@ -225,6 +268,11 @@ export class AppleExtendedSectionPlacementCompat {
 					positions,
 				);
 				core.createRailMap();
+				if (promotion)
+					SRBXRoadbedOwnership.attachPromotion(
+						core.getTileData(),
+						promotion,
+					);
 			}
 			for (let i = 0; i < created.length; i++) created[i].sendPacket();
 			success = true;
@@ -243,6 +291,11 @@ export class AppleExtendedSectionPlacementCompat {
 						world.setBlockToAir(pos);
 					}
 				}
+				for (let i = 0; i < promotions.length; i++)
+					AppleExtendedRoadbedPlacement.restorePromotion(
+						world,
+						promotions[i],
+					);
 			}
 			AppleExtendedRailProtection.restore(world, protectedRoadbeds);
 		}

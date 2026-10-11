@@ -11,9 +11,82 @@ import { ResourceStateRail } from "jp.ngt.rtm.modelpack.state";
 import { BlockPos } from "net.minecraft.util.math";
 import { World } from "net.minecraft.world";
 import { NBTBase, NBTTagCompound } from "net.minecraft.nbt";
+import { Block } from "net.minecraft.block";
+import { SRBXRoadbedOwnership } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXRoadbedOwnership";
+import { TileEntityLargeRailSectionCore } from "jp.apple.rail";
 
 /** Preserve existing rail blocks before any block or ownership write. */
 export class AppleExtendedRoadbedPlacement {
+	static ownerKey(core: TileEntityLargeRailCore): string {
+		if (
+			core instanceof TileEntityLargeRailSectionCore &&
+			core.isRailSection()
+		)
+			return `section:${core.getRailGroupId().toString()}`;
+		const pos = core.getPos();
+		return `core:${pos.getX()},${pos.getY()},${pos.getZ()}`;
+	}
+
+	static restorePromotion(world: World, record: NBTTagCompound | null): void {
+		if (!record) return;
+		const nbt = record.getCompoundTag("tile");
+		const pos = new BlockPos(
+			nbt.getInteger("x"),
+			nbt.getInteger("y"),
+			nbt.getInteger("z"),
+		);
+		const prior = BlockUtil.getTileEntity(
+			world,
+			nbt.getInteger("spX"),
+			nbt.getInteger("spY"),
+			nbt.getInteger("spZ"),
+		);
+		if (
+			!(prior instanceof TileEntityLargeRailCore) ||
+			this.ownerKey(prior) !== record.getString("key")
+		)
+			return;
+		const empty = world.isAirBlock(pos);
+		if (empty)
+			BlockUtil.setBlock(
+				world,
+				pos.getX(),
+				pos.getY(),
+				pos.getZ(),
+				Block.getBlockById(record.getInteger("block")),
+				record.getInteger("metadata"),
+				2,
+			);
+		const tile = world.getTileEntity(pos);
+		if (
+			tile instanceof TileEntityLargeRailBase &&
+			!(tile instanceof TileEntityLargeRailCore)
+		) {
+			const owner = tile.getStartPoint();
+			if (
+				!empty &&
+				(owner[0] !== pos.getX() ||
+					owner[1] !== pos.getY() ||
+					owner[2] !== pos.getZ())
+			)
+				return;
+			if (
+				Block.getIdFromBlock(
+					BlockUtil.getBlock(
+						world,
+						pos.getX(),
+						pos.getY(),
+						pos.getZ(),
+					),
+				) !== record.getInteger("block")
+			)
+				return;
+			tile.readFromNBT(nbt);
+			tile.markDirty();
+			const state = world.getBlockState(pos);
+			world.notifyBlockUpdate(pos, state, state, 3);
+		}
+	}
 	static hasExisting(
 		world: World,
 		maps: RailMap[],
@@ -112,24 +185,66 @@ export class AppleExtendedRoadbedPlacement {
 			return false;
 		map.prepareBaseBlocks(world, start.blockX, start.blockY, start.blockZ);
 		this.place(world, map, start, property);
-		BlockUtil.setBlock(
-			world,
-			start.blockX,
-			start.blockY,
-			start.blockZ,
-			RTMRail.largeRailCore,
-			0,
-			3,
-		);
-		const core = BlockUtil.getTileEntity(
+		const beforeCore = BlockUtil.getTileEntity(
 			world,
 			start.blockX,
 			start.blockY,
 			start.blockZ,
 		);
-		if (!(core instanceof TileEntityLargeRailCore)) return false;
+		const beforeBlock = BlockUtil.getBlock(
+			world,
+			start.blockX,
+			start.blockY,
+			start.blockZ,
+		);
+		const promotion =
+			beforeCore instanceof TileEntityLargeRailBase
+				? SRBXRoadbedOwnership.capturePromotion(
+						beforeCore,
+						Block.getIdFromBlock(beforeBlock),
+						beforeBlock.getMetaFromState(
+							world.getBlockState(
+								new BlockPos(
+									start.blockX,
+									start.blockY,
+									start.blockZ,
+								),
+							),
+						),
+						(c) => this.ownerKey(c),
+						(tile, nbt) => {
+							tile.writeToNBT(nbt);
+						},
+					)
+				: null;
 		let success = false;
+		let core: TileEntityLargeRailCore | null = null;
 		try {
+			if (beforeCore instanceof TileEntityLargeRailBase) {
+				beforeCore.setStartPoint(
+					start.blockX,
+					start.blockY,
+					start.blockZ,
+				);
+				beforeCore.markDirty();
+			}
+			BlockUtil.setBlock(
+				world,
+				start.blockX,
+				start.blockY,
+				start.blockZ,
+				RTMRail.largeRailCore,
+				0,
+				3,
+			);
+			const placed = BlockUtil.getTileEntity(
+				world,
+				start.blockX,
+				start.blockY,
+				start.blockZ,
+			);
+			if (!(placed instanceof TileEntityLargeRailCore)) return false;
+			core = placed;
 			const nbt = new NBTTagCompound();
 			for (const field of ["x", "spX"])
 				nbt.setInteger(field, start.blockX);
@@ -147,12 +262,18 @@ export class AppleExtendedRoadbedPlacement {
 			nbt.setTag("RP1", end.writeToNBT() as NBTBase);
 			core.readFromNBT(nbt);
 			core.createRailMap();
+			if (promotion)
+				SRBXRoadbedOwnership.attachPromotion(
+					core.getTileData(),
+					promotion,
+				);
 			core.sendPacket();
 			success = true;
 			return true;
 		} finally {
 			if (
 				!success &&
+				core &&
 				(BlockUtil.getTileEntity(
 					world,
 					start.blockX,
@@ -165,6 +286,7 @@ export class AppleExtendedRoadbedPlacement {
 					new BlockPos(start.blockX, start.blockY, start.blockZ),
 				);
 			}
+			if (!success) this.restorePromotion(world, promotion);
 		}
 	}
 }

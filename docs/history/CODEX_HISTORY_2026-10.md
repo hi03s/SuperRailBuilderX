@@ -416,3 +416,12 @@
 - 回帰テストの文字描画をGL色が残る挙動へ変更し、ホイール6アイコンすべてが白色で描画されることを検証。pnpm build（全4ターゲット）、pnpm test:gui、Java 8u51のbuilder1_gui_nashorn.test.jsが成功。差分/整形確認済み。実GPUでの修正版確認は未実施。
 - ZIPを106ファイルで更新。SHA256: 4F082E69C3A9CB2AFE041799D10D7C39744D720A990E327A231F111F5BF29179。KaizPatch/AEで6項目を順に選択して次アイコンの変色がないことを確認し、異常時は選択ツールとlogs/latest.logを共有する。
 - 同期: a1ecdea（ホイールの選択文字色が次のアイコンへ残る不具合を修正）をorigin/mainへpush完了。
+
+## 2026-10-11 ローカルCodex: 未接続端点スナップと重複レール生成の道床保護
+
+- mainで中断中の実装を再開。単独の未接続端点を移動する際、0.5m以内の別レール未接続端点へ精密座標でスナップする。プレビュー/確定を共通化し、サーバーで移動元と接続先の識別・座標・未接続状態を再検証する。
+- KaizPatch/AEの共通生成で、理論レール両端の内側約0.01mの中心線セル各1タイルだけ通常道床の所有先を変更。既設コアと途中道床は保持する。自動分割コアの競合は逆順も試し、両計画が不可ならrailGeneratingDistance（既定64m）以内で通常生成する。Kaiz RTMConfig / AE RTMCoreの設定を参照する。
+- 消失防止のため旧所有先の履歴をForge NBTに保存し、SRBXで移動・分割・Undoする前に生存する旧所有先へ復元する。通常道床→コア/分岐道床の昇格時も元のブロック/TileEntity NBTを保存し、旧コアから切り離してから置換する。削除/Undo・初期化失敗・配置拒否で元の道床を復元し、既設コアを置換しない。KaizのloadedTileEntityListを型付きAPIで参照しSRG変換を保証した。
+- 検証: 全4ターゲットpnpm build（警告なし）、test:rail-transition（所有先履歴・保存再読込・コア保護・端点スナップ/競合・逆順/設定上限・Kaiz昇格/Undo/初期化失敗/配置拒否）、test:appleextended（同じAE昇格保護と既存の移動/分割/カント/Undo）、test:kaizpatch、test:input、test:gui、test:free-endpoint、test:runtime-dispatch成功。変更TSのPrettier確認とgit diff --check成功。
+- ZIP: artifacts/SuperRailBuilderX-0.2.0.zipを107ファイルで再生成。新共通ヘルパー/全4ターゲットを確認し、利用者の未追跡gui_base.xcfは元ファイルを保持し配布物からのみ除外。SHA256: D3473DA2212E857D3FDE7B7C09D1DBFE9D8A4A9D8BBF628FF0F865FF6430B2BB。
+- 実ワールド/実走行は未検証。手順はdocs/roadbed-ownership-investigation.mdへ記載。標準マーカー/手動破壊をフックせず、過去レールの自動修復もしない。同セルには所有先1つのみで、全ての重なりの双方向走行を保証するものではない。SRBXPatchは引き続き必要。本番サーバー・rtm-ts・共有ツールキットは変更していない。

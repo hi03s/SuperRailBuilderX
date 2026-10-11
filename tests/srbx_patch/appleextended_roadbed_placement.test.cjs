@@ -1,7 +1,11 @@
 const fs = require("fs"),
 	vm = require("vm"),
 	assert = require("assert");
-class RailBlock {}
+class RailBlock {
+	func_176201_c() {
+		return 0;
+	}
+}
 class RailBase {
 	constructor(owner = null) {
 		this.owner = owner;
@@ -11,6 +15,10 @@ class RailBase {
 	getStartPoint() {
 		return this.owner;
 	}
+	getRailCore() {
+		const tile = this.owner && cells.get(this.owner.join(","))?.tile;
+		return tile instanceof RailCore ? tile : null;
+	}
 	setStartPoint(...pos) {
 		this.writes++;
 		this.owner = pos;
@@ -18,18 +26,45 @@ class RailBase {
 	func_70296_d() {
 		this.dirty++;
 	}
+	func_189515_b(nbt) {
+		for (const [i, name] of ["x", "y", "z"].entries())
+			nbt.func_74768_a(name, this.xyz[i]);
+		for (const [i, name] of ["spX", "spY", "spZ"].entries())
+			nbt.func_74768_a(name, this.owner[i]);
+		nbt.func_74782_a("ForgeData", this.data || new Compound());
+	}
+	func_145839_a(nbt) {
+		this.xyz = ["x", "y", "z"].map((k) => nbt.func_74762_e(k));
+		this.owner = ["spX", "spY", "spZ"].map((k) => nbt.func_74762_e(k));
+		this.data = nbt.func_74775_l("ForgeData") || new Compound();
+	}
+	getTileData() {
+		return this.data || (this.data = new Compound());
+	}
+	func_174877_v() {
+		return new context.Packages.net.minecraft.util.math.BlockPos(
+			...this.xyz,
+		);
+	}
 }
 class RailCore extends RailBase {
 	func_145839_a(nbt) {
 		if (failInitialize)
 			throw new Error("injected core initialization failure");
 		this.nbt = nbt.values;
+		super.func_145839_a(nbt);
 	}
 	createRailMap() {
 		this.maps = (this.maps || 0) + 1;
 	}
 	sendPacket() {
 		this.packets = (this.packets || 0) + 1;
+	}
+	breakLogicalRail() {
+		const owned = Array.from(cells).filter(
+			([, value]) => value.tile?.getRailCore() === this,
+		);
+		for (const [pos] of owned) cells.delete(pos);
 	}
 }
 class Compound {
@@ -45,6 +80,21 @@ class Compound {
 	func_74782_a(key, value) {
 		this.values[key] = value;
 	}
+	func_74778_a(k, v) {
+		this.values[k] = v;
+	}
+	func_74764_b(k) {
+		return k in this.values;
+	}
+	func_74775_l(k) {
+		return this.values[k];
+	}
+	func_74762_e(k) {
+		return this.values[k];
+	}
+	func_74779_i(k) {
+		return this.values[k];
+	}
 }
 const normalBlock = new RailBlock(),
 	coreBlock = new RailBlock();
@@ -54,7 +104,16 @@ let cells = new Map(),
 	suppressTile = false;
 let failInitialize = false,
 	cleaned = 0;
+let rejectCorePlacement = false;
 const world = {
+	func_180495_p: () => ({}),
+	func_175625_s: (p) => cells.get(key(p.x, p.y, p.z))?.tile || null,
+	func_175623_d: (p) => !cells.has(key(p.x, p.y, p.z)),
+	func_184138_a() {},
+	field_147482_g: {
+		size: () => cells.size,
+		get: (i) => Array.from(cells.values())[i].tile,
+	},
 	func_175698_g(pos) {
 		cleaned++;
 		cells.delete(key(pos.x, pos.y, pos.z));
@@ -65,6 +124,10 @@ const BlockUtil = {
 	getTileEntity: (_world, x, y, z) => cells.get(key(x, y, z))?.tile || null,
 	getBlock: (_world, x, y, z) => cells.get(key(x, y, z))?.block || {},
 	setBlock: (_world, x, y, z, block, meta, flags) => {
+		if (rejectCorePlacement && block === coreBlock) return false;
+		const prior = cells.get(key(x, y, z))?.tile;
+		if (prior && prior.getRailCore())
+			prior.getRailCore().breakLogicalRail();
 		writes.push({ pos: [x, y, z], block, meta, flags });
 		cells.set(key(x, y, z), {
 			block,
@@ -74,12 +137,15 @@ const BlockUtil = {
 					? new RailCore()
 					: new RailBase(),
 		});
+		if (cells.get(key(x, y, z)).tile)
+			cells.get(key(x, y, z)).tile.xyz = [x, y, z];
 		return true;
 	},
 };
 const context = {
 	Packages: {
 		jp: {
+			apple: { rail: { TileEntityLargeRailSectionCore: class {} } },
 			ngt: {
 				ngtlib: {
 					block: { BlockUtil },
@@ -103,6 +169,12 @@ const context = {
 		},
 		net: {
 			minecraft: {
+				block: {
+					Block: {
+						func_149682_b: () => 1,
+						func_149729_e: () => normalBlock,
+					},
+				},
 				nbt: { NBTTagCompound: Compound },
 				util: {
 					math: {
@@ -112,6 +184,15 @@ const context = {
 								this.y = y;
 								this.z = z;
 							}
+							func_177958_n() {
+								return this.x;
+							}
+							func_177956_o() {
+								return this.y;
+							}
+							func_177952_p() {
+								return this.z;
+							}
 						},
 					},
 				},
@@ -120,6 +201,13 @@ const context = {
 	},
 };
 vm.createContext(context);
+vm.runInContext(
+	fs.readFileSync(
+		"dist/assets/minecraft/scripts/superrailbuilderx/SRBXRoadbedOwnership.js",
+		"utf8",
+	),
+	context,
+);
 vm.runInContext(
 	fs.readFileSync(
 		"dist/assets/minecraft/__targets__/appleextended/scripts/superrailbuilderx/AppleExtendedRoadbedPlacement.js",
@@ -263,6 +351,66 @@ assert.equal(
 assert.equal(cells.has("20,4,5"), false);
 for (const value of retained)
 	assert.strictEqual(cells.get(value.pos.join(",")), value);
+// Native breakBlock is destructive: promoting another rail's ordinary bed must
+// detach it first, and deletion/Undo or initialization failure must restore it.
+vm.runInContext(
+	fs.readFileSync(
+		"dist/assets/minecraft/__targets__/appleextended/scripts/superrailbuilderx/AppleExtendedRailCompat.js",
+		"utf8",
+	),
+	context,
+);
+map.getRailBlockList = () => list([[21, 4, 5]]);
+function donorSetup() {
+	cells.clear();
+	const donor = new RailCore([80, 4, 5]);
+	donor.xyz = [80, 4, 5];
+	cells.set("80,4,5", { block: coreBlock, tile: donor });
+	const bed = new RailBase([80, 4, 5]);
+	bed.xyz = [20, 4, 5];
+	cells.set("20,4,5", { block: normalBlock, tile: bed });
+	return donor;
+}
+failInitialize = false;
+let donor = donorSetup();
+assert.equal(helper.createNormal(world, map, property, true), true);
+assert.strictEqual(
+	cells.get("80,4,5").tile,
+	donor,
+	"promotion must not delete the donor rail",
+);
+const promoted = cells.get("20,4,5").tile;
+assert(promoted.getTileData().func_74764_b("SRBXPromotedRoadbed"));
+context.AppleExtendedRailCompat.breakRail(world, promoted);
+assert.deepEqual(
+	cells.get("20,4,5").tile.owner,
+	[80, 4, 5],
+	"Undo/deletion restores original ordinary bed",
+);
+assert.strictEqual(cells.get("80,4,5").tile, donor);
+assert(!cells.has("21,4,5"));
+donor = donorSetup();
+failInitialize = true;
+assert.throws(
+	() => helper.createNormal(world, map, property, true),
+	/injected core initialization failure/,
+);
+assert.deepEqual(
+	cells.get("20,4,5").tile.owner,
+	[80, 4, 5],
+	"failed initialization restores donor bed",
+);
+assert.strictEqual(cells.get("80,4,5").tile, donor);
+failInitialize = false;
+donor = donorSetup();
+rejectCorePlacement = true;
+assert.equal(helper.createNormal(world, map, property, true), false);
+assert.deepEqual(
+	cells.get("20,4,5").tile.owner,
+	[80, 4, 5],
+	"rejected block placement restores detached owner",
+);
+assert.strictEqual(cells.get("80,4,5").tile, donor);
 console.log(
 	"AppleExtended roadbed placement ownership and normal core NBT tests passed",
 );

@@ -6,6 +6,7 @@ import { RTMRail } from "jp.ngt.rtm";
 import { ResourceStateRail } from "jp.ngt.rtm.modelpack.state";
 import {
 	TileEntityLargeRailBase,
+	TileEntityLargeRailCore,
 	TileEntityLargeRailSwitchBase,
 	TileEntityLargeRailSwitchCore,
 } from "jp.ngt.rtm.rail";
@@ -14,6 +15,9 @@ import { EntityPlayer } from "net.minecraft.entity.player";
 import { World } from "net.minecraft.world";
 import { NBTBase, NBTTagCompound } from "net.minecraft.nbt";
 import { AppleExtendedRailProtection } from "./AppleExtendedRailProtection";
+import { SRBXRoadbedOwnership } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXRoadbedOwnership";
+import { Block } from "net.minecraft.block";
+import { BlockPos } from "net.minecraft.util.math";
 
 /** AE's public marker overload omits the player on its switch failure path. */
 export class AppleExtendedSwitchCompat {
@@ -23,8 +27,7 @@ export class AppleExtendedSwitchCompat {
 		positions: RailPosition[],
 		property: ResourceStateRail,
 	): boolean {
-		// Replacing even a roadbed base invokes its former core's logical-rail
-		// deletion. Never turn another live rail's block into a switch owner.
+		// Live cores are never replaced. Ordinary bases are detached safely below.
 		for (let i = 0; i < positions.length; i++) {
 			const rp = positions[i];
 			const tile = BlockUtil.getTileEntity(
@@ -33,7 +36,7 @@ export class AppleExtendedSwitchCompat {
 				rp.blockY,
 				rp.blockZ,
 			);
-			if (tile instanceof TileEntityLargeRailBase && tile.getRailCore()) {
+			if (tile instanceof TileEntityLargeRailCore) {
 				NGTLog.debug(
 					"[SuperRailBuilderX AE] switch creation rejected: occupied owner block",
 				);
@@ -74,6 +77,9 @@ export class AppleExtendedSwitchCompat {
 			Array.prototype.slice.call(maps),
 			property,
 		);
+		const promotions: NBTTagCompound[] = [];
+		const installed: BlockPos[] = [];
+		let success = false;
 		try {
 			for (let i = 0; i < maps.length; i++) {
 				maps[i].prepareBaseBlocks(
@@ -91,6 +97,24 @@ export class AppleExtendedSwitchCompat {
 			}
 			for (let i = 0; i < positions.length; i++) {
 				const rp = positions[i];
+				const pos = new BlockPos(rp.blockX, rp.blockY, rp.blockZ);
+				const prior = world.getTileEntity(pos);
+				if (prior instanceof TileEntityLargeRailBase) {
+					const block = world.getBlockState(pos).getBlock();
+					const record = SRBXRoadbedOwnership.capturePromotion(
+						prior,
+						Block.getIdFromBlock(block),
+						block.getMetaFromState(world.getBlockState(pos)),
+						(c) => AppleExtendedRoadbedPlacement.ownerKey(c),
+						(tile, nbt) => {
+							tile.writeToNBT(nbt);
+						},
+					);
+					if (record) promotions.push(record);
+					prior.setStartPoint(rp.blockX, rp.blockY, rp.blockZ);
+					prior.markDirty();
+				}
+				installed.push(pos);
 				BlockUtil.setBlock(
 					world,
 					rp.blockX,
@@ -139,13 +163,35 @@ export class AppleExtendedSwitchCompat {
 				nbt.setTag(`RP${i}`, positions[i].writeToNBT() as NBTBase);
 			core.readFromNBT(nbt);
 			core.createRailMap();
+			for (let i = 0; i < promotions.length; i++)
+				SRBXRoadbedOwnership.attachPromotion(
+					core.getTileData(),
+					promotions[i],
+				);
 			core.onBlockChanged();
 			core.sendPacket();
 			NGTLog.debug(
 				`[SuperRailBuilderX AE] switch initialized: root=${root.blockX},${root.blockY},${root.blockZ}, positions=${positions.length}, version=${maker.fixRTMRailMapVersion}`,
 			);
+			success = true;
 			return true;
 		} finally {
+			if (!success) {
+				for (let i = 0; i < installed.length; i++) {
+					const pos = installed[i],
+						tile = world.getTileEntity(pos);
+					if (tile instanceof TileEntityLargeRailCore)
+						tile.breaking = true;
+					else if (tile instanceof TileEntityLargeRailBase)
+						tile.setStartPoint(pos.getX(), pos.getY(), pos.getZ());
+					world.setBlockToAir(pos);
+				}
+				for (let i = 0; i < promotions.length; i++)
+					AppleExtendedRoadbedPlacement.restorePromotion(
+						world,
+						promotions[i],
+					);
+			}
 			AppleExtendedRailProtection.restore(world, protectedRoadbeds);
 		}
 	}
