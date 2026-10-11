@@ -61,6 +61,7 @@ export const SRBX_TOOL_REQUESTS = [
 ];
 
 export function toolIndex(model: string): number {
+	model = String(model);
 	for (let i = 0; i < tools.length; i++)
 		if (tools[i].model === model) return i;
 	return -1;

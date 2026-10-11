@@ -8,17 +8,20 @@ export class SRBXToolSwitchServer {
 	/** Run after host/exit validation, before processing the current tool's requests. */
 	static update(entity: EntityVehicle, host: EntityPlayer): boolean {
 		const data = entity.getResourceState().getDataMap();
-		const target = data.getString("srbxToolSwitchRequest");
+		const target = String(data.getString("srbxToolSwitchRequest"));
 		if (!target) return false;
 		data.setString("srbxToolSwitchRequest", "", 1);
 		const index = toolIndex(target);
+		const hostId = String(host.getEntityId());
+		const ownerId = String(data.getString("hostPlayerEntityId"));
+		const riding = SRBXApiCompat.getRidingEntity(entity);
+		// Java wrappers can differ between stored hosts and API return values.
+		// Entity IDs identify the host within this server world.
+		const ridingId = riding ? String(riding.getEntityId()) : "none";
 		let status = "invalid_tool";
-		if (
-			index >= 0 &&
-			String(host.getEntityId()) ===
-				data.getString("hostPlayerEntityId") &&
-			(SRBXApiCompat.getRidingEntity(entity) as unknown) === host
-		) {
+		if (index >= 0 && ownerId !== hostId) status = "invalid_owner";
+		else if (index >= 0 && ridingId !== hostId) status = "invalid_mount";
+		if (index >= 0 && ownerId === hostId && ridingId === hostId) {
 			let busy = false;
 			for (let i = 0; i < SRBX_TOOL_REQUESTS.length; i++)
 				if (data.getString(SRBX_TOOL_REQUESTS[i])) busy = true;
@@ -44,7 +47,7 @@ export class SRBXToolSwitchServer {
 		}
 		data.setString("srbxToolSwitchResult", status, 1);
 		NGTLog.debug(
-			`[SuperRailBuilderX wheel] target=${target}, result=${status}`,
+			`[SuperRailBuilderX wheel] target=${target}, result=${status}, index=${index}, host=${hostId}, owner=${ownerId}, riding=${ridingId}`,
 		);
 		return status === "ok";
 	}

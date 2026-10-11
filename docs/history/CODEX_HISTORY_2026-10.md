@@ -481,3 +481,10 @@
 - v0.3.0の既存Draft/タグ/Assetsは変更せず、開発版ZIPを別名で用意する。実機確認は docs/builder2.md を参照。
 - 整形: 今回変更したTypeScript全7ファイルはPrettier確認成功。全体のformat:checkは未変更の既存24ファイルに警告があり未通過。検証用ZIPは113ファイル、BのJSON/3テクスチャを確認し、編集中のgui_base.xcfは除外した。
 - 実装コミット: 790f4de。origin/mainへのpush成功・同期済み。検証ZIP: artifacts/SuperRailBuilderX-0.3.0-builder-ab-test.zip。
+
+## 2026-10-12 ローカルCodex: AEのTAB切り替え拒否対策と診断
+
+- latest.logの00:01:49/55/58にB・分割・移動への要求がinvalid_toolで拒否されたことを確認。モデル変更APIの呼出し前の検証で失敗しており、旧ログはツール名/所有者/追従先のどの条件で失敗したかを区別できない。原因の断定は保留。
+- Java由来のツール名と所有者IDをJS文字列へ正規化。追従先とホストの比較をラッパーの厳密参照一致から、同じサーバーワールド内のEntity ID一致へ変更。所有者・追従先・未処理要求のチェックは継続。invalid_owner/invalid_mountとindex/host/owner/ridingをログへ追加。
+- test:inputで文字列ラッパー・同一IDの別ラッパーでの切替成功、他人/所有者不一致/追従先なしの拒否を検証。全4ターゲットbuild、test:gui、test:runtime-dispatch、Java8 Nashornホイールテスト成功。実機再確認は未実施。
+- 抜粋ログ: logs/appleextended-wheel-invalid-tool-20261012.log（SRBX要求3行のみ）。更新ZIP: artifacts/SuperRailBuilderX-0.3.0-ae-wheel-fix.zip。AEでTAB解除/左クリックのモデル変更を再確認し、不具合時はlogs/latest.logを共有する。既存Draft/タグ/Assetsは変更しない。

@@ -260,12 +260,12 @@ assert.equal(s.mc.field_71462_r, null);
 for (const [target, status, busy, owner] of [
 	["outside_pack", "invalid_tool", false, true],
 	["SuperRailBuilderX_CantFormatter", "busy", true, true],
-	["SuperRailBuilderX_CantFormatter", "invalid_tool", false, false],
+	["SuperRailBuilderX_CantFormatter", "invalid_mount", false, false],
 ]) {
 	s = setup();
 	s.values.srbxToolSwitchRequest = target;
 	if (busy) s.values.railPositionMove = "pending";
-	if (!owner) s.setRider({});
+	if (!owner) s.setRider({ func_145782_y: () => 99 });
 	assert.equal(
 		s.context.SRBXToolSwitchServer.update(s.entity, s.player),
 		false,
@@ -273,6 +273,24 @@ for (const [target, status, busy, owner] of [
 	assert.equal(s.values.srbxToolSwitchResult, status);
 	assert.equal(s.model(), "SuperRailBuilderX_builder1");
 }
+// Java-backed strings and separate wrappers for the same world entity.
+s = setup();
+s.values.hostPlayerEntityId = new String("7");
+s.values.srbxToolSwitchRequest = new String("SuperRailBuilderX_builder2");
+s.setRider({ func_145782_y: () => 7 });
+assert(s.context.SRBXToolSwitchServer.update(s.entity, s.player));
+assert.equal(s.values.srbxToolSwitchResult, "ok");
+assert.equal(s.model(), "SuperRailBuilderX_builder2");
+s = setup();
+s.values.hostPlayerEntityId = "99";
+s.values.srbxToolSwitchRequest = "SuperRailBuilderX_builder2";
+assert.equal(s.context.SRBXToolSwitchServer.update(s.entity, s.player), false);
+assert.equal(s.values.srbxToolSwitchResult, "invalid_owner");
+s = setup();
+s.setRider(null);
+s.values.srbxToolSwitchRequest = "SuperRailBuilderX_builder2";
+assert.equal(s.context.SRBXToolSwitchServer.update(s.entity, s.player), false);
+assert.equal(s.values.srbxToolSwitchResult, "invalid_mount");
 for (const status of ["missing_model", "internal_error"]) {
 	s = setup();
 	s.values.srbxToolSwitchRequest = "SuperRailBuilderX_CantFormatter";
