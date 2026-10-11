@@ -33,7 +33,7 @@
 
 ## 作業中
 
-- ローカルCodex: 移動先の未接続端点スナップと、共通生成の端部道床上書き/逆順・通常生成fallbackを実装・検証する。
+- なし。実機検証待ち。
 
 ## 優先確認事項
 
@@ -93,7 +93,7 @@
 
 ## 次に行うこと
 
-1. 更新main ZIPで全6ツールのTABホイール（リング/左クリック/中央で変更なし/TAB解除/ESC/マルチプレイリスト）、カント解除色とカーソル非表示を確認する（tool-wheel.md）。Pの3種類切替/ブロック格子/影付き文字も継続確認し、暫定SRBXPatchは継続導入する。
+1. 更新main ZIPで未接続端点スナップと重複敷設/移動/分割/Undo後のレール保持を確認する（roadbed-ownership-investigation.md）。全6ツールのTABホイール（リング/左クリック/中央で変更なし/TAB解除/ESC/マルチプレイリスト）、カント解除色とカーソル非表示を確認する（tool-wheel.md）。Pの3種類切替/ブロック格子/影付き文字も継続確認し、暫定SRBXPatchは継続導入する。
 2. KaizPatch/AEで自由端点の接続を新規生成し、通常車両の両方向低速走行・移動・Undoを確認する（srbx-free-endpoint-mod.md）。
 3. AppleExtended v2.5.3で分岐描画patchのBootstrapログとoffsetあり/なし描画を確認する。
 4. レール移動のCTRL中ホバー抑止、カントのレール単位選択/両端適用/速度0/±50/Undo、分岐の3種スナップとGUIをKaizPatch/AEで確認する。全6ツールのHヘルプの行分けと末尾のスクロール案内も確認する。
@@ -115,7 +115,7 @@
 
 ## 直近の完了
 
-- 2026-10-11 ローカルCodex: ホイールの選択文字色が次アイコンへ残る不具合を修正。全4build・GUI回帰・旧Java検証成功、ZIP更新、実機再確認待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[a1ecdea](https://github.com/hi03s/SuperRailBuilderX/commit/a1ecdea)をorigin/mainへpush済み。
+- 2026-10-11 ローカルCodex: 未接続端点スナップ、端部道床所有先変更/復元と逆順・設定上限内の通常生成を実装。全4build・関連回帰成功、ZIP更新、実機確認待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[a945d9b](https://github.com/hi03s/SuperRailBuilderX/commit/a945d9b)をorigin/mainへpush済み、同期確認済み。
 
 ## 関連資料
 

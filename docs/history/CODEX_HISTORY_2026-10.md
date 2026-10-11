@@ -425,3 +425,4 @@
 - 検証: 全4ターゲットpnpm build（警告なし）、test:rail-transition（所有先履歴・保存再読込・コア保護・端点スナップ/競合・逆順/設定上限・Kaiz昇格/Undo/初期化失敗/配置拒否）、test:appleextended（同じAE昇格保護と既存の移動/分割/カント/Undo）、test:kaizpatch、test:input、test:gui、test:free-endpoint、test:runtime-dispatch成功。変更TSのPrettier確認とgit diff --check成功。
 - ZIP: artifacts/SuperRailBuilderX-0.2.0.zipを107ファイルで再生成。新共通ヘルパー/全4ターゲットを確認し、利用者の未追跡gui_base.xcfは元ファイルを保持し配布物からのみ除外。SHA256: D3473DA2212E857D3FDE7B7C09D1DBFE9D8A4A9D8BBF628FF0F865FF6430B2BB。
 - 実ワールド/実走行は未検証。手順はdocs/roadbed-ownership-investigation.mdへ記載。標準マーカー/手動破壊をフックせず、過去レールの自動修復もしない。同セルには所有先1つのみで、全ての重なりの双方向走行を保証するものではない。SRBXPatchは引き続き必要。本番サーバー・rtm-ts・共有ツールキットは変更していない。
+- コミット: a945d9b（未接続端点の移動スナップと重複敷設時の道床保護を実装）。origin/mainへpush成功、HEAD...origin/mainの差分0/0を確認。
