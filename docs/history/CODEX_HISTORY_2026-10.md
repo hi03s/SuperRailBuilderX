@@ -442,3 +442,4 @@
 - 正式v2.5.3 Forge JARの通常/Section/分岐コア、道床、RailMap、NBT/パケット同期をjavapで確認。全classの定数プールから道床配置/ChunkEventの候補を抽出し呼出し元を追跡した。通常読込は保存spX/spY/spZとRP/線形キャッシュを復元するが、道床の自動再敷設は確認できない。
 - 道床配置は標準マーカー生成とTileEntityLargeRailCore.relocateRailの明示操作経路。同種の既設道床はsetStartPointで所有先が変わり得るが、通常読込による上書きとは区別する。replaceRailのモデル変更も再敷設しない。詳細/対象JARハッシュ/実機切り分けはdocs/roadbed-ownership-investigation.mdに追記した。
 - 検証は実バイトコードの静的追跡。実ワールドでの再入場前後の所有先は未検証、第三者Mod/任意モデルスクリプトは範囲外。コード変更なしの資料作業なのでbuild/回帰は再実施していない。本番サーバー・rtm-ts・ユーザーアセットは未操作。
+- 同期: 043b53a（AEのレール読込と道床再配置の経路を調査して記録）をorigin/mainへpush成功。

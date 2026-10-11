@@ -117,7 +117,7 @@
 
 ## 直近の完了
 
-- 2026-10-11 ローカルCodex: KaizPatchのgetTileData未定義による生成/移動/分割失敗を修正。全4build・関連回帰・保存再読込模擬検証成功、ZIP更新、実機再確認待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[91d7899](https://github.com/hi03s/SuperRailBuilderX/commit/91d7899)をorigin/mainへpush済み、同期確認済み。
+- 2026-10-11 ローカルCodex: AE読込時の道床自動再敷設は確認できず、保存所有先のNBT復元と明示的な移動/生成経路を区別。[10月履歴](history/CODEX_HISTORY_2026-10.md)。[043b53a](https://github.com/hi03s/SuperRailBuilderX/commit/043b53a)をorigin/mainへpush済み、同期確認済み。
 
 ## 関連資料
 
