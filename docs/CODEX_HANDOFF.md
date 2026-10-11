@@ -39,6 +39,8 @@
 
 ## 優先確認事項
 
+- AE重複区間の既設側への吸着対策としてSRBXPatchの現在map保持を区間全体へ拡張。Java挙動/実AE ASM検証成功、実機未確認。AE JARのみ置換し、非重複区間から双方向通過・通常/Section/分岐/移動Undoを確認する。初回取得の線選択は対象外。[診断/手順](appleextended-overlap-rail-patch.md)。
+
 - KaizPatch実機の生成/移動/分割失敗は前回のSRBX getTileData誤用が原因。1.7.10の履歴保存を専用WorldSavedDataへ修正済み。更新ZIP（108ファイル）でKaizPatch/AEの重複敷設・双方向低速走行、接続移動・分割・分岐・Undoと保存/再入場後の未選択レール保持を確認する。全4build（警告なし）・関連回帰・保存再読込の模擬検証成功、実機再確認待ち。[手順](roadbed-ownership-investigation.md)。本番サーバーは操作しない。
 
 - ホイールで選択名の黄色が次のアイコンへ残る実機報告を受け、各アイコン描画前に白色へ戻すよう修正。更新ZIPで全6項目の色をKaizPatch/AEで再確認する。全4build、GUI回帰、旧Java 8u51のGL模擬検証は成功。リング・左クリック・中央で変更なし・押しっぱなし抑止とマルチプレイのリスト非表示も継続確認する。[手順](tool-wheel.md)。

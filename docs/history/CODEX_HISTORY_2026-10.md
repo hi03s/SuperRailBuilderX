@@ -443,3 +443,10 @@
 - 道床配置は標準マーカー生成とTileEntityLargeRailCore.relocateRailの明示操作経路。同種の既設道床はsetStartPointで所有先が変わり得るが、通常読込による上書きとは区別する。replaceRailのモデル変更も再敷設しない。詳細/対象JARハッシュ/実機切り分けはdocs/roadbed-ownership-investigation.mdに追記した。
 - 検証は実バイトコードの静的追跡。実ワールドでの再入場前後の所有先は未検証、第三者Mod/任意モデルスクリプトは範囲外。コード変更なしの資料作業なのでbuild/回帰は再実施していない。本番サーバー・rtm-ts・ユーザーアセットは未操作。
 - 同期: 043b53a（AEのレール読込と道床再配置の経路を調査して記録）をorigin/mainへpush成功。
+
+## 2026-10-11 ローカルCodex: AE重複区間のレール吸着対策を試作
+
+- AE実バイトコードのgetRailは予測道床のgetRailCoreを返し、resetRailObjはコアが違えば接続性の確認なしにmapを入れ替える。現行SRBXPatchの保持が自由端点付近だけだったため、途中の重複道床で標準探索へ戻る経路を特定した。Kaiz v1.10.4一次ソースの接続探索優先/セクション保持/canConnect検査との差も確認。今回の走行ログは未取得なので報告現象の直接捕捉は未完。
+- AEFreeEndpointHookの現在map保持を区間全体へ拡張し、予測には現在サンプルの接線を使用。近い端点外では保持を解除し、自由点の精密遷移/境界点の標準遷移を維持する。削除/置換/未ロード/位置や高さの不整合は標準復帰。初回取得や既に吸着済みの台車は対象外。Kaiz JAR、道床所有先、パックは変更しない。
+- Java 8挙動テストと実AE v2.5.3へのASM BasicVerifier/二重適用防止が成功。追加した重複区間双方向・曲線接線/探索量・境界端点両側・線形外/map置換/初回取得のテストと従来回帰を確認。JVM診断引数ON/OFFとも成功。実ワールド・実走行・マルチ同期・負荷は未検証。Javaのみ変更でTypeScript build/ZIPは未更新。
+- AE JARを更新: artifacts/SRBXPatch-v1.0-1.12.2.jar、SHA256: 2974CFF2259124996598A3C78D413556FF9D04593FC623B98E1D741D5B3AA0FD。Java 8形式・資産/依存/テスト非同梱の検証成功。診断は-Dsrbxpatch.debugRailLookup=true、最大1秒に1行。仕様/制約/確認手順はdocs/appleextended-overlap-rail-patch.md。本番サーバー・rtm-ts・共有ツールキット・ユーザーアセットは未操作。

@@ -22,6 +22,13 @@ public final class AEPatchTest {
   public Object getRailCore(){return this;} public Object[] getAllRailMaps(){return new Object[]{map};}
   public Object getRailMap(Object b){return map;}
  }
+ public static class Curve extends Map {
+  int samples;
+  Curve(){super(.2,5.2);end.posX=5.3;}
+  public double getLength(){return Math.PI*2.5;}
+  public float getRailYaw(int s,int i){return (float)(90.0*i/s);}
+  public double[] getRailPos(int s,int i){samples++;double a=Math.PI*.5*i/s;return new double[]{.2+5*Math.sin(a),.3+5*(1-Math.cos(a))};}
+ }
  public static class SwitchCore extends Core {
   public Map active; SwitchCore(Map inactive,Map active,Pos p){super(inactive,p);this.active=active;}
   public Object getSwitch(){return this;} public Object getNearestPoint(Object bogie){return this;}
@@ -65,6 +72,29 @@ public final class AEPatchTest {
  }
  public static void main(String[] args)throws Exception {
   verifyModMetadata(args);
+  // A conflicting bed in the middle must not replace the map already followed.
+  Bogie overlap=new Bogie();overlap.prevPosIndex=1800;overlap.posZ=5.2;
+  overlap.currentRailObj.position=new Pos(0,4,0);overlap.world.put(overlap.currentRailObj.position,overlap.currentRailObj);
+  Core foreign=new Core(new Map(.2,10.2),new Pos(1,4,5));
+  overlap.world.put(foreign.position,foreign);overlap.world.put(new Pos(0,4,5),new Tile(foreign));
+  expect(AEFreeEndpointHook.resolve(overlap,.3,4.0625,5.21)==overlap.currentRailObj,"overlapping middle bed retains current map forward");
+  expect(AEFreeEndpointHook.resolve(overlap,.3,4.0625,5.19)==overlap.currentRailObj,"overlapping middle bed retains current map reverse");
+  expect(AEFreeEndpointHook.resolve(overlap,.5,4.0625,5.21)==null,"off-line middle prediction falls back");
+  Map originalMap=overlap.currentRailObj.map;overlap.currentRailObj.map=new Map(.2,10.2);
+  expect(AEFreeEndpointHook.resolve(overlap,.3,4.0625,5.21)==null,"replaced middle map falls back");
+  overlap.currentRailObj.map=originalMap;overlap.currentRailMap=null;
+  expect(AEFreeEndpointHook.resolve(overlap,.3,4.0625,5.21)==null,"initial rail acquisition remains native");
+  Bogie boundary=new Bogie();boundary.currentRailMap=boundary.currentRailObj.map=new Map(0,10);boundary.posZ=9.98;
+  expect(AEFreeEndpointHook.resolve(boundary,.3,4.0625,9.99)==boundary.currentRailObj,"boundary-ended rail retains inside");
+  expect(AEFreeEndpointHook.resolve(boundary,.3,4.0625,10.01)==null,"boundary end crossing stays native");
+  boundary.prevPosIndex=8;boundary.posZ=.02;
+  expect(AEFreeEndpointHook.resolve(boundary,.3,4.0625,-.01)==null,"boundary start crossing stays native");
+  Bogie curved=new Bogie();Curve curve=new Curve();curved.currentRailMap=curved.currentRailObj.map=curve;
+  curved.split=(int)(curve.getLength()*360);curved.prevPosIndex=curved.split/2;
+  double[] previousCurve=curve.getRailPos(curved.split,curved.prevPosIndex),nextCurve=curve.getRailPos(curved.split,curved.prevPosIndex+3);
+  curved.posX=previousCurve[1];curved.posZ=previousCurve[0];curve.samples=0;
+  expect(AEFreeEndpointHook.resolve(curved,nextCurve[1],4.0625,nextCurve[0])==curved.currentRailObj,"curve middle retention follows local tangent");
+  expect(curve.samples<=3,"curve local tangent avoids dense scan on a matching prediction");
   Bogie b=new Bogie();Core c=next(b);
   expect(AEFreeEndpointHook.resolve(b,.3,4.0625,10.19)==b.currentRailObj,"retain before exact endpoint despite next bed");
   expect(AEFreeEndpointHook.resolve(b,.3,4.0625,10.21)==c,"cross exact endpoint despite old bed");

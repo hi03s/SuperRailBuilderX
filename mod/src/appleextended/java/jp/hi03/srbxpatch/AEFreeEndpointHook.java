@@ -2,6 +2,7 @@ package jp.hi03.srbxpatch;
 
 import java.lang.reflect.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Reflection keeps Minecraft/SRG references out of the coremod. Metadata is cached per class;
@@ -10,6 +11,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class AEFreeEndpointHook {
     private static final AtomicBoolean warned = new AtomicBoolean();
     private static volatile boolean healthy = true;
+    private static final boolean debugLookup = Boolean.getBoolean("srbxpatch.debugRailLookup");
+    private static final AtomicLong nextTrace = new AtomicLong();
     public static boolean isHealthy() { return healthy; }
     private static final ClassValue<Members> members = new ClassValue<Members>() {
         protected Members computeValue(Class<?> type) { return new Members(type); }
@@ -29,7 +32,6 @@ public final class AEFreeEndpointHook {
             double movement = Math.hypot(x - bx, z - bz);
             if (!EndpointGeometry.finite(movement) || movement > 10.0) return null;
             int margin = (int) Math.ceil((movement + 1.0) * 360.0);
-            if (previous > margin && split - previous > margin) return null;
             if (!live(world, core)) return null;
             Object maps = call(core, "getAllRailMaps");
             boolean live = false;
@@ -43,21 +45,25 @@ public final class AEFreeEndpointHook {
             if (!EndpointGeometry.finite(sy) || !EndpointGeometry.finite(ey)) return null;
             boolean freeStart = previous <= margin && EndpointGeometry.freeInteriorEndpoint(sx, sz, sy);
             boolean freeEnd = split - previous <= margin && EndpointGeometry.freeInteriorEndpoint(ex, ez, ey);
-            if (!freeStart && !freeEnd) return null;
             Method sample = members.get(map.getClass()).method("getRailPos", 2);
             double[] previousPoint = (double[]) sample.invoke(map, split, previous);
             if (Math.hypot(bx - previousPoint[1], bz - previousPoint[0]) > 0.25
                 || !validHeight(map, bogie, split, previous, y)) return null;
-            if(freeStart && projection(x-sx,z-sz,sy)<-1E-7)
-                return connected(world,bogie,core,start,sy+180,x,y,z,bx,bz,movement);
-            if(freeEnd && projection(x-ex,z-ez,ey)>1E-7)
-                return connected(world,bogie,core,end,ey,x,y,z,bx,bz,movement);
+            // Ownership of overlapping ballast is not a reason to change a live map.
+            // Still release it at either nearby endpoint plane: boundary endpoints
+            // use native lookup, free interior endpoints use precise connection lookup.
+            if(previous <= margin && projection(x-sx,z-sz,sy)<-1E-7)
+                return freeStart ? connected(world,bogie,core,start,sy+180,x,y,z,bx,bz,movement) : null;
+            if(split-previous <= margin && projection(x-ex,z-ez,ey)>1E-7)
+                return freeEnd ? connected(world,bogie,core,end,ey,x,y,z,bx,bz,movement) : null;
             int search = (int) Math.ceil((movement + 0.25) * 360.0);
             int low = Math.max(0, previous - search), high = Math.min(split, previous + search);
             double best = Double.MAX_VALUE;
             int nearest = previous;
             // Try the projected sample first. Dense lookup remains the conservative fallback.
-            double tangent = Math.toRadians(previous <= margin ? sy : ey);
+            double localYaw = ((Number) call(map, "getRailYaw", split, previous)).doubleValue();
+            if (!EndpointGeometry.finite(localYaw)) return null;
+            double tangent = Math.toRadians(localYaw);
             int projected = Math.max(low, Math.min(high, previous + (int) Math.round(
                 ((x-bx)*Math.sin(tangent) + (z-bz)*Math.cos(tangent))*360.0)));
             double[] predicted = (double[]) sample.invoke(map, split, projected);
@@ -65,7 +71,7 @@ public final class AEFreeEndpointHook {
             double projectedDistance = pdx*pdx + pdz*pdz;
             // Within one sampling step: no tile search and no redundant dense scan.
             if (projectedDistance <= 1.0/(360.0*360.0) && validHeight(map, bogie, split, projected, y))
-                return core;
+                return retained(core, previous, split, x, y, z);
             for (int i = low; i <= high; i++) {
                 double[] point = (double[]) sample.invoke(map, split, i);
                 double dx = x - point[1], dz = z - point[0];
@@ -74,13 +80,24 @@ public final class AEFreeEndpointHook {
             }
             if (best > 0.015625) return null; // 0.125m maximum horizontal deviation
             if (!validHeight(map, bogie, split, nearest, y)) return null;
-            return core;
+            return retained(core, previous, split, x, y, z);
         } catch (ReflectiveOperationException | RuntimeException error) {
             healthy = false;
             if (warned.compareAndSet(false, true))
                 System.err.println("[SRBXPatch] hook unavailable; delegating to AppleExtended: " + error);
             return null;
         }
+    }
+    private static Object retained(Object core, int previous, int split, double x, double y, double z)
+            throws ReflectiveOperationException {
+        // Opt-in, at most one message per second globally; no world/entity cache.
+        if (debugLookup) {
+            long now = System.nanoTime(), next = nextTrace.get();
+            if (now >= next && nextTrace.compareAndSet(next, now + 1000000000L))
+                System.out.println("[SRBXPatch AE lookup] retained: core=" + call(core,"getPos|func_174877_v")
+                    + ", index=" + previous + "/" + split + ", predicted=" + x + "," + y + "," + z);
+        }
+        return core;
     }
     private static double projection(double x,double z,double yaw) {
         double angle=Math.toRadians(yaw); return x*Math.sin(angle)+z*Math.cos(angle);
