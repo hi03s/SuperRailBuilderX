@@ -577,3 +577,4 @@
 - 候補は同じY・端点から水平2.5m以内・生成マップ道床範囲内に限定し、既設コアと全端点の予約ブロックを保護。範囲外へ移した補助道床はnative Undoで残るため採用しない。全補助所有先を計画してから配置し、位置更新・再読込でも安全な所有先を使う。配置直前にも既設コアを再検証。安全な候補がなければ変更前に停止し、index/owner/logical座標を診断出力する。
 - 全4build、test:appleextended、test:input、test:runtime-dispatch、test:rail-patchと整形・差分・文書リンク確認成功。外国コアに接続する補助端点の生成成功、精密座標/呼び出し元不変、NBT保存、外国コア非上書き、候補なしでの配置前拒否を回帰検証。実機生成・再読込・Undoは未実施。
 - 最新開発ZIPを更新。既存Draft/タグ/Assetsと両SRBXPatch JAR、KaizPatch実装は変更しない。生ログはGitへ保存せず、実機再確認までlogs/latest.logをローカル保持する。
+- 実装コミット08bf7baはorigin/mainへpush・同期済み。初回pushのGitHub commit_refsエラーは通常pushの再試行で解消。

@@ -45,6 +45,8 @@
 
 ## 直近の完了
 
+- 2026-10-12 ローカルCodex: AE分岐の補助端点と既設コアの競合を、精密座標を保った所有ブロック移設で修正。全4build・関連回帰成功、実機の生成/再読込/Undo確認待ち。[08bf7ba](https://github.com/hi03s/SuperRailBuilderX/commit/08bf7ba)はmainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
+
 - 2026-10-12 ローカルCodex: 分岐の接続済み始点選択を復元し、終点探索を分岐レール全端部へ対応。A/Bの接続済み除外は維持。全4build・関連回帰成功、実機確認待ち。[7d91e48](https://github.com/hi03s/SuperRailBuilderX/commit/7d91e48)はmainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 - 2026-10-12 ローカルCodex: 長押し単位の10倍上限・A/分岐半径加速、接続端点候補除外と分岐終点操作を実装。全4build・関連回帰成功、開発ZIP更新、実機確認待ち。[681f94b](https://github.com/hi03s/SuperRailBuilderX/commit/681f94b)はmainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
