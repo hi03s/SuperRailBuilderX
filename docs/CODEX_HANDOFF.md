@@ -42,6 +42,8 @@
 
 ## 直近の完了
 
+- 2026-10-12 ローカルCodex: [AE側での独自再実装用設計資料](development/appleextended-rail-resolution-design.md)を作成。ソース照合・リンク/文書検証済み、コード変更なし・ビルド/実機未実施。[01fb43f](https://github.com/hi03s/SuperRailBuilderX/commit/01fb43f)はmainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
+
 - 2026-10-12 ローカルCodex: 始点高さと生成Bの長押し/U延長、組ホームと8ツールのホイールを実装。全4build・関連回帰・Java8 GUI成功、実機確認待ち。[a00395a](https://github.com/hi03s/SuperRailBuilderX/commit/a00395a)はmainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 - 2026-10-12 ローカルCodex: SRBX 0.3.1へ更新し、ZIPと2 JAR付きDraftを準備。ローカル回帰と両Actions成功、未公開・本文・添付検証済み。[32e2467](https://github.com/hi03s/SuperRailBuilderX/commit/32e2467)とv0.3.1タグはpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。

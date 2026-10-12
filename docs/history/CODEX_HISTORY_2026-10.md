@@ -544,3 +544,11 @@
 - 全4build、test:platform、test:gui、test:input、test:appleextended、test:kaizpatch、test:rail-transition、test:runtime-dispatch、test:rail-patch、Java8 GUI/ホイール成功。長押し閾値/フレーム差、始点高さ限定、Bの上下勾配/直線/L/R地上延長、組ホーム左右/高さ/手持ち必須/座標改ざん拒否/元レール保護/Undo/ロールバックを模擬検証。実機確認は未実施。
 - 最新開発ZIPはartifacts/SuperRailBuilderX-0.3.1.zip。32e2467のリリースZIPとSRBXPatch JARを保持し、既存v0.3.1 Draft/タグ/Assetsを変更しない。新テクスチャPNGを実装へ含め、ユーザーの編集用XCFは変更・コミットしない。
 - 実装コミットa00395aはorigin/mainへpush・同期済み。
+
+## 2026-10-12 ローカルCodex: AE側での独自再実装用設計資料
+
+- 開発者の方針に合わせ、移植手順ではなくAE側で独自に再実装するためのdocs/development/appleextended-rail-resolution-design.mdを作成。第三者への送信・Issue・PR・コメント投稿は行っていない。
+- AEFreeEndpointHook、EndpointGeometry、AEBogieTransformer、AEPatchTestと既存調査を照合。道床所有先と線形の違い、保持より先に端点越えを判定する理由、生存確認、局所走査と接線最適化、同一論理グループ優先、自由端点の近傍探索、選択中分岐、端点/向き/高さ/一意性を説明。擬似コード・参考値・検証ケース・制約・説明文例と固定SHAのソースリンクを収録。
+- 数値は再実装の必須仕様とせず、AE側で評価する参考値として記載。反射/ASMは本体再実装には不要、接続索引などの候補発見方式は置き換え可能と明記。旧パッチとの二重適用についても評価条件を記載。
+- 検証: 現行ソースとの内容照合、UTF-8・相対リンク・コードフェンス、git diff --checkとステージ対象3文書の確認に成功。PythonがPATHにないため文書検証はPowerShellで実施。コード/成果物変更なしのためビルドと新規実機テストは未実施。AE本体での再実装も未実施。
+- 資料コミット01fb43fをorigin/mainへpush・同期済み。利用者のbutton_template.xcf変更とgui_base.xcfは変更・コミットしていない。READMEとSRBXPatch開発資料から新資料へリンク。
