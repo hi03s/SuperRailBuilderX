@@ -17,6 +17,7 @@
 - [AEターゲット](development/appleextended-target.md)
 - [共通のレール生成と自由点処理](development/rail-generation-and-free-positioning.md)
 - [SRBXPatchの実装・ビルド・探索性能](development/srbxpatch.md)
+- [AE側での再実装用：自由端点・重複レールの走行先判定設計](development/appleextended-rail-resolution-design.md)
 - [自由端点・台車遷移・実装意図の統合調査](research/rail-transition-research.md)
 - [道床所有先・保存API・CrossTie診断](research/roadbed-ownership-investigation.md)
 - [AEの重複区間と自動分割境界](research/appleextended-overlap-rail-patch.md)

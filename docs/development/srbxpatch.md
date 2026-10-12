@@ -1,5 +1,7 @@
 # SRBXPatchの開発と探索処理
 
+AE本体で独自に再実装するためのアルゴリズム・判定理由・参考値・検証条件は[走行先判定設計](appleextended-rail-resolution-design.md)を参照。
+
 ## 仕組みと制限
 
 `EntityBogie.getRail(DDD)`先頭へhookを加え、元の命令・呼び出し・stack-map frameを保持する。クライアント、未対応バイトコード、不正状態、曖昧な候補は標準処理へ戻す。反射情報だけをクラス単位でキャッシュし、world/core/map/台車はキャッシュしない。
