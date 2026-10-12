@@ -561,3 +561,10 @@
 - 水平限定の分岐自由終点は、カーソルXZ＋選択元レール高さへ変更。OFFはXZ0.001m、距離/ブロックは既設始点からのAと同じXZ0.5m格子。視線先の地表高で終点が上下しない。固定半径・既設端点への接続とサーバー生成/Undo処理は維持。
 - 全4build、test:input（10倍上限/方向/Ctrl/フレーム差、A/B端点除外、分岐端点/中間点/加速）、test:gui（A固定半径とOFF停止）、test:platform、test:appleextended、test:runtime-dispatch、test:rail-patch成功。変更ソース整形・差分と文書リンク確認済み。実機は未実施。最新開発ZIPを更新し、既存v0.3.1 Draft/タグ/Assetsは変更しない。
 - 実装コミット681f94bはorigin/mainへpush・同期済み。
+
+## 2026-10-12 ローカルCodex: 分岐の接続済み始点許可と分岐レール端部スナップ
+
+- 開発者の補足により681f94bの分岐始点除外を撤回。生成A/Bは始点/終点とも接続済み端点を候補外、分岐は接続済み始点も候補として残し、終点のみ除外する。共有接続点の複数の元線路を選ぶ既存endpointOptionsも維持。
+- 分岐終点の探索はswitchをunsupportedとして一律除外し、さらに端点を先頭2個へ限定していた。switchも許可し、単一基本RailMapの要求をswitchだけ外して全RailPositionを調べる。水平・未接続の端部だけ候補化し、null端点は安全にスキップ。元線路として分岐を組み替える未対応制限は維持。
+- A/Bは既に分岐の全端点を調べており、3番目の未接続端部を選べることと、接続済みなら除外することを実探索テストで確認した。
+- 全4build、test:input、test:gui、test:appleextended、test:runtime-dispatch、test:rail-patch、変更ファイル整形・差分・文書リンク確認成功。分岐始点で接続済み双方を選択、分岐終点で3番目を選択/接続済み・勾配・未初期化端点は除外、A/Bの接続済み端部除外を回帰検証。実機未実施。最新開発ZIPを更新し、既存Draft/タグ/Assetsは変更しない。

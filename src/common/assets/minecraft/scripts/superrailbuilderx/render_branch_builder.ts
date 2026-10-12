@@ -134,12 +134,6 @@ function findSplit(e: EntityVehicle, pt: number): SplitTarget | null {
 	const looking = NGTOBuilderUtilClient.getLookingPos(pt);
 	if (!looking) return null;
 	const world = SRBXApiCompat.getWorld(e),
-		loadedCores = SRBXApiCompat.getLoadedRailCores(
-			world,
-			looking.posX,
-			looking.posZ,
-			2,
-		),
 		seen: { [k: string]: boolean } = {};
 	let best: SplitTarget | null = null,
 		dist = 2.25;
@@ -266,15 +260,6 @@ function findSplit(e: EntityVehicle, pt: number): SplitTarget | null {
 				for (let index = 0; index < 2; index++) {
 					const rp = rps[index] as RailPosition;
 					if (
-						!SRBXEndpointAvailability.isAvailable(
-							world,
-							core,
-							rp,
-							loadedCores,
-						)
-					)
-						continue;
-					if (
 						SRBXApiCompat.requiresRailBoundarySnap() &&
 						!SRBXRailBoundary.isBoundary(
 							[rp.posX, rp.posY, rp.posZ],
@@ -369,11 +354,10 @@ function findEndpoint(e: EntityVehicle, pt: number): SRBXBuilderPoint | null {
 				const tile = SRBXApiCompat.getTileEntity(world, x, y, z);
 				if (!(tile instanceof TileEntityLargeRailBase)) continue;
 				const core = tile.getRailCore();
-				if (
-					!core ||
-					SRBXApiCompat.getRailPositionUnsupportedReason(core) !== ""
-				)
-					continue;
+				if (!core) continue;
+				const unsupported =
+					SRBXApiCompat.getRailPositionUnsupportedReason(core);
+				if (unsupported !== "" && unsupported !== "switch") continue;
 				const key = SRBXApiCompat.getRailPositionCandidateKey(core);
 				if (
 					seen[key] ||
@@ -381,19 +365,26 @@ function findEndpoint(e: EntityVehicle, pt: number): SRBXBuilderPoint | null {
 				)
 					continue;
 				seen[key] = true;
-				const map = SRBXApiCompat.getLogicalRailMap(core);
+				const map =
+					unsupported === "switch"
+						? null
+						: SRBXApiCompat.getLogicalRailMap(core);
 				if (
-					!map ||
-					Math.abs(RTMApiCompat.getRailPitch(map, 1000, 0)) > 0.001 ||
-					Math.abs(RTMApiCompat.getRailPitch(map, 1000, 500)) >
-						0.001 ||
-					Math.abs(RTMApiCompat.getRailPitch(map, 1000, 1000)) > 0.001
+					unsupported !== "switch" &&
+					(!map ||
+						Math.abs(RTMApiCompat.getRailPitch(map, 1000, 0)) >
+							0.001 ||
+						Math.abs(RTMApiCompat.getRailPitch(map, 1000, 500)) >
+							0.001 ||
+						Math.abs(RTMApiCompat.getRailPitch(map, 1000, 1000)) >
+							0.001)
 				)
 					continue;
 				const rps = readyRailPositions(core, "endpoint candidate");
 				if (!rps) continue;
-				for (let i = 0; i < 2; i++) {
+				for (let i = 0; i < rps.length; i++) {
 					const rp = rps[i] as RailPosition;
+					if (!rp) continue;
 					if (
 						!SRBXEndpointAvailability.isAvailable(
 							world,

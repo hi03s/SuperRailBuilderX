@@ -95,3 +95,17 @@ assert.equal(
 	"A newly free endpoint is selectable immediately",
 );
 console.log("Logical endpoint availability and A/B candidate exclusion passed");
+a.positions = [point(0), point(5)];
+b.positions = [point(30), point(40), point(10)];
+compat.getRailPositionUnsupportedReason = (c) => (c === b ? "switch" : "");
+assert.equal(
+	context.findRailCandidate({}, 0).index,
+	2,
+	"A/B already support all switch endpoints",
+);
+cores.push(core("connection", [point(10), point(50)]));
+assert.equal(
+	context.findRailCandidate({}, 0),
+	null,
+	"A/B exclude a connected third switch endpoint as well",
+);

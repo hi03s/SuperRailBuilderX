@@ -95,11 +95,20 @@ for (const name of [
 ])
 	vm.runInContext(fn(name), context);
 assert.equal(
-	context.findSplit({}, 0),
-	null,
-	"A connected base endpoint is excluded",
+	context.findSplit({}, 0).endpoint.kind,
+	"rail",
+	"A connected base endpoint remains selectable for branching",
 );
-assert.equal(snapshots, 1, "The source scan takes one loaded-core snapshot");
+assert.equal(
+	context.findSplit({}, 0).endpointOptions.length,
+	2,
+	"Both connected source rails remain available",
+);
+assert.equal(
+	snapshots,
+	0,
+	"Source selection does not apply destination availability filtering",
+);
 look.posX = 10;
 assert.equal(
 	context.findSplit({}, 0).ratio,
@@ -124,6 +133,52 @@ assert.equal(
 	context.findEndpoint({}, 0).position[0],
 	40,
 	"A free destination endpoint stays selectable",
+);
+// Switches have no single logical basic map, and their third endpoint is valid.
+const p = (x, pitch = 0) => ({
+	posX: x,
+	posY: 0.0625,
+	posZ: 0,
+	direction: 0,
+	pitch,
+});
+compat.getRailPositionUnsupportedReason = (core) =>
+	core === b ? "switch" : "";
+compat.getEditableRailPositions = (core) =>
+	core === b ? b.positions : positions(core);
+compat.getLogicalRailMap = (core) => {
+	assert.notEqual(
+		core,
+		b,
+		"A switch is inspected by endpoint, not by a basic rail map",
+	);
+	return map(core);
+};
+compat.getRailPositionAnchorPitch = (rp) => rp.pitch || 0;
+b.positions = [p(20), p(30), p(40)];
+assert.equal(
+	context.findEndpoint({}, 0).index,
+	2,
+	"Third switch endpoint can be snapped",
+);
+look.posX = 20;
+assert.equal(
+	context.findEndpoint({}, 0),
+	null,
+	"Connected switch endpoints remain excluded at the destination",
+);
+look.posX = 40;
+b.positions[2].pitch = 1;
+assert.equal(
+	context.findEndpoint({}, 0),
+	null,
+	"Inclined endpoints remain unsupported for horizontal branching",
+);
+b.positions[2] = null;
+assert.equal(
+	context.findEndpoint({}, 0),
+	null,
+	"An uninitialized switch endpoint is skipped safely",
 );
 vm.runInContext(
 	fs.readFileSync(dir + "SRBXAcceleratedRepeat.js", "utf8"),
