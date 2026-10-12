@@ -543,3 +543,4 @@
 - 組ホームを複線コピーから独立実装。左右1列、初期間隔2m・高さ1.5m、←/→で間隔0.1m、↑/↓で高さ1/16m。専用モデル/テクスチャとGUI高さ(6,0)を登録。カントは横断面0、元線路の平面線形と勾配を引き継ぐ。手持ちモデル必須のcompatオプションを追加し、元モデル参照へのフォールバックを防止。サーバーは元キー・端点を再検証し生成座標を再計算、既設保護とUndo・途中失敗の残存履歴保持を適用する。ホイールへ8番目として登録。
 - 全4build、test:platform、test:gui、test:input、test:appleextended、test:kaizpatch、test:rail-transition、test:runtime-dispatch、test:rail-patch、Java8 GUI/ホイール成功。長押し閾値/フレーム差、始点高さ限定、Bの上下勾配/直線/L/R地上延長、組ホーム左右/高さ/手持ち必須/座標改ざん拒否/元レール保護/Undo/ロールバックを模擬検証。実機確認は未実施。
 - 最新開発ZIPはartifacts/SuperRailBuilderX-0.3.1.zip。32e2467のリリースZIPとSRBXPatch JARを保持し、既存v0.3.1 Draft/タグ/Assetsを変更しない。新テクスチャPNGを実装へ含め、ユーザーの編集用XCFは変更・コミットしない。
+- 実装コミットa00395aはorigin/mainへpush・同期済み。

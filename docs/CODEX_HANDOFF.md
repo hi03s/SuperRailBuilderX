@@ -42,6 +42,8 @@
 
 ## 直近の完了
 
+- 2026-10-12 ローカルCodex: 始点高さと生成Bの長押し/U延長、組ホームと8ツールのホイールを実装。全4build・関連回帰・Java8 GUI成功、実機確認待ち。[a00395a](https://github.com/hi03s/SuperRailBuilderX/commit/a00395a)はmainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
+
 - 2026-10-12 ローカルCodex: SRBX 0.3.1へ更新し、ZIPと2 JAR付きDraftを準備。ローカル回帰と両Actions成功、未公開・本文・添付検証済み。[32e2467](https://github.com/hi03s/SuperRailBuilderX/commit/32e2467)とv0.3.1タグはpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 - 2026-10-12 ローカルCodex: AE中間点分岐の生成順序・Undo対象・失敗時再描画と描画パッチ列挙先を修正。全4build・関連回帰成功、最新ZIP更新、実機再確認待ち。[244e4e2](https://github.com/hi03s/SuperRailBuilderX/commit/244e4e2)はmainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
