@@ -1,5 +1,6 @@
 import { SRBXToolWheel } from "./SRBXToolWheel";
 import { SRBXAcceleratedRepeat } from "./SRBXAcceleratedRepeat";
+import { SRBXEndpointAvailability } from "./SRBXEndpointAvailability";
 import { SRBXToolGui } from "./SRBXToolGui";
 import { SRBXRailBoundary } from "./SRBXRailBoundary";
 import { NGTLog } from "jp.ngt.ngtlib.io";
@@ -476,6 +477,12 @@ function findRailCandidate(
 	const looking = NGTOBuilderUtilClient.getLookingPos(partialTicks);
 	if (!looking) return null;
 	const world = SRBXApiCompat.getWorld(entity);
+	const loadedCores = SRBXApiCompat.getLoadedRailCores(
+		world,
+		looking.posX,
+		looking.posZ,
+		2,
+	);
 	const seen: { [key: string]: boolean } = {};
 	let nearest: RailCandidate | null = null;
 	const centerX = Math.floor(looking.posX);
@@ -505,8 +512,10 @@ function findRailCandidate(
 					const positions =
 						SRBXApiCompat.getEditableRailPositions(core);
 					const corePos = SRBXApiCompat.getRailCorePos(core);
+					if (!positions) continue;
 					for (let index = 0; index < positions.length; index++) {
 						const rp = positions[index] as RailPosition;
+						if (!rp) continue;
 						if (
 							SRBXApiCompat.requiresRailBoundarySnap() &&
 							!SRBXRailBoundary.isBoundary(
@@ -522,6 +531,15 @@ function findRailCandidate(
 						if (
 							distanceSquared >
 							ENDPOINT_SEARCH_RADIUS * ENDPOINT_SEARCH_RADIUS
+						)
+							continue;
+						if (
+							!SRBXEndpointAvailability.isAvailable(
+								world,
+								core,
+								rp,
+								loadedCores,
+							)
 						)
 							continue;
 						if (
@@ -1802,14 +1820,17 @@ function handleInput(
 			if (pair) state.curveStartYaw = pair[0].anchorYaw;
 		}
 	}
-	if (!builderB && repeatedKey(state, "radiusIncrease"))
-		changeCurveRadius(entity, partialTicks, state, 1);
-	if (!builderB && repeatedKey(state, "radiusDecrease"))
-		changeCurveRadius(entity, partialTicks, state, -1);
-	if (!builderB && repeatedKey(state, "radiusIncreaseFast"))
-		changeCurveRadius(entity, partialTicks, state, 100);
-	if (!builderB && repeatedKey(state, "radiusDecreaseFast"))
-		changeCurveRadius(entity, partialTicks, state, -100);
+	if (!state.awaitingResult && (builderB || state.curveRadiusLocked)) {
+		const direction =
+			Number(Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) -
+			Number(Keyboard.isKeyDown(Keyboard.KEY_LEFT));
+		const delta = state.radiusRepeat.update(
+			System.currentTimeMillis(),
+			direction,
+			keys.downOptionKey() ? 100 : 1,
+		);
+		if (delta) changeCurveRadius(entity, partialTicks, state, delta);
+	} else state.radiusRepeat.reset();
 	if (repeatedKey(state, "heightUp"))
 		changeHeightOrSlope(sender, state, 1, false);
 	if (repeatedKey(state, "heightDown"))
@@ -1824,25 +1845,14 @@ function handleInput(
 		const lengthDirection =
 			Number(Keyboard.isKeyDown(Keyboard.KEY_L)) -
 			Number(Keyboard.isKeyDown(Keyboard.KEY_J));
-		const radiusDirection =
-			Number(Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) -
-			Number(Keyboard.isKeyDown(Keyboard.KEY_LEFT));
 		const lengthDelta = state.lengthRepeat.update(
 			now,
 			lengthDirection,
 			ctrl ? 10 : 0.1,
 		);
-		const radiusDelta = state.radiusRepeat.update(
-			now,
-			radiusDirection,
-			ctrl ? 100 : 1,
-		);
 		if (lengthDelta) changeDesignLength(state, lengthDelta);
-		if (radiusDelta)
-			changeCurveRadius(entity, partialTicks, state, radiusDelta);
 	} else if (builderB) {
 		state.lengthRepeat.reset();
-		state.radiusRepeat.reset();
 	}
 	if (!state.awaitingResult && state.selected.length === 0) {
 		if (repeatedKey(state, "startHeightUp")) state.heightOffsetSixteenths++;

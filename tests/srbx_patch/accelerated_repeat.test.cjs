@@ -29,7 +29,9 @@ close(repeat.update(425, 1, 0.1), 0.1);
 close(repeat.update(3200, 1, 0.1), 3.7);
 close(repeat.update(3275, 1, 0.1), 1);
 close(repeat.update(5900, 1, 0.1), 35);
-close(repeat.update(5975, 1, 0.1), 10);
+close(repeat.update(5975, 1, 0.1), 1);
+close(repeat.update(120050, 1, 0.1), 1521);
+close(repeat.update(120125, 1, 0.1), 1);
 // Direction, Ctrl, key release and backwards clocks start a new hold.
 close(repeat.update(6300, -1, 0.1), -0.1);
 close(repeat.update(6320, -1, 10), -10);

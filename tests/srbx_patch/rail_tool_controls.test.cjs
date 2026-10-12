@@ -302,28 +302,28 @@ const bs = {
 look = { posX: -2.24, posY: 4.21, posZ: 3.76 };
 assert.deepStrictEqual(
 	Array.from(context.freePoint({}, 0, bs).position),
-	[-2, 4.0625, 4],
+	[-2, 0.0625, 4],
 );
 bs.snapIndex = 2;
 assert.deepStrictEqual(
 	Array.from(context.freePoint({}, 0, bs).position),
-	[-2, 4.0625, 4],
+	[-2, 0.0625, 4],
 );
 bs.snapMode = "distance";
 bs.snapIndex = 1;
 const distancePoint = context.freePoint({}, 0, bs).position;
-const distance = context.SRBXMath.distance(bs.split.position, distancePoint);
-assert(Math.abs(distance * 2 - Math.round(distance * 2)) < 1e-8);
-assert(
-	Math.abs(
-		context.SRBXMath.horizontalYaw(bs.split.position, distancePoint) / 5 -
-			Math.round(
-				context.SRBXMath.horizontalYaw(
-					bs.split.position,
-					distancePoint,
-				) / 5,
-			),
-	) < 1e-8,
+assert.deepStrictEqual(
+	Array.from(distancePoint),
+	[-2, 0.0625, 4],
+	"An existing rail start uses builder A's world-grid snap and start height",
+);
+bs.snapMode = "off";
+assert.deepStrictEqual(
+	Array.from(context.freePoint({}, 0, bs).position, (value) =>
+		Number(value.toFixed(6)),
+	),
+	[-2.24, 0.0625, 3.76],
+	"Free branch endpoint follows cursor XZ at base height",
 );
 // CTRL hides unselected rail and endpoint hover without hiding the current selection.
 const mover = read("render_rail_mover"),

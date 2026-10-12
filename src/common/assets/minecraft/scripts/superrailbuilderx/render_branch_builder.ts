@@ -1,4 +1,6 @@
 import { SRBXToolGui } from "./SRBXToolGui";
+import { SRBXAcceleratedRepeat } from "./SRBXAcceleratedRepeat";
+import { SRBXEndpointAvailability } from "./SRBXEndpointAvailability";
 import { SRBXToolWheel } from "./SRBXToolWheel";
 import { ResourceLocation } from "net.minecraft.util";
 import { SRBXRailBoundary } from "./SRBXRailBoundary";
@@ -60,7 +62,7 @@ type State = {
 	snapIndex: number;
 	locked: boolean;
 	radius: number;
-	repeat: { [k: string]: number };
+	radiusRepeat: SRBXAcceleratedRepeat;
 	awaiting: boolean;
 	pending: "create" | "undo" | null;
 	ignored: { [k: string]: boolean };
@@ -115,7 +117,7 @@ function getState(e: EntityVehicle): State {
 			snapIndex: 1,
 			locked: false,
 			radius: MAX_RADIUS,
-			repeat: {},
+			radiusRepeat: new SRBXAcceleratedRepeat(),
 			awaiting: false,
 			pending: null,
 			ignored: {},
@@ -132,6 +134,12 @@ function findSplit(e: EntityVehicle, pt: number): SplitTarget | null {
 	const looking = NGTOBuilderUtilClient.getLookingPos(pt);
 	if (!looking) return null;
 	const world = SRBXApiCompat.getWorld(e),
+		loadedCores = SRBXApiCompat.getLoadedRailCores(
+			world,
+			looking.posX,
+			looking.posZ,
+			2,
+		),
 		seen: { [k: string]: boolean } = {};
 	let best: SplitTarget | null = null,
 		dist = 2.25;
@@ -258,6 +266,15 @@ function findSplit(e: EntityVehicle, pt: number): SplitTarget | null {
 				for (let index = 0; index < 2; index++) {
 					const rp = rps[index] as RailPosition;
 					if (
+						!SRBXEndpointAvailability.isAvailable(
+							world,
+							core,
+							rp,
+							loadedCores,
+						)
+					)
+						continue;
+					if (
 						SRBXApiCompat.requiresRailBoundarySnap() &&
 						!SRBXRailBoundary.isBoundary(
 							[rp.posX, rp.posY, rp.posZ],
@@ -325,6 +342,12 @@ function findEndpoint(e: EntityVehicle, pt: number): SRBXBuilderPoint | null {
 	const looking = NGTOBuilderUtilClient.getLookingPos(pt);
 	if (!looking) return null;
 	const world = SRBXApiCompat.getWorld(e),
+		loadedCores = SRBXApiCompat.getLoadedRailCores(
+			world,
+			looking.posX,
+			looking.posZ,
+			2,
+		),
 		seen: { [k: string]: boolean } = {};
 	let best: SRBXBuilderPoint | null = null,
 		dist = 4;
@@ -372,6 +395,15 @@ function findEndpoint(e: EntityVehicle, pt: number): SRBXBuilderPoint | null {
 				for (let i = 0; i < 2; i++) {
 					const rp = rps[i] as RailPosition;
 					if (
+						!SRBXEndpointAvailability.isAvailable(
+							world,
+							core,
+							rp,
+							loadedCores,
+						)
+					)
+						continue;
+					if (
 						Math.abs(SRBXApiCompat.getRailPositionAnchorPitch(rp)) >
 						0.001
 					)
@@ -411,40 +443,13 @@ function freePoint(
 ): SRBXBuilderPoint | null {
 	const looking = NGTOBuilderUtilClient.getLookingPos(pt);
 	if (!looking) return null;
-	let p: SRBXVec3 = [
-		looking.posX,
-		looking.posY + DEFAULT_HEIGHT,
-		looking.posZ,
-	];
-	if (s.snapMode === "block") {
-		p = SRBXMath.roundPosition(
-			[looking.posX, looking.posY, looking.posZ],
-			0.5,
-		);
-		p[1] += DEFAULT_HEIGHT;
-	} else if (s.snapMode === "distance") {
-		const yaw = SRBXMath.snapDegrees(
-				SRBXMath.horizontalYaw(s.split!.position, p),
-				snapAngles[s.snapIndex],
-			),
-			distance = SRBXMath.roundToStep(
-				SRBXMath.distance(s.split!.position, p),
-				0.5,
-			);
-		const pitch =
-			(Math.atan2(
-				p[1] - s.split!.position[1],
-				SRBXMath.horizontalDistance(s.split!.position, p),
-			) *
-				180) /
-			Math.PI;
-		p = SRBXMath.pointAtYawPitchDistance(
-			s.split!.position,
-			yaw,
-			pitch,
-			distance,
-		);
-	}
+	// The selected base rail supplies the height, as in builder A's connected
+	// start. A branch remains horizontal regardless of the surface under the cursor.
+	let p = SRBXMath.roundPosition(
+		[looking.posX, s.split!.position[1], looking.posZ],
+		s.snapMode === "off" ? 0.001 : 0.5,
+	);
+	p[1] = s.split!.position[1];
 	if (s.locked && s.radius < MAX_RADIUS) {
 		const direct = SRBXMath.horizontalYaw(s.split!.position, p),
 			base = bestRootYaw(s.split!, p),
@@ -658,20 +663,6 @@ function radiusPanel(
 	GL11.glDisable(GL11.GL_BLEND);
 	GL11.glPopMatrix();
 }
-function repeat(s: State, name: string, key: number, delta: number) {
-	const now = Date.now();
-	if (!Keyboard.isKeyDown(key)) {
-		delete s.repeat[name];
-		return false;
-	}
-	if (s.repeat[name] === undefined) {
-		s.repeat[name] = now + 350;
-		return true;
-	}
-	if (now < s.repeat[name]) return false;
-	s.repeat[name] = now + 75;
-	return true;
-}
 function send(e: EntityVehicle, s: State, r: BranchBuilderRequest) {
 	const d = e.getResourceState().getDataMap();
 	NGTOBuilderUtil.sendJsonData(d, "branchBuilderRequest", r);
@@ -846,10 +837,16 @@ function help(sender: ICommandSender) {
 		"[Ctrl+P] 距離スナップの角度を1/5/15度に切替",
 	);
 	NGTLog.sendChatMessage(sender, "[O] 半径固定を切替");
-	NGTLog.sendChatMessage(sender, "[←] 固定半径を1m減少");
-	NGTLog.sendChatMessage(sender, "[→] 固定半径を1m増加");
-	NGTLog.sendChatMessage(sender, "[Ctrl+←] 固定半径を100m減少");
-	NGTLog.sendChatMessage(sender, "[Ctrl+→] 固定半径を100m増加");
+	NGTLog.sendChatMessage(sender, "[←] 固定半径を減少（1m、長押しで10m）");
+	NGTLog.sendChatMessage(sender, "[→] 固定半径を増加（1m、長押しで10m）");
+	NGTLog.sendChatMessage(
+		sender,
+		"[Ctrl+←] 固定半径を減少（100m、長押しで1000m）",
+	);
+	NGTLog.sendChatMessage(
+		sender,
+		"[Ctrl+→] 固定半径を増加（100m、長押しで1000m）",
+	);
 	NGTLog.sendChatMessage(sender, keys.getDescription("build"));
 	NGTLog.sendChatMessage(sender, keys.getDescription("undo"));
 	NGTLog.sendChatMessage(sender, keys.getDescription("exit"));
@@ -919,17 +916,17 @@ function input(
 		}
 		s.locked = !s.locked;
 	}
-	const ctrl = Keyboard.isKeyDown(Keyboard.KEY_LCONTROL);
-	if (repeat(s, "left", Keyboard.KEY_LEFT, -1))
-		s.radius = Math.max(
-			1,
-			Math.min(MAX_RADIUS, s.radius - (ctrl ? 100 : 1)),
-		);
-	if (repeat(s, "right", Keyboard.KEY_RIGHT, 1))
-		s.radius = Math.max(
-			1,
-			Math.min(MAX_RADIUS, s.radius + (ctrl ? 100 : 1)),
-		);
+	const ctrl = keys.downOptionKey();
+	const radiusDelta = s.radiusRepeat.update(
+		Date.now(),
+		s.awaiting || !s.locked
+			? 0
+			: Number(Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) -
+					Number(Keyboard.isKeyDown(Keyboard.KEY_LEFT)),
+		ctrl ? 100 : 1,
+	);
+	if (radiusDelta)
+		s.radius = Math.max(1, Math.min(MAX_RADIUS, s.radius + radiusDelta));
 	if (left && !s.awaiting) {
 		if (s.end) s.end = null;
 		else s.split = null;

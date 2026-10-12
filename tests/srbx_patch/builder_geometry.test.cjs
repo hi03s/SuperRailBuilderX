@@ -227,6 +227,8 @@ for (const name of [
 	"createDefaultState",
 	"getDesign",
 	"getDesignPair",
+	"changeCurveRadius",
+	"initializeCurveStartYaw",
 	"alignZeroSlopeEndpointToGround",
 	"handleInput",
 ])
@@ -321,6 +323,41 @@ assert.equal(
 	"Manual length changes clear ground extension",
 );
 assert.equal(JSON.stringify(input.selected[0]), fixedStart);
+// A shares the capped repeat while its radius lock is active.
+context.builderB = false;
+input.selected = [];
+input.curveRadiusLocked = true;
+input.curveRadius = 100;
+input.radiusRepeat.reset();
+pressed = "";
+held.add("RIGHT");
+now = 20000;
+handle();
+assert.equal(input.curveRadius, 101);
+now += 3200;
+handle();
+assert.equal(input.curveRadius, 140);
+now += 75;
+handle();
+assert.equal(
+	input.curveRadius,
+	150,
+	"A fixed radius uses 10m after the initial forty changes",
+);
+ctrl = true;
+handle();
+assert.equal(input.curveRadius, 250, "Ctrl resets A's repeat to a 100m start");
+input.curveRadiusLocked = false;
+now += 10000;
+handle();
+assert.equal(
+	input.curveRadius,
+	250,
+	"Unlocked radii do not change or accumulate repeats",
+);
+held.clear();
+ctrl = false;
+context.builderB = true;
 // The server recomputes B geometry and ignores a forged endpoint from the client.
 const server = read("server_builder1");
 const alias = server.match(/(\w+)\.SRBXApiCompat\.getToolModel/)[1];

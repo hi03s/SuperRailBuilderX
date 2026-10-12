@@ -2,7 +2,6 @@
 export class SRBXAcceleratedRepeat {
 	private direction = 0;
 	private initialStep = 0;
-	private step = 0;
 	private stageCount = 0;
 	private nextAt = 0;
 	private lastAt = 0;
@@ -10,7 +9,6 @@ export class SRBXAcceleratedRepeat {
 	reset(): void {
 		this.direction = 0;
 		this.initialStep = 0;
-		this.step = 0;
 		this.stageCount = 0;
 		this.nextAt = 0;
 		this.lastAt = 0;
@@ -37,7 +35,6 @@ export class SRBXAcceleratedRepeat {
 		) {
 			this.direction = direction;
 			this.initialStep = initialStep;
-			this.step = initialStep;
 			this.stageCount = 1;
 			this.nextAt = now + 350;
 			this.lastAt = now;
@@ -47,18 +44,12 @@ export class SRBXAcceleratedRepeat {
 		if (now < this.nextAt) return 0;
 		let count = Math.floor((now - this.nextAt) / 75) + 1;
 		this.nextAt += count * 75;
-		let delta = 0;
-		while (count > 0) {
-			if (this.stageCount === 40) {
-				this.step = Math.min(this.step * 10, Number.MAX_VALUE);
-				// 累積4→40→400と加速するため、前段までの量は新単位の4回分。
-				this.stageCount = 4;
-			}
-			const batch = Math.min(count, 40 - this.stageCount);
-			delta = Math.min(delta + this.step * batch, Number.MAX_VALUE);
-			this.stageCount += batch;
-			count -= batch;
-		}
+		// Forty initial changes, then one higher decimal place for the whole hold.
+		const initialCount = Math.min(count, Math.max(0, 40 - this.stageCount));
+		this.stageCount += initialCount;
+		count -= initialCount;
+		const delta =
+			this.initialStep * initialCount + this.initialStep * 10 * count;
 		return direction * delta;
 	}
 }
