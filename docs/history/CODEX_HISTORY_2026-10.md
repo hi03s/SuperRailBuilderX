@@ -569,3 +569,11 @@
 - A/Bは既に分岐の全端点を調べており、3番目の未接続端部を選べることと、接続済みなら除外することを実探索テストで確認した。
 - 全4build、test:input、test:gui、test:appleextended、test:runtime-dispatch、test:rail-patch、変更ファイル整形・差分・文書リンク確認成功。分岐始点で接続済み双方を選択、分岐終点で3番目を選択/接続済み・勾配・未初期化端点は除外、A/Bの接続済み端部除外を回帰検証。実機未実施。最新開発ZIPを更新し、既存Draft/タグ/Assetsは変更しない。
 - 実装コミット7d91e48はorigin/mainへpush・同期済み。
+
+## 2026-10-12 ローカルCodex: AE分岐補助端点の既設コア競合を修正
+
+- 実機ログ22:18:09/22:18:31でoccupied owner block、root=-1109,66,-1073、existingCore=false、switch_create_failed。根元以外の補助端点が既設コアと競合し、元レールの復元は成功していた。描画パッチもpatched=144/failed=0と確認。
+- AE SwitchCore.reconcilePositionBlocksはRP.blockを分岐道床として再設置するため、初期設置だけ省く方法は既設コアを後から上書きする。補助端点のRP.blockだけ安全な所有ブロックへ移し、setPositionで精密座標を維持してNBTへ保存する方式へ変更。根元コア・レバー位置は移さない。
+- 候補は同じY・端点から水平2.5m以内・生成マップ道床範囲内に限定し、既設コアと全端点の予約ブロックを保護。範囲外へ移した補助道床はnative Undoで残るため採用しない。全補助所有先を計画してから配置し、位置更新・再読込でも安全な所有先を使う。配置直前にも既設コアを再検証。安全な候補がなければ変更前に停止し、index/owner/logical座標を診断出力する。
+- 全4build、test:appleextended、test:input、test:runtime-dispatch、test:rail-patchと整形・差分・文書リンク確認成功。外国コアに接続する補助端点の生成成功、精密座標/呼び出し元不変、NBT保存、外国コア非上書き、候補なしでの配置前拒否を回帰検証。実機生成・再読込・Undoは未実施。
+- 最新開発ZIPを更新。既存Draft/タグ/Assetsと両SRBXPatch JAR、KaizPatch実装は変更しない。生ログはGitへ保存せず、実機再確認までlogs/latest.logをローカル保持する。

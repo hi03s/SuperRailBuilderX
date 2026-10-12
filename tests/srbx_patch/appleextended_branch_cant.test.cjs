@@ -26,14 +26,27 @@ class RP {
 		this.blockX = type;
 		this.blockY = 4;
 		this.blockZ = 0;
+		this.posX = type;
+		this.posY = 4.0625;
+		this.posZ = 0.5;
+		this.direction = 2;
 	}
 	writeToNBT() {
 		const nbt = new NBT();
 		nbt.values.SwitchType = this.switchType;
+		nbt.values.Position = { ...this };
 		return nbt;
 	}
 	static readFromNBT(nbt) {
-		return new RP(nbt.values.SwitchType);
+		return Object.assign(
+			new RP(nbt.values.SwitchType),
+			nbt.values.Position,
+		);
+	}
+	setPosition(x, y, z) {
+		this.posX = x;
+		this.posY = y;
+		this.posZ = z;
 	}
 }
 class Section {}
@@ -218,6 +231,8 @@ const property = { writeToNBT: () => new NBT() };
 const world = { func_175625_s: () => null };
 const player = { field_71075_bZ: { field_75098_d: true } };
 const positions = [switched, new RP(), new RP()];
+positions[1].blockX = 4;
+positions[2].blockX = 8;
 ownerOccupied = true;
 assert.strictEqual(
 	context.AppleExtendedSwitchCompat.create(
@@ -272,3 +287,65 @@ assert.strictEqual(core.positions[0].switchType, 1);
 assert.strictEqual(core.nbt.values.fixRTMRailMapVersion, 2);
 assert.ok(changes > 0);
 console.log("appleextended branch/cant tests passed");
+
+// A connected endpoint may use a foreign core's block. Only its auxiliary owner moves.
+const switchTools = context.AppleExtendedSwitchCompat;
+const blockUtil = context.Packages.jp.ngt.ngtlib.block.BlockUtil;
+const foreign = new Core(),
+	writes = [];
+blockUtil.getTileEntity = (_world, x, y, z) => (x === 4 ? foreign : core);
+blockUtil.setBlock = (_world, x, y, z) => {
+	writes.push([x, y, z]);
+	changes++;
+};
+map.getRailBlockList = () => ({
+	size: () => 3,
+	get: (i) =>
+		[
+			[4, 4, 0],
+			[5, 4, 0],
+			[8, 4, 0],
+		][i],
+});
+positions[1].setPosition(4.25, 4.0625, 0.5);
+const original = JSON.stringify(positions);
+const planned = switchTools.planOwners(world, positions, [map], property);
+assert.equal(planned[1].blockX, 5);
+assert.equal(planned[1].posX, 4.25);
+assert.equal(planned[1].posY, 4.0625);
+assert.equal(planned[1].switchType, 0);
+assert.equal(
+	planned[0],
+	positions[0],
+	"The root and its lever location remain fixed",
+);
+assert.equal(
+	JSON.stringify(positions),
+	original,
+	"Caller endpoints remain unchanged",
+);
+assert.equal(switchTools.create(world, player, positions, property), true);
+assert(!writes.some((p) => p[0] === 4), "Foreign core is never overwritten");
+assert.equal(
+	core.positions[1].blockX,
+	5,
+	"Safe owner is persisted for later native reconciliation",
+);
+assert.equal(core.positions[1].posX, 4.25);
+assert.equal(blockUtil.getTileEntity(world, 4, 4, 0), foreign);
+// An occupied area with no in-footprint alternative must fail before mutation.
+writes.length = 0;
+map.getRailBlockList = () => ({
+	size: () => 2,
+	get: (i) =>
+		[
+			[4, 4, 0],
+			[8, 4, 0],
+		][i],
+});
+assert.equal(switchTools.create(world, player, positions, property), false);
+assert.equal(writes.length, 0);
+assert.equal(JSON.stringify(positions), original);
+console.log(
+	"AppleExtended protected auxiliary switch owner relocation and failure guard passed",
+);
