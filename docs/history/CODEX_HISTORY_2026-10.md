@@ -568,3 +568,4 @@
 - 分岐終点の探索はswitchをunsupportedとして一律除外し、さらに端点を先頭2個へ限定していた。switchも許可し、単一基本RailMapの要求をswitchだけ外して全RailPositionを調べる。水平・未接続の端部だけ候補化し、null端点は安全にスキップ。元線路として分岐を組み替える未対応制限は維持。
 - A/Bは既に分岐の全端点を調べており、3番目の未接続端部を選べることと、接続済みなら除外することを実探索テストで確認した。
 - 全4build、test:input、test:gui、test:appleextended、test:runtime-dispatch、test:rail-patch、変更ファイル整形・差分・文書リンク確認成功。分岐始点で接続済み双方を選択、分岐終点で3番目を選択/接続済み・勾配・未初期化端点は除外、A/Bの接続済み端部除外を回帰検証。実機未実施。最新開発ZIPを更新し、既存Draft/タグ/Assetsは変更しない。
+- 実装コミット7d91e48はorigin/mainへpush・同期済み。

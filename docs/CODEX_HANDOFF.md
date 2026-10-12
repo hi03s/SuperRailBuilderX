@@ -44,6 +44,8 @@
 
 ## 直近の完了
 
+- 2026-10-12 ローカルCodex: 分岐の接続済み始点選択を復元し、終点探索を分岐レール全端部へ対応。A/Bの接続済み除外は維持。全4build・関連回帰成功、実機確認待ち。[7d91e48](https://github.com/hi03s/SuperRailBuilderX/commit/7d91e48)はmainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
+
 - 2026-10-12 ローカルCodex: 長押し単位の10倍上限・A/分岐半径加速、接続端点候補除外と分岐終点操作を実装。全4build・関連回帰成功、開発ZIP更新、実機確認待ち。[681f94b](https://github.com/hi03s/SuperRailBuilderX/commit/681f94b)はmainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 - 2026-10-12 ローカルCodex: [AE側での独自再実装用設計資料](development/appleextended-rail-resolution-design.md)を作成。ソース照合・リンク/文書検証済み、コード変更なし・ビルド/実機未実施。[01fb43f](https://github.com/hi03s/SuperRailBuilderX/commit/01fb43f)はmainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
