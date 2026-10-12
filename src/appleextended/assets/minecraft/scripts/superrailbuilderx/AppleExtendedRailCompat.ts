@@ -744,6 +744,7 @@ export class AppleExtendedRailCompat {
 		preferFallbackProperty = false,
 		propertySourcePoint?: AppleExtendedBuilderPoint,
 		forceNormal = false,
+		requireHeldRailItem = false,
 	): { status: string; undoCore?: RailCorePos; undoKey?: string } {
 		const startStatus = this.validatePoint(start);
 		if (startStatus !== "ok") return { status: startStatus };
@@ -773,9 +774,12 @@ export class AppleExtendedRailCompat {
 		if (sourceRail && !sourceProperty)
 			return { status: "source_rail_changed" };
 		const fallback = fallbackProperty as ResourceStateRail | undefined;
+		const heldProperty = this.propertyFromPlayer(player);
+		if (requireHeldRailItem && !heldProperty)
+			return { status: "hold_rail_item" };
 		const property =
 			(preferFallbackProperty ? fallback : undefined) ||
-			this.propertyFromPlayer(player) ||
+			heldProperty ||
 			sourceProperty ||
 			(propertySourcePoint
 				? this.propertyFromPoint(world, propertySourcePoint)

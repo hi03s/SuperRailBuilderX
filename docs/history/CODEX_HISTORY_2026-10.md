@@ -534,3 +534,12 @@
 - GitHub APIでv0.3.0は公開済みPrereleaseと確認。既存Release/Assetsへ変更せず、v0.3.1タグからDraftを新規準備する。公開は開発者の手動Publish。
 - リリース対象コミット32e2467とv0.3.1タグをoriginへpush・同期済み。Build draft release（38170613359）とmainのBuild SRBX pack and temporary patches（38170608661）は両方成功。クリーン環境の型定義生成・全ターゲットbuild・両版Modビルド/テストも成功。
 - Draft: https://github.com/hi03s/SuperRailBuilderX/releases/tag/untagged-c0ca067f4b5e8b3bf12f 。APIでdraft=true、prerelease=false、release-notes.mdとの本文一致、ZIP283588 bytes・1.7.10 JAR10661 bytes・1.12.2 JAR13754 bytesを確認。3ファイルを.cache/release-v031へダウンロード検証し、artifactsも同じActions成果物へ揃えた。Publishは実施していない。
+
+## 2026-10-12 ローカルCodex: 始点高さ・生成B長押し操作と組ホームツール
+
+- 生成A/Bの自由始点の選択前だけ高さオフセットを復活。I/Kで±1/16m、Ctrlで±1m。既設端部・選択済み始点・終点に適用しない。地上高延長はUへ移した。
+- 生成Bの長さはJ/Lへ統一し、マウスホイール入力を撤廃。初期単位0.1m/Ctrl10m、累積変更量が初期単位×40（通常4m）→10倍の閾値（40m、400m）を超えた次から単位10倍。初回即時、350ms待機、75ms反復。時間差をまとめるためフレームレートに依存せず、解除/方向/Ctrl切替でリセットする。最大512mはクライアントとサーバー共通の設計検証へ適用。GUI長さは40.0mのように小数第1位を維持。半径は従来1m/Ctrl100mを初期単位として同じ長押し加速を使用。
+- BにもUを追加し、既設始点の勾配を保つ直線から縦曲線を経て0‰側の地上高へ延長。曲線の設計弧長と縦曲線の必要弦長を換算し、512m以内で成立する設定だけを使用。サーバーで長さ・目標高の整合を再検証する。手動で長さ/半径/勾配を変更すると地上高延長を解除する。
+- 組ホームを複線コピーから独立実装。左右1列、初期間隔2m・高さ1.5m、←/→で間隔0.1m、↑/↓で高さ1/16m。専用モデル/テクスチャとGUI高さ(6,0)を登録。カントは横断面0、元線路の平面線形と勾配を引き継ぐ。手持ちモデル必須のcompatオプションを追加し、元モデル参照へのフォールバックを防止。サーバーは元キー・端点を再検証し生成座標を再計算、既設保護とUndo・途中失敗の残存履歴保持を適用する。ホイールへ8番目として登録。
+- 全4build、test:platform、test:gui、test:input、test:appleextended、test:kaizpatch、test:rail-transition、test:runtime-dispatch、test:rail-patch、Java8 GUI/ホイール成功。長押し閾値/フレーム差、始点高さ限定、Bの上下勾配/直線/L/R地上延長、組ホーム左右/高さ/手持ち必須/座標改ざん拒否/元レール保護/Undo/ロールバックを模擬検証。実機確認は未実施。
+- 最新開発ZIPはartifacts/SuperRailBuilderX-0.3.1.zip。32e2467のリリースZIPとSRBXPatch JARを保持し、既存v0.3.1 Draft/タグ/Assetsを変更しない。新テクスチャPNGを実装へ含め、ユーザーの編集用XCFは変更・コミットしない。

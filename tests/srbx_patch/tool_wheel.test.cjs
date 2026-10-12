@@ -17,6 +17,7 @@ assert.deepEqual(
 		"複線コピー",
 		"カント整形",
 		"分岐生成",
+		"組ホーム",
 	],
 );
 const alias = "RTMX_COMPAT_scripts_superrailbuilderx_SRBXApiCompat_1js5ute";
@@ -123,7 +124,8 @@ function setup() {
 	};
 }
 let s = setup();
-assert.equal(s.context.SRBX_TOOLS.length, 7);
+assert.equal(s.context.SRBX_TOOLS.length, 8);
+assert.equal(s.context.toolIndex("SuperRailBuilderX_PlatformBuilder"), 7);
 assert.equal(s.context.toolIndex("SuperRailBuilderX_builder2"), 1);
 for (let i = 0; i < s.context.SRBX_TOOLS.length; i++) {
 	const a = (i * Math.PI * 2) / s.context.SRBX_TOOLS.length;
@@ -143,7 +145,7 @@ assert.equal(
 screen.func_73863_a(200, 150, 0);
 screen.func_73869_a("", "LEFT");
 screen.func_73863_a(200, 150, 0);
-assert.equal(s.selected(), 6, "Left wraps to the last tool");
+assert.equal(s.selected(), 7, "Left wraps to the last tool");
 screen.func_73869_a("", "RIGHT");
 screen.func_73863_a(200, 150, 0);
 assert.equal(s.selected(), 0, "Right wraps to the first tool");

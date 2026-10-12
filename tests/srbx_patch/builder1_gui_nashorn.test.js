@@ -269,7 +269,7 @@ labels = [];
 SRBXToolGui.renderWheel(4, function () {
 	return 4;
 });
-if (labels.length !== 9 || projected)
+if (labels.length !== 10 || projected)
 	throw new Error("Wheel GUI restoration failed");
 print(
 	"Legacy Nashorn wheel icons/names and shared GL projection restoration passed"

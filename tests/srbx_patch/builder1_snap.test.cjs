@@ -12,6 +12,10 @@ const context = vm.createContext({
 });
 vm.runInContext(fs.readFileSync(dir + "SRBXMath.js", "utf8"), context);
 vm.runInContext(
+	fs.readFileSync(dir + "SRBXAcceleratedRepeat.js", "utf8"),
+	context,
+);
+vm.runInContext(
 	source.slice(
 		source.indexOf("function copyPoint("),
 		source.indexOf("function freeMarkerPosition("),
@@ -26,6 +30,24 @@ const state = {
 };
 const cursor = () => Array.from(context.getFreeCursorPosition(0, state));
 assert.deepStrictEqual(cursor(), [-2, 4.0625, 4]);
+for (const builderB of [false, true]) {
+	context.builderB = builderB;
+	state.heightOffsetSixteenths = 24;
+	assert.deepStrictEqual(
+		cursor(),
+		[-2, 5.5625, 4],
+		"Only a free start preview gets the 1/16m offset",
+	);
+	state.selected = [{ kind: "rail", position: [0, 1, 0], anchorPitch: 20 }];
+	assert.deepStrictEqual(
+		cursor(),
+		[-2, 4.0625, 4],
+		"Existing endpoints and end previews never inherit the start offset",
+	);
+	state.selected = [];
+}
+context.builderB = false;
+state.heightOffsetSixteenths = 0;
 state.selected = [{ kind: "free", position: [0.13, 4.0625, 0.27] }];
 assert.deepStrictEqual(
 	cursor(),

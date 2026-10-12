@@ -370,8 +370,8 @@ for (const failure of [
 	if (failure === "wheel") {
 		assert.equal(
 			primitives.length,
-			17,
-			"One dimming rectangle, seven sectors, two circles and seven dividers",
+			19,
+			"One dimming rectangle, eight sectors, two circles and eight dividers",
 		);
 		const layout = context.wheelLayout(320, 240);
 		for (const shape of primitives.slice(1)) {
@@ -385,16 +385,16 @@ for (const failure of [
 				);
 			}
 		}
-		assert.equal(tiles.length, 7, "Wheel draws seven tool icons");
+		assert.equal(tiles.length, 8, "Wheel draws eight tool icons");
 		assert.equal(
 			labels.length,
-			9,
-			"Wheel shows seven names, hole label and instructions",
+			10,
+			"Wheel shows eight names, hole label and instructions",
 		);
 		assert.equal(labels[0].s, "レール生成A");
 		assert.equal(labels[2].color, 0xffff55, "Selected tool name is yellow");
-		assert.equal(labels[7].s, "変更なし");
-		assert(labels[8].s.includes("TAB"));
+		assert.equal(labels[8].s, "変更なし");
+		assert(labels[9].s.includes("TAB"));
 	}
 	if (failure && failure.endsWith("-gl")) {
 		assert.equal(context.guiRenderingDisabled, true);

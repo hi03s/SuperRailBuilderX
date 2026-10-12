@@ -49,6 +49,12 @@ const tools = [
 		model: "SuperRailBuilderX_BranchBuilder",
 		icon: "icon_branch_builder.png",
 	},
+	{
+		// 組ホーム
+		name: toolName("7d44 30db 30fc 30e0"),
+		model: "SuperRailBuilderX_PlatformBuilder",
+		icon: "icon_platform_builder.png",
+	},
 ];
 export const SRBX_TOOLS = tools;
 export const SRBX_TOOL_REQUESTS = [
@@ -58,6 +64,7 @@ export const SRBX_TOOL_REQUESTS = [
 	"doubleTrackCopyRequest",
 	"cantFormatterRequest",
 	"branchBuilderRequest",
+	"platformBuilderRequest",
 ];
 
 export function toolIndex(model: string): number {

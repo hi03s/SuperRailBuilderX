@@ -210,6 +210,7 @@ export class SRBXApiCompat {
 		propertySourcePoint?: SRBXBuilderPoint,
 		replaceProtectedCoreRoadbedAt?: RailCorePos,
 		preserveEndpointGeometry?: boolean,
+		requireHeldRailItem?: boolean,
 	): SRBXBuilderCreateResult;
 	static undoBuilderRail(
 		world: World,

@@ -6,6 +6,7 @@
 - [SRBXPatchの導入と制限](user-guide/srbx-free-endpoint-mod.md)
 - [レール生成A](user-guide/builder1.md)・[レール生成B](user-guide/builder2.md)
 - [線路分割](user-guide/rail-splitter.md)・[複線コピー](user-guide/double-track-copy.md)
+- [組ホーム](user-guide/platform-builder.md)
 - [カント整形](user-guide/cant-formatter.md)・[分岐生成](user-guide/branch-builder.md)
 - [状態GUI](user-guide/tool-gui.md)・[ツール切り替え](user-guide/tool-wheel.md)
 

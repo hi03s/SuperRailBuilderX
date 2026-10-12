@@ -3269,6 +3269,7 @@ export class SRBXApiCompat {
 		propertySourcePoint?: BuilderPoint,
 		replaceProtectedCoreRoadbedAt?: [number, number, number],
 		preserveEndpointGeometry = false,
+		requireHeldRailItem = false,
 	) {
 		if (!this.hasFreeEndpointPatch())
 			return { status: "srbxpatch_required" };
@@ -3314,11 +3315,14 @@ export class SRBXApiCompat {
 		);
 		if (sourceRail && !sourceProperty)
 			return { status: "source_rail_changed" };
+		const heldProperty = this.createBuilderProperty(player);
+		if (requireHeldRailItem && !heldProperty)
+			return { status: "hold_rail_item" };
 		const property =
 			(preferFallbackProperty && fallbackProperty
 				? this.cloneRailProperty(fallbackProperty)
 				: null) ||
-			this.createBuilderProperty(player) ||
+			heldProperty ||
 			sourceProperty ||
 			(propertySourcePoint
 				? this.createBuilderEndpointProperty(world, propertySourcePoint)

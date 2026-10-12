@@ -456,6 +456,7 @@ export class SRBXApiCompat {
 		propertySourcePoint?: AppleExtendedBuilderPoint,
 		replaceProtectedCoreRoadbedAt?: [number, number, number],
 		preserveEndpointGeometry = false,
+		requireHeldRailItem = false,
 	) {
 		if (!this.hasFreeEndpointPatch())
 			return { status: "srbxpatch_required" };
@@ -473,6 +474,7 @@ export class SRBXApiCompat {
 			preferFallbackProperty,
 			propertySourcePoint,
 			!!forceNormal,
+			requireHeldRailItem,
 		);
 	}
 

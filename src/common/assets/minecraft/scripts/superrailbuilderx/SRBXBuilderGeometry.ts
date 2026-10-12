@@ -7,10 +7,49 @@ export type SRBXBuilderDesign = {
 	yaw: number;
 	slopePermil: number;
 	verticalCurveRadius: number;
+	groundTargetY?: number;
 };
 
 /** The same plan is used by preview and the server; a design never moves its start. */
 export class SRBXBuilderGeometry {
+	/** The vertical planner measures the chord, while B's horizontal design uses arc length. */
+	static groundDesignLength(
+		source: SRBXBuilderPoint,
+		targetY: number,
+		radius: number,
+		verticalCurveRadius: number,
+	): number | null {
+		if (
+			!source ||
+			source.kind !== "rail" ||
+			!source.position ||
+			typeof targetY !== "number" ||
+			!isFinite(targetY) ||
+			!isFinite(radius) ||
+			Math.abs(radius) < 1 ||
+			Math.abs(radius) > 10000 ||
+			!isFinite(verticalCurveRadius) ||
+			verticalCurveRadius < 1000 ||
+			verticalCurveRadius > 1000000
+		)
+			return null;
+		const chord = SRBXMath.straightThenCurveHorizontalForHeight(
+			source.position[1],
+			targetY,
+			source.anchorPitch,
+			0,
+			verticalCurveRadius,
+		);
+		if (chord === null) return null;
+		const absoluteRadius = Math.abs(radius);
+		if (absoluteRadius < 10000 && chord >= absoluteRadius * 2) return null;
+		const length =
+			absoluteRadius >= 10000
+				? chord
+				: 2 * absoluteRadius * Math.asin(chord / (2 * absoluteRadius));
+		return isFinite(length) && length >= 1 && length <= 512 ? length : null;
+	}
+
 	static horizontalLength(
 		start: SRBXBuilderPoint,
 		end: SRBXBuilderPoint,
@@ -68,7 +107,7 @@ export class SRBXBuilderGeometry {
 			!design ||
 			!isFinite(design.length) ||
 			design.length < 1 ||
-			design.length > 2048 ||
+			design.length > 512 ||
 			!isFinite(design.radius) ||
 			Math.abs(design.radius) < 1 ||
 			Math.abs(design.radius) > 10000 ||
@@ -80,6 +119,20 @@ export class SRBXBuilderGeometry {
 			design.verticalCurveRadius > 1000000
 		)
 			return null;
+		if (design.groundTargetY !== undefined) {
+			if (design.slopePermil !== 0) return null;
+			const requiredLength = this.groundDesignLength(
+				source,
+				design.groundTargetY,
+				design.radius,
+				design.verticalCurveRadius,
+			);
+			if (
+				requiredLength === null ||
+				Math.abs(requiredLength - design.length) > 0.0001
+			)
+				return null;
+		}
 		const start = {} as SRBXBuilderPoint;
 		for (const key in source) (start as any)[key] = (source as any)[key];
 		start.position = source.position.slice() as SRBXVec3;
@@ -125,6 +178,10 @@ export class SRBXBuilderGeometry {
 			start.anchorPitch = source.anchorPitch;
 			end.slopeTarget = true;
 			end.verticalCurveRadius = design.verticalCurveRadius;
+			if (design.groundTargetY !== undefined) {
+				end.position[1] = design.groundTargetY;
+				end.verticalProfile = "straight_circular";
+			}
 			start.anchorLengthVertical = undefined;
 			end.anchorLengthVertical = undefined;
 		}

@@ -1,4 +1,5 @@
 import { SRBXToolWheel } from "./SRBXToolWheel";
+import { SRBXAcceleratedRepeat } from "./SRBXAcceleratedRepeat";
 import { SRBXToolGui } from "./SRBXToolGui";
 import { SRBXRailBoundary } from "./SRBXRailBoundary";
 import { NGTLog } from "jp.ngt.ngtlib.io";
@@ -60,6 +61,10 @@ type BuilderState = {
 	curveRadius: number;
 	curveSide: number;
 	designLength: number;
+	heightOffsetSixteenths: number;
+	groundTargetY?: number;
+	lengthRepeat: SRBXAcceleratedRepeat;
+	radiusRepeat: SRBXAcceleratedRepeat;
 	curveStartYaw: number | null;
 	curveKeepSelectedEndpoints: boolean;
 	slopePermil: number | null;
@@ -141,10 +146,41 @@ function init(par1: ModelSetVehicle, par2: ModelObject): void {
 		"縦曲線半径-1000m",
 	);
 	keys.register("lengthDecrease", Keyboard.KEY_J, false, "生成長-0.1m");
-	keys.register("lengthIncrease", Keyboard.KEY_K, false, "生成長+0.1m");
+	keys.register(
+		"lengthIncrease",
+		Keyboard.KEY_L,
+		false,
+		"生成長+0.1m（長押しで加速）",
+	);
+	keys.register("startHeightUp", Keyboard.KEY_I, false, "始点選択高さ+1/16m");
+	keys.register(
+		"startHeightDown",
+		Keyboard.KEY_K,
+		false,
+		"始点選択高さ-1/16m",
+	);
+	keys.register("startHeightUpFast", Keyboard.KEY_I, true, "始点選択高さ+1m");
+	keys.register(
+		"startHeightDownFast",
+		Keyboard.KEY_K,
+		true,
+		"始点選択高さ-1m",
+	);
+	keys.register(
+		"lengthDecreaseFast",
+		Keyboard.KEY_J,
+		true,
+		"生成長-10m（長押しで加速）",
+	);
+	keys.register(
+		"lengthIncreaseFast",
+		Keyboard.KEY_L,
+		true,
+		"生成長+10m（長押しで加速）",
+	);
 	keys.register(
 		"slopeGroundAlign",
-		Keyboard.KEY_I,
+		Keyboard.KEY_U,
 		false,
 		"0‰側を地上レール高へ延長",
 	);
@@ -192,6 +228,9 @@ function createDefaultState(): BuilderState {
 		curveRadius: MAX_CURVE_RADIUS,
 		curveSide: 1,
 		designLength: 40,
+		heightOffsetSixteenths: 0,
+		lengthRepeat: new SRBXAcceleratedRepeat(),
+		radiusRepeat: new SRBXAcceleratedRepeat(),
 		curveStartYaw: null,
 		curveKeepSelectedEndpoints: false,
 		slopePermil: 0,
@@ -222,6 +261,10 @@ function resetState(state: BuilderState): void {
 	state.curveRadius = reset.curveRadius;
 	state.curveSide = reset.curveSide;
 	state.designLength = reset.designLength;
+	state.heightOffsetSixteenths = reset.heightOffsetSixteenths;
+	state.groundTargetY = undefined;
+	state.lengthRepeat = reset.lengthRepeat;
+	state.radiusRepeat = reset.radiusRepeat;
 	state.curveStartYaw = reset.curveStartYaw;
 	state.curveKeepSelectedEndpoints = reset.curveKeepSelectedEndpoints;
 	state.slopePermil = reset.slopePermil;
@@ -265,6 +308,10 @@ function getFreeCursorPosition(
 ): SRBXVec3 | null {
 	const looking = NGTOBuilderUtilClient.getLookingPos(partialTicks);
 	if (!looking) return null;
+	const startHeightOffset =
+		state.selected.length === 0
+			? (state.heightOffsetSixteenths || 0) / 16
+			: 0;
 	// Snap the support surface on the world grid, retaining the normal rail height.
 	// Block mode bypasses endpoint pitch and polar angle/distance snapping.
 	if (state.snapMode === "block") {
@@ -272,7 +319,7 @@ function getFreeCursorPosition(
 			[looking.posX, looking.posY, looking.posZ],
 			0.5,
 		);
-		position[1] += DEFAULT_RAIL_HEIGHT;
+		position[1] += DEFAULT_RAIL_HEIGHT + startHeightOffset;
 		const start = state.selected.length > 0 ? state.selected[0] : null;
 		if (start && start.kind === "free" && !builderB)
 			position[1] =
@@ -284,7 +331,7 @@ function getFreeCursorPosition(
 	}
 	const raw = [
 		looking.posX,
-		looking.posY + DEFAULT_RAIL_HEIGHT,
+		looking.posY + DEFAULT_RAIL_HEIGHT + startHeightOffset,
 		looking.posZ,
 	] as SRBXVec3;
 	const freeStart =
@@ -308,7 +355,7 @@ function getFreeCursorPosition(
 				[looking.posX, looking.posY, looking.posZ],
 				0.5,
 			);
-			result[1] += DEFAULT_RAIL_HEIGHT;
+			result[1] += DEFAULT_RAIL_HEIGHT + startHeightOffset;
 		} else {
 			const distance = SRBXMath.distance(start.position, raw);
 			if (distance < 0.001) result = copyPoint(start).position;
@@ -1258,14 +1305,30 @@ function showHelp(sender: ICommandSender): void {
 	NGTLog.sendChatMessage(sender, "[Ctrl+↑] 縦曲線半径を1000m増加");
 	NGTLog.sendChatMessage(sender, "[Ctrl+↓] 縦曲線半径を1000m減少");
 	if (builderB) {
-		NGTLog.sendChatMessage(sender, "[ホイール上] 生成長を1m増加");
-		NGTLog.sendChatMessage(sender, "[ホイール下] 生成長を1m減少");
-		NGTLog.sendChatMessage(sender, "[Ctrl+ホイール上] 生成長を10m増加");
-		NGTLog.sendChatMessage(sender, "[Ctrl+ホイール下] 生成長を10m減少");
 		NGTLog.sendChatMessage(sender, keys.getDescription("lengthDecrease"));
 		NGTLog.sendChatMessage(sender, keys.getDescription("lengthIncrease"));
-	} else
-		NGTLog.sendChatMessage(sender, keys.getDescription("slopeGroundAlign"));
+		NGTLog.sendChatMessage(
+			sender,
+			keys.getDescription("lengthDecreaseFast"),
+		);
+		NGTLog.sendChatMessage(
+			sender,
+			keys.getDescription("lengthIncreaseFast"),
+		);
+		NGTLog.sendChatMessage(
+			sender,
+			"長押しで累積変更量に応じて単位が10倍になります（長さは最大512m）。半径も長押しで加速します。",
+		);
+	}
+	NGTLog.sendChatMessage(sender, keys.getDescription("startHeightUp"));
+	NGTLog.sendChatMessage(sender, keys.getDescription("startHeightDown"));
+	NGTLog.sendChatMessage(sender, keys.getDescription("startHeightUpFast"));
+	NGTLog.sendChatMessage(sender, keys.getDescription("startHeightDownFast"));
+	NGTLog.sendChatMessage(
+		sender,
+		"高さ変更は未接続の始点選択前だけに適用します。",
+	);
+	NGTLog.sendChatMessage(sender, keys.getDescription("slopeGroundAlign"));
 	NGTLog.sendChatMessage(sender, keys.getDescription("undo"));
 	NGTLog.sendChatMessage(sender, keys.getDescription("exit"));
 	SRBXToolGui.helpFooter(sender);
@@ -1319,7 +1382,9 @@ function renderToolGui(
 			{
 				iconX: 4,
 				iconY: 2,
-				label: builderB ? `${state.designLength} m` : labels[2],
+				label: builderB
+					? `${state.designLength.toFixed(1)} m`
+					: labels[2],
 			},
 			{
 				iconX: 5,
@@ -1363,6 +1428,7 @@ function handleResult(
 		state.selected = [];
 		state.curveKeepSelectedEndpoints = false;
 		state.curveStartYaw = null;
+		state.groundTargetY = undefined;
 		NGTLog.sendChatMessage(
 			sender,
 			"§a[SuperRailBuilderX] レールを生成しました",
@@ -1429,6 +1495,7 @@ function getDesign(state: BuilderState): SRBXBuilderDesign {
 		yaw: state.curveStartYaw === null ? 0 : state.curveStartYaw,
 		slopePermil: state.slopePermil || 0,
 		verticalCurveRadius: state.verticalCurveRadius,
+		groundTargetY: state.groundTargetY,
 	};
 }
 
@@ -1456,8 +1523,9 @@ function getDesignPair(
 function changeDesignLength(state: BuilderState, delta: number): void {
 	state.designLength = Math.max(
 		1,
-		Math.min(2048, Math.round((state.designLength + delta) * 10) / 10),
+		Math.min(512, Math.round((state.designLength + delta) * 10) / 10),
 	);
+	state.groundTargetY = undefined;
 }
 
 function initializeCurveStartYaw(
@@ -1487,6 +1555,7 @@ function changeCurveRadius(
 ): void {
 	if (!state.curveRadiusLocked) return;
 	if (builderB) {
+		state.groundTargetY = undefined;
 		const bend = (MAX_CURVE_RADIUS - state.curveRadius) * state.curveSide;
 		const next = Math.max(
 			-MAX_CURVE_RADIUS + 1,
@@ -1523,6 +1592,7 @@ function changeHeightOrSlope(
 	direction: number,
 	fine: boolean,
 ): void {
+	state.groundTargetY = undefined;
 	{
 		if (fine) {
 			state.verticalCurveRadius = Math.max(
@@ -1549,6 +1619,56 @@ function alignZeroSlopeEndpointToGround(
 	sender: ICommandSender,
 	state: BuilderState,
 ): void {
+	if (builderB) {
+		const preview = getDesignPair(state);
+		const pair =
+			preview ||
+			(state.selected.length === 1
+				? SRBXBuilderGeometry.plan(state.selected[0], getDesign(state))
+				: null);
+		if (!pair || pair[0].kind !== "rail" || state.slopePermil !== 0) {
+			NGTLog.sendChatMessage(
+				sender,
+				"§e[SuperRailBuilderX] 既設端点を選択し、終点側を0‰にしてください",
+			);
+			return;
+		}
+		// A short preview may not yet fit the vertical transition. Its inclined
+		// continuation still supplies a ground-height candidate for extending it.
+		const referenceY = preview
+			? preview[1].position[1]
+			: pair[0].position[1] +
+				SRBXMath.horizontalDistance(
+					pair[0].position,
+					pair[1].position,
+				) *
+					Math.tan((pair[0].anchorPitch * Math.PI) / 180);
+		const baseY =
+			Math.floor(referenceY - DEFAULT_RAIL_HEIGHT + 0.000001) +
+			DEFAULT_RAIL_HEIGHT;
+		for (const y of [baseY, baseY + 1, baseY - 1]) {
+			const length = SRBXBuilderGeometry.groundDesignLength(
+				state.selected[0],
+				y,
+				state.curveRadius * state.curveSide,
+				state.verticalCurveRadius,
+			);
+			if (length !== null && length > state.designLength + 0.001) {
+				state.designLength = length;
+				state.groundTargetY = y;
+				NGTLog.sendChatMessage(
+					sender,
+					`§a[SuperRailBuilderX] 0‰側を地上高へ延長しました（生成長 ${length.toFixed(1)}m）`,
+				);
+				return;
+			}
+		}
+		NGTLog.sendChatMessage(
+			sender,
+			"§e[SuperRailBuilderX] 現在の勾配・半径では512m以内で地上高へ延長できません",
+		);
+		return;
+	}
 	if (state.selected.length !== 2 || state.slopePermil !== 0) {
 		NGTLog.sendChatMessage(
 			sender,
@@ -1682,13 +1802,13 @@ function handleInput(
 			if (pair) state.curveStartYaw = pair[0].anchorYaw;
 		}
 	}
-	if (repeatedKey(state, "radiusIncrease"))
+	if (!builderB && repeatedKey(state, "radiusIncrease"))
 		changeCurveRadius(entity, partialTicks, state, 1);
-	if (repeatedKey(state, "radiusDecrease"))
+	if (!builderB && repeatedKey(state, "radiusDecrease"))
 		changeCurveRadius(entity, partialTicks, state, -1);
-	if (repeatedKey(state, "radiusIncreaseFast"))
+	if (!builderB && repeatedKey(state, "radiusIncreaseFast"))
 		changeCurveRadius(entity, partialTicks, state, 100);
-	if (repeatedKey(state, "radiusDecreaseFast"))
+	if (!builderB && repeatedKey(state, "radiusDecreaseFast"))
 		changeCurveRadius(entity, partialTicks, state, -100);
 	if (repeatedKey(state, "heightUp"))
 		changeHeightOrSlope(sender, state, 1, false);
@@ -1699,26 +1819,50 @@ function handleInput(
 	if (repeatedKey(state, "heightDownFine"))
 		changeHeightOrSlope(sender, state, -1, true);
 	if (builderB && !state.awaitingResult) {
-		const wheel = Mouse.getDWheel();
-		if (wheel !== 0)
-			changeDesignLength(
-				state,
-				(wheel > 0 ? 1 : -1) *
-					(Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) ? 10 : 1),
-			);
-		if (repeatedKey(state, "lengthDecrease"))
-			changeDesignLength(state, -0.1);
-		if (repeatedKey(state, "lengthIncrease"))
-			changeDesignLength(state, 0.1);
+		const now = System.currentTimeMillis();
+		const ctrl = keys.downOptionKey();
+		const lengthDirection =
+			Number(Keyboard.isKeyDown(Keyboard.KEY_L)) -
+			Number(Keyboard.isKeyDown(Keyboard.KEY_J));
+		const radiusDirection =
+			Number(Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) -
+			Number(Keyboard.isKeyDown(Keyboard.KEY_LEFT));
+		const lengthDelta = state.lengthRepeat.update(
+			now,
+			lengthDirection,
+			ctrl ? 10 : 0.1,
+		);
+		const radiusDelta = state.radiusRepeat.update(
+			now,
+			radiusDirection,
+			ctrl ? 100 : 1,
+		);
+		if (lengthDelta) changeDesignLength(state, lengthDelta);
+		if (radiusDelta)
+			changeCurveRadius(entity, partialTicks, state, radiusDelta);
+	} else if (builderB) {
+		state.lengthRepeat.reset();
+		state.radiusRepeat.reset();
 	}
-	if (!builderB && keys.pressed("slopeGroundAlign") && !state.awaitingResult)
+	if (!state.awaitingResult && state.selected.length === 0) {
+		if (repeatedKey(state, "startHeightUp")) state.heightOffsetSixteenths++;
+		if (repeatedKey(state, "startHeightDown"))
+			state.heightOffsetSixteenths--;
+		if (repeatedKey(state, "startHeightUpFast"))
+			state.heightOffsetSixteenths += 16;
+		if (repeatedKey(state, "startHeightDownFast"))
+			state.heightOffsetSixteenths -= 16;
+	}
+	if (keys.pressed("slopeGroundAlign") && !state.awaitingResult)
 		alignZeroSlopeEndpointToGround(sender, state);
 	if (keys.pressed("clear") && !state.awaitingResult) {
+		state.groundTargetY = undefined;
 		state.selected = [];
 		state.curveKeepSelectedEndpoints = false;
 		state.curveStartYaw = null;
 	}
 	if (leftClick && !state.awaitingResult && state.selected.length > 0) {
+		state.groundTargetY = undefined;
 		state.selected.pop();
 		state.curveKeepSelectedEndpoints = false;
 		if (state.selected.length === 0) state.curveStartYaw = null;
@@ -1732,6 +1876,7 @@ function handleInput(
 		if (point) {
 			state.selected.push(copyPoint(point));
 			if (state.selected.length === 1) {
+				state.groundTargetY = undefined;
 				state.curveKeepSelectedEndpoints = false;
 				state.curveStartYaw =
 					point.kind === "rail"

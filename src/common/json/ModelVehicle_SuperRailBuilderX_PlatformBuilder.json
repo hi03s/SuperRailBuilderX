@@ -1,0 +1,68 @@
+{
+	"name": "SuperRailBuilderX_PlatformBuilder",
+	"model": {
+		"modelFile": "superrailbuilderx/builder1.mqo",
+		"textures": [
+			[
+				"mat1",
+				"textures/superrailbuilderx/platform_builder.png",
+				"AlphaBlend"
+			],
+			[
+				"mat2",
+				"textures/superrailbuilderx/platform_builder.png",
+				"AlphaBlend"
+			]
+		],
+		"rendererPath": "scripts/superrailbuilderx/render_platform_builder.js"
+	},
+	"buttonTexture": "textures/superrailbuilderx/button_platform_builder.png",
+	"customIconTexture": "textures/superrailbuilderx/icon_platform_builder.png",
+	"serverScriptPath": "scripts/superrailbuilderx/server_platform_builder.js",
+	"playerPos": [
+		[
+			0,
+			0,
+			0
+		]
+	],
+	"vehicleType": "Car",
+	"size": [
+		1,
+		1
+	],
+	"vibration": [
+		0,
+		0
+	],
+	"friction": [
+		0,
+		0
+	],
+	"acceleration": [
+		0,
+		0
+	],
+	"maxSpeed": [
+		0,
+		0
+	],
+	"maxYaw": [
+		0,
+		0
+	],
+	"pitchCoefficient": [
+		0,
+		0
+	],
+	"yawCoefficient": [
+		0,
+		0
+	],
+	"useCustomColor": false,
+	"smoothing": true,
+	"doCulling": false,
+	"changeYawOnStopping": false,
+	"accuracy": "LOW",
+	"tags": "super rail builder x platform builder"
+}

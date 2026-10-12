@@ -8,10 +8,11 @@
 - KaizPatchX 1.10.4 / AppleExtended 2.5.3は完全自由点仕様。SRBXパックと対象SRBXPatch JARを併用する。基本はクライアント/サーバー双方へ導入し、SRBX未導入クライアントにはJAR不要。本家対応までの暫定処理。[導入](user-guide/srbx-free-endpoint-mod.md)。
 - 生成・移動・分割・複線・カント・分岐・Undoは共通の道床/コア保護を使用。理論両端各1タイルの所有先変更、競合時の逆順→設定上限内の通常生成、撤去前の所有先復元に対応。[道床調査](research/roadbed-ownership-investigation.md)。
 - AE重複区間・自動分割境界対策は実機確認済み（2026-10-11）。KaizのCrossTieあり/なしも実機動作を確認済み。[AE対策](research/appleextended-overlap-rail-patch.md)。
-- 生成Aの自由点間はカーソルXZと目標勾配から高さを決める。Bは始点・半径・長さから終点を計算（初期40m、ホイール±1m/Ctrl±10m、J/K±0.1m）。勾配/縦曲線GUI、7ツールのホイール、AE日本語ヘルプを追加。実機確認待ち。[A](user-guide/builder1.md)・[B](user-guide/builder2.md)。
+- 生成A/BはI/Kで自由始点の選択高さ±1/16m、Ctrlで±1m、Uで地上高延長。Bの長さはJ/Lの長押し加速（初期0.1m/Ctrl10m、最大512m）、半径も加速。ホイールによる長さ変更は廃止。[A](user-guide/builder1.md)・[B](user-guide/builder2.md)。
+- [組ホーム](user-guide/platform-builder.md)を追加。手持ちレール必須、左右1列、間隔2m/高さ1.5mから設定。サーバーで元線形を再検証・再計算し、共通保護とUndoを使用。ホイールは全8ツール。実機確認待ち。
 - AEのTAB拒否は非乗車追従へ乗車必須チェックを適用していたことが原因。bb224faでcompat判定と切替後のサーバーホスト引継ぎを修正しpush済み。全4build・入力/GUI/dispatch/AE回帰・Java8ホイール成功、実機再確認待ち。
 - [v0.3.1 Draft](https://github.com/hi03s/SuperRailBuilderX/releases/tag/untagged-c0ca067f4b5e8b3bf12f)を作成済み。タグは32e2467。Actions成功、本文一致・draft=true・ZIPと2 JARの添付/ダウンロード検証済み。公開は開発者の手動Publish。[リリース手順](development/releasing.md)。
-- artifactsには`SuperRailBuilderX-0.3.1-v0.3.1.zip`と環境別SRBXPatch v1.0 JARだけを保持。テスト生成物は.cacheへ配置。
+- artifactsには最新開発版`SuperRailBuilderX-0.3.1.zip`、タグ時点の`SuperRailBuilderX-0.3.1-v0.3.1.zip`、環境別SRBXPatch v1.0 JARだけを保持。今回の新機能は最新開発版のみへ反映し、既存Draft/Assetsは変更しない。
 - docsは[user-guide](user-guide/)、[development](development)、[research](research/)、[history](history)へ分類。文書入口は[README](README.md)。logsは原則Git保存しない。
 
 ## 作業中
@@ -21,7 +22,7 @@
 ## 優先確認事項
 
 - AE中間点分岐の生成・Undo・失敗復元と描画パッチは、開発者から実機解消確認を受領（2026-10-12）。0.3.1へ含める。
-- KaizPatch/AEで生成Aの自由点勾配と既設接続、BのL/R/長さ/スナップ/生成/Undo、7ツールのホイールと日本語ヘルプを確認する。
+- KaizPatch/AEでI/Kの始点高さ限定、Uの地上高延長、BのJ/L/Ctrl/長押し加速・512m上限と半径操作、組ホームの左右・高さ・手持ち必須・生成/Undo、8ツールのホイールを確認する。異常時は操作順とlogs/latest.logを共有する。
 - 道床所有履歴の専用WorldSavedDataへの変更は模擬保存/再読込まで確認済み。生成・接続移動・分割・Undoと再入場後の未選択レール保持を実機確認する。本番サーバーは操作しない。
 - 状態GUI、カントの理論レール単位選択/両端適用/0km/h/±50、CTRL中の移動ホバー抑止、分岐スナップは関連回帰成功。未確認の実機条件は操作順とログで確認する。
 - SRBX未導入/JARなしクライアント接続は設計上許可するが、実機接続は未確認。
