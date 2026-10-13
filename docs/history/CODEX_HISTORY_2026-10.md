@@ -588,3 +588,4 @@
 - 検証: 全4ターゲットbuild、test:gui（新しい複線方向テストを追加）、test:input、test:appleextended、test:rail-transition、test:kaizpatch、Java8 Nashorn GUI、変更TypeScript整形、文書リンク、git diff --check成功。上り/下り・始終点逆・縦曲線到達/未到達の水平ベジェの各区間を元曲線と数値比較。生成Bの左右座標・GUI・Ctrl越境・長押し継続・押し直しを実際の入力関数で検証。
 - 実機は未実施。KaizPatch/AEで勾配を変えた生成とUndo、逆向き接続の複線、生成BのLR・直線停止を確認し、異常時は操作と時刻を添えlogs/latest.logへ格納する。生ログは確認までローカル保持し、Gitへ追加しない。
 - artifacts/SuperRailBuilderX-0.3.1.zipを更新。タグ時点のZIPを復元して保持。既存Draft/タグ/リリースAssetsとSRBXPatch JARは変更しない。ユーザーのXCF編集はコミット対象外。
+- 実装コミットcd3caf7はorigin/mainへpush・同期済み。
