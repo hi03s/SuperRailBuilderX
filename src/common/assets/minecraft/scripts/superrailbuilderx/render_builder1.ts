@@ -61,6 +61,7 @@ type BuilderState = {
 	curveRadiusLocked: boolean;
 	curveRadius: number;
 	curveSide: number;
+	radiusStraightStopped: boolean;
 	designLength: number;
 	heightOffsetSixteenths: number;
 	groundTargetY?: number;
@@ -228,6 +229,7 @@ function createDefaultState(): BuilderState {
 		curveRadiusLocked: builderB,
 		curveRadius: MAX_CURVE_RADIUS,
 		curveSide: 1,
+		radiusStraightStopped: false,
 		designLength: 40,
 		heightOffsetSixteenths: 0,
 		lengthRepeat: new SRBXAcceleratedRepeat(),
@@ -261,6 +263,7 @@ function resetState(state: BuilderState): void {
 	state.curveRadiusLocked = reset.curveRadiusLocked;
 	state.curveRadius = reset.curveRadius;
 	state.curveSide = reset.curveSide;
+	state.radiusStraightStopped = reset.radiusStraightStopped;
 	state.designLength = reset.designLength;
 	state.heightOffsetSixteenths = reset.heightOffsetSixteenths;
 	state.groundTargetY = undefined;
@@ -652,7 +655,7 @@ function orientPair(
 		end.anchorPitch = -pitch;
 		end.direction = SRBXMath.directionFromYaw(end.anchorYaw);
 		start.anchorLength =
-			SRBXMath.distance(start.position, end.position) / 3;
+			SRBXMath.horizontalDistance(start.position, end.position) / 3;
 		end.anchorLength = start.anchorLength;
 		start.markerPosition = markerPositionForDirection(
 			start.position,
@@ -884,10 +887,13 @@ function orientPair(
 			SRBXApiCompat.requiresRailBoundarySnap(),
 		);
 		if (verticalSegments.length === 0) return [start, end];
-		return [
-			verticalSegments[0][0],
-			verticalSegments[verticalSegments.length - 1][1],
-		];
+		const plannedStart = verticalSegments[0][0];
+		const plannedEnd = verticalSegments[verticalSegments.length - 1][1];
+		// Keep the unsplit horizontal cubic: preview and server split it later.
+		// The outer anchors of the split pieces are not the original anchors.
+		plannedStart.anchorLength = start.anchorLength;
+		plannedEnd.anchorLength = end.anchorLength;
+		return [plannedStart, plannedEnd];
 	}
 	return [start, end];
 }
@@ -1337,6 +1343,11 @@ function showHelp(sender: ICommandSender): void {
 			sender,
 			"長押しで累積変更量に応じて単位が10倍になります（長さは最大512m）。半径も長押しで加速します。",
 		);
+		if (builderB)
+			NGTLog.sendChatMessage(
+				sender,
+				"半径操作は直線で一旦停止します。キーを離して押し直すと反対側へ曲がります。",
+			);
 	}
 	NGTLog.sendChatMessage(sender, keys.getDescription("startHeightUp"));
 	NGTLog.sendChatMessage(sender, keys.getDescription("startHeightDown"));
@@ -1394,7 +1405,7 @@ function renderToolGui(
 				enabled: builderB ? undefined : state.curveRadiusLocked,
 				label:
 					builderB && state.curveRadius < MAX_CURVE_RADIUS
-						? `${state.curveSide > 0 ? "L" : "R"} ${state.curveRadius} m`
+						? `${state.curveSide > 0 ? "R" : "L"} ${state.curveRadius} m`
 						: labels[1],
 			},
 			{
@@ -1577,10 +1588,16 @@ function changeCurveRadius(
 		const bend = (MAX_CURVE_RADIUS - state.curveRadius) * state.curveSide;
 		const next = Math.max(
 			-MAX_CURVE_RADIUS + 1,
-			Math.min(MAX_CURVE_RADIUS - 1, bend - delta),
+			Math.min(MAX_CURVE_RADIUS - 1, bend + delta),
 		);
-		state.curveRadius = MAX_CURVE_RADIUS - Math.abs(next);
-		state.curveSide = next < 0 ? -1 : 1;
+		const reachesStraight = bend !== 0 && bend * next <= 0;
+		const stopped = reachesStraight ? 0 : next;
+		state.curveRadius = MAX_CURVE_RADIUS - Math.abs(stopped);
+		state.curveSide = stopped < 0 ? -1 : 1;
+		if (reachesStraight) {
+			state.radiusStraightStopped = true;
+			state.radiusRepeat.reset();
+		}
 		return;
 	}
 	initializeCurveStartYaw(entity, partialTicks, state);
@@ -1824,9 +1841,14 @@ function handleInput(
 		const direction =
 			Number(Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) -
 			Number(Keyboard.isKeyDown(Keyboard.KEY_LEFT));
+		if (
+			!Keyboard.isKeyDown(Keyboard.KEY_RIGHT) &&
+			!Keyboard.isKeyDown(Keyboard.KEY_LEFT)
+		)
+			state.radiusStraightStopped = false;
 		const delta = state.radiusRepeat.update(
 			System.currentTimeMillis(),
-			direction,
+			builderB && state.radiusStraightStopped ? 0 : direction,
 			keys.downOptionKey() ? 100 : 1,
 		);
 		if (delta) changeCurveRadius(entity, partialTicks, state, delta);

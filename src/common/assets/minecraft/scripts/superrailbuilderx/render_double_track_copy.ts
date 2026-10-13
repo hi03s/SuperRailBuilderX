@@ -26,6 +26,7 @@ import {
 	SRBXBuilderPoint,
 } from "@target/assets/minecraft/scripts/superrailbuilderx/SRBXApiCompat";
 import { SRBXMath, SRBXVec3 } from "./SRBXMath";
+import { SRBXCopyOrientation } from "./SRBXCopyOrientation";
 import {
 	DoubleTrackCopyPlan,
 	DoubleTrackCopyRequest,
@@ -472,17 +473,27 @@ function buildPlans(
 		excluded[ignoredKeys[i]] = true;
 	for (let i = 0; i < state.selected.length; i++)
 		excluded[state.selected[i].railKey] = true;
+	const sources: ResolvedRail[] = [];
+	for (let i = 0; i < state.selected.length; i++) {
+		const resolved = resolveRail(entity, state.selected[i]);
+		if (resolved) sources.push(resolved);
+	}
+	const orientations = SRBXCopyOrientation.directions(
+		sources.map((resolved) => ({
+			start: sourcePoint(resolved.positions[0]).position,
+			end: sourcePoint(resolved.positions[1]).position,
+		})),
+	);
 	for (let repeat = 1; repeat <= state.repeatCount; repeat++) {
 		const distance = state.spacing * state.side * repeat;
 		let repeatValid = true;
-		for (let i = 0; i < state.selected.length; i++) {
-			const resolved = resolveRail(entity, state.selected[i]);
-			if (!resolved) continue;
+		for (let i = 0; i < sources.length; i++) {
+			const resolved = sources[i];
 			if (
 				!staysBeforeCurveCenter(
 					sourcePoint(resolved.positions[0]),
 					sourcePoint(resolved.positions[1]),
-					distance,
+					distance * orientations[i],
 				)
 			) {
 				repeatValid = false;
@@ -490,20 +501,19 @@ function buildPlans(
 			}
 		}
 		if (!repeatValid) break;
-		for (let i = 0; i < state.selected.length; i++) {
-			const resolved = resolveRail(entity, state.selected[i]);
-			if (!resolved) continue;
+		for (let i = 0; i < sources.length; i++) {
+			const resolved = sources[i];
 			const sourceStart = sourcePoint(resolved.positions[0]);
 			const sourceEnd = sourcePoint(resolved.positions[1]);
 			let start = offsetPoint(
 				sourceStart,
 				sourceStart.anchorYaw,
-				distance,
+				distance * orientations[i],
 			);
 			let end = offsetPoint(
 				sourceEnd,
 				SRBXMath.normalizeDegrees(sourceEnd.anchorYaw + 180),
-				distance,
+				distance * orientations[i],
 			);
 			const sourceChord = SRBXMath.horizontalDistance(
 				sourceStart.position,

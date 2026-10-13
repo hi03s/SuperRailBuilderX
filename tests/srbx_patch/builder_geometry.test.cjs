@@ -170,6 +170,98 @@ assert(
 );
 state.slopePermil = 0;
 assert.equal(context.getFreeCursorPosition(0, state)[1], start.position[1]);
+// A's endpoint planning must not feed subdivided horizontal anchors back
+// into the full curve. Reproduce the logged 0 / 1 / 18 permil connection.
+Object.assign(context, {
+	MAX_CURVE_RADIUS: 10000,
+	SRBXApiCompat: { requiresRailBoundarySnap: () => false },
+	updateFreePointMarker: () => {},
+	markerPositionForDirection: (p) => p.slice(),
+});
+for (const name of ["copyPoint", "orientPair"])
+	vm.runInContext(fn(builder, name), context);
+const loggedStart = {
+	...start,
+	kind: "rail",
+	position: [-72.497, 4.063, 726.207],
+	anchorYaw: 192.64657592773438,
+	anchorPitch: 0,
+};
+const loggedEnd = {
+	...start,
+	position: [-84.65759076246961, 4.063, 681.7240074546563],
+};
+const controls = (p) => [
+	p[0].position,
+	math.pointAtYawPitchDistance(
+		p[0].position,
+		p[0].anchorYaw,
+		0,
+		p[0].anchorLength,
+	),
+	math.pointAtYawPitchDistance(
+		p[1].position,
+		p[1].anchorYaw,
+		0,
+		p[1].anchorLength,
+	),
+	p[1].position,
+];
+for (const reverse of [false, true]) {
+	const sources = reverse
+		? [loggedEnd, loggedStart]
+		: [loggedStart, loggedEnd];
+	const baseline = context.orientPair(...sources, {
+		slopePermil: 0,
+		verticalCurveRadius: 1000,
+	});
+	for (const grade of [-50, -18, -1, 1, 18, 50, 200]) {
+		const oriented = context.orientPair(...sources, {
+			slopePermil: grade,
+			verticalCurveRadius: 1000,
+		});
+		assert(
+			Math.abs(oriented[0].anchorLength - baseline[0].anchorLength) <
+				1e-9,
+		);
+		assert(
+			Math.abs(oriented[1].anchorLength - baseline[1].anchorLength) <
+				1e-9,
+		);
+		const segments = math.planVerticalRailSegments(...oriented);
+		const split =
+			segments.length === 2
+				? segments[0][0].anchorLength / baseline[0].anchorLength
+				: 1;
+		for (let i = 0; i < segments.length; i++) {
+			for (let j = 0; j <= 20; j++) {
+				const t = j / 20;
+				const globalT = i === 0 ? t * split : split + t * (1 - split);
+				const actual = math.cubicBezierPoint(
+					...controls(segments[i]),
+					t,
+				);
+				const expected = math.cubicBezierPoint(
+					...controls(baseline),
+					globalT,
+				);
+				assert(
+					math.horizontalDistance(actual, expected) < 1e-7,
+					`Horizontal cubic: reverse=${reverse}, grade=${grade}, piece=${i}`,
+				);
+			}
+		}
+	}
+}
+// Horizontal controls are independent of heights and pitches for all callers.
+const circularFlat = math.circularConnection([0, 0, 0], 0, 0, [10, 0, 40]);
+const circularGrade = math.circularConnection([0, 0, 0], 0, 15, [10, 20, 40]);
+assert.equal(circularFlat.anchorLength, circularGrade.anchorLength);
+assert.equal(circularFlat.radius, circularGrade.radius);
+assert.equal(
+	math.fixedPairAnchorLength([0, 0, 0], 0, 0, [10, 0, 40], 200, 0),
+	math.fixedPairAnchorLength([0, 0, 0], 0, 15, [10, 20, 40], 200, -20),
+);
 // B lengths retain tenths and clamp safely at the allowed limits.
 vm.runInContext(fn(builder, "changeDesignLength"), context);
 const b = { designLength: 40 };
@@ -243,6 +335,69 @@ const entity = {
 const host = { rotationYaw: -90, field_70177_z: -90 };
 const handle = (right = false) =>
 	context.handleInput(host, entity, 0, right, false);
+let guiRows;
+context.SRBXToolGui = {
+	render: (name, icon, rows) => {
+		guiRows = rows;
+	},
+};
+context.GUI_BUILDER2_ICON = 1;
+vm.runInContext(fn(builder, "renderToolGui"), context);
+// Minecraft yaw 0 faces +Z: left is +X, right is -X.
+for (const [key, side, xSign] of [
+	["LEFT", -1, 1],
+	["RIGHT", 1, -1],
+]) {
+	Object.assign(input, context.createDefaultState());
+	held.clear();
+	handle();
+	held.add(key);
+	handle();
+	assert.equal(input.curveSide, side);
+	context.renderToolGui(input, null);
+	assert.equal(guiRows[1].label, `${key === "LEFT" ? "L" : "R"} 9999 m`);
+	const bent = geometry.plan(
+		{ ...start, position: [0, 0, 0] },
+		{
+			...design,
+			yaw: 0,
+			radius: input.curveRadius * input.curveSide,
+		},
+	);
+	assert.equal(Math.sign(bent[1].position[0]), xSign);
+	// Overshoot straight with a Ctrl-sized step, then hold through repeats.
+	held.clear();
+	handle();
+	held.add(key === "LEFT" ? "RIGHT" : "LEFT");
+	ctrl = true;
+	handle();
+	assert.equal(input.curveRadius, 10000);
+	assert.equal(input.radiusStraightStopped, true);
+	now += 5000;
+	handle();
+	assert.equal(input.curveRadius, 10000, "Holding must stop at straight");
+	ctrl = false;
+	handle();
+	assert.equal(
+		input.curveRadius,
+		10000,
+		"Ctrl release alone cannot unlock straight",
+	);
+	held.clear();
+	handle();
+	held.add(key === "LEFT" ? "RIGHT" : "LEFT");
+	handle();
+	assert.equal(
+		input.curveRadius,
+		9999,
+		"Release and repress continues beyond straight",
+	);
+	assert.equal(input.curveSide, -side);
+}
+held.clear();
+ctrl = false;
+Object.assign(input, context.createDefaultState());
+handle();
 assert.equal(input.designLength, 40);
 wheel = 120;
 handle();

@@ -228,20 +228,29 @@ export class SRBXMath {
 		endYaw: number,
 		endPitch: number,
 	): number {
-		const provisionalLength = (this.distance(start, end) * 2) / 3;
+		const flatStart: SRBXVec3 = [start[0], 0, start[2]];
+		const flatEnd: SRBXVec3 = [end[0], 0, end[2]];
+		const provisionalLength = (this.horizontalDistance(start, end) * 2) / 3;
 		const startControl = this.pointAtYawPitchDistance(
-			start,
+			flatStart,
 			startYaw,
-			startPitch,
+			0,
 			provisionalLength,
 		);
 		const endControl = this.pointAtYawPitchDistance(
-			end,
+			flatEnd,
 			endYaw,
-			endPitch,
+			0,
 			provisionalLength,
 		);
-		return this.cubicBezierLength(start, startControl, endControl, end) / 3;
+		return (
+			this.cubicBezierLength(
+				flatStart,
+				startControl,
+				endControl,
+				flatEnd,
+			) / 3
+		);
 	}
 
 	static circularAnchorLength(radius: number, angleDegrees: number): number {
@@ -712,14 +721,17 @@ export class SRBXMath {
 		const cosine = Math.cos((yawDifference * Math.PI) / 180);
 		const distanceToIntersection =
 			Math.abs(cosine) < 0.00001
-				? this.distance(fixed, center)
-				: this.distance(fixed, center) / cosine;
+				? this.horizontalDistance(fixed, center)
+				: this.horizontalDistance(fixed, center) / cosine;
 		const intersection = this.pointAtYawPitchDistance(
 			fixed,
 			fixedYaw,
-			fixedPitch,
+			0,
 			distanceToIntersection,
 		);
+		intersection[1] =
+			fixed[1] +
+			distanceToIntersection * Math.tan((fixedPitch * Math.PI) / 180);
 		const intersectionYaw = this.horizontalYaw(fixed, intersection);
 		const endYaw = this.horizontalYaw(fixed, free);
 		const angle = this.relativeDegrees(intersectionYaw, endYaw) * 2;
@@ -727,8 +739,8 @@ export class SRBXMath {
 		const radius =
 			Math.abs(sine) < 0.00001
 				? Infinity
-				: this.distance(fixed, free) / 2 / sine;
-		let anchorLength = this.distance(fixed, free) / 3;
+				: this.horizontalDistance(fixed, free) / 2 / sine;
+		let anchorLength = this.horizontalDistance(fixed, free) / 3;
 		if (Math.abs(radius) <= 9999 && Math.abs(angle) >= 1) {
 			anchorLength = Math.abs(
 				radius * (4 / 3) * Math.tan((angle * Math.PI) / 720),
