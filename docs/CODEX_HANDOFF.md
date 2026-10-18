@@ -52,7 +52,7 @@
 
 ## 直近の完了
 
-- 2026-10-19 ローカルCodex: 渡り線生成6形状・既設基準線/吸着/Undo、両版分岐端点移動、始点高さアイコンと3枚時計枠を実装。全4build/関連回帰/Java8成功、開発ZIP更新、実機未確認。[10月履歴](history/CODEX_HISTORY_2026-10.md)。コミット・push結果は同期後に記録する。
+- 2026-10-19 ローカルCodex: 渡り線生成6形状・既設基準線/吸着/Undo、両版分岐端点移動、始点高さアイコンと3枚時計枠を実装。全4build/関連回帰/Java8成功、開発ZIP更新、実機未確認。[a5474a3](https://github.com/hi03s/SuperRailBuilderX/commit/a5474a3)をorigin/mainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 - 2026-10-18 ローカルCodex: コピー元の端部カント保持とGUI文字枠/PC時計を実装。全4build/関連回帰/Java8成功、ZIP更新、実機未確認。[750e10d](https://github.com/hi03s/SuperRailBuilderX/commit/750e10d)をorigin/mainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 - 2026-10-18 ローカルCodex: 吸着時の中央/ランダムカント継承漏れを両版で修正。全4build/関連回帰成功、時系列/実機手順を追記、ZIP更新。Issue実機確認待ち。[2ae0fe5](https://github.com/hi03s/SuperRailBuilderX/commit/2ae0fe5)をorigin/mainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 - 2026-10-18 ローカルCodex: AngelicaのGUI復元クラッシュを修正し、Issue #2の複製は実質水平と再確認。全4build/GUI/Java8成功、開発ZIP更新、実機確認待ち。[87d60f1](https://github.com/hi03s/SuperRailBuilderX/commit/87d60f1)をorigin/mainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。

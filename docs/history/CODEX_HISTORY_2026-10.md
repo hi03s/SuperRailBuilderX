@@ -643,3 +643,4 @@
 - GUI時計、移動の実装、AE渡り線生成を独立委譲。Kaiz生成・共通検証・左右幾何・例外復元・全体統合はローカルCodexが担当。rtm-ts/参照ツールキット/本番サーバー/既存Draftは変更しない。ユーザーPNGは追加し、XCFは編集を保持してコミットしない。
 - 全4ターゲットbuild、GUI・入力・AE・Kaiz・道床/遷移の回帰、Java8 Nashorn GUI/ホイールと文書リンクを検証。両環境の3 native形状、旧source/コア衝突/未ロード/在線の拒否、生成・メタデータ例外復元、モデル/SubRail/信号、Undoを模擬検証。6形状の左右・水平制約・カント非破壊も検証。全体format:checkには既存の対象外21ファイルの指摘が残るため変更ファイルを個別整形する。
 - 実機確認は未実施。最新開発ZIPで両環境の6形状/既設基準線/吸着/失敗復元/Undo、分岐端部移動と接続線保持、始点高さ・時計枠を確認し、異常時は操作順・時刻とlogs/latest.logを共有する。公開は行わない。
+- 実装コミットa5474a3をorigin/mainへpush・同期済み。test:platform・runtime-dispatch・rail-patchも成功。配布ZIPの新モデル/サーバースクリプト/PNG収録とgui_base.xcf除外を検証し、artifactsは開発ZIP・タグ版ZIP・2 JARの4ファイルを保持。
