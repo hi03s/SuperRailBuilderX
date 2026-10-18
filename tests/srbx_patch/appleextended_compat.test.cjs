@@ -288,6 +288,37 @@ for (const edge of [-8, 0, 8])
 		assert.strictEqual(result.cantEdge, -edge);
 		assert.strictEqual(result.cantCenter, 5);
 		assert.strictEqual(result.anchorYaw, 270);
+		for (const center of [0, -5, 5]) {
+			const request = {
+				kind: "rail",
+				core: [1, 4, 2],
+				index,
+				position: [1, 4.5, 2.75],
+				cantCenter: center,
+				cantRandom: 0.25,
+			};
+			const copied = helper.resolveBuilderPoint(world, request);
+			assert.strictEqual(copied.cantEdge, -edge);
+			assert.strictEqual(
+				copied.cantCenter,
+				center,
+				"AE copy center must survive endpoint snapping",
+			);
+			assert.strictEqual(copied.cantRandom, 0.25);
+			assert.strictEqual(
+				source.cantCenter,
+				5,
+				"Existing rail is never modified",
+			);
+			for (const field of ["cantCenter", "cantRandom"])
+				assert.strictEqual(
+					helper.resolveBuilderPoint(world, {
+						...request,
+						[field]: NaN,
+					}),
+					null,
+				);
+		}
 		assert.strictEqual(
 			source.cantEdge,
 			edge,

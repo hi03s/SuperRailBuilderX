@@ -9,6 +9,7 @@ function fn(source, name) {
 	return source.slice(start, source.indexOf("\n}", start) + 2);
 }
 const client = read("render_cant_formatter");
+const diagnosticLines = [];
 let look = { posX: 35, posY: 0.0625, posZ: 0 },
 	held = new Set(),
 	pressed = "",
@@ -69,7 +70,10 @@ const context = vm.createContext({
 	),
 	keys: { pressed: (key) => pressed === key, down: () => false },
 	result: () => {},
-	NGTLog: { sendChatMessage: () => {} },
+	NGTLog: {
+		sendChatMessage: () => {},
+		debug: (line) => diagnosticLines.push(line),
+	},
 	send: (e, s, r) => {
 		sent = r;
 	},
@@ -237,6 +241,13 @@ assert.equal(
 assert.equal(
 	context.process(entity, {}, { action: "apply", targets }).status,
 	"ok",
+);
+assert(
+	diagnosticLines.some(
+		(line) =>
+			line.includes("applied targets:") &&
+			line.includes(`${targets[0].railKey}[0]=${targets[0].angle}`),
+	),
 );
 assert.equal(
 	context.process(entity, {}, { action: "undo" }).status,

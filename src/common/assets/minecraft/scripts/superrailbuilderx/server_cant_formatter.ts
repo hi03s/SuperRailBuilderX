@@ -89,6 +89,9 @@ function process(
 	const result = SRBXApiCompat.applyRailCants(world, targets);
 	appendCantUpdate(update);
 	if (result.status === "ok" && result.undoToken) {
+		NGTLog.debug(
+			`[SuperRailBuilderX cant] applied targets: ${targets.map((target) => `${target.railKey}[${target.index}]=${target.angle}`).join(";")}`,
+		);
 		let stack = undoRecords.get(entity);
 		if (!stack) {
 			stack = [];

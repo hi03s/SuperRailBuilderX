@@ -2236,6 +2236,12 @@ export class SRBXApiCompat {
 		world: net.minecraft.world.World,
 		point: BuilderPoint,
 	): RailPosition | null {
+		for (const value of [point.cantCenter, point.cantRandom])
+			if (
+				value !== undefined &&
+				(typeof value !== "number" || !isFinite(value))
+			)
+				return null;
 		if (!point.core || point.index === undefined) return null;
 		const tile = world.getTileEntity(
 			point.core[0],
@@ -2282,6 +2288,12 @@ export class SRBXApiCompat {
 			);
 		result.anchorPitch = -source.anchorPitch;
 		result.cantEdge = -source.cantEdge;
+		// Snapping supplies endpoint cant, not the new rail's interior profile.
+		// Copy/move requests carry their own center/random settings explicitly.
+		if (point.cantCenter !== undefined)
+			result.cantCenter = point.cantCenter;
+		if (point.cantRandom !== undefined)
+			result.cantRandom = point.cantRandom;
 		result.setPosition(source.posX, source.posY, source.posZ);
 		return result;
 	}

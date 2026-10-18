@@ -159,6 +159,12 @@ export class AppleExtendedRailCompat {
 		world: World,
 		point: AppleExtendedBuilderPoint,
 	): RailPosition | null {
+		for (const value of [point.cantCenter, point.cantRandom])
+			if (
+				value !== undefined &&
+				(typeof value !== "number" || !isFinite(value))
+			)
+				return null;
 		if (!point.core || point.index === undefined) return null;
 		const tile = world.getTileEntity(
 			new BlockPos(point.core[0], point.core[1], point.core[2]),
@@ -199,6 +205,12 @@ export class AppleExtendedRailCompat {
 		result.anchorPitch = -source.anchorPitch;
 		// AE cantEdge is measured in the endpoint heading, reversed above.
 		result.cantEdge = -source.cantEdge;
+		// The neighbour controls edge cant; an explicit interior copy profile
+		// must survive snapping, including a center value of zero.
+		if (point.cantCenter !== undefined)
+			result.cantCenter = point.cantCenter;
+		if (point.cantRandom !== undefined)
+			result.cantRandom = point.cantRandom;
 		result.setPosition(source.posX, source.posY, source.posZ);
 		return result;
 	}

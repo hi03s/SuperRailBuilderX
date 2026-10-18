@@ -139,6 +139,40 @@ for (const index of [0, 1])
 			"connection resolution must not mutate existing endpoints",
 		);
 		assert.notStrictEqual(target, source);
+		// A copied curve may snap to a flat/differently canted neighbour.
+		// Endpoint continuity comes from the neighbour; the interior profile
+		// and random-cant setting belong to the rail being copied.
+		for (const center of [0, -5, 5]) {
+			const request = {
+				core: [0, 4, 0],
+				index,
+				position: [source.posX, source.posY, source.posZ],
+				anchorYaw: api.normalizeDegrees(source.anchorYaw + 180),
+				anchorPitch: -source.anchorPitch,
+				cantCenter: center,
+				cantRandom: 0.25,
+			};
+			const copied = api.resolveBuilderRailPoint(
+				{ func_147438_o: () => core },
+				request,
+			);
+			assert.equal(copied.cantEdge, -angle);
+			assert.equal(
+				copied.cantCenter,
+				center,
+				"Snapping must preserve the copy's center cant, including zero/sign",
+			);
+			assert.equal(copied.cantRandom, 0.25);
+			assert.equal(JSON.stringify(source), before[index]);
+			for (const field of ["cantCenter", "cantRandom"])
+				assert.equal(
+					api.resolveBuilderRailPoint(
+						{ func_147438_o: () => core },
+						{ ...request, [field]: NaN },
+					),
+					null,
+				);
+		}
 	}
 const pos = [10, 4, 20];
 api.getBuilderRoadbedBlocks = () => [pos];
