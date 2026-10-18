@@ -432,6 +432,16 @@ export class SRBXApiCompat {
 		return "unsupported";
 	}
 
+	static getSingleCrossoverSplitPlan(core: unknown): null {
+		void core;
+		return null;
+	}
+	static getRailMapsForTool(
+		core: import("jp.ngt.rtm.rail").TileEntityLargeRailCore,
+	): import("jp.ngt.rtm.rail.util").RailMap[] {
+		const map = this.getLogicalRailMap(core);
+		return map ? [map] : [];
+	}
 	static getLogicalRailMap(core: TileEntityLargeRailCore) {
 		if (!core) return null;
 		const maps = core.getAllRailMaps();

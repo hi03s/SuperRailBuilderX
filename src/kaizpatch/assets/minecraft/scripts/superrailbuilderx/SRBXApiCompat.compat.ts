@@ -1,4 +1,8 @@
 import { ModelPackManager } from "jp.ngt.rtm.modelpack";
+import {
+	SRBXSingleCrossoverSplit,
+	SRBXSingleCrossoverSplitPlan,
+} from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXSingleCrossoverSplit";
 import { SRBXCrossoverPlan } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXCrossoverPlan";
 import { validateCrossoverPlan } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXCrossoverValidation";
 import { SRBXCantDiagnostics } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXCantDiagnostics";
@@ -525,6 +529,7 @@ export class SRBXApiCompat {
 	}
 
 	private static updateBoundaryOwner(rp: RailPosition): void {
+		const position: [number, number, number] = [rp.posX, rp.posY, rp.posZ];
 		const owner = SRBXRailBoundary.owner(
 			[rp.posX, rp.posY, rp.posZ],
 			rp.anchorYaw,
@@ -536,6 +541,9 @@ export class SRBXApiCompat {
 			[rp.posX, rp.posY, rp.posZ],
 			rp.anchorYaw,
 		);
+		// Owner and direction participate in decoding offsetXYZ. Keep NBT
+		// round-trips and client packets at the same logical endpoint.
+		rp.setPosition(position[0], position[1], position[2]);
 	}
 
 	private static restoreMovedPoint(
@@ -543,10 +551,12 @@ export class SRBXApiCompat {
 		point?: BuilderPoint,
 	): void {
 		if (!point || !point.ownerBlock) return;
+		const position: [number, number, number] = [rp.posX, rp.posY, rp.posZ];
 		rp.blockX = point.ownerBlock[0];
 		rp.blockY = point.ownerBlock[1];
 		rp.blockZ = point.ownerBlock[2];
 		rp.direction = point.direction;
+		rp.setPosition(position[0], position[1], position[2]);
 	}
 
 	private static createMovedPositions(
@@ -1540,10 +1550,82 @@ export class SRBXApiCompat {
 		return rollbackOk ? result.status : "move_rollback_failed";
 	}
 
+	private static planSwitchMoveOwners(
+		core: TileEntityLargeRailCore,
+		positions: RailPosition[],
+	): RailPosition[] | null {
+		const world = this.getCoreWorld(core);
+		const railSwitch = new RailMaker(
+			world,
+			this.toRailPositionArray(positions),
+			RailMapBasic.fixRTMRailMapVersionCurrent,
+		).getSwitch();
+		if (!railSwitch) return null;
+		const maps = railSwitch.getAllRailMap(),
+			property = core.getProperty();
+		const planned = positions.slice(),
+			reserved: { [key: string]: boolean } = {},
+			used: { [key: string]: boolean } = {};
+		const key = (rp: RailPosition) =>
+			`${rp.blockX},${rp.blockY},${rp.blockZ}`;
+		for (const rp of positions) reserved[key(rp)] = true;
+		const blocked = (x: number, y: number, z: number) => {
+			const tile = world.getTileEntity(x, y, z);
+			return tile instanceof TileEntityLargeRailCore && tile !== core;
+		};
+		for (let i = 0; i < planned.length; i++) {
+			const rp = planned[i];
+			if (!blocked(rp.blockX, rp.blockY, rp.blockZ) && !used[key(rp)]) {
+				used[key(rp)] = true;
+				continue;
+			}
+			// The root owns the actual switch core and lever; never move it
+			// aside or replace a foreign core. Only auxiliary bases can relocate.
+			if (i === 0) return null;
+			let target: number[] | null = null,
+				best = 6.25;
+			for (let m = 0; m < maps.length; m++) {
+				const blocks = maps[m].getRailBlockList(property);
+				for (let j = 0; j < blocks.size(); j++) {
+					const b = blocks.get(j),
+						p = [b[0], b[1], b[2]];
+					if (
+						p[1] !== rp.blockY ||
+						reserved[p.join(",")] ||
+						blocked(p[0], p[1], p[2])
+					)
+						continue;
+					const distance =
+						Math.pow(p[0] + 0.5 - rp.posX, 2) +
+						Math.pow(p[2] + 0.5 - rp.posZ, 2);
+					if (distance < best) {
+						best = distance;
+						target = p;
+					}
+				}
+			}
+			if (!target) return null;
+			const relocated = this.copyRailPositions([rp])[0];
+			relocated.blockX = target[0];
+			relocated.blockY = target[1];
+			relocated.blockZ = target[2];
+			relocated.setPosition(rp.posX, rp.posY, rp.posZ);
+			planned[i] = relocated;
+			reserved[key(relocated)] = used[key(relocated)] = true;
+			NGTLog.debug(
+				`[SuperRailBuilderX RailPosition] switch auxiliary owner relocated: index=${i}, from=${key(rp)}, to=${key(relocated)}, position=${rp.posX},${rp.posY},${rp.posZ}`,
+			);
+		}
+		return planned;
+	}
+
 	private static validateSwitchMovePath(
 		core: TileEntityLargeRailCore,
 		positions: RailPosition[],
 	): string {
+		const planned = this.planSwitchMoveOwners(core, positions);
+		if (!planned) return "rail_overlap";
+		positions = planned;
 		const owners: { [key: string]: boolean } = {};
 		for (const rp of positions) {
 			const key = `${rp.blockX},${rp.blockY},${rp.blockZ}`;
@@ -1610,6 +1692,9 @@ export class SRBXApiCompat {
 		if (preserveEndpointGeometry)
 			this.restoreMovedPoint(moved[index], restorePoint);
 		if (!preserveEndpointGeometry) this.updateBoundaryOwner(moved[index]);
+		const planned = this.planSwitchMoveOwners(core, moved);
+		if (!planned) return "rail_overlap";
+		for (let i = 0; i < moved.length; i++) moved[i] = planned[i];
 		protectedKeys = this.getBuilderMoveProtectedRailKeys(core, moved);
 		const originalProtectedKeys = this.getBuilderMoveProtectedRailKeys(
 			core,
@@ -2797,6 +2882,7 @@ export class SRBXApiCompat {
 		preserveSectionCores = false,
 		replacementEndpoint?: [number, number, number],
 		overwriteForeignRoadbeds = false,
+		onPlaced?: (position: number[], tile: unknown) => void,
 	): number {
 		void protectedRailKeys;
 		void preserveSectionCores;
@@ -2844,6 +2930,7 @@ export class SRBXApiCompat {
 				2,
 			);
 			const tile = world.getTileEntity(pos[0], pos[1], pos[2]);
+			if (onPlaced) onPlaced(pos, tile);
 			if (!(tile instanceof TileEntityLargeRailBase))
 				throw new Error(
 					`builder roadbed tile missing at ${pos[0]},${pos[1]},${pos[2]}: changed=${changed}, before=${beforeBlock}/${beforeMetadata}, after=${world.getBlock(pos[0], pos[1], pos[2])}/${world.getBlockMetadata(pos[0], pos[1], pos[2])}, tile=${tile}`,
@@ -4102,6 +4189,28 @@ export class SRBXApiCompat {
 		record: SplitUndoRecord,
 	): SplitCreatedRail | null {
 		try {
+			if (record.positions.length === 4) {
+				const core = this.createBuilderBasicSwitch(
+					world,
+					this.copyRailPositions(record.positions),
+					this.cloneRailProperty(record.property),
+					[],
+				);
+				if (
+					!core ||
+					!this.applyBuilderRailState(
+						world,
+						{ undoCore: this.getRailCorePos(core) },
+						record.signal,
+						record.subRails,
+					)
+				)
+					return null;
+				return {
+					core: this.getRailCorePos(core),
+					key: this.getRailPositionCandidateKey(core),
+				};
+			}
 			const protectedKeys: { [key: string]: boolean } = {};
 			for (let i = 0; i < record.positions.length; i++) {
 				const rp = record.positions[i];
@@ -4184,6 +4293,330 @@ export class SRBXApiCompat {
 		return result;
 	}
 
+	static getRailMapsForTool(
+		core: TileEntityLargeRailCore,
+	): import("jp.ngt.rtm.rail.util").RailMap[] {
+		if (core instanceof TileEntityLargeRailSwitchCore)
+			return Array.prototype.slice.call(core.getAllRailMaps());
+		const map = this.getLogicalRailMap(core);
+		return map ? [map] : [];
+	}
+
+	static getSingleCrossoverSplitPlan(
+		core: TileEntityLargeRailCore,
+	): SRBXSingleCrossoverSplitPlan | null {
+		if (!(core instanceof TileEntityLargeRailSwitchCore)) return null;
+		const positions = this.getEditableRailPositions(core),
+			maps = this.getRailMapsForTool(core);
+		if (!positions || positions.length !== 4 || maps.length !== 3)
+			return null;
+		let count = 0;
+		for (let i = 0; i < positions.length; i++)
+			if (positions[i].switchType === 1) count++;
+		if (count !== 2) return null;
+		return SRBXSingleCrossoverSplit.plan(
+			maps.map((map) => {
+				const basic = map as RailMapBasic,
+					a = basic.getStartRP(),
+					b = basic.getEndRP(),
+					p = map.getRailPos(2, 1);
+				return {
+					start: this.splitPointFromRailPosition(
+						a,
+						a.anchorLengthHorizontal,
+						a.anchorLengthVertical,
+					),
+					end: this.splitPointFromRailPosition(
+						b,
+						b.anchorLengthHorizontal,
+						b.anchorLengthVertical,
+					),
+					startSwitch: a.switchType === 1,
+					endSwitch: b.switchType === 1,
+					midpoint: [p[1], map.getRailHeight(2, 1), p[0]] as [
+						number,
+						number,
+						number,
+					],
+					length: map.getLength(),
+				};
+			}),
+		);
+	}
+
+	private static splitSingleCrossover(
+		world: net.minecraft.world.World,
+		player: EntityPlayer,
+		core: TileEntityLargeRailSwitchCore,
+		expectedKey: string,
+	) {
+		if (this.getRailPositionCandidateKey(core) !== expectedKey)
+			return { status: "rail_changed" };
+		if (core.isLogicalRailOccupied()) return { status: "rail_occupied" };
+		const plan = this.getSingleCrossoverSplitPlan(core);
+		if (!plan) return { status: "single_crossover_only" };
+		const originals = this.copyRailPositions(
+				this.getEditableRailPositions(core),
+			),
+			property = this.cloneRailProperty(core.getProperty()),
+			subRails = new ArrayList<RailProperty>();
+		for (let i = 0; i < core.subRails.size(); i++)
+			subRails.add(this.cloneRailProperty(core.subRails.get(i)));
+		property.autoSplit = false;
+		const record: SplitUndoRecord = {
+			positions: originals,
+			property: this.cloneRailProperty(core.getProperty()),
+			signal: core.getSignal(),
+			subRails,
+			wasSectioned: false,
+			created: [],
+		};
+		const source = { core: this.getRailCorePos(core), key: expectedKey };
+		const connected = this.findConnectedCantEndpoints(
+			world,
+			core,
+			originals,
+		);
+		for (const endpoint of connected)
+			if (endpoint.core.isLogicalRailOccupied())
+				return { status: "rail_occupied" };
+		const protectedKeys = this.getBuilderMoveProtectedRailKeys(
+			core,
+			originals,
+		);
+		const switches = plan.switches.map((points) =>
+			points.map((p, i) =>
+				this.withSwitchType(
+					this.createBuilderFreePoint(p, true),
+					i === 0 ? 1 : 0,
+				),
+			),
+		);
+		const normals = plan.normals.map((points) =>
+			points.map((p) => this.createBuilderFreePoint(p, true)),
+		);
+		const reserved: { [key: string]: boolean } = {};
+		const key = (rp: RailPosition) =>
+			[rp.blockX, rp.blockY, rp.blockZ].join(",");
+		for (const rp of [
+			switches[0][0],
+			switches[1][0],
+			normals[0][0],
+			normals[1][0],
+		]) {
+			if (reserved[key(rp)]) return { status: "core_conflict" };
+			reserved[key(rp)] = true;
+			const tile = world.getTileEntity(rp.blockX, rp.blockY, rp.blockZ);
+			if (
+				tile instanceof TileEntityLargeRailCore &&
+				this.getRailPositionCandidateKey(tile.getRailCore()) !==
+					expectedKey
+			)
+				return { status: "core_conflict" };
+		}
+		// All auxiliary owners are planned before removing the four-marker source.
+		// Keep both normal cores at their original outer endpoints, and give the
+		// two coincident diagonal endpoints separate owned base blocks.
+		for (const points of switches) {
+			const maker = new RailMaker(
+					world,
+					this.toRailPositionArray(points),
+					RailMapBasic.fixRTMRailMapVersionCurrent,
+				),
+				shape = maker.getSwitch();
+			if (!shape) return { status: "invalid_switch_layout" };
+			const maps = shape.getAllRailMap();
+			for (let i = 0; i < maps.length; i++)
+				if (
+					!this.isBuilderRoadbedLoaded(
+						world,
+						maps[i] as unknown as RailSectionMap,
+						property,
+					)
+				)
+					return { status: "path_unloaded" };
+			for (let i = 1; i < points.length; i++) {
+				const rp = points[i];
+				let best: number[] | null = null,
+					score = 6.25;
+				const consider = (p: number[]) => {
+					const k = p.join(",");
+					if (reserved[k] || p[1] !== rp.blockY) return;
+					const yaw = (rp.anchorYaw * Math.PI) / 180;
+					if (
+						(p[0] + 0.5 - rp.posX) * Math.sin(yaw) +
+							(p[2] + 0.5 - rp.posZ) * Math.cos(yaw) <
+						-0.001
+					)
+						return;
+					const tile = world.getTileEntity(p[0], p[1], p[2]);
+					if (tile instanceof TileEntityLargeRailCore) return;
+					const d =
+						Math.pow(p[0] + 0.5 - rp.posX, 2) +
+						Math.pow(p[2] + 0.5 - rp.posZ, 2);
+					if (d < score) {
+						score = d;
+						best = p;
+					}
+				};
+				consider([rp.blockX, rp.blockY, rp.blockZ]);
+				for (let j = 0; j < maps.length; j++) {
+					const blocks = this.getBuilderRoadbedBlocks(
+						maps[j] as unknown as RailSectionMap,
+						property,
+					);
+					for (let k = 0; k < blocks.length; k++) consider(blocks[k]);
+				}
+				if (!best) return { status: "switch_owner_overlap" };
+				const position: [number, number, number] = [
+						rp.posX,
+						rp.posY,
+						rp.posZ,
+					],
+					owner = best as number[];
+				rp.blockX = owner[0];
+				rp.blockY = owner[1];
+				rp.blockZ = owner[2];
+				rp.setPosition(position[0], position[1], position[2]);
+				reserved[owner.join(",")] = true;
+			}
+		}
+		for (const points of normals) {
+			const map = new RailMapBasic(
+				points[0],
+				points[1],
+				RailMapBasic.fixRTMRailMapVersionCurrent,
+			);
+			if (map.getLength() > RTMConfig.railGeneratingDistance)
+				return { status: "normal_rail_too_long" };
+			if (
+				!this.isBuilderRoadbedLoaded(
+					world,
+					map as unknown as RailSectionMap,
+					property,
+				)
+			)
+				return { status: "path_unloaded" };
+		}
+		const rollback = (status: string) => {
+			const removed = record.created.slice();
+			for (let i = record.created.length - 1; i >= 0; i--) {
+				const p = record.created[i];
+				const r = this.undoBuilderRail(
+					world,
+					p.core[0],
+					p.core[1],
+					p.core[2],
+					p.key,
+				);
+				if (r !== "ok") {
+					this.lastSplitClientUpdate = {
+						removed: [source].concat(removed),
+						refreshed: record.created.slice(0, i + 1),
+					};
+					return { status: "split_rollback_failed" };
+				}
+			}
+			record.created = [];
+			const restored = this.restoreSplitSource(world, player, record);
+			this.lastSplitClientUpdate = {
+				removed: [source].concat(removed),
+				refreshed: restored ? [restored] : [],
+			};
+			return { status: restored ? status : "split_rollback_failed" };
+		};
+		this.breakOwnedRail(core);
+		try {
+			for (const positions of switches) {
+				const created = this.createBuilderBasicSwitch(
+					world,
+					positions,
+					property,
+					protectedKeys.concat(record.created.map((p) => p.key)),
+				);
+				if (!created) return rollback("switch_create_failed");
+				const ref = {
+					core: this.getRailCorePos(created),
+					key: this.getRailPositionCandidateKey(created),
+				};
+				record.created.push(ref);
+				if (
+					!this.applyBuilderRailState(
+						world,
+						{ undoCore: ref.core },
+						record.signal,
+						record.subRails,
+					)
+				)
+					return rollback("rail_state_failed");
+			}
+			for (let i = 0; i < normals.length; i++) {
+				const points = normals[i];
+				const result = this.createBuilderRail(
+					world,
+					player,
+					this.splitPointFromRailPosition(
+						points[0],
+						points[0].anchorLengthHorizontal,
+						points[0].anchorLengthVertical,
+					),
+					this.splitPointFromRailPosition(
+						points[1],
+						points[1].anchorLengthHorizontal,
+						points[1].anchorLengthVertical,
+					),
+					protectedKeys.concat(record.created.map((p) => p.key)),
+					undefined,
+					property,
+					true,
+					true,
+					false,
+					undefined,
+					undefined,
+					true,
+				);
+				if (
+					result.status !== "ok" ||
+					!result.undoCore ||
+					!result.undoKey
+				)
+					return rollback(result.status);
+				record.created.push({
+					core: result.undoCore,
+					key: result.undoKey,
+				});
+				if (
+					result.undoCore.join(",") !== key(points[0]) ||
+					!this.applyBuilderRailState(
+						world,
+						result,
+						record.signal,
+						record.subRails,
+					)
+				)
+					return rollback("normal_core_changed");
+			}
+		} catch (error) {
+			NGTLog.debug(
+				`[SuperRailBuilderX splitter] crossover split exception: ${error}`,
+			);
+			return rollback("split_create_failed");
+		}
+		const token = java.util.UUID.randomUUID().toString();
+		this.splitUndoRecords[token] = record;
+		this.lastSplitClientUpdate = {
+			removed: [source],
+			refreshed: record.created.slice(),
+		};
+		NGTLog.debug(
+			`[SuperRailBuilderX splitter] single crossover split: original=${expectedKey}, switches=2, normals=2, normalCores=${record.created
+				.slice(2)
+				.map((p) => p.core.join(","))
+				.join(";")}, token=${token}`,
+		);
+		return { status: "ok", undoToken: token };
+	}
+
 	static splitBuilderRail(
 		world: net.minecraft.world.World,
 		player: EntityPlayer,
@@ -4206,7 +4639,7 @@ export class SRBXApiCompat {
 		const core = tile.getRailCore();
 		if (!core) return { status: "rail_not_found" };
 		if (core instanceof TileEntityLargeRailSwitchCore)
-			return { status: "switch_unsupported" };
+			return this.splitSingleCrossover(world, player, core, expectedKey);
 		if (this.getRailPositionCandidateKey(core) !== expectedKey)
 			return { status: "rail_changed" };
 		if (core.isLogicalRailOccupied()) return { status: "rail_occupied" };
@@ -4889,23 +5322,79 @@ export class SRBXApiCompat {
 		const protectedMap: { [key: string]: boolean } = {};
 		for (let i = 0; i < protectedKeys.length; i++)
 			protectedMap[protectedKeys[i]] = true;
-		for (let i = 0; i < maps.length; i++)
-			this.placeBuilderRoadbed(
-				world,
+		// Snapshot non-rail blocks before any placement. Existing rail ownership
+		// is restored separately through promotion records.
+		const snapshots: {
+			[key: string]: {
+				pos: number[];
+				block: net.minecraft.block.Block;
+				metadata: number;
+				nbt?: NBTTagCompound;
+				touched: boolean;
+				placed?: unknown;
+			};
+		} = {};
+		const snapshot = (pos: number[]) => {
+			const key = pos.join(",");
+			if (snapshots[key]) return;
+			const tile = world.getTileEntity(pos[0], pos[1], pos[2]);
+			const block = world.getBlock(pos[0], pos[1], pos[2]);
+			if (
+				tile instanceof TileEntityLargeRailBase ||
+				block instanceof BlockLargeRailBase
+			)
+				return;
+			let nbt: NBTTagCompound | undefined;
+			if (tile) {
+				nbt = new NBTTagCompound();
+				tile.writeToNBT(nbt);
+			}
+			snapshots[key] = {
+				pos: pos.slice(),
+				block,
+				metadata: world.getBlockMetadata(pos[0], pos[1], pos[2]),
+				nbt,
+				touched: false,
+			};
+		};
+		for (let i = 0; i < maps.length; i++) {
+			const blocks = this.getBuilderRoadbedBlocks(
 				maps[i] as unknown as RailSectionMap,
-				root.blockX,
-				root.blockY,
-				root.blockZ,
 				property,
-				protectedMap,
-				false,
-				undefined,
-				true,
 			);
+			for (let j = 0; j < blocks.length; j++) snapshot(blocks[j]);
+		}
+		for (let i = 0; i < positions.length; i++)
+			snapshot([
+				positions[i].blockX,
+				positions[i].blockY,
+				positions[i].blockZ,
+			]);
 		const promotions: NBTTagCompound[] = [];
 		const installed: RailPosition[] = [];
 		let success = false;
 		try {
+			for (let i = 0; i < maps.length; i++)
+				this.placeBuilderRoadbed(
+					world,
+					maps[i] as unknown as RailSectionMap,
+					root.blockX,
+					root.blockY,
+					root.blockZ,
+					property,
+					protectedMap,
+					false,
+					undefined,
+					true,
+					(pos, tile) => {
+						const saved = snapshots[pos.join(",")];
+						if (saved) {
+							saved.touched = true;
+							saved.placed = tile;
+						}
+					},
+				);
+
 			for (let i = 0; i < positions.length; i++) {
 				const rp = positions[i];
 				const prior = world.getTileEntity(
@@ -4929,6 +5418,9 @@ export class SRBXApiCompat {
 					prior.setStartPoint(rp.blockX, rp.blockY, rp.blockZ);
 					prior.markDirty();
 				}
+				const saved =
+					snapshots[[rp.blockX, rp.blockY, rp.blockZ].join(",")];
+				if (saved) saved.touched = true;
 				installed.push(rp);
 				world.setBlock(
 					rp.blockX,
@@ -5004,6 +5496,42 @@ export class SRBXApiCompat {
 				}
 				for (let i = 0; i < promotions.length; i++)
 					this.restorePromotedRoadbed(world, promotions[i]);
+				for (const key in snapshots) {
+					const saved = snapshots[key],
+						p = saved.pos;
+					if (!saved.touched) continue;
+					const tile = world.getTileEntity(p[0], p[1], p[2]);
+					if (
+						!world.isAirBlock(p[0], p[1], p[2]) &&
+						tile !== saved.placed
+					)
+						continue;
+					if (tile instanceof TileEntityLargeRailCore) continue;
+					if (tile instanceof TileEntityLargeRailBase) {
+						const owner = tile.getStartPoint();
+						if (
+							!owner ||
+							owner[0] !== root.blockX ||
+							owner[1] !== root.blockY ||
+							owner[2] !== root.blockZ
+						)
+							continue;
+					}
+					world.setBlock(
+						p[0],
+						p[1],
+						p[2],
+						saved.block,
+						saved.metadata,
+						2,
+					);
+					const restored = world.getTileEntity(p[0], p[1], p[2]);
+					if (restored && saved.nbt) {
+						restored.readFromNBT(saved.nbt);
+						restored.markDirty();
+					}
+					world.markBlockForUpdate(p[0], p[1], p[2]);
+				}
 			}
 		}
 	}

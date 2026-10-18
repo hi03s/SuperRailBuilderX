@@ -2,6 +2,13 @@ import { SRBXFreeEndpointPolicy as SRBXRailBoundary } from "@common/assets/minec
 import { validateCrossoverPlan } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXCrossoverValidation";
 import { SRBXCrossoverPlan } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXCrossoverPlan";
 import {
+	SRBXSingleCrossoverSplit,
+	SRBXSingleCrossoverSplitPlan,
+} from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXSingleCrossoverSplit";
+import { ArrayList } from "java.util";
+import { ItemRail } from "jp.ngt.rtm.item";
+import { RailMap, RailMapBasic, RailMaker } from "jp.ngt.rtm.rail.util";
+import {
 	TileEntityLargeRailBase,
 	TileEntityLargeRailCore,
 	TileEntityLargeRailSwitchCore,
@@ -454,6 +461,277 @@ export class AppleExtendedRailToolsCompat {
 		return true;
 	}
 
+	static getRailMapsForTool(core: TileEntityLargeRailCore): RailMap[] {
+		if (core instanceof TileEntityLargeRailSwitchCore) {
+			const native = core.getAllRailMaps();
+			const result: RailMap[] = [];
+			if (native)
+				for (let i = 0; i < native.length; i++) result.push(native[i]);
+			return result;
+		}
+		const map = AppleExtendedRailCompat.getLogicalRailMap(core);
+		return map ? [map] : [];
+	}
+
+	static getSingleCrossoverSplitPlan(
+		core: TileEntityLargeRailCore,
+	): SRBXSingleCrossoverSplitPlan | null {
+		if (!(core instanceof TileEntityLargeRailSwitchCore)) return null;
+		const positions = AppleExtendedRailCompat.getLogicalPositions(core);
+		if (!positions || positions.length !== 4) return null;
+		let switchCount = 0;
+		for (let i = 0; i < positions.length; i++)
+			if (positions[i].switchType === 1) switchCount++;
+		if (switchCount !== 2) return null;
+		const maps = this.getRailMapsForTool(core);
+		if (maps.length !== 3) return null;
+		const point = (rp: RailPosition): AppleExtendedBuilderPoint => ({
+			kind: "free",
+			position: [rp.posX, rp.posY, rp.posZ],
+			markerPosition: [rp.posX, rp.posY, rp.posZ],
+			ownerBlock: [rp.blockX, rp.blockY, rp.blockZ],
+			direction: rp.direction,
+			anchorYaw: rp.anchorYaw,
+			anchorPitch: rp.anchorPitch,
+			anchorLength: rp.anchorLengthHorizontal,
+			anchorLengthVertical: rp.anchorLengthVertical,
+			cantEdge: rp.cantEdge,
+			cantCenter: rp.cantCenter,
+			cantRandom: rp.cantRandom,
+		});
+		return SRBXSingleCrossoverSplit.plan(
+			maps.map((map) => {
+				const start = map.getStartRP(),
+					end = map.getEndRP(),
+					mid = map.getRailPos(2, 1);
+				return {
+					start: point(start),
+					end: point(end),
+					startSwitch: start.switchType === 1,
+					endSwitch: end.switchType === 1,
+					midpoint: [
+						mid[1],
+						map.getRailHeight(2, 1),
+						mid[0],
+					] as RailCorePos,
+					length: map.getLength(),
+				};
+			}),
+		);
+	}
+
+	/** Preflight the complete replacement set before removing the four-point switch. */
+	private static splitSingleCrossover(
+		world: World,
+		player: EntityPlayer,
+		core: TileEntityLargeRailCore,
+		expectedKey: string,
+	) {
+		if (AppleExtendedRailCompat.coreKey(core) !== expectedKey)
+			return { status: "rail_changed" };
+		if (core.isLogicalRailOccupied()) return { status: "rail_occupied" };
+		const plan = this.getSingleCrossoverSplitPlan(core);
+		const original = AppleExtendedRailCompat.getLogicalPositions(core);
+		if (!plan || !original) return { status: "switch_unsupported" };
+		const property = core.getResourceState();
+		const normalProperty = ItemRail.getDefaultProperty();
+		normalProperty.readFromNBT(property.writeToNBT());
+		normalProperty.autoSplit = false;
+		const groups: RailPosition[][] = [];
+		for (const points of plan.switches) {
+			const native: RailPosition[] = [];
+			for (let i = 0; i < points.length; i++) {
+				const rp = AppleExtendedRailCompat.resolveBuilderPoint(
+					world,
+					points[i],
+					true,
+				);
+				if (!rp) return { status: "invalid_endpoint" };
+				native.push(this.switchPosition(rp, i === 0 ? 1 : 0));
+			}
+			groups.push(native);
+		}
+		for (const points of plan.normals) {
+			const native: RailPosition[] = [];
+			// AE places a level normal rail's core at its second endpoint.
+			for (const point of points.slice().reverse()) {
+				const rp = AppleExtendedRailCompat.resolveBuilderPoint(
+					world,
+					point,
+					true,
+				);
+				if (!rp) return { status: "invalid_endpoint" };
+				native.push(this.switchPosition(rp, 0));
+			}
+			groups.push(native);
+		}
+		const owners: { [key: string]: boolean } = {};
+		const key = (rp: RailPosition) =>
+			[rp.blockX, rp.blockY, rp.blockZ].join(",");
+		for (let i = 0; i < 4; i++) {
+			const root = groups[i][i < 2 ? 0 : 1],
+				k = key(root);
+			if (owners[k]) return { status: "core_conflict" };
+			owners[k] = true;
+		}
+		const footprints: number[][][] = [];
+		for (let i = 0; i < 4; i++) {
+			const group = groups[i],
+				prop = i < 2 ? property : normalProperty;
+			const placement = AppleExtendedRailCompat.planCreation(
+				world,
+				group,
+				prop,
+				expectedKey,
+			);
+			if (
+				!placement ||
+				key(placement.root) !== key(group[i < 2 ? 0 : 1]) ||
+				placement.sections
+			)
+				return { status: "core_conflict" };
+			let maps: RailMap[];
+			if (i < 2) {
+				const list = new ArrayList<RailPosition>();
+				for (const rp of group) list.add(rp);
+				const railSwitch = new RailMaker(
+					world,
+					list,
+					RailMapBasic.fixRTMRailMapVersionCurrent,
+				).getSwitch();
+				if (!railSwitch) return { status: "invalid_switch" };
+				maps = [];
+				const native = railSwitch.getAllRailMap();
+				for (let j = 0; j < native.length; j++) maps.push(native[j]);
+			} else
+				maps = [
+					new RailMapBasic(
+						group[0],
+						group[1],
+						RailMapBasic.fixRTMRailMapVersionCurrent,
+					),
+				];
+			const footprint: number[][] = [];
+			for (const map of maps) {
+				const blocks = map.getRailBlockList(prop, true);
+				for (let j = 0; j < blocks.size(); j++) {
+					const b = blocks.get(j),
+						p = [b[0], b[1], b[2]];
+					if (!world.isBlockLoaded(new BlockPos(p[0], p[1], p[2])))
+						return { status: "path_unloaded" };
+					footprint.push(p);
+				}
+			}
+			footprints.push(footprint);
+		}
+		// Reserve every root first, then assign distinct auxiliary endpoint owners.
+		// Opposite-facing branch halves retain their shared physical midpoint.
+		for (let i = 0; i < 4; i++)
+			for (let j = 0; j < groups[i].length; j++) {
+				if (j === (i < 2 ? 0 : 1)) continue;
+				const rp = groups[i][j];
+				let best: number[] | null = null,
+					distance = 6.25;
+				const angle = (rp.anchorYaw * Math.PI) / 180;
+				for (const p of footprints[i]) {
+					if (owners[p.join(",")] || p[1] !== rp.blockY) continue;
+					// Keep each midpoint owner on its own half's inward tangent side.
+					// Otherwise opposite branch halves can exchange their discovery tiles.
+					if (
+						(p[0] + 0.5 - rp.posX) * Math.sin(angle) +
+							(p[2] + 0.5 - rp.posZ) * Math.cos(angle) <
+						-0.001
+					)
+						continue;
+					const tile = world.getTileEntity(
+						new BlockPos(p[0], p[1], p[2]),
+					);
+					if (
+						tile instanceof TileEntityLargeRailCore &&
+						AppleExtendedRailCompat.coreKey(tile) !== expectedKey
+					)
+						continue;
+					const d =
+						Math.pow(p[0] + 0.5 - rp.posX, 2) +
+						Math.pow(p[2] + 0.5 - rp.posZ, 2);
+					if (d < distance) {
+						distance = d;
+						best = p;
+					}
+				}
+				if (!best) return { status: "core_conflict" };
+				rp.blockX = best[0];
+				rp.blockY = best[1];
+				rp.blockZ = best[2];
+				rp.setPosition(rp.posX, rp.posY, rp.posZ);
+				owners[best.join(",")] = true;
+			}
+		for (const rp of original) {
+			const external = this.connectedEndpoints(world, core, rp);
+			for (const connection of external)
+				if (connection.core.isLogicalRailOccupied())
+					return { status: "rail_occupied" };
+		}
+		const subRails: ResourceStateRail[] = [];
+		for (let i = 0; i < core.subRails.size(); i++)
+			subRails.push(core.subRails.get(i));
+		const source = { core: this.corePos(core), key: expectedKey };
+		const record: RailRecord = {
+			source,
+			positions: this.copyPositions(original),
+			property,
+			signal: core.getSignal(),
+			subRails,
+			created: [],
+		};
+		const removed = AppleExtendedRailCompat.undoNormalRail(
+			world,
+			source.core,
+			source.key,
+		);
+		if (removed !== "ok") return { status: removed };
+		try {
+			for (let i = 0; i < groups.length; i++) {
+				const created = AppleExtendedRailCompat.createFromPositions(
+					world,
+					player,
+					groups[i],
+					i < 2 ? property : normalProperty,
+				);
+				if (!created)
+					throw new Error("replacement creation failed: " + i);
+				record.created.push(created);
+				const replacement = AppleExtendedRailCompat.getCore(
+					world,
+					created.core,
+				);
+				if (!replacement) throw new Error("replacement core missing");
+				replacement.setSignal(record.signal);
+				for (const subRail of subRails) replacement.addSubRail(subRail);
+				replacement.markDirty();
+				replacement.sendPacket();
+			}
+		} catch (error) {
+			NGTLog.debug(
+				`[SuperRailBuilderX AE] single crossover split exception: ${error}`,
+			);
+			const restored = this.rollbackBranch(world, player, record);
+			return {
+				status: restored ? "create_failed" : "split_rollback_failed",
+			};
+		}
+		const token = UUID.randomUUID().toString();
+		this.splitUndoRecords[token] = record;
+		this.lastSplitUpdate = {
+			removed: [source],
+			refreshed: record.created.slice(),
+		};
+		NGTLog.debug(
+			`[SuperRailBuilderX AE] single crossover split: source=${source.core.join(",")}, replacementCores=${record.created.map((rail) => rail.core.join(",")).join(";")}`,
+		);
+		return { status: "ok", undoToken: token };
+	}
+
 	static splitBuilderRail(
 		world: World,
 		player: EntityPlayer,
@@ -472,7 +750,9 @@ export class AppleExtendedRailToolsCompat {
 		const core = AppleExtendedRailCompat.getCore(world, corePosition);
 		if (!core) return { status: "rail_not_found" };
 		if (core instanceof TileEntityLargeRailSwitchCore)
-			return { status: "switch_unsupported" };
+			return branch
+				? { status: "switch_unsupported" }
+				: this.splitSingleCrossover(world, player, core, expectedKey);
 		if (AppleExtendedRailCompat.coreKey(core) !== expectedKey)
 			return { status: "rail_changed" };
 		if (core.isLogicalRailOccupied()) return { status: "rail_occupied" };

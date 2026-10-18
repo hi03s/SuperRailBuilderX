@@ -93,6 +93,20 @@ const context = {
 	},
 };
 vm.createContext(context);
+vm.runInContext(
+	fs.readFileSync(
+		"dist/assets/minecraft/scripts/superrailbuilderx/SRBXRailBoundary.js",
+		"utf8",
+	),
+	context,
+);
+vm.runInContext(
+	fs.readFileSync(
+		"dist/assets/minecraft/scripts/superrailbuilderx/SRBXFreeEndpointPolicy.js",
+		"utf8",
+	),
+	context,
+);
 const dir =
 	"dist/assets/minecraft/__targets__/kaizpatch/scripts/superrailbuilderx";
 vm.runInContext(
@@ -246,6 +260,8 @@ console.log(
 // Switch endpoints must reject conflicting owners before deleting the source.
 api.getCoreWorld = () => world;
 const endpointSource = new Core();
+const planSwitchOwners = api.planSwitchMoveOwners;
+api.planSwitchMoveOwners = (_core, positions) => positions;
 const owners = [0, 20, 30].map((x) => ({ blockX: x, blockY: 4, blockZ: 0 }));
 tiles.clear();
 tiles.set("20,4,0", new Core());
@@ -276,6 +292,7 @@ endpointSource.subRails = list([]);
 api.getEditableRailPositions = () => switchPositions;
 api.copyRailPositions = (rps) => rps.map((rp) => ({ ...rp }));
 api.cloneRailProperty = (p) => ({ ...p });
+const updateOwner = api.updateBoundaryOwner;
 api.updateBoundaryOwner = () => {};
 api.getBuilderMoveProtectedRailKeys = () => ["foreign"];
 let sourceBreaks = 0,
@@ -315,4 +332,119 @@ assert(
 );
 console.log(
 	"KaizPatch switch endpoint owner protection and exception rollback passed",
+);
+
+// Use native offset decoding so serialization cannot conceal owner changes.
+const revisions = [
+	[0, -0.5],
+	[-0.5, -0.5],
+	[-0.5, 0],
+	[-0.5, 0.5],
+	[0, 0.5],
+	[0.5, 0.5],
+	[0.5, 0],
+	[0.5, -0.5],
+];
+const offsetPosition = (x, y, z, direction = 2) => ({
+	blockX: -37,
+	blockY: 4,
+	blockZ: 851,
+	direction,
+	height: 0,
+	anchorYaw: 247.3,
+	posX: x,
+	posY: y,
+	posZ: z,
+	setPosition(x, y, z) {
+		this.offsetX = x - (this.blockX + 0.5 + revisions[this.direction][0]);
+		this.offsetY = y - (this.blockY + (this.height + 1) / 16);
+		this.offsetZ = z - (this.blockZ + 0.5 + revisions[this.direction][1]);
+		this.posX = x;
+		this.posY = y;
+		this.posZ = z;
+	},
+	decode() {
+		return [
+			this.blockX + 0.5 + revisions[this.direction][0] + this.offsetX,
+			this.blockY + (this.height + 1) / 16 + this.offsetY,
+			this.blockZ + 0.5 + revisions[this.direction][1] + this.offsetZ,
+		];
+	},
+});
+for (const destination of [
+	[-34.39, 4.0625, 842.51],
+	[18, 7.0625, -2.125],
+]) {
+	const rp = offsetPosition(...destination);
+	rp.setPosition(...destination);
+	updateOwner.call(api, rp);
+	assert.deepStrictEqual(
+		rp.decode(),
+		destination,
+		"Moved coordinates survive native NBT decoding",
+	);
+	api.restoreMovedPoint(rp, { ownerBlock: [-37, 4, 851], direction: 7 });
+	assert.deepStrictEqual(
+		rp.decode(),
+		destination,
+		"Undo owner restoration also rebases offsets",
+	);
+}
+api.planSwitchMoveOwners = planSwitchOwners;
+api.toRailPositionArray = (rps) => rps;
+let footprint = [
+	[0, 4, 0],
+	[20, 4, 0],
+	[21, 4, 0],
+	[30, 4, 0],
+];
+context.Packages.jp.ngt.rtm.rail.util.RailMaker = class {
+	getSwitch() {
+		return {
+			getAllRailMap: () => [{ getRailBlockList: () => list(footprint) }],
+		};
+	}
+};
+const conflictEndpoints = [0, 20, 30].map((x) => {
+	const rp = offsetPosition(x + 0.25, 4.0625, 0.5);
+	rp.blockX = x;
+	rp.blockZ = 0;
+	rp.setPosition(x + 0.25, 4.0625, 0.5);
+	return rp;
+});
+tiles.clear();
+const foreignOwner = new Core();
+tiles.set("20,4,0", foreignOwner);
+const planned = planSwitchOwners.call(api, endpointSource, conflictEndpoints);
+assert(planned);
+assert.equal(
+	planned[1].blockX,
+	21,
+	"Auxiliary switch base avoids connected normal core",
+);
+assert.deepStrictEqual(planned[1].decode(), [20.25, 4.0625, 0.5]);
+assert.equal(
+	conflictEndpoints[1].blockX,
+	20,
+	"Planning preserves input and existing core",
+);
+assert.equal(tiles.get("20,4,0"), foreignOwner);
+footprint = [
+	[0, 4, 0],
+	[20, 4, 0],
+	[30, 4, 0],
+];
+assert.equal(
+	planSwitchOwners.call(api, endpointSource, conflictEndpoints),
+	null,
+	"No safe auxiliary owner fails without removing rails",
+);
+tiles.set("0,4,0", new Core());
+assert.equal(
+	planSwitchOwners.call(api, endpointSource, conflictEndpoints),
+	null,
+	"A foreign root core is always protected",
+);
+console.log(
+	"KaizPatch endpoint NBT round-trip and connected switch auxiliary-owner relocation passed",
 );

@@ -142,6 +142,12 @@ export class SRBXApiCompat {
 		return AppleExtendedRailCompat.getLogicalPositions(core);
 	}
 
+	static getSingleCrossoverSplitPlan(core: TileEntityLargeRailCore) {
+		return AppleExtendedRailToolsCompat.getSingleCrossoverSplitPlan(core);
+	}
+	static getRailMapsForTool(core: TileEntityLargeRailCore) {
+		return AppleExtendedRailToolsCompat.getRailMapsForTool(core);
+	}
 	static getLogicalRailMap(core: TileEntityLargeRailCore) {
 		return core ? AppleExtendedRailCompat.getLogicalRailMap(core) : null;
 	}

@@ -1,3 +1,4 @@
+import { SRBXSingleCrossoverSplitPlan } from "./SRBXSingleCrossoverSplit";
 import { SRBXCrossoverPlan } from "./SRBXCrossoverPlan";
 import { TileEntityLargeRailCore } from "jp.ngt.rtm.rail";
 import { RailMap, RailPosition, RailProperty } from "jp.ngt.rtm.rail.util";
@@ -221,6 +222,10 @@ export class SRBXApiCompat {
 		coreZ: number,
 		expectedKey: string,
 	): string;
+	static getSingleCrossoverSplitPlan(
+		core: TileEntityLargeRailCore,
+	): SRBXSingleCrossoverSplitPlan | null;
+	static getRailMapsForTool(core: TileEntityLargeRailCore): RailMap[];
 	static getLogicalRailMap(core: TileEntityLargeRailCore): RailMap | null;
 	static splitBuilderRail(
 		world: World,

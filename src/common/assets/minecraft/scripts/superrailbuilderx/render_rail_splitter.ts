@@ -3,6 +3,7 @@ import { SRBXToolGui } from "./SRBXToolGui";
 import { ResourceLocation } from "net.minecraft.util";
 import { SRBXRailBoundary } from "./SRBXRailBoundary";
 import { SRBXRailHighlight } from "./SRBXRailHighlight";
+import { SRBXSingleCrossoverSplitPlan } from "./SRBXSingleCrossoverSplit";
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { MCWrapperClient, NGTUtilClient } from "jp.ngt.ngtlib.util";
 import { EntityVehicle } from "jp.ngt.rtm.entity.vehicle";
@@ -41,6 +42,8 @@ type SplitTarget = {
 	position: Vec3;
 	length: number;
 	splittable: boolean;
+	crossover?: SRBXSingleCrossoverSplitPlan | null;
+	fourPointSwitch?: boolean;
 };
 type SplitterState = {
 	selected: SplitTarget | null;
@@ -122,6 +125,43 @@ function findHoverTarget(
 				if (seen[railKey] || getState(entity).ignoredRailKeys[railKey])
 					continue;
 				seen[railKey] = true;
+				const positions = SRBXApiCompat.getEditableRailPositions(core);
+				if (positions && positions.length > 2) {
+					if (positions.length !== 4) continue;
+					const plan =
+						SRBXApiCompat.getSingleCrossoverSplitPlan(core);
+					const maps = SRBXApiCompat.getRailMapsForTool(core);
+					for (let i = 0; i < maps.length; i++) {
+						const map = maps[i];
+						const count = Math.max(
+							2,
+							Math.ceil(map.getLength() * 2),
+						);
+						const index = map.getNearlestPoint(
+							count,
+							looking.posX,
+							looking.posZ,
+						);
+						const position = railPoint(map, count, index);
+						const distance =
+							Math.pow(position[0] - looking.posX, 2) +
+							Math.pow(position[1] - looking.posY, 2) +
+							Math.pow(position[2] - looking.posZ, 2);
+						if (distance >= bestDistance) continue;
+						bestDistance = distance;
+						best = {
+							core: SRBXApiCompat.getRailCorePos(core),
+							railKey,
+							ratio: 0.5,
+							position,
+							length: plan ? plan.lengths[0] : map.getLength(),
+							splittable: plan !== null,
+							crossover: plan,
+							fourPointSwitch: true,
+						};
+					}
+					continue;
+				}
 				const map = SRBXApiCompat.getLogicalRailMap(core);
 				if (!map) continue;
 				const renderSplit = Math.max(
@@ -200,6 +240,57 @@ function resolveMap(
 	)
 		return null;
 	return SRBXApiCompat.getLogicalRailMap(core);
+}
+
+function resolveSwitchCore(entity: EntityVehicle, target: SplitTarget) {
+	const world = SRBXApiCompat.getWorld(entity);
+	const tile = SRBXApiCompat.getTileEntity(
+		world,
+		target.core[0],
+		target.core[1],
+		target.core[2],
+	);
+	if (!(tile instanceof TileEntityLargeRailBase)) return null;
+	const core = tile.getRailCore();
+	if (
+		!core ||
+		getState(entity).ignoredRailKeys[target.railKey] ||
+		SRBXApiCompat.getRailPositionCandidateKey(core) !== target.railKey
+	)
+		return null;
+	return core;
+}
+
+function renderCrossoverTarget(
+	entity: EntityVehicle,
+	partialTicks: number,
+	target: SplitTarget,
+	selected: boolean,
+	hovered: boolean,
+): SplitTarget | null {
+	const core = resolveSwitchCore(entity, target);
+	if (!core) return null;
+	const plan = SRBXApiCompat.getSingleCrossoverSplitPlan(core);
+	const maps = SRBXApiCompat.getRailMapsForTool(core);
+	const color = selected ? (hovered ? "009999" : "00ffff") : "ffff00";
+	for (let i = 0; i < maps.length; i++)
+		renderRailHighlight(
+			entity,
+			partialTicks,
+			maps[i],
+			color,
+			selected ? 0.65 : 0.6,
+		);
+	if (!plan) return null;
+	for (let i = 0; i < plan.markers.length; i++)
+		renderAt(
+			entity,
+			partialTicks,
+			plan.markers[i],
+			selected ? selectedCursor : hoverCursor,
+		);
+	target.crossover = plan;
+	return target;
 }
 
 function renderAt(
@@ -311,6 +402,10 @@ function showHelp(sender: ICommandSender): void {
 		);
 	NGTLog.sendChatMessage(sender, "--- SuperRailBuilderX 線路分割 ---");
 	NGTLog.sendChatMessage(sender, "[右クリック] 分割位置を確定");
+	NGTLog.sendChatMessage(
+		sender,
+		"片渡り分岐は固定位置で分岐2本・通常2本に分割します。シーサスは対象外です。",
+	);
 	NGTLog.sendChatMessage(sender, "[左クリック] 選択解除");
 	NGTLog.sendChatMessage(sender, keys.getDescription("split"));
 	NGTLog.sendChatMessage(sender, keys.getDescription("undo"));
@@ -363,7 +458,9 @@ function handleResult(
 	if (result === "ok" && pendingAction === "split") {
 		NGTLog.sendChatMessage(
 			sender,
-			"§a[SuperRailBuilderX] 線路を2本に分割しました",
+			state.selected && state.selected.fourPointSwitch
+				? "§a[SuperRailBuilderX] 片渡りを分岐2本・通常2本に分割しました"
+				: "§a[SuperRailBuilderX] 線路を2本に分割しました",
 		);
 		state.selected = null;
 	} else if (result === "undo_ok" && pendingAction === "undo") {
@@ -401,7 +498,9 @@ function handleInput(
 		else
 			NGTLog.sendChatMessage(
 				sender,
-				"§e[SuperRailBuilderX] 分割可能な通常レールが見つかりません",
+				target && target.fourPointSwitch
+					? "§e[SuperRailBuilderX] この4点分岐は分割できません（片渡りのみ対応）"
+					: "§e[SuperRailBuilderX] 分割可能なレールが見つかりません",
 			);
 	}
 	if (keys.pressed("split") && !state.awaitingResult && state.selected) {
@@ -430,14 +529,22 @@ function renderToolGui(target: SplitTarget | null): void {
 			iconX: 4,
 			iconY: 2,
 			label: SRBXToolGui.formatLength(
-				target ? target.length * target.ratio : null,
+				target
+					? target.crossover
+						? target.crossover.lengths[0] / 2
+						: target.length * target.ratio
+					: null,
 			),
 		},
 		{
 			iconX: 4,
 			iconY: 2,
 			label: SRBXToolGui.formatLength(
-				target ? target.length * (1 - target.ratio) : null,
+				target
+					? target.crossover
+						? target.crossover.lengths[1] / 2
+						: target.length * (1 - target.ratio)
+					: null,
 			),
 		},
 	]);
@@ -465,9 +572,18 @@ function render(
 	if (SRBXToolWheel.update(entity, renderer.currentMatId === 0 && pass === 0))
 		return;
 	const state = getState(entity);
-	const target = state.selected || findHoverTarget(entity, partialTicks);
+	const hover = findHoverTarget(entity, partialTicks);
+	const target = state.selected || hover;
 	let guiTarget: SplitTarget | null = null;
-	if (target) {
+	if (target && target.fourPointSwitch) {
+		guiTarget = renderCrossoverTarget(
+			entity,
+			partialTicks,
+			target,
+			!!state.selected,
+			!!hover && hover.railKey === target.railKey,
+		);
+	} else if (target) {
 		const map = resolveMap(entity, target);
 		if (map) {
 			if (target.splittable) guiTarget = target;
@@ -511,6 +627,13 @@ function render(
 			}
 		}
 	}
+	if (
+		state.selected &&
+		hover &&
+		hover.fourPointSwitch &&
+		hover.railKey !== state.selected.railKey
+	)
+		renderCrossoverTarget(entity, partialTicks, hover, false, true);
 	const isOpenGUI = NGTUtilClient.getMinecraft().currentScreen !== null;
 	const left = Mouse.isButtonDown(0);
 	const right = Mouse.isButtonDown(1);
