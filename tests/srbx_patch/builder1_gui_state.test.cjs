@@ -29,6 +29,7 @@ for (const failure of [
 	"tile-gl",
 	"font-gl",
 	"restore-gl",
+	"unsupported-multitex4",
 ]) {
 	const matrices = {
 		projection: [11, 12],
@@ -63,6 +64,8 @@ for (const failure of [
 			[0.6, 0.7, 0.8, 0.9],
 		],
 	};
+	if (failure === "unsupported-multitex4")
+		attrs.textureCoords[1] = [0.5, 0.6, 0, 1];
 	const before = JSON.stringify({ matrices, attrs }),
 		tiles = [],
 		labels = [],
@@ -212,7 +215,15 @@ for (const failure of [
 				attrs.textureBinding[active] = id;
 			},
 			glMultiTexCoord4f(unit, ...v) {
+				if (failure === "unsupported-multitex4")
+					throw new Error("Function is not supported");
 				attrs.textureCoords[unit] = v;
+			},
+			glMultiTexCoord2f(unit, s, t) {
+				attrs.textureCoords[unit] = [s, t, 0, 1];
+			},
+			glTexCoord4f(...v) {
+				attrs.textureCoords[0] = v;
 			},
 		},
 		{

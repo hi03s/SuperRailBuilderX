@@ -600,3 +600,12 @@
 - 最新開発ZIPを更新し、既存タグ版ZIP/両JARを保持。既存リリース・タグ・Issueへの投稿/変更なし。ユーザーのXCFは対象外。取得した全生ログは削除し、SRBX生成・カント操作だけの抜粋と画像を.cache/issue2へローカル保持。生ログはGitへ追加しない。
 - 次は標準レール/対象レール、カントなし/一定/変化を比較し、元と複製後の画像・操作順・logs/latest.logを収集する。Issueは未解決として扱う。
 - 調査・診断追加コミットfb4e4f0をorigin/mainへpush・同期済み。
+
+## 2026-10-18 ローカルCodex: Angelica併用時のGUIクラッシュ修正とIssue #2の勾配確認
+
+- crash-2026-10-18_21.14.52-client.txtの直接原因はrestoreGuiAttributes→GL13.glMultiTexCoord4fのFunction is not supported。Angelica 2.2.34を確認。Distant Horizonsも存在するが、直接原因はSRBXの未対応関数呼び出し。
+- Angelica公式2.2.34のGLSMRedirector/GLStateManagerを照合。4成分multitexture関数は差し替え対象外、2成分multitextureと基本テクスチャの4成分座標は対応。ライトマップ取得は常にR=0/Q=1。基本テクスチャをglTexCoord4f、通常ライトマップをglMultiTexCoord2fへ変更。非標準R/Qの互換プロファイルでは従来4成分を保持する。1.12.2のキャッシュ同期と全GL状態復元を維持。新規API依存やMod/JARの変更なし。
+- 未対応4f関数が例外を投げる回帰条件を追加し、全GUI状態復元を確認。全4build、test:gui、Java8 Nashorn GUI/全ツール/ホイール、変更TS/テスト整形、文書リンク、diff確認成功。Angelica実機での再確認は未実施。GUI/TAB開閉後のクラッシュ・明るさ・レール描画を確認し、異常時は操作順とlogs/latest.logを共有する。
+- Issue #2の20:37:51の2本と20:38:07は始終点Y=39.063、全4本ともPitch=0。20:38:16だけY=39.0625→39.063の0.5mm丸め差。明確な縦勾配はなく、コピー処理は先日修正したorientPair/planVerticalRailSegmentsを通らない。旧生成で元レールが既に変形していた可能性は否定できないが、直接の関連を示す根拠はない。カント持ち上げ高さと縦線形の勾配を区別する。
+- 開発者から水平カント付きカーブの複線コピーでは非再現との報告を受領。カント付きなら一律に再現するとは判断せず、モデル固有処理・カント変化・元レール生成履歴の切り分けを継続する。Issue #2は未解決。
+- 調査はdocs/research/gui-rendering-compatibility.md、勾配確認はcant-curve-rendering.mdへ記録。最新開発ZIPを更新し、タグ版ZIP/両JARと既存リリースは保持。ユーザーXCFは対象外。生クラッシュは再確認までローカル保持しGitへ追加しない。

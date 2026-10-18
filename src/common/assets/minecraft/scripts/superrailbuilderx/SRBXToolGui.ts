@@ -318,6 +318,26 @@ function setGuiCapability(capability: number, enabled: boolean): void {
 	else GL11.glDisable(capability);
 }
 
+function restoreGuiTextureCoordinates(unit: number, coords: number[]): void {
+	if (unit === GL13.GL_TEXTURE0) {
+		// glTexCoord4f targets the base texture, and Angelica redirects it.
+		GL11.glTexCoord4f(coords[0], coords[1], coords[2], coords[3]);
+	} else if (coords[2] === 0 && coords[3] === 1) {
+		// Minecraft's 2D lightmap needs only S/T. Angelica 2.2.34 redirects
+		// this entry point, but not the legacy glMultiTexCoord4f function.
+		GL13.glMultiTexCoord2f(unit, coords[0], coords[1]);
+	} else {
+		// Preserve nonstandard R/Q values on compatibility-profile contexts.
+		GL13.glMultiTexCoord4f(
+			unit,
+			coords[0],
+			coords[1],
+			coords[2],
+			coords[3],
+		);
+	}
+}
+
 function restoreGuiAttributes(
 	state: ReturnType<typeof saveGuiAttributes>,
 ): void {
@@ -353,12 +373,9 @@ function restoreGuiAttributes(
 			GL11.GL_TEXTURE_ENV_MODE,
 			state.textureEnv[unit],
 		);
-		GL13.glMultiTexCoord4f(
+		restoreGuiTextureCoordinates(
 			state.textureUnits[unit],
-			state.textureCoords[unit][0],
-			state.textureCoords[unit][1],
-			state.textureCoords[unit][2],
-			state.textureCoords[unit][3],
+			state.textureCoords[unit],
 		);
 	}
 	GL13.glActiveTexture(state.activeTexture);
