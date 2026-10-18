@@ -163,6 +163,20 @@ function drawGuiTile(
 	);
 }
 
+function drawGuiTextFrame(x: number): void {
+	drawGuiTile(x, 0, 0, 2);
+	drawGuiTile(x + GUI_TILE_SIZE, 0, 1, 2);
+	drawGuiTile(x + GUI_TILE_SIZE * 2, 0, 1, 2);
+	drawGuiTile(x + GUI_TILE_SIZE * 3, 0, 2, 2);
+}
+
+function localClockLabel(): string {
+	const now = new Date();
+	const hours = now.getHours();
+	const minutes = now.getMinutes();
+	return `${hours < 10 ? "0" : ""}${hours}:${minutes < 10 ? "0" : ""}${minutes}`;
+}
+
 function drawToolGuiBase(
 	width: number,
 	height: number,
@@ -182,6 +196,8 @@ function drawToolGuiBase(
 		GL11.glMatrixMode(GL11.GL_MODELVIEW);
 		for (let x = 0; x < width; x += GUI_TILE_SIZE)
 			drawGuiTile(x, 0, 0, 0, Math.min(GUI_TILE_SIZE, width - x));
+		drawGuiTextFrame(4);
+		drawGuiTextFrame(Math.floor((width - GUI_TILE_SIZE * 4) / 2));
 		const rightX = Math.max(0, width - GUI_TILE_SIZE);
 		for (let y = 0; y < height; y += GUI_TILE_SIZE)
 			drawGuiTile(
@@ -483,6 +499,17 @@ function renderSharedGui(
 		const textX = Math.floor((width - font.getStringWidth(toolName)) / 2);
 		SRBXApiCompat.drawGuiTextWithShadow(toolName, textX, 4, 0xffffff);
 		if (stopGuiOnGLError("tool-title")) return;
+		const clock = localClockLabel();
+		SRBXApiCompat.drawGuiTextWithShadow(
+			clock,
+			4 +
+				Math.floor(
+					(GUI_TILE_SIZE * 4 - font.getStringWidth(clock)) / 2,
+				),
+			4,
+			0xffffff,
+		);
+		if (stopGuiOnGLError("tool-clock")) return;
 
 		for (let row = 0; row < rows.length; row++) {
 			// Java 8u51 Nashorn runs the enclosing finally on loop continue.

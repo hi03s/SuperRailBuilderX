@@ -163,6 +163,27 @@ for (const index of [0, 1])
 				"Snapping must preserve the copy's center cant, including zero/sign",
 			);
 			assert.equal(copied.cantRandom, 0.25);
+			for (const copyEdge of [-2, 0, 2]) {
+				const snappedCopy = api.resolveBuilderRailPoint(
+					{ func_147438_o: () => core },
+					{ ...request, cantEdge: copyEdge },
+					true,
+				);
+				assert.equal(
+					snappedCopy.cantEdge,
+					copyEdge,
+					"Copy explicitly preserves its own endpoint cant",
+				);
+				assert.equal(snappedCopy.cantCenter, center);
+			}
+			assert.equal(
+				api.resolveBuilderRailPoint(
+					{ func_147438_o: () => core },
+					{ ...request, cantEdge: NaN },
+					true,
+				),
+				null,
+			);
 			assert.equal(JSON.stringify(source), before[index]);
 			for (const field of ["cantCenter", "cantRandom"])
 				assert.equal(

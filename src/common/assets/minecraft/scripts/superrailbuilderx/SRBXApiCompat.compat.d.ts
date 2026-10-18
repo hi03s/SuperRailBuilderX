@@ -33,6 +33,7 @@ export type SRBXBuilderPoint = {
 };
 
 export type SRBXSourceRail = {
+	preserveEndpointCant?: boolean;
 	core: RailCorePos;
 	railKey: string;
 	startPosition: RailCorePos;

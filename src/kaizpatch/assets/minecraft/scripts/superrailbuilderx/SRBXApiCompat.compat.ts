@@ -75,6 +75,7 @@ type BuilderPoint = {
 };
 
 type SourceRail = {
+	preserveEndpointCant?: boolean;
 	core: [number, number, number];
 	railKey: string;
 	startPosition: [number, number, number];
@@ -2235,7 +2236,13 @@ export class SRBXApiCompat {
 	private static resolveBuilderRailPoint(
 		world: net.minecraft.world.World,
 		point: BuilderPoint,
+		preserveEndpointCant = false,
 	): RailPosition | null {
+		if (
+			preserveEndpointCant &&
+			(typeof point.cantEdge !== "number" || !isFinite(point.cantEdge))
+		)
+			return null;
 		for (const value of [point.cantCenter, point.cantRandom])
 			if (
 				value !== undefined &&
@@ -2287,7 +2294,9 @@ export class SRBXApiCompat {
 				result.anchorYaw,
 			);
 		result.anchorPitch = -source.anchorPitch;
-		result.cantEdge = -source.cantEdge;
+		result.cantEdge = preserveEndpointCant
+			? point.cantEdge!
+			: -source.cantEdge;
 		// Snapping supplies endpoint cant, not the new rail's interior profile.
 		// Copy/move requests carry their own center/random settings explicitly.
 		if (point.cantCenter !== undefined)
@@ -3352,14 +3361,22 @@ export class SRBXApiCompat {
 		let startRP: RailPosition | null = null;
 		let endRP: RailPosition | null = null;
 		if (start.kind === "rail")
-			startRP = this.resolveBuilderRailPoint(world, start);
+			startRP = this.resolveBuilderRailPoint(
+				world,
+				start,
+				sourceRail?.preserveEndpointCant === true,
+			);
 		else
 			startRP = this.createBuilderFreePoint(
 				start,
 				preserveEndpointGeometry,
 			);
 		if (end.kind === "rail")
-			endRP = this.resolveBuilderRailPoint(world, end);
+			endRP = this.resolveBuilderRailPoint(
+				world,
+				end,
+				sourceRail?.preserveEndpointCant === true,
+			);
 		else endRP = this.createBuilderFreePoint(end, preserveEndpointGeometry);
 		if (!startRP || !endRP) return { status: "rail_endpoint_changed" };
 		if (

@@ -13,6 +13,7 @@ import {
 	SRBXBuilderPoint,
 } from "@target/assets/minecraft/scripts/superrailbuilderx/SRBXApiCompat";
 import { SRBXMath } from "./SRBXMath";
+import { TileEntityLargeRailBase } from "jp.ngt.rtm.rail";
 
 const VERSION = "0.3.1";
 const MAX_COPY_RAILS = 128;
@@ -32,6 +33,58 @@ export type DoubleTrackCopyRequest =
 
 type CreatedRail = { core: RailCorePos; key: string };
 type UndoRecord = { rails: CreatedRail[] };
+
+function sourceCantPoints(
+	world: net.minecraft.world.World,
+	plan: DoubleTrackCopyPlan,
+): [SRBXBuilderPoint, SRBXBuilderPoint] | null {
+	for (const position of [plan.sourceCore, plan.sourceStart, plan.sourceEnd])
+		if (
+			!position ||
+			position.length !== 3 ||
+			!position.every(
+				(value) => typeof value === "number" && isFinite(value),
+			)
+		)
+			return null;
+	const tile = SRBXApiCompat.getTileEntity(
+		world,
+		plan.sourceCore[0],
+		plan.sourceCore[1],
+		plan.sourceCore[2],
+	);
+	if (!(tile instanceof TileEntityLargeRailBase)) return null;
+	const core = tile.getRailCore();
+	if (
+		!core ||
+		SRBXApiCompat.getRailPositionCandidateKey(core) !== plan.sourceRailKey
+	)
+		return null;
+	const positions = SRBXApiCompat.getEditableRailPositions(core);
+	if (!positions || positions.length !== 2) return null;
+	const expected = [plan.sourceStart, plan.sourceEnd];
+	const points = [plan.start, plan.end];
+	for (let i = 0; i < 2; i++) {
+		const rp = positions[i];
+		if (
+			Math.abs(rp.posX - expected[i][0]) > 0.001 ||
+			Math.abs(rp.posY - expected[i][1]) > 0.001 ||
+			Math.abs(rp.posZ - expected[i][2]) > 0.001
+		)
+			return null;
+		const cantEdge = SRBXApiCompat.getRailPositionCantEdge(rp);
+		const cantCenter = SRBXApiCompat.getRailPositionCantCenter(rp);
+		const cantRandom = SRBXApiCompat.getRailPositionCantRandom(rp);
+		if (
+			![cantEdge, cantCenter, cantRandom].every(
+				(value) => typeof value === "number" && isFinite(value),
+			)
+		)
+			return null;
+		points[i] = { ...points[i], cantEdge, cantCenter, cantRandom };
+	}
+	return [points[0], points[1]];
+}
 
 const hosts: WeakHashMap<Entity, EntityPlayer> = new WeakHashMap();
 const undoRecords: WeakHashMap<EntityVehicle, UndoRecord> = new WeakHashMap();
@@ -126,13 +179,21 @@ function processRequest(
 	const created: CreatedRail[] = [];
 	for (let i = 0; i < request.plans.length; i++) {
 		const plan = request.plans[i];
+		// Re-read the source on the server. Snapped endpoints retain its cant,
+		// even when the neighbour deliberately has a different edge cant.
+		const points = sourceCantPoints(world, plan);
+		if (!points) {
+			rollback(world, created);
+			return "source_rail_changed";
+		}
 		const result = SRBXApiCompat.createBuilderRail(
 			world,
 			host,
-			plan.start,
-			plan.end,
+			points[0],
+			points[1],
 			sourceKeys.concat(created.map((rail) => rail.key)),
 			{
+				preserveEndpointCant: true,
 				core: plan.sourceCore,
 				railKey: plan.sourceRailKey,
 				startPosition: plan.sourceStart,

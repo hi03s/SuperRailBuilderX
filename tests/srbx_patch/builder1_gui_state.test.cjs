@@ -69,6 +69,7 @@ for (const failure of [
 	const before = JSON.stringify({ matrices, attrs }),
 		tiles = [],
 		labels = [],
+		clockLabels = [],
 		diagnostics = [];
 	const primitives = [];
 	let vertices = [];
@@ -249,7 +250,12 @@ for (const failure of [
 				(color & 255) / 255,
 				1,
 			];
-			labels.push({ s, x, y, color });
+			(/^\d{2}:\d{2}$/.test(s) ? clockLabels : labels).push({
+				s,
+				x,
+				y,
+				color,
+			});
 			if (failure === "font-gl") pendingError = 1284;
 		},
 	};
@@ -264,6 +270,9 @@ for (const failure of [
 	};
 	font.func_78261_a = font.func_78276_b;
 	const context = {
+		Date: function () {
+			return { getHours: () => 4, getMinutes: () => 7 };
+		},
 		Gui: { func_73734_a: () => {} },
 		ResourceLocation: function (domain, path) {
 			return path;
@@ -425,6 +434,38 @@ for (const failure of [
 		assert.equal(tiles.length, count, "GUI stops on GL error");
 	}
 	if (!failure || failure === "attrib-full") {
+		assert.deepStrictEqual(clockLabels, [
+			{ s: "04:07", x: 21, y: 4, color: 0xffffff },
+		]);
+		for (const frameX of [4, 128]) {
+			assert.deepStrictEqual(
+				tiles.filter(
+					(t) =>
+						t[1] === 0 &&
+						t[3] === 32 &&
+						t[0] >= frameX &&
+						t[0] < frameX + 64,
+				),
+				[0, 1, 1, 2].map((atlasX, index) => [
+					frameX + index * 16,
+					0,
+					atlasX * 16,
+					32,
+					16,
+					16,
+				]),
+				"Clock and title each use left/center/center/right frame tiles",
+			);
+		}
+		for (const [hour, minute, expected] of [
+			[0, 0, "00:00"],
+			[23, 59, "23:59"],
+		]) {
+			context.Date = function () {
+				return { getHours: () => hour, getMinutes: () => minute };
+			};
+			assert.equal(context.localClockLabel(), expected);
+		}
 		assert.deepStrictEqual(
 			labels.map((l) => l.s),
 			["tool", "5°", "250 m", "12.35 m", "12 ‰", "2000 m"],

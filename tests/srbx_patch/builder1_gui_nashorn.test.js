@@ -100,7 +100,7 @@ var font = {
 	func_78276_b: checkProjection,
 	func_78261_a: function (s) {
 		checkProjection();
-		if (s !== "tool") labels.push(s);
+		if (s !== "tool" && !/^\d{2}:\d{2}$/.test(s)) labels.push(s);
 	}
 };
 var NGTUtilClient = {

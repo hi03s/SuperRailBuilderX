@@ -380,7 +380,7 @@ function connectionCandidate(
 							),
 						core: corePos,
 						index,
-						cantEdge: -SRBXApiCompat.getRailPositionCantEdge(rp),
+						cantEdge: point.cantEdge,
 						cantCenter: point.cantCenter,
 						cantRandom: point.cantRandom,
 					};

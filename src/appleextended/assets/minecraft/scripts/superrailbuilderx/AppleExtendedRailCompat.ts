@@ -51,6 +51,7 @@ export type AppleExtendedBuilderPoint = {
 };
 
 export type AppleExtendedSourceRail = {
+	preserveEndpointCant?: boolean;
 	core: RailCorePos;
 	railKey: string;
 	startPosition: RailCorePos;
@@ -158,7 +159,13 @@ export class AppleExtendedRailCompat {
 	private static resolveRailPoint(
 		world: World,
 		point: AppleExtendedBuilderPoint,
+		preserveEndpointCant = false,
 	): RailPosition | null {
+		if (
+			preserveEndpointCant &&
+			(typeof point.cantEdge !== "number" || !isFinite(point.cantEdge))
+		)
+			return null;
 		for (const value of [point.cantCenter, point.cantRandom])
 			if (
 				value !== undefined &&
@@ -204,7 +211,9 @@ export class AppleExtendedRailCompat {
 		result.anchorYaw = this.normalizeDegrees(source.anchorYaw + 180);
 		result.anchorPitch = -source.anchorPitch;
 		// AE cantEdge is measured in the endpoint heading, reversed above.
-		result.cantEdge = -source.cantEdge;
+		result.cantEdge = preserveEndpointCant
+			? point.cantEdge!
+			: -source.cantEdge;
 		// The neighbour controls edge cant; an explicit interior copy profile
 		// must survive snapping, including a center value of zero.
 		if (point.cantCenter !== undefined)
@@ -805,11 +814,19 @@ export class AppleExtendedRailCompat {
 			};
 		const startRP =
 			start.kind === "rail"
-				? this.resolveRailPoint(world, start)
+				? this.resolveRailPoint(
+						world,
+						start,
+						sourceRail?.preserveEndpointCant === true,
+					)
 				: this.createFreePoint(start);
 		const endRP =
 			end.kind === "rail"
-				? this.resolveRailPoint(world, end)
+				? this.resolveRailPoint(
+						world,
+						end,
+						sourceRail?.preserveEndpointCant === true,
+					)
 				: this.createFreePoint(end);
 		if (!startRP || !endRP) return { status: "rail_endpoint_changed" };
 		if (!this.areBoundaryPositions([startRP, endRP]))

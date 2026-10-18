@@ -305,6 +305,27 @@ for (const edge of [-8, 0, 8])
 				"AE copy center must survive endpoint snapping",
 			);
 			assert.strictEqual(copied.cantRandom, 0.25);
+			for (const copyEdge of [-2, 0, 2]) {
+				const snappedCopy = helper.resolveRailPoint(
+					world,
+					{ ...request, cantEdge: copyEdge },
+					true,
+				);
+				assert.strictEqual(
+					snappedCopy.cantEdge,
+					copyEdge,
+					"AE copy endpoint cant is deliberately independent of the neighbour",
+				);
+				assert.strictEqual(snappedCopy.cantCenter, center);
+			}
+			assert.strictEqual(
+				helper.resolveRailPoint(
+					world,
+					{ ...request, cantEdge: NaN },
+					true,
+				),
+				null,
+			);
 			assert.strictEqual(
 				source.cantCenter,
 				5,
