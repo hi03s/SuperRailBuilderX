@@ -382,12 +382,14 @@ function applyUndo(
 	entity: EntityVehicle,
 	player: EntityPlayer,
 	dataMap: any,
+	pendingUpdated: RailCorePos[] = [],
+	pendingRemoved: RemovedRail[] = [],
 ): string {
 	const record = undoRecords.get(entity);
 	if (!record) return "nothing_to_undo";
 	const world = SRBXApiCompat.getWorld(entity);
-	const updated: RailCorePos[] = [];
-	const removed: RemovedRail[] = [];
+	const updated: RailCorePos[] = pendingUpdated.slice();
+	const removed: RemovedRail[] = pendingRemoved.slice();
 	for (let i = record.operations.length - 1; i >= 0; i--) {
 		const operation = record.operations[i];
 		const core = resolveCurrentCore(
@@ -739,19 +741,35 @@ function applyRequest(
 	NGTLog.debug(
 		`[SuperRailBuilderX RailPosition] applying connected endpoint: targets=${resolved.length}`,
 	);
-	for (let i = 0; i < resolved.length; i++) {
-		const item = resolved[i];
-		const result = SRBXApiCompat.moveRailPosition(
-			item.core,
-			item.target.index,
-			item.target.original[0],
-			item.target.original[1],
-			item.target.original[2],
-			request.destination[0],
-			request.destination[1],
-			request.destination[2],
-			player,
-		);
+	// A normal rail can move its section core onto the switch's future owner.
+	// Reserve the switch first; normal placement can then use reverse/fallback.
+	const isSwitch = (item: (typeof resolved)[number]) =>
+		SRBXApiCompat.getRailPositionUnsupportedReason(item.core) === "switch";
+	const ordered = resolved
+		.filter(isSwitch)
+		.concat(resolved.filter((item) => !isSwitch(item)));
+	const previousUndo = undoRecords.get(entity);
+	for (let i = 0; i < ordered.length; i++) {
+		const item = ordered[i];
+		let result: string;
+		try {
+			result = SRBXApiCompat.moveRailPosition(
+				item.core,
+				item.target.index,
+				item.target.original[0],
+				item.target.original[1],
+				item.target.original[2],
+				request.destination[0],
+				request.destination[1],
+				request.destination[2],
+				player,
+			);
+		} catch (error) {
+			NGTLog.debug(
+				`[SuperRailBuilderX RailPosition] connected endpoint exception: target=${i}, error=${error}`,
+			);
+			result = "internal_error";
+		}
 		const movedCores = SRBXApiCompat.consumeLastRailPositionMoveCores();
 		for (let j = 0; j < movedCores.length; j++)
 			updatedCores.push(movedCores[j]);
@@ -766,7 +784,24 @@ function applyRequest(
 					core: item.target.core,
 					key: item.railKey,
 				});
-			if (operations.length > 0) undoRecords.put(entity, { operations });
+			if (operations.length > 0) {
+				undoRecords.put(entity, { operations });
+				const rollback = applyUndo(
+					entity,
+					player,
+					dataMap,
+					updatedCores,
+					removedRails,
+				);
+				if (rollback === "undo_ok") {
+					if (previousUndo) undoRecords.put(entity, previousUndo);
+					NGTLog.debug(
+						`[SuperRailBuilderX RailPosition] connected endpoint rolled back: target=${i}, result=${result}`,
+					);
+					return `target_${i}:${result}:rolled_back`;
+				}
+				return `partial_target_${i}:${result}:rollback_${rollback}`;
+			}
 			sendClientChanges(dataMap, updatedCores, removedRails);
 			NGTLog.debug(
 				`[SuperRailBuilderX RailPosition] connected endpoint apply failed: target=${i}, applied=${i}, result=${result}`,

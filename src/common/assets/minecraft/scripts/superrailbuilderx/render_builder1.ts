@@ -62,12 +62,12 @@ const CROSSOVER_ICON = new ResourceLocation(
 	"textures/superrailbuilderx/icon_crossover_builder.png",
 );
 const CROSSOVER_NAMES = [
-	"右片渡り（右複線）",
-	"左片渡り（右複線）",
-	"シーサス（右複線）",
-	"右片渡り（左複線）",
-	"左片渡り（左複線）",
-	"シーサス（左複線）",
+	"右片渡り / 右複線",
+	"左片渡り / 右複線",
+	"シーサス / 右複線",
+	"右片渡り / 左複線",
+	"左片渡り / 左複線",
+	"シーサス / 左複線",
 ];
 function dataKey(suffix: string): string {
 	return (crossoverBuilder ? "crossoverBuilder" : "builder1") + suffix;
@@ -143,7 +143,14 @@ function init(par1: ModelSetVehicle, par2: ModelObject): void {
 	keys.register("help", Keyboard.KEY_H, false, "ヘルプを表示");
 	keys.register("exit", Keyboard.KEY_Q, false, "ツールを終了");
 	keys.register("build", Keyboard.KEY_RETURN, false, "レールを生成");
-	keys.register("clear", Keyboard.KEY_C, false, "選択を全解除");
+	keys.register(
+		"clear",
+		Keyboard.KEY_C,
+		false,
+		crossoverBuilder
+			? "長さ・半径・間隔・高さと選択をリセット"
+			: "選択を全解除",
+	);
 	keys.register("reset", Keyboard.KEY_C, true, "全状態をリセット");
 	keys.register("snap", Keyboard.KEY_P, false, "スナップOFF→距離→ブロック");
 	keys.register(
@@ -1512,8 +1519,8 @@ function renderToolGui(
 					: `${state.slopePermil || 0} ‰`,
 			},
 			{
-				iconX: crossoverBuilder ? 4 : 5,
-				iconY: crossoverBuilder ? 1 : 2,
+				iconX: crossoverBuilder ? 6 : 5,
+				iconY: 2,
 				label: crossoverBuilder
 					? CROSSOVER_NAMES[state.crossoverMode]
 					: `${state.verticalCurveRadius} m`,
@@ -2065,6 +2072,7 @@ function handleInput(
 	)
 		alignZeroSlopeEndpointToGround(sender, state);
 	if (keys.pressed("clear") && !state.awaitingResult) {
+		if (crossoverBuilder) resetState(state);
 		state.groundTargetY = undefined;
 		state.selected = [];
 		state.crossoverSource = undefined;
@@ -2216,6 +2224,12 @@ function render(
 		state.selected.length < (builderB ? 1 : 2)
 			? getHoverPoint(entity, partialTicks, state)
 			: null;
+	if (crossoverBuilder)
+		SRBXCrossoverClient.highlight(
+			entity,
+			partialTicks,
+			state.crossoverSource,
+		);
 	let displayPoints = state.selected.map(copyPoint);
 	if (builderB && displayPoints.length > 0)
 		displayPoints = getDesignPair(state) || displayPoints;

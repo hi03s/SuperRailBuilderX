@@ -8,6 +8,8 @@ import {
 	SRBXSourceRail,
 	RailCorePos,
 } from "@target/assets/minecraft/scripts/superrailbuilderx/SRBXApiCompat";
+import { GL11 } from "org.lwjgl.opengl";
+import { SRBXRailHighlight } from "./SRBXRailHighlight";
 import { SRBXMath, SRBXVec3 } from "./SRBXMath";
 import { SRBXRailBoundary } from "./SRBXRailBoundary";
 import { SRBXEndpointAvailability } from "./SRBXEndpointAvailability";
@@ -183,7 +185,65 @@ function connectionCandidate(
 	}
 	return best;
 }
+function highlightRail(
+	entity: EntityVehicle,
+	partialTicks: number,
+	target: SelectedRail,
+	color: string,
+	alpha: number,
+): void {
+	const world = SRBXApiCompat.getWorld(entity);
+	const tile = SRBXApiCompat.getTileEntity(
+		world,
+		target.core[0],
+		target.core[1],
+		target.core[2],
+	);
+	if (!(tile instanceof TileEntityLargeRailBase)) return;
+	const core = tile.getRailCore();
+	if (
+		!core ||
+		SRBXApiCompat.getRailPositionCandidateKey(core) !== target.railKey
+	)
+		return;
+	const map = SRBXApiCompat.getLogicalRailMap(core);
+	if (!map) return;
+	const origin = NGTOBuilderUtilClient.getInterpolatedPos(
+		entity,
+		partialTicks,
+	);
+	GL11.glPushMatrix();
+	try {
+		GL11.glTranslatef(-origin[0], -origin[1], -origin[2]);
+		SRBXRailHighlight.render(entity, map, color, alpha);
+	} finally {
+		GL11.glPopMatrix();
+	}
+}
 export class SRBXCrossoverClient {
+	static highlight(
+		entity: EntityVehicle,
+		partialTicks: number,
+		selected?: SRBXSourceRail,
+	): void {
+		const hover = SRBXCrossoverClient.base(entity, partialTicks);
+		const hoverSelected = !!(
+			hover &&
+			selected &&
+			hover.source.railKey === selected.railKey
+		);
+		if (selected)
+			highlightRail(
+				entity,
+				partialTicks,
+				selected,
+				hoverSelected ? "009999" : "00ffff",
+				0.65,
+			);
+		if (hover && !hoverSelected)
+			highlightRail(entity, partialTicks, hover.source, "ffff00", 0.6);
+	}
+
 	static base(
 		entity: EntityVehicle,
 		partialTicks: number,

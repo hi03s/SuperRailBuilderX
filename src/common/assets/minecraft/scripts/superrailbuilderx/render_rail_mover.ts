@@ -96,6 +96,11 @@ type EditorState = {
 	snapEnabled: boolean;
 	ghostCleanup?: { core: RailCorePos; key: string; untilTick: number }[];
 	ghostCleanupTick?: number;
+	switchRefresh?: {
+		core: RailCorePos;
+		nextTick: number;
+		untilTick: number;
+	}[];
 };
 
 type CandidateScanDiagnostics = {
@@ -1407,6 +1412,11 @@ function handleInput(
 			) || [];
 		const refreshed: { [key: string]: boolean } = {};
 		const world = SRBXApiCompat.getWorld(entity);
+		state.switchRefresh = updatedCores.map((core) => ({
+			core,
+			nextTick: entity.ticksExisted + 2,
+			untilTick: entity.ticksExisted + 100,
+		}));
 		for (let i = 0; i < updatedCores.length; i++) {
 			const pos = updatedCores[i];
 			const tile = SRBXApiCompat.getTileEntity(
@@ -1514,6 +1524,26 @@ function renderToolGui(state: EditorState): void {
 	]);
 }
 
+/** Tool results can arrive before the replacement core's NBT packet. */
+function retrySwitchRefresh(entity: EntityVehicle, state: EditorState): void {
+	const world = SRBXApiCompat.getWorld(entity),
+		tick = entity.ticksExisted;
+	state.switchRefresh = (state.switchRefresh || []).filter((record) => {
+		if (tick > record.untilTick) return false;
+		if (tick < record.nextTick) return true;
+		record.nextTick = tick + 10;
+		const p = record.core,
+			tile = SRBXApiCompat.getTileEntity(world, p[0], p[1], p[2]);
+		if (!(tile instanceof TileEntityLargeRailBase)) return true;
+		const core = tile.getRailCore();
+		if (!core) return true;
+		if (SRBXApiCompat.getRailPositionUnsupportedReason(core) !== "switch")
+			return false;
+		SRBXApiCompat.refreshRailCoreClient(core);
+		return true;
+	});
+}
+
 function render(
 	entity: EntityVehicle,
 	pass: number,
@@ -1536,6 +1566,8 @@ function render(
 	if (SRBXToolWheel.update(entity, renderer.currentMatId === 0 && pass === 0))
 		return;
 	const state = getState(entity);
+	if (state.switchRefresh && state.switchRefresh.length > 0)
+		retrySwitchRefresh(entity, state);
 	if (state.ghostCleanup && state.ghostCleanupTick !== entity.ticksExisted) {
 		state.ghostCleanupTick = entity.ticksExisted;
 		state.ghostCleanup = state.ghostCleanup.filter((record) => {

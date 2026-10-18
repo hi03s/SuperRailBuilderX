@@ -1148,8 +1148,34 @@ export class SRBXApiCompat {
 		}
 	}
 
+	private static invalidateSwitchRailMap(
+		core: TileEntityLargeRailCore,
+	): void {
+		if (!(core instanceof TileEntityLargeRailSwitchCore)) return;
+		// SwitchCore caches its map independently; neither setRailPositions
+		// nor incoming NBT clears this cache in KaizPatch.
+		let cls = (
+			core as unknown as { getClass(): java.lang.Class<unknown> }
+		).getClass();
+		while (
+			cls &&
+			String(cls.getName()) !==
+				"jp.ngt.rtm.rail.TileEntityLargeRailSwitchCore"
+		)
+			cls = cls.getSuperclass() as typeof cls;
+		if (!cls) throw new Error("switch map cache class unavailable");
+		const mapField = cls.getDeclaredField("switchObj");
+		mapField.setAccessible(true);
+		mapField.set(core, null);
+		const openedField = cls.getDeclaredField("openedRails");
+		openedField.setAccessible(true);
+		const opened = openedField.get(core) as java.util.List<unknown>;
+		if (opened) opened.clear();
+	}
+
 	static refreshRailCoreClient(core: TileEntityLargeRailCore): void {
 		if (!core) return;
+		this.invalidateSwitchRailMap(core);
 		core.createRailMap();
 		core.shouldRerenderRail = true;
 		this.getCoreWorld(core).markBlockForUpdate(
@@ -2625,6 +2651,7 @@ export class SRBXApiCompat {
 			(c) => SRBXKaizRoadbedData.get(c),
 		);
 		this.releaseBorrowedRoadbeds(core);
+		const removedKey = this.getRailPositionCandidateKey(core);
 		const owned: TileEntityLargeRailBase[] = [];
 		const loaded = world.loadedTileEntityList;
 		for (let i = 0; i < loaded.size(); i++) {
@@ -2639,14 +2666,47 @@ export class SRBXApiCompat {
 				owned.push(tile);
 		}
 		core.breakLogicalRail();
+		let staleRoadbeds = 0;
 		for (let i = 0; i < owned.length; i++) {
 			const tile = owned[i];
+			if (
+				core instanceof TileEntityLargeRailSwitchCore &&
+				!(tile instanceof TileEntityLargeRailCore) &&
+				world.getTileEntity(tile.xCoord, tile.yCoord, tile.zCoord) ===
+					tile
+			) {
+				// Older switch caches can enumerate a different curve version
+				// than the installed roadbed. Remove only still-owned leftovers;
+				// never a replacement tile or a tile returned to another rail.
+				const owner = tile.getRailCore();
+				const start = tile.getStartPoint();
+				const sameOwner = owner
+					? owner === core &&
+						this.getRailPositionCandidateKey(owner) === removedKey
+					: !!start &&
+						`core:${start[0]},${start[1]},${start[2]}` ===
+							removedKey &&
+						!world.getTileEntity(start[0], start[1], start[2]);
+				if (sameOwner) {
+					world.setBlockToAir(tile.xCoord, tile.yCoord, tile.zCoord);
+					world.markBlockForUpdate(
+						tile.xCoord,
+						tile.yCoord,
+						tile.zCoord,
+					);
+					staleRoadbeds++;
+				}
+			}
 			if (
 				world.getTileEntity(tile.xCoord, tile.yCoord, tile.zCoord) !==
 				tile
 			)
 				SRBXKaizRoadbedData.remove(tile);
 		}
+		if (staleRoadbeds > 0)
+			NGTLog.debug(
+				`[SuperRailBuilderX RailPosition] stale switch roadbeds removed: owner=${removedKey}, captured=${owned.length}, removed=${staleRoadbeds}`,
+			);
 		for (let i = 0; i < records.length; i++)
 			this.restorePromotedRoadbed(world, records[i]);
 	}
@@ -4900,11 +4960,14 @@ export class SRBXApiCompat {
 				root.blockZ,
 			);
 			if (!(tile instanceof TileEntityLargeRailSwitchCore)) return null;
-			tile.setRailPositions(this.toRailPositionArray(positions));
 			tile.setProperty(property);
 			tile.setStartPoint(root.blockX, root.blockY, root.blockZ);
 			(tile as unknown as NormalRailCore).fixRTMRailMapVersion =
 				RailMapBasic.fixRTMRailMapVersionCurrent;
+			// setRailPositions invokes onBlockChanged and constructs the map.
+			// Its version must match the one used for roadbed placement above.
+			this.invalidateSwitchRailMap(tile);
+			tile.setRailPositions(this.toRailPositionArray(positions));
 			tile.createRailMap();
 			const promotionData = new NBTTagCompound();
 			for (let i = 0; i < promotions.length; i++)

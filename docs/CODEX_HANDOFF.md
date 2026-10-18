@@ -10,7 +10,7 @@
 - AE重複区間・自動分割境界対策は実機確認済み（2026-10-11）。KaizのCrossTieあり/なしも実機動作を確認済み。[AE対策](research/appleextended-overlap-rail-patch.md)。
 - 生成A/BはI/Kで自由始点の選択高さ±1/16m、Ctrlで±1m、Uで地上高延長。Bの長さはJ/Lの長押し加速（初期0.1m/Ctrl10m、最大512m）、半径も加速。ホイールによる長さ変更は廃止。[A](user-guide/builder1.md)・[B](user-guide/builder2.md)。
 - 長押し単位は初期値の10倍まで。A/B/分岐の固定半径は1→10m、Ctrl100→1000m。A/Bは接続済み端点を始点/終点から除外、分岐は始点だけ許可。分岐終点は分岐レールの全未接続・水平端部も候補化。実機確認待ち。
-- [組ホーム](user-guide/platform-builder.md)を追加。手持ちレール必須、左右1列、間隔2m/高さ1.5mから設定。サーバーで元線形を再検証・再計算し、共通保護とUndoを使用。ホイールは全8ツール。実機確認待ち。
+- [組ホーム](user-guide/platform-builder.md)を追加。手持ちレール必須、左右1列、間隔2m/高さ1.5mから設定。サーバーで元線形を再検証・再計算し、共通保護とUndoを使用。ホイールは全9ツール。実機確認待ち。
 - AEのTAB拒否は非乗車追従へ乗車必須チェックを適用していたことが原因。bb224faでcompat判定と切替後のサーバーホスト引継ぎを修正しpush済み。全4build・入力/GUI/dispatch/AE回帰・Java8ホイール成功、実機再確認待ち。
 - [v0.3.1 Draft](https://github.com/hi03s/SuperRailBuilderX/releases/tag/untagged-c0ca067f4b5e8b3bf12f)を作成済み。タグは32e2467。Actions成功、本文一致・draft=true・ZIPと2 JARの添付/ダウンロード検証済み。公開は開発者の手動Publish。[リリース手順](development/releasing.md)。
 - artifactsには最新開発版`SuperRailBuilderX-0.3.1.zip`、タグ時点の`SuperRailBuilderX-0.3.1-v0.3.1.zip`、環境別SRBXPatch v1.0 JARだけを保持。今回の新機能は最新開発版のみへ反映し、既存Draft/Assetsは変更しない。
@@ -22,6 +22,8 @@
 
 ## 優先確認事項
 
+- 今回ログのKaiz分岐移動は、接続レールの先行生成によるowner競合、分岐Map版指定順序と旧キャッシュを修正。最新開発ZIPで単独/通常レール接続の端部移動後、再入場前から形状・道床が一致すること、失敗時復元・Undoを実機確認する。渡り線Cの全設定初期化、複線コピーと同じ強調表示、(6,2)アイコンと左右複線の短縮名も確認。異常時は操作・時刻とlogs/latest.log。
+
 - KaizPatch/AEで[渡り線生成](user-guide/crossover-builder.md)の6形状、自由始点/既設基準線、端部吸着、生成失敗時の元レール保持とUndoを実機確認する。分岐端部の移動/Undo（全体の平行移動は不可）、始点高さアイコン、左端3枚時計枠も確認する。異常時は操作順・時刻とlogs/latest.logを共有する。
 - 複線コピーの吸着端カントもコピー元優先へ変更（接続先と意図的に不一致可）。サーバーで元レールを再検証・再取得。他ツールの端部継承は維持。GUIツール名は4枚枠、左上時計HH:mmは左端3枚枠へ中央揃え。生成A/B/渡り線に始点高さアイコンを表示。全4build/関連回帰/Java8成功、実機では吸着先と異なるカントの生成・Undo、時計・枠を確認する。
 - Angelica 2.2.34併用時のGUI復元クラッシュを修正。基本テクスチャをglTexCoord4f、通常ライトマップをglMultiTexCoord2fで復元し未対応の4fを回避。全4build・GUI回帰・Java8成功。最新開発ZIPでGUI/TAB開閉後のクラッシュ・明るさ・レール描画を実機確認する。[詳細](research/gui-rendering-compatibility.md)。
@@ -30,7 +32,7 @@
 - 生成Aの0‰/非0‰の水平曲線、向きが逆の接続レールの複線コピー、生成Bの左右方向と直線停止を修正。全4build・関連回帰成功。最新開発ZIPでKaizPatch/AEの生成・UndoとBの押し直しを実機確認する。異常時は操作・時刻とlogs/latest.logを共有する。
 
 - AE中間点分岐の生成・Undo・失敗復元と描画パッチは、開発者から実機解消確認を受領（2026-10-12）。0.3.1へ含める。
-- KaizPatch/AEでI/Kの始点高さ限定、Uの地上高延長、BのJ/L/Ctrl/長押し加速・512m上限と半径操作、組ホームの左右・高さ・手持ち必須・生成/Undo、8ツールのホイールを確認する。異常時は操作順とlogs/latest.logを共有する。
+- KaizPatch/AEでI/Kの始点高さ限定、Uの地上高延長、BのJ/L/Ctrl/長押し加速・512m上限と半径操作、組ホームの左右・高さ・手持ち必須・生成/Undo、9ツールのホイールを確認する。異常時は操作順とlogs/latest.logを共有する。
 - A/Bの接続済み端点除外、分岐の接続済み始点選択と終点除外、分岐レール3端点へのスナップを確認する。分岐の中間点選択・水平制約は維持している。
 - AEの分岐補助道床が既設コアと重なる生成失敗を修正。端点の精密座標を保ち、補助所有ブロックだけ近傍の道床範囲内へ移す。生成・再読込・Undoで既設レールが保持されることを確認する。異常時はlogs/latest.logを共有する。
 - 道床所有履歴の専用WorldSavedDataへの変更は模擬保存/再読込まで確認済み。生成・接続移動・分割・Undoと再入場後の未選択レール保持を実機確認する。本番サーバーは操作しない。
@@ -51,6 +53,8 @@
 - ローカルに保持する調査ログは、最新AEログとKaiz保存APIの例外抜粋。解消を確認した分岐クラッシュの旧抜粋は削除。実機再確認後に不要なら削除する。
 
 ## 直近の完了
+
+- 2026-10-19 ローカルCodex: 渡り線の強調/C/形状GUIを修正し、Kaiz分岐のMap版・キャッシュ・残存道床と接続端部移動の順序/失敗復元/遅延再描画を対処。全4build/関連回帰/Java8成功、実機未確認。[10月履歴](history/CODEX_HISTORY_2026-10.md)。コミット・同期結果はpush後に記録する。
 
 - 2026-10-19 ローカルCodex: 渡り線生成6形状・既設基準線/吸着/Undo、両版分岐端点移動、始点高さアイコンと3枚時計枠を実装。全4build/関連回帰/Java8成功、開発ZIP更新、実機未確認。[a5474a3](https://github.com/hi03s/SuperRailBuilderX/commit/a5474a3)をorigin/mainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 - 2026-10-18 ローカルCodex: コピー元の端部カント保持とGUI文字枠/PC時計を実装。全4build/関連回帰/Java8成功、ZIP更新、実機未確認。[750e10d](https://github.com/hi03s/SuperRailBuilderX/commit/750e10d)をorigin/mainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。

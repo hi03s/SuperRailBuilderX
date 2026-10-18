@@ -171,6 +171,7 @@ const context = {
 					rail: {
 						TileEntityLargeRailBase: Base,
 						TileEntityLargeRailCore: Core,
+						TileEntityLargeRailSwitchCore: class extends Core {},
 						BlockLargeRailBase: RailBlock,
 					},
 				},
