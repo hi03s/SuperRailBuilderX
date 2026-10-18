@@ -69,11 +69,23 @@ const helper = {
 		blockX: Math.floor(point.position[0]),
 		blockY: 4,
 		blockZ: 2,
+		direction: point.direction,
+		anchorYaw: point.anchorYaw,
+		anchorPitch: point.anchorPitch,
+		anchorLengthHorizontal: point.anchorLength,
+		anchorLengthVertical: point.anchorLengthVertical ?? point.anchorLength,
+		cantEdge: point.cantEdge,
+		cantCenter: point.cantCenter,
+		cantRandom: point.cantRandom,
 	}),
 	createFromPositions(_world, _player, positions) {
 		attempts.push(Array.from(positions, coordinate));
 		if (failures-- > 0) return null;
 		current = makeCore(positions.map(clone), `rebuilt:${attempts.length}`);
+		if (positions.length > 2) {
+			Object.setPrototypeOf(current, SwitchCore.prototype);
+			current.section = false;
+		}
 		return { core: [1, 4, 2], key: current.key };
 	},
 };
@@ -83,7 +95,26 @@ const context = {
 		jp: {
 			ngt: {
 				rtm: {
-					rail: { TileEntityLargeRailSwitchCore: SwitchCore },
+					rail: {
+						TileEntityLargeRailSwitchCore: SwitchCore,
+						util: {
+							RailMaker: class {
+								getSwitch() {
+									return {
+										getAllRailMap: () => [
+											{
+												getRailBlockList: () => ({
+													size: () => 1,
+													get: () => [99, 4, 2],
+												}),
+											},
+										],
+									};
+								}
+							},
+							RailMapBasic: {},
+						},
+					},
 					item: { ItemRail: { getDefaultProperty: property } },
 				},
 				ngtlib: {
@@ -94,6 +125,15 @@ const context = {
 			},
 		},
 		net: { minecraft: { util: { math: { BlockPos } } } },
+		java: {
+			util: {
+				ArrayList: class extends Array {
+					add(value) {
+						this.push(value);
+					}
+				},
+			},
+		},
 	},
 };
 vm.createContext(context);
@@ -224,6 +264,94 @@ assert.deepStrictEqual(attempts[0], [
 	[2.25, 4, 2],
 	[26.25, 4, 2],
 ]);
+
+// Move the third switch endpoint without translating the other routes.
+function resetSwitch(failedAttempts = 0) {
+	reset(failedAttempts);
+	current.positions = [1, 25, 31].map((x, index) => ({
+		posX: x,
+		posY: 4,
+		posZ: 2,
+		blockX: x,
+		blockY: 4,
+		blockZ: 2,
+		direction: 2,
+		anchorYaw: 90,
+		anchorPitch: 0,
+		anchorLengthHorizontal: 4,
+		anchorLengthVertical: 4,
+		cantEdge: index,
+		cantCenter: 3,
+		cantRandom: 0,
+		switchType: index === 0 ? 1 : 0,
+	}));
+	Object.setPrototypeOf(current, SwitchCore.prototype);
+	current.section = false;
+}
+function moveSwitch(x, preserve = false) {
+	const positions = current.positions;
+	const destination = api.point(positions[2]);
+	destination.position = [x, 4, 2];
+	return api.move(
+		current,
+		current.key,
+		coordinate(positions[0]),
+		coordinate(positions[1]),
+		api.point(positions[0]),
+		api.point(positions[1]),
+		{},
+		preserve,
+		{ index: 2, point: destination },
+	);
+}
+resetSwitch();
+assert.strictEqual(
+	move(),
+	"unsupported",
+	"whole-switch translation stays disabled",
+);
+assert.strictEqual(breaks, 0);
+assert.strictEqual(moveSwitch(35), "ok");
+assert.deepStrictEqual(attempts[0], [
+	[1, 4, 2],
+	[25, 4, 2],
+	[35, 4, 2],
+]);
+assert.strictEqual(current.positions[0].switchType, 1);
+assert.strictEqual(current.positions[2].switchType, 0);
+assert.strictEqual(current.signal, 3);
+assert.strictEqual(current.savedSubRails.length, 1);
+assert.strictEqual(api.consumeUpdated().length, 1);
+assert.strictEqual(
+	moveSwitch(31, true),
+	"ok",
+	"Undo restores only the moved endpoint",
+);
+assert.deepStrictEqual(attempts[1], [
+	[1, 4, 2],
+	[25, 4, 2],
+	[31, 4, 2],
+]);
+resetSwitch(1);
+assert.strictEqual(moveSwitch(35), "move_failed_rolled_back");
+assert.deepStrictEqual(attempts[1], [
+	[1, 4, 2],
+	[25, 4, 2],
+	[31, 4, 2],
+]);
+assert.strictEqual(
+	api.consumeUpdated().length,
+	1,
+	"rollback identity is synchronized",
+);
+resetSwitch();
+world.func_175667_e = (pos) => pos.position[0] !== 99;
+assert.strictEqual(moveSwitch(35), "path_unloaded");
+assert.strictEqual(breaks, 0, "unloaded route cannot delete the source switch");
+world.func_175667_e = () => true;
+console.log(
+	"AppleExtended switch endpoint move, rollback, and Undo tests passed",
+);
 reset();
 assert.strictEqual(interiorMove(true), "ok");
 assert.deepStrictEqual(attempts[0], [

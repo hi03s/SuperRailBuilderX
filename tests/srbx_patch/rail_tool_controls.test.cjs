@@ -420,6 +420,7 @@ context.keys = {
 	getDescription: (name) => "[" + name + "]",
 };
 context.builderB = false;
+context.crossoverBuilder = false;
 context.handleResult = () => {};
 context.repeatedKey = () => false;
 for (const tool of [

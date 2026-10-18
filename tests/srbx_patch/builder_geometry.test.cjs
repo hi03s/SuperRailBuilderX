@@ -4,6 +4,7 @@ const fs = require("fs"),
 const dir = "dist/assets/minecraft/scripts/superrailbuilderx/";
 const context = vm.createContext({
 	builderB: false,
+	crossoverBuilder: false,
 	DEFAULT_RAIL_HEIGHT: 1 / 16,
 	snapAngles: [1, 5, 15],
 });

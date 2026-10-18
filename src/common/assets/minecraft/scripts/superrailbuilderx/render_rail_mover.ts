@@ -663,10 +663,9 @@ function connectedEndpointMoves(
 						(excludedRailKeys && excludedRailKeys[railKey])
 					)
 						continue;
-					if (
-						SRBXApiCompat.getRailPositionUnsupportedReason(core) !==
-						""
-					)
+					const unsupported =
+						SRBXApiCompat.getRailPositionUnsupportedReason(core);
+					if (unsupported !== "" && unsupported !== "switch")
 						continue;
 					const positions =
 						SRBXApiCompat.getEditableRailPositions(core);

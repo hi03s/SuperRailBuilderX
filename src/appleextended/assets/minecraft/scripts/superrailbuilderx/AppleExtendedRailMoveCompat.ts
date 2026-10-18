@@ -5,7 +5,8 @@ import {
 } from "jp.ngt.rtm.rail";
 import { ItemRail } from "jp.ngt.rtm.item";
 import { ResourceStateRail } from "jp.ngt.rtm.modelpack.state";
-import { RailPosition } from "jp.ngt.rtm.rail.util";
+import { RailMaker, RailMapBasic, RailPosition } from "jp.ngt.rtm.rail.util";
+import { ArrayList } from "java.util";
 import { EntityPlayer } from "net.minecraft.entity.player";
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { BlockPos } from "net.minecraft.util.math";
@@ -103,10 +104,18 @@ export class AppleExtendedRailMoveCompat {
 		end: AppleExtendedBuilderPoint,
 		player?: EntityPlayer,
 		preserveEndpointGeometry = false,
+		switchEndpoint?: { index: number; point: AppleExtendedBuilderPoint },
 	): string {
 		this.updated = [];
 		if (!player) return "missing_player";
-		if (!core || core instanceof TileEntityLargeRailSwitchCore)
+		const isSwitch = core instanceof TileEntityLargeRailSwitchCore;
+		// A switch may be rebuilt only for one explicit endpoint operation.
+		// The ordinary two-point API must continue rejecting whole-switch moves.
+		if (
+			!core ||
+			(isSwitch && !switchEndpoint) ||
+			(!isSwitch && switchEndpoint)
+		)
 			return "unsupported";
 		if (AppleExtendedRailCompat.coreKey(core) !== expectedKey)
 			return "rail_changed";
@@ -124,7 +133,7 @@ export class AppleExtendedRailMoveCompat {
 		const positions = AppleExtendedRailCompat.getLogicalPositions(core);
 		if (
 			!positions ||
-			positions.length !== 2 ||
+			(isSwitch ? positions.length < 3 : positions.length !== 2) ||
 			!positions[0] ||
 			!positions[1]
 		)
@@ -134,7 +143,15 @@ export class AppleExtendedRailMoveCompat {
 			!this.matches(positions[1], originalEnd)
 		)
 			return "rail_changed";
-		if (!this.validPoint(start) || !this.validPoint(end))
+		if (
+			!this.validPoint(start) ||
+			!this.validPoint(end) ||
+			(switchEndpoint &&
+				(!this.validPoint(switchEndpoint.point) ||
+					Math.floor(switchEndpoint.index) !== switchEndpoint.index ||
+					switchEndpoint.index < 0 ||
+					switchEndpoint.index >= positions.length))
+		)
 			return "invalid_point";
 		if (
 			!preserveEndpointGeometry &&
@@ -147,10 +164,11 @@ export class AppleExtendedRailMoveCompat {
 				Math.pow(start.position[1] - end.position[1], 2) +
 				Math.pow(start.position[2] - end.position[2], 2),
 		);
-		if (distance < 0.01) return "rail_too_short";
+		if (!isSwitch && distance < 0.01) return "rail_too_short";
 		if (
-			start.anchorLength > Math.max(1, distance * 4) ||
-			end.anchorLength > Math.max(1, distance * 4)
+			!isSwitch &&
+			(start.anchorLength > Math.max(1, distance * 4) ||
+				end.anchorLength > Math.max(1, distance * 4))
 		)
 			return "invalid_anchor_length";
 		// Require every group member to be loaded before deleting the source group.
@@ -177,7 +195,7 @@ export class AppleExtendedRailMoveCompat {
 					return "rail_changed";
 			}
 		}
-		const moved = [
+		let moved = [
 			AppleExtendedRailCompat.resolveBuilderPoint(
 				world,
 				start,
@@ -189,6 +207,21 @@ export class AppleExtendedRailMoveCompat {
 				preserveEndpointGeometry,
 			),
 		];
+		if (switchEndpoint) {
+			const selected = AppleExtendedRailCompat.resolveBuilderPoint(
+				world,
+				switchEndpoint.point,
+				preserveEndpointGeometry,
+			);
+			if (!selected) return "rail_endpoint_changed";
+			moved = [];
+			for (let i = 0; i < positions.length; i++)
+				moved.push(
+					AppleExtendedRailCompat.cloneRailPosition(positions[i]),
+				);
+			selected.switchType = positions[switchEndpoint.index].switchType;
+			moved[switchEndpoint.index] = selected;
+		}
 		if (!moved[0] || !moved[1]) return "rail_endpoint_changed";
 		if (
 			!preserveEndpointGeometry &&
@@ -205,11 +238,33 @@ export class AppleExtendedRailMoveCompat {
 				return "unloaded_rail";
 		}
 
-		const original = [
-			AppleExtendedRailCompat.cloneRailPosition(positions[0]),
-			AppleExtendedRailCompat.cloneRailPosition(positions[1]),
-		];
+		const original: RailPosition[] = [];
+		for (let i = 0; i < positions.length; i++)
+			original.push(
+				AppleExtendedRailCompat.cloneRailPosition(positions[i]),
+			);
 		const property = this.cloneProperty(core.getResourceState());
+		if (isSwitch) {
+			const list = new ArrayList<RailPosition>();
+			for (const rp of moved) list.add(rp);
+			const railSwitch = new RailMaker(
+				world,
+				list,
+				RailMapBasic.fixRTMRailMapVersionCurrent,
+			).getSwitch();
+			if (!railSwitch) return "invalid_switch";
+			const maps = railSwitch.getAllRailMap();
+			if (!maps || maps.length === 0) return "invalid_switch";
+			// Validate the entire switch footprint before removing any source tile.
+			for (let i = 0; i < maps.length; i++) {
+				const blocks = maps[i].getRailBlockList(property, true);
+				for (let j = 0; j < blocks.size(); j++) {
+					const b = blocks.get(j);
+					if (!world.isBlockLoaded(new BlockPos(b[0], b[1], b[2])))
+						return "path_unloaded";
+				}
+			}
+		}
 		// An endpoint may share another rail's roadbed without owning its core.
 		// Use the actual creation plan and ignore only the group we will remove.
 		if (

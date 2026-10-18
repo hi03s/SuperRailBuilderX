@@ -501,6 +501,32 @@ export class SRBXApiCompat {
 		void token;
 		return "unsupported_target";
 	}
+
+	static isHorizontalBuilderRail(core: unknown): boolean {
+		void core;
+		return false;
+	}
+	static createCrossoverBuilderRail(
+		world: unknown,
+		player: unknown,
+		plan: unknown,
+	) {
+		void world;
+		void player;
+		void plan;
+		return { status: "unsupported_target" };
+	}
+	static undoCrossoverBuilderRail(
+		world: unknown,
+		player: unknown,
+		token: string,
+	): string {
+		void world;
+		void player;
+		void token;
+		return "unsupported_target";
+	}
+
 	static consumeLastBranchClientUpdate(): null {
 		return null;
 	}

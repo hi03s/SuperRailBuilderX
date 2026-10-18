@@ -1,3 +1,5 @@
+import { SRBXCrossoverGeometry, SRBXCrossoverPlan } from "./SRBXCrossoverPlan";
+import { SRBXCrossoverClient } from "./SRBXCrossoverClient";
 import { SRBXToolWheel } from "./SRBXToolWheel";
 import { SRBXAcceleratedRepeat } from "./SRBXAcceleratedRepeat";
 import { SRBXEndpointAvailability } from "./SRBXEndpointAvailability";
@@ -27,6 +29,7 @@ import { NGTOBuilderUtilClient } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUti
 import {
 	SRBXApiCompat,
 	SRBXBuilderPoint,
+	SRBXSourceRail,
 } from "@target/assets/minecraft/scripts/superrailbuilderx/SRBXApiCompat";
 import { SRBXMath, SRBXVec3 } from "./SRBXMath";
 import { SRBXBuilderGeometry, SRBXBuilderDesign } from "./SRBXBuilderGeometry";
@@ -53,8 +56,30 @@ const GUI_BUILDER2_ICON = new ResourceLocation(
 	"textures/superrailbuilderx/icon_builder2.png",
 );
 let builderB = false;
+let crossoverBuilder = false;
+const CROSSOVER_ICON = new ResourceLocation(
+	"minecraft",
+	"textures/superrailbuilderx/icon_crossover_builder.png",
+);
+const CROSSOVER_NAMES = [
+	"右片渡り（右複線）",
+	"左片渡り（右複線）",
+	"シーサス（右複線）",
+	"右片渡り（左複線）",
+	"左片渡り（左複線）",
+	"シーサス（左複線）",
+];
+function dataKey(suffix: string): string {
+	return (crossoverBuilder ? "crossoverBuilder" : "builder1") + suffix;
+}
 type BuilderState = {
 	selected: SRBXBuilderPoint[];
+	crossoverMode: number;
+	crossoverSpacing: number;
+	crossoverSource?: SRBXSourceRail;
+	crossoverBase?: [SRBXBuilderPoint, SRBXBuilderPoint];
+	lastCrossoverSource?: SRBXSourceRail;
+	lastCrossoverBase?: [SRBXBuilderPoint, SRBXBuilderPoint];
 	lastBuiltSelection: SRBXBuilderPoint[] | null;
 	snapMode: "off" | "distance" | "block";
 	snapAngleIndex: number;
@@ -106,7 +131,11 @@ const loggedScanErrors: { [key: string]: boolean } = {};
 function init(par1: ModelSetVehicle, par2: ModelObject): void {
 	void par1;
 	void par2;
+	crossoverBuilder =
+		String(par1.getConfig().getName()) ===
+		"SuperRailBuilderX_CrossoverBuilder";
 	builderB =
+		crossoverBuilder ||
 		String(par1.getConfig().getName()) === "SuperRailBuilderX_builder2";
 	SRBXPatchBootstrap.start();
 	keys = new InputManager();
@@ -223,6 +252,8 @@ function init(par1: ModelSetVehicle, par2: ModelObject): void {
 function createDefaultState(): BuilderState {
 	return {
 		selected: [],
+		crossoverMode: 0,
+		crossoverSpacing: 4,
 		lastBuiltSelection: null,
 		snapMode: "off",
 		snapAngleIndex: 1,
@@ -257,6 +288,10 @@ function resetState(state: BuilderState): void {
 	const reset = createDefaultState();
 	const lastBuiltSelection = state.lastBuiltSelection;
 	state.selected = reset.selected;
+	state.crossoverMode = reset.crossoverMode;
+	state.crossoverSpacing = reset.crossoverSpacing;
+	state.crossoverSource = undefined;
+	state.crossoverBase = undefined;
 	state.lastBuiltSelection = lastBuiltSelection;
 	state.snapMode = reset.snapMode;
 	state.snapAngleIndex = reset.snapAngleIndex;
@@ -590,7 +625,14 @@ function getHoverPoint(
 	state: BuilderState,
 ): SRBXBuilderPoint | null {
 	const rail = findRailCandidate(entity, partialTicks);
-	if (rail) return rail;
+	if (rail)
+		return crossoverBuilder && Math.abs(rail.anchorPitch) > 0.0001
+			? null
+			: rail;
+	if (crossoverBuilder) {
+		const base = SRBXCrossoverClient.base(entity, partialTicks);
+		if (base) return base.points[0];
+	}
 	const position = getFreeCursorPosition(partialTicks, state);
 	if (!position) return null;
 	if (
@@ -1265,16 +1307,55 @@ function renderSlopePanelAt(
 function sendRequest(
 	entity: EntityVehicle,
 	state: BuilderState,
-	request: Builder1Request,
+	request:
+		| Builder1Request
+		| { action: "create"; plan: SRBXCrossoverPlan }
+		| { action: "undo" },
 ): void {
 	const dataMap = entity.getResourceState().getDataMap();
-	NGTOBuilderUtil.sendJsonData(dataMap, "builder1Request", request);
-	dataMap.setString("builder1Result", "waiting", 1);
+	NGTOBuilderUtil.sendJsonData(dataMap, dataKey("Request"), request);
+	dataMap.setString(dataKey("Result"), "waiting", 1);
 	state.awaitingResult = true;
 	state.pendingAction = request.action;
 }
 
 function showHelp(sender: ICommandSender): void {
+	if (crossoverBuilder) {
+		const lines = [
+			"--- SuperRailBuilderX 渡り線生成 ---",
+			"[右クリック] 自由始点・未接続端点、または水平な既設レールを選択",
+			"[左クリック] 選択を解除",
+			"[Enter] 渡り線を生成",
+			"[O] 片渡り・シーサスと複線側を切り替え",
+			"[↑] 複線間隔+0.1m",
+			"[↓] 複線間隔-0.1m",
+			"[Ctrl+↑] 複線間隔+1m",
+			"[Ctrl+↓] 複線間隔-1m",
+			"[←] L側の半径を変更",
+			"[→] R側の半径を変更",
+			"[J] 長さを減少",
+			"[L] 長さを増加",
+			"[Ctrl+←] 半径を100m単位で変更",
+			"[Ctrl+→] 半径を100m単位で変更",
+			"[Ctrl+J] 長さを10m単位で減少",
+			"[Ctrl+L] 長さを10m単位で増加",
+			"[P] スナップOFF→距離→ブロック",
+			"[Ctrl+P] 角度スナップを切り替え",
+			"[I] 始点高さ+1/16m",
+			"[K] 始点高さ-1/16m",
+			"[Ctrl+I] 始点高さ+1m",
+			"[Ctrl+K] 始点高さ-1m",
+			"[C] 選択を解除",
+			"[Ctrl+C] 設定をリセット",
+			"[Ctrl+Z] Undo",
+			"[Q] 終了",
+			"勾配のあるレールは選択できません。既設基準線の長さ・半径は維持します。",
+		];
+		for (let i = 0; i < lines.length; i++)
+			NGTLog.sendChatMessage(sender, lines[i]);
+		SRBXToolGui.helpFooter(sender);
+		return;
+	}
 	if (SRBXApiCompat.requiresRailBoundarySnap())
 		NGTLog.sendChatMessage(
 			sender,
@@ -1390,8 +1471,16 @@ function renderToolGui(
 			: "",
 	];
 	SRBXToolGui.render(
-		builderB ? "レール生成B" : GUI_TOOL_NAME,
-		builderB ? GUI_BUILDER2_ICON : GUI_TOOL_ICON,
+		crossoverBuilder
+			? "渡り線生成"
+			: builderB
+				? "レール生成B"
+				: GUI_TOOL_NAME,
+		crossoverBuilder
+			? CROSSOVER_ICON
+			: builderB
+				? GUI_BUILDER2_ICON
+				: GUI_TOOL_ICON,
 		[
 			{
 				iconX: 4,
@@ -1416,11 +1505,24 @@ function renderToolGui(
 					: labels[2],
 			},
 			{
-				iconX: 5,
-				iconY: 1,
-				label: `${state.slopePermil || 0} ‰`,
+				iconX: crossoverBuilder ? 4 : 5,
+				iconY: crossoverBuilder ? 2 : 1,
+				label: crossoverBuilder
+					? `間隔: ${state.crossoverSpacing.toFixed(1)} m`
+					: `${state.slopePermil || 0} ‰`,
 			},
-			{ iconX: 5, iconY: 2, label: `${state.verticalCurveRadius} m` },
+			{
+				iconX: crossoverBuilder ? 4 : 5,
+				iconY: crossoverBuilder ? 1 : 2,
+				label: crossoverBuilder
+					? CROSSOVER_NAMES[state.crossoverMode]
+					: `${state.verticalCurveRadius} m`,
+			},
+			{
+				iconX: 6,
+				iconY: 1,
+				label: `${(state.heightOffsetSixteenths || 0) >= 0 ? "+" : ""}${state.heightOffsetSixteenths || 0}/16 m`,
+			},
 		],
 	);
 }
@@ -1449,11 +1551,48 @@ function handleResult(
 ): void {
 	if (!state.awaitingResult) return;
 	const dataMap = entity.getResourceState().getDataMap();
-	const result = dataMap.getString("builder1Result");
+	const result = dataMap.getString(dataKey("Result"));
 	if (result === "" || result === "waiting") return;
+	if (crossoverBuilder) {
+		const update = NGTOBuilderUtil.getJsonData<{
+			removed: Array<{ core: [number, number, number]; key: string }>;
+			refreshed: Array<{ core: [number, number, number]; key: string }>;
+		}>(dataMap, dataKey("ClientUpdate"));
+		if (update) {
+			const world = SRBXApiCompat.getWorld(entity);
+			const fresh: { [key: string]: boolean } = {};
+			for (let i = 0; i < update.refreshed.length; i++)
+				fresh[update.refreshed[i].key] = true;
+			for (let i = 0; i < update.removed.length; i++)
+				if (!fresh[update.removed[i].key])
+					SRBXApiCompat.removeRailClientGhost(
+						world,
+						update.removed[i].core,
+						update.removed[i].key,
+					);
+			for (let i = 0; i < update.refreshed.length; i++) {
+				const p = update.refreshed[i].core;
+				const tile = SRBXApiCompat.getTileEntity(
+					world,
+					p[0],
+					p[1],
+					p[2],
+				);
+				if (tile instanceof TileEntityLargeRailBase) {
+					const core = tile.getRailCore();
+					if (core) SRBXApiCompat.refreshRailCoreClient(core);
+				}
+			}
+			NGTOBuilderUtil.resetJsonData(dataMap, dataKey("ClientUpdate"));
+		}
+	}
 	state.awaitingResult = false;
 	if (result === "ok" && state.pendingAction === "create") {
 		state.lastBuiltSelection = state.selected.map(copyPoint);
+		state.lastCrossoverSource = state.crossoverSource;
+		state.lastCrossoverBase = state.crossoverBase;
+		state.crossoverSource = undefined;
+		state.crossoverBase = undefined;
 		state.selected = [];
 		state.curveKeepSelectedEndpoints = false;
 		state.curveStartYaw = null;
@@ -1462,17 +1601,26 @@ function handleResult(
 			sender,
 			"§a[SuperRailBuilderX] レールを生成しました",
 		);
-		if (dataMap.getBoolean("builder1CreatedAsNormalCrossing"))
+		if (dataMap.getBoolean(dataKey("CreatedAsNormalCrossing")))
 			NGTLog.sendChatMessage(
 				sender,
 				"§e[SuperRailBuilderX] セクションコア交差のため通常レールとして生成しました",
 			);
 	} else if (result === "undo_ok" && state.pendingAction === "undo") {
-		dataMap.setBoolean("builder1CanUndo", false, 0);
+		dataMap.setBoolean(dataKey("CanUndo"), false, 0);
 		state.selected = state.lastBuiltSelection
 			? state.lastBuiltSelection.map(copyPoint)
 			: [];
 		state.lastBuiltSelection = null;
+		state.crossoverSource = state.lastCrossoverSource;
+		state.crossoverBase = state.lastCrossoverBase;
+		if (crossoverBuilder && state.crossoverSource) {
+			// Restored section groups can have a new identity. Re-select the
+			// baseline instead of sending the pre-Undo core key again.
+			state.selected = [];
+			state.crossoverSource = undefined;
+			state.crossoverBase = undefined;
+		}
 		state.curveKeepSelectedEndpoints = state.curveRadiusLocked;
 		NGTLog.sendChatMessage(
 			sender,
@@ -1485,7 +1633,7 @@ function handleResult(
 		);
 	}
 	state.pendingAction = null;
-	dataMap.setString("builder1Result", "", 1);
+	dataMap.setString(dataKey("Result"), "", 1);
 }
 
 function repeatedKey(state: BuilderState, name: string): boolean {
@@ -1532,6 +1680,11 @@ function getDesignPair(
 	state: BuilderState,
 ): [SRBXBuilderPoint, SRBXBuilderPoint] | null {
 	if (state.selected.length === 0) return null;
+	if (crossoverBuilder && state.crossoverBase)
+		return [
+			copyPoint(state.crossoverBase[0]),
+			copyPoint(state.crossoverBase[1]),
+		];
 	const pair = SRBXBuilderGeometry.plan(state.selected[0], getDesign(state));
 	if (!pair) return null;
 	const segments = SRBXMath.planVerticalRailSegments(
@@ -1837,7 +1990,11 @@ function handleInput(
 			if (pair) state.curveStartYaw = pair[0].anchorYaw;
 		}
 	}
-	if (!state.awaitingResult && (builderB || state.curveRadiusLocked)) {
+	if (
+		!state.awaitingResult &&
+		!state.crossoverSource &&
+		(builderB || state.curveRadiusLocked)
+	) {
 		const direction =
 			Number(Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) -
 			Number(Keyboard.isKeyDown(Keyboard.KEY_LEFT));
@@ -1853,15 +2010,31 @@ function handleInput(
 		);
 		if (delta) changeCurveRadius(entity, partialTicks, state, delta);
 	} else state.radiusRepeat.reset();
-	if (repeatedKey(state, "heightUp"))
+	if (crossoverBuilder && keys.pressed("radiusLock") && !state.awaitingResult)
+		state.crossoverMode = (state.crossoverMode + 1) % 6;
+	if (!crossoverBuilder && repeatedKey(state, "heightUp"))
 		changeHeightOrSlope(sender, state, 1, false);
-	if (repeatedKey(state, "heightDown"))
+	if (!crossoverBuilder && repeatedKey(state, "heightDown"))
 		changeHeightOrSlope(sender, state, -1, false);
-	if (repeatedKey(state, "heightUpFine"))
+	if (!crossoverBuilder && repeatedKey(state, "heightUpFine"))
 		changeHeightOrSlope(sender, state, 1, true);
-	if (repeatedKey(state, "heightDownFine"))
+	if (!crossoverBuilder && repeatedKey(state, "heightDownFine"))
 		changeHeightOrSlope(sender, state, -1, true);
-	if (builderB && !state.awaitingResult) {
+	if (crossoverBuilder && !state.awaitingResult) {
+		const delta =
+			(repeatedKey(state, "heightUp") ? 0.1 : 0) -
+			(repeatedKey(state, "heightDown") ? 0.1 : 0) +
+			(repeatedKey(state, "heightUpFine") ? 1 : 0) -
+			(repeatedKey(state, "heightDownFine") ? 1 : 0);
+		state.crossoverSpacing = Math.max(
+			0.1,
+			Math.min(
+				64,
+				Math.round((state.crossoverSpacing + delta) * 10) / 10,
+			),
+		);
+	}
+	if (builderB && !state.crossoverSource && !state.awaitingResult) {
 		const now = System.currentTimeMillis();
 		const ctrl = keys.downOptionKey();
 		const lengthDirection =
@@ -1885,17 +2058,25 @@ function handleInput(
 		if (repeatedKey(state, "startHeightDownFast"))
 			state.heightOffsetSixteenths -= 16;
 	}
-	if (keys.pressed("slopeGroundAlign") && !state.awaitingResult)
+	if (
+		!crossoverBuilder &&
+		keys.pressed("slopeGroundAlign") &&
+		!state.awaitingResult
+	)
 		alignZeroSlopeEndpointToGround(sender, state);
 	if (keys.pressed("clear") && !state.awaitingResult) {
 		state.groundTargetY = undefined;
 		state.selected = [];
+		state.crossoverSource = undefined;
+		state.crossoverBase = undefined;
 		state.curveKeepSelectedEndpoints = false;
 		state.curveStartYaw = null;
 	}
 	if (leftClick && !state.awaitingResult && state.selected.length > 0) {
 		state.groundTargetY = undefined;
 		state.selected.pop();
+		state.crossoverSource = undefined;
+		state.crossoverBase = undefined;
 		state.curveKeepSelectedEndpoints = false;
 		if (state.selected.length === 0) state.curveStartYaw = null;
 	}
@@ -1906,6 +2087,14 @@ function handleInput(
 	) {
 		const point = getHoverPoint(entity, partialTicks, state);
 		if (point) {
+			const existing =
+				crossoverBuilder && point.kind !== "rail"
+					? SRBXCrossoverClient.base(entity, partialTicks)
+					: null;
+			if (existing) {
+				state.crossoverSource = existing.source;
+				state.crossoverBase = existing.points;
+			}
 			state.selected.push(copyPoint(point));
 			if (state.selected.length === 1) {
 				state.groundTargetY = undefined;
@@ -1965,18 +2154,29 @@ function handleInput(
 		}
 		if (!builderB)
 			state.selected = [copyPoint(pair[0]), copyPoint(pair[1])];
-		sendRequest(entity, state, {
-			action: "create",
-			start: pair[0],
-			end: pair[1],
-			design: builderB ? getDesign(state) : undefined,
-		});
+		if (crossoverBuilder) {
+			const plan = getCrossoverPlan(entity, state, pair);
+			if (!plan) {
+				NGTLog.sendChatMessage(
+					sender,
+					"§c[SuperRailBuilderX] 水平な線形と複線間隔を確認してください",
+				);
+				return;
+			}
+			sendRequest(entity, state, { action: "create", plan });
+		} else
+			sendRequest(entity, state, {
+				action: "create",
+				start: pair[0],
+				end: pair[1],
+				design: builderB ? getDesign(state) : undefined,
+			});
 		NGTLog.sendChatMessage(sender, "[SuperRailBuilderX] レール生成中...");
 	}
 	if (
 		keys.pressed("undo") &&
 		!state.awaitingResult &&
-		dataMap.getBoolean("builder1CanUndo")
+		dataMap.getBoolean(dataKey("CanUndo"))
 	) {
 		sendRequest(entity, state, { action: "undo" });
 		NGTLog.sendChatMessage(sender, "[SuperRailBuilderX] Undo...");
@@ -1993,7 +2193,11 @@ function render(
 		body.render(renderer);
 		return;
 	}
+	crossoverBuilder =
+		SRBXApiCompat.getToolModel(entity) ===
+		"SuperRailBuilderX_CrossoverBuilder";
 	builderB =
+		crossoverBuilder ||
 		SRBXApiCompat.getToolModel(entity) === "SuperRailBuilderX_builder2";
 	body.render(renderer);
 	const dataMap = entity.getResourceState().getDataMap();
@@ -2044,7 +2248,34 @@ function render(
 			displayPoints[0],
 			displayPoints[1],
 		);
-	if (displayPoints.length >= 2) {
+	if (
+		crossoverBuilder &&
+		displayPoints.length >= 2 &&
+		state.selected.length > 0
+	) {
+		const plan = getCrossoverPlan(entity, state, [
+			displayPoints[0],
+			displayPoints[1],
+		]);
+		if (plan) {
+			renderBezier(entity, partialTicks, plan.points[2], plan.points[3]);
+			if (plan.switchTypes[0] === 1)
+				renderBezier(
+					entity,
+					partialTicks,
+					plan.points[0],
+					plan.points[3],
+				);
+			if (plan.switchTypes[1] === 1)
+				renderBezier(
+					entity,
+					partialTicks,
+					plan.points[2],
+					plan.points[1],
+				);
+		}
+	}
+	if (!crossoverBuilder && displayPoints.length >= 2) {
 		renderSlopePanelAt(entity, partialTicks, displayPoints[0]);
 		renderSlopePanelAt(entity, partialTicks, displayPoints[1]);
 	}
@@ -2082,4 +2313,27 @@ function render(
 				: null;
 		renderToolGui(state, previewLength, previewRadius);
 	}
+}
+
+function getCrossoverPlan(
+	entity: EntityVehicle,
+	state: BuilderState,
+	pair: [SRBXBuilderPoint, SRBXBuilderPoint],
+): SRBXCrossoverPlan | null {
+	const plan = SRBXCrossoverGeometry.plan(
+		pair,
+		state.crossoverSpacing,
+		state.crossoverMode,
+		state.crossoverSource,
+	);
+	if (!plan) return null;
+	for (let i = 2; i < 4; i++) {
+		updateFreePointMarker(plan.points[i]);
+		plan.points[i] = SRBXCrossoverClient.snap(
+			entity,
+			plan.points[i],
+			state.crossoverSource,
+		);
+	}
+	return SRBXCrossoverGeometry.flat(plan.points) ? plan : null;
 }

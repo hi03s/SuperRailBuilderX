@@ -286,7 +286,11 @@ export class SRBXApiCompat {
 	): string {
 		if (!this.hasFreeEndpointPatch()) return "srbxpatch_required";
 		void restorePoint;
-		if (!this.canMoveRailPosition(core)) return "unsupported";
+		if (
+			!(core instanceof TileEntityLargeRailSwitchCore) &&
+			!this.canMoveRailPosition(core)
+		)
+			return "unsupported";
 		if (
 			!isFinite(originalX) ||
 			!isFinite(originalY) ||
@@ -350,7 +354,12 @@ export class SRBXApiCompat {
 		const positions = AppleExtendedRailCompat.getLogicalPositions(core);
 		const start = AppleExtendedRailMoveCompat.point(positions[0]);
 		const end = AppleExtendedRailMoveCompat.point(positions[1]);
-		const moved = index === 0 ? start : end;
+		const isSwitch = core instanceof TileEntityLargeRailSwitchCore;
+		const moved = isSwitch
+			? AppleExtendedRailMoveCompat.point(positions[index])
+			: index === 0
+				? start
+				: end;
 		if (preserveEndpointGeometry && restorePoint) {
 			moved.direction = restorePoint.direction;
 			moved.ownerBlock = restorePoint.ownerBlock;
@@ -366,6 +375,7 @@ export class SRBXApiCompat {
 			end,
 			player,
 			preserveEndpointGeometry,
+			isSwitch ? { index, point: moved } : undefined,
 		);
 	}
 
@@ -576,6 +586,36 @@ export class SRBXApiCompat {
 			world,
 			player,
 			undoToken,
+		);
+	}
+
+	static isHorizontalBuilderRail(
+		core: import("jp.ngt.rtm.rail").TileEntityLargeRailCore,
+	): boolean {
+		return AppleExtendedRailToolsCompat.isHorizontalBuilderRail(core);
+	}
+	static createCrossoverBuilderRail(
+		world: net.minecraft.world.World,
+		player: net.minecraft.entity.player.EntityPlayer,
+		plan: import("@common/assets/minecraft/scripts/superrailbuilderx/SRBXCrossoverPlan").SRBXCrossoverPlan,
+	) {
+		if (!this.hasFreeEndpointPatch())
+			return { status: "srbxpatch_required" };
+		return AppleExtendedRailToolsCompat.createCrossoverBuilderRail(
+			world,
+			player,
+			plan,
+		);
+	}
+	static undoCrossoverBuilderRail(
+		world: net.minecraft.world.World,
+		player: net.minecraft.entity.player.EntityPlayer,
+		token: string,
+	): string {
+		return AppleExtendedRailToolsCompat.undoCrossoverBuilderRail(
+			world,
+			player,
+			token,
 		);
 	}
 

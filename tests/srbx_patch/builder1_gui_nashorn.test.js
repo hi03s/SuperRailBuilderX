@@ -124,6 +124,7 @@ var builder = readFully(
 	"dist/assets/minecraft/scripts/superrailbuilderx/render_builder1.js"
 );
 var builderB = false;
+var crossoverBuilder = false;
 code += builder.slice(
 	builder.indexOf("function renderToolGui("),
 	builder.indexOf("function resultMessage(")
@@ -154,7 +155,7 @@ for (var c = 0; c < cases.length; c++) {
 	);
 	if (
 		JSON.stringify(labels) !==
-		JSON.stringify(test[5].concat(["0 \u2030", "1000 m"]))
+		JSON.stringify(test[5].concat(["0 \u2030", "1000 m", "+0/16 m"]))
 	)
 		throw new Error("Label mismatch: " + JSON.stringify(labels));
 	if (projected) throw new Error("Projection not restored");
@@ -269,7 +270,7 @@ labels = [];
 SRBXToolGui.renderWheel(4, function () {
 	return 4;
 });
-if (labels.length !== 10 || projected)
+if (labels.length !== 11 || projected)
 	throw new Error("Wheel GUI restoration failed");
 print(
 	"Legacy Nashorn wheel icons/names and shared GL projection restoration passed"

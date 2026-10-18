@@ -295,6 +295,7 @@ for (const failure of [
 		GUI_TOOL_ICON: "icon",
 		GUI_TOOL_NAME: "tool",
 		builderB: false,
+		crossoverBuilder: false,
 		MAX_CURVE_RADIUS: 10000,
 		snapAngles: [1, 5, 15],
 		toolGui: {
@@ -390,7 +391,7 @@ for (const failure of [
 	if (failure === "wheel") {
 		assert.equal(
 			primitives.length,
-			19,
+			21,
 			"One dimming rectangle, eight sectors, two circles and eight dividers",
 		);
 		const layout = context.wheelLayout(320, 240);
@@ -405,16 +406,16 @@ for (const failure of [
 				);
 			}
 		}
-		assert.equal(tiles.length, 8, "Wheel draws eight tool icons");
+		assert.equal(tiles.length, 9, "Wheel draws eight tool icons");
 		assert.equal(
 			labels.length,
-			10,
+			11,
 			"Wheel shows eight names, hole label and instructions",
 		);
 		assert.equal(labels[0].s, "レール生成A");
 		assert.equal(labels[2].color, 0xffff55, "Selected tool name is yellow");
-		assert.equal(labels[8].s, "変更なし");
-		assert(labels[9].s.includes("TAB"));
+		assert.equal(labels[9].s, "変更なし");
+		assert(labels[10].s.includes("TAB"));
 	}
 	if (failure && failure.endsWith("-gl")) {
 		assert.equal(context.guiRenderingDisabled, true);
@@ -435,18 +436,21 @@ for (const failure of [
 	}
 	if (!failure || failure === "attrib-full") {
 		assert.deepStrictEqual(clockLabels, [
-			{ s: "04:07", x: 21, y: 4, color: 0xffffff },
+			{ s: "04:07", x: 9, y: 4, color: 0xffffff },
 		]);
-		for (const frameX of [4, 128]) {
+		for (const [frameX, atlasTiles] of [
+			[0, [0, 1, 2]],
+			[128, [0, 1, 1, 2]],
+		]) {
 			assert.deepStrictEqual(
 				tiles.filter(
 					(t) =>
 						t[1] === 0 &&
 						t[3] === 32 &&
 						t[0] >= frameX &&
-						t[0] < frameX + 64,
+						t[0] < frameX + atlasTiles.length * 16,
 				),
-				[0, 1, 1, 2].map((atlasX, index) => [
+				atlasTiles.map((atlasX, index) => [
 					frameX + index * 16,
 					0,
 					atlasX * 16,
@@ -454,7 +458,7 @@ for (const failure of [
 					16,
 					16,
 				]),
-				"Clock and title each use left/center/center/right frame tiles",
+				"Clock uses three frame tiles at the left edge; title keeps four tiles",
 			);
 		}
 		for (const [hour, minute, expected] of [
@@ -468,7 +472,7 @@ for (const failure of [
 		}
 		assert.deepStrictEqual(
 			labels.map((l) => l.s),
-			["tool", "5°", "250 m", "12.35 m", "12 ‰", "2000 m"],
+			["tool", "5°", "250 m", "12.35 m", "12 ‰", "2000 m", "+0/16 m"],
 		);
 		assert.equal(
 			labels[0].color,
@@ -501,7 +505,7 @@ for (const failure of [
 		);
 		assert.deepStrictEqual(
 			labels.map((l) => l.s),
-			["tool", "501 m", "12.35 m", "0 ‰", "1000 m"],
+			["tool", "501 m", "12.35 m", "0 ‰", "1000 m", "+0/16 m"],
 		);
 		assert.equal(JSON.stringify({ matrices, attrs }), before);
 		for (const locked of [false, true]) {
@@ -521,7 +525,15 @@ for (const failure of [
 			);
 			assert.deepStrictEqual(
 				labels.map((l) => l.s),
-				["tool", "ブロック", "直線", "12.35 m", "0 ‰", "1000 m"],
+				[
+					"tool",
+					"ブロック",
+					"直線",
+					"12.35 m",
+					"0 ‰",
+					"1000 m",
+					"+0/16 m",
+				],
 			);
 			assert.equal(JSON.stringify({ matrices, attrs }), before);
 		}

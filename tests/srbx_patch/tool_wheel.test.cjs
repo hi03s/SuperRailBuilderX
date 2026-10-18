@@ -17,6 +17,7 @@ assert.deepEqual(
 		"複線コピー",
 		"カント整形",
 		"分岐生成",
+		"渡り線生成",
 		"組ホーム",
 	],
 );
@@ -124,8 +125,8 @@ function setup() {
 	};
 }
 let s = setup();
-assert.equal(s.context.SRBX_TOOLS.length, 8);
-assert.equal(s.context.toolIndex("SuperRailBuilderX_PlatformBuilder"), 7);
+assert.equal(s.context.SRBX_TOOLS.length, 9);
+assert.equal(s.context.toolIndex("SuperRailBuilderX_PlatformBuilder"), 8);
 assert.equal(s.context.toolIndex("SuperRailBuilderX_builder2"), 1);
 for (let i = 0; i < s.context.SRBX_TOOLS.length; i++) {
 	const a = (i * Math.PI * 2) / s.context.SRBX_TOOLS.length;
@@ -145,7 +146,7 @@ assert.equal(
 screen.func_73863_a(200, 150, 0);
 screen.func_73869_a("", "LEFT");
 screen.func_73863_a(200, 150, 0);
-assert.equal(s.selected(), 7, "Left wraps to the last tool");
+assert.equal(s.selected(), 8, "Left wraps to the last tool");
 screen.func_73869_a("", "RIGHT");
 screen.func_73863_a(200, 150, 0);
 assert.equal(s.selected(), 0, "Right wraps to the first tool");
@@ -173,16 +174,16 @@ assert.equal(
 );
 s = setup();
 screen = s.open();
-screen.func_73863_a(243, 240, 0);
+screen.func_73863_a(286, 200, 0);
 assert.equal(s.selected(), 3, "Mouse selects clockwise rail mover sector");
 s.held.delete("TAB");
 screen.func_73876_c();
 assert.equal(s.values.srbxToolSwitchRequest, "SuperRailBuilderX_RailMover");
 s = setup();
 screen = s.open();
-screen.func_73864_a(243, 240, 1);
+screen.func_73864_a(286, 200, 1);
 assert.equal(s.mc.field_71462_r, screen, "Right click does not confirm");
-screen.func_73864_a(243, 240, 0);
+screen.func_73864_a(286, 200, 0);
 assert.equal(
 	s.values.srbxToolSwitchRequest,
 	"SuperRailBuilderX_RailMover",
@@ -199,7 +200,7 @@ assert(
 s = setup();
 s.compat.getToolModel = () => "SuperRailBuilderX_CantFormatter";
 screen = s.open();
-screen.func_73863_a(243, 240, 0);
+screen.func_73863_a(286, 200, 0);
 assert.equal(s.selected(), 3);
 screen.func_73863_a(205, 155, 0);
 assert.equal(

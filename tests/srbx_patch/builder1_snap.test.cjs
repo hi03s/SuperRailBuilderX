@@ -6,6 +6,7 @@ const source = fs.readFileSync(dir + "render_builder1.js", "utf8");
 let looking = { posX: -2.24, posY: 4.21, posZ: 3.76 };
 const context = vm.createContext({
 	builderB: false,
+	crossoverBuilder: false,
 	DEFAULT_RAIL_HEIGHT: 1 / 16,
 	snapAngles: [1, 5, 15],
 	NGTOBuilderUtilClient: { getLookingPos: () => looking },

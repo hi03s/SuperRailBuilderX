@@ -103,7 +103,7 @@ SRBXToolWheel.update(entity, true);
 tab = true;
 SRBXToolWheel.update(entity, true);
 screen = mc.field_71462_r;
-screen.click(239, 232, 0);
+screen.click(286, 200, 0);
 if (
 	values.srbxToolSwitchRequest !== "SuperRailBuilderX_RailMover" ||
 	mc.field_71462_r !== null

@@ -41,6 +41,15 @@ const config = { railGeneratingDistance: 64 },
 const context = {
 	RTMX_COMPAT_TARGETS: {},
 	Packages: {
+		java: {
+			util: {
+				ArrayList: class extends Array {
+					add(value) {
+						this.push(value);
+					}
+				},
+			},
+		},
 		jp: {
 			ngt: {
 				ngtlib: { io: { NGTLog: { debug: (s) => messages.push(s) } } },
@@ -232,4 +241,78 @@ assert.equal(generate(20, true).status, "section_core_conflict");
 assert.equal(created.length, 0);
 console.log(
 	"KaizPatch reverse planning, configured normal fallback cap and occupied endpoint core protection passed",
+);
+
+// Switch endpoints must reject conflicting owners before deleting the source.
+api.getCoreWorld = () => world;
+const endpointSource = new Core();
+const owners = [0, 20, 30].map((x) => ({ blockX: x, blockY: 4, blockZ: 0 }));
+tiles.clear();
+tiles.set("20,4,0", new Core());
+assert.strictEqual(
+	api.validateSwitchMovePath(endpointSource, owners),
+	"rail_overlap",
+);
+assert.strictEqual(
+	api.validateSwitchMovePath(endpointSource, [owners[0], owners[0]]),
+	"switch_owner_overlap",
+);
+
+// A native creation exception must restore all original switch endpoints and
+// publish the replacement identity so a subsequent Undo can find it.
+const switchPositions = [0, 20, 30].map((x) => ({
+	posX: x,
+	posY: 4,
+	posZ: 0,
+	setPosition(x, y, z) {
+		this.posX = x;
+		this.posY = y;
+		this.posZ = z;
+	},
+}));
+endpointSource.getProperty = () => ({});
+endpointSource.getSignal = () => 7;
+endpointSource.subRails = list([]);
+api.getEditableRailPositions = () => switchPositions;
+api.copyRailPositions = (rps) => rps.map((rp) => ({ ...rp }));
+api.cloneRailProperty = (p) => ({ ...p });
+api.updateBoundaryOwner = () => {};
+api.getBuilderMoveProtectedRailKeys = () => ["foreign"];
+let sourceBreaks = 0,
+	switchAttempts = 0,
+	restoredPoints,
+	synchronized;
+const replacementSwitch = {};
+api.breakOwnedRail = () => sourceBreaks++;
+api.createBuilderBasicSwitch = (_world, positions, _prop, protectedKeys) => {
+	assert(protectedKeys.includes("foreign"));
+	if (++switchAttempts === 1) throw Error("native switch creation failed");
+	restoredPoints = positions.map((rp) => rp.posX);
+	return replacementSwitch;
+};
+api.getRailCorePos = () => [0, 4, 0];
+api.applyBuilderRailState = (_w, _result, signal) => {
+	assert.strictEqual(signal, 7);
+	return true;
+};
+api.recordLastRailPositionMoveCores = (core) => {
+	synchronized = core;
+};
+assert.strictEqual(
+	api.moveSwitchRailPosition(endpointSource, 2, 35, 4, 0),
+	"switch_rebuild_failed",
+);
+assert.deepStrictEqual(restoredPoints, [0, 20, 30]);
+assert.deepStrictEqual(
+	switchPositions.map((rp) => rp.posX),
+	[0, 20, 30],
+);
+assert.strictEqual(sourceBreaks, 1);
+assert.strictEqual(synchronized, replacementSwitch);
+assert(
+	tiles.get("20,4,0") instanceof Core,
+	"connected foreign rail remains intact",
+);
+console.log(
+	"KaizPatch switch endpoint owner protection and exception rollback passed",
 );

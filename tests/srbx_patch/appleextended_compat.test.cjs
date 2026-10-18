@@ -57,6 +57,7 @@ class RailMapSection extends RailMapBasic {
 class SectionCore {}
 class RailBase {}
 class RailCore extends RailBase {}
+class SwitchCore extends RailCore {}
 class BlockPos {
 	constructor(x, y, z) {
 		this.x = x;
@@ -99,6 +100,7 @@ const context = {
 					rail: {
 						TileEntityLargeRailBase: RailBase,
 						TileEntityLargeRailCore: RailCore,
+						TileEntityLargeRailSwitchCore: SwitchCore,
 						BlockMarker: { createRail: () => false },
 						util: { RailMapBasic },
 					},
@@ -868,6 +870,22 @@ assert.strictEqual(undoArgs[4].direction, 7);
 assert.deepStrictEqual(Array.from(undoArgs[4].ownerBlock), [-8, 4, 13]);
 assert.deepStrictEqual(Array.from(undoArgs[4].position), [0.25, 4, 2]);
 console.log("AppleExtended public endpoint Undo preserves owner and direction");
+
+// A third switch endpoint must not accidentally overwrite the second endpoint.
+undoPositions.push({ posX: 8, posY: 4, posZ: 6, anchorYaw: 270 });
+api.canMoveRailPosition = () => false;
+const endpointSwitch = new SwitchCore();
+endpointSwitch.isLogicalRailOccupied = () => false;
+assert.strictEqual(
+	api.moveRailPosition(endpointSwitch, 2, 8, 4, 6, 9, 4, 6, {}),
+	"ok",
+);
+assert.strictEqual(undoArgs[8].index, 2);
+assert.deepStrictEqual(Array.from(undoArgs[8].point.position), [9, 4, 6]);
+assert.deepStrictEqual(Array.from(undoArgs[5].position), [4, 4, 2]);
+console.log(
+	"AppleExtended public switch endpoint dispatch preserves route indices",
+);
 
 api.hasFreeEndpointPatch = () => false;
 assert.equal(

@@ -1,3 +1,4 @@
+import { SRBXCrossoverPlan } from "./SRBXCrossoverPlan";
 import { TileEntityLargeRailCore } from "jp.ngt.rtm.rail";
 import { RailMap, RailPosition, RailProperty } from "jp.ngt.rtm.rail.util";
 import { Entity } from "net.minecraft.entity";
@@ -243,6 +244,17 @@ export class SRBXApiCompat {
 	): { status: string; undoToken?: string };
 	static undoRailCants(world: World, undoToken: string): string;
 	static consumeLastCantClientUpdate(): RailCorePos[];
+	static isHorizontalBuilderRail(core: TileEntityLargeRailCore): boolean;
+	static createCrossoverBuilderRail(
+		world: World,
+		player: EntityPlayer,
+		plan: SRBXCrossoverPlan,
+	): SRBXRailSplitResult;
+	static undoCrossoverBuilderRail(
+		world: World,
+		player: EntityPlayer,
+		token: string,
+	): string;
 	static createBranchBuilderRail(
 		world: World,
 		player: EntityPlayer,

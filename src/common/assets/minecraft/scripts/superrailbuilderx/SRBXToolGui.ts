@@ -163,11 +163,11 @@ function drawGuiTile(
 	);
 }
 
-function drawGuiTextFrame(x: number): void {
+function drawGuiTextFrame(x: number, tileCount: number = 4): void {
 	drawGuiTile(x, 0, 0, 2);
-	drawGuiTile(x + GUI_TILE_SIZE, 0, 1, 2);
-	drawGuiTile(x + GUI_TILE_SIZE * 2, 0, 1, 2);
-	drawGuiTile(x + GUI_TILE_SIZE * 3, 0, 2, 2);
+	for (let index = 1; index < tileCount - 1; index++)
+		drawGuiTile(x + GUI_TILE_SIZE * index, 0, 1, 2);
+	drawGuiTile(x + GUI_TILE_SIZE * (tileCount - 1), 0, 2, 2);
 }
 
 function localClockLabel(): string {
@@ -196,7 +196,7 @@ function drawToolGuiBase(
 		GL11.glMatrixMode(GL11.GL_MODELVIEW);
 		for (let x = 0; x < width; x += GUI_TILE_SIZE)
 			drawGuiTile(x, 0, 0, 0, Math.min(GUI_TILE_SIZE, width - x));
-		drawGuiTextFrame(4);
+		drawGuiTextFrame(0, 3);
 		drawGuiTextFrame(Math.floor((width - GUI_TILE_SIZE * 4) / 2));
 		const rightX = Math.max(0, width - GUI_TILE_SIZE);
 		for (let y = 0; y < height; y += GUI_TILE_SIZE)
@@ -502,10 +502,7 @@ function renderSharedGui(
 		const clock = localClockLabel();
 		SRBXApiCompat.drawGuiTextWithShadow(
 			clock,
-			4 +
-				Math.floor(
-					(GUI_TILE_SIZE * 4 - font.getStringWidth(clock)) / 2,
-				),
+			Math.floor((GUI_TILE_SIZE * 3 - font.getStringWidth(clock)) / 2),
 			4,
 			0xffffff,
 		);
