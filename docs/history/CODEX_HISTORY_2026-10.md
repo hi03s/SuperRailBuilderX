@@ -632,3 +632,4 @@
 - 全4build、test:gui、test:appleextended、test:kaizpatch、test:platform、test:rail-transition、Java8 Nashorn GUI/全ツール/ホイール、変更TS/CJS整形、文書リンク、diff確認成功。元端部カントの正/負/0と両端index、他ツールの従来継承、サーバー再取得・不正/非有限/変更済み元データ拒否・部分成功ロールバックを回帰確認。GUIは4枚枠のatlas座標と配置、04:07/00:00/23:59、GL復元を検証。実機は未実施。
 - 利用者向け複線/GUI説明書とIssue #2調査資料の現行仕様・実機手順を更新。実機では接続先と異なる端カントが元の値で生成されること、既設保持・Undo、時計と枠の表示を確認し、異常時は操作とlogs/latest.logを共有する。
 - 最新開発ZIP更新、タグ版ZIPと両JAR・既存リリースは維持。公開/Issue投稿/サーバー操作は行わない。
+- 実装コミット750e10dをorigin/mainへpush・同期済み。

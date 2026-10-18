@@ -49,7 +49,7 @@
 - ローカルに保持する調査ログは、最新AEログとKaiz保存APIの例外抜粋。解消を確認した分岐クラッシュの旧抜粋は削除。実機再確認後に不要なら削除する。
 
 ## 直近の完了
-- 2026-10-18 ローカルCodex: コピー専用の端部カント保持を両版へ追加し、GUIの4枚文字枠とPCローカル時計を実装。全4build/関連回帰/Java8成功、開発ZIP更新、実機確認待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
+- 2026-10-18 ローカルCodex: コピー元の端部カント保持とGUI文字枠/PC時計を実装。全4build/関連回帰/Java8成功、ZIP更新、実機未確認。[750e10d](https://github.com/hi03s/SuperRailBuilderX/commit/750e10d)をorigin/mainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 - 2026-10-18 ローカルCodex: 吸着時の中央/ランダムカント継承漏れを両版で修正。全4build/関連回帰成功、時系列/実機手順を追記、ZIP更新。Issue実機確認待ち。[2ae0fe5](https://github.com/hi03s/SuperRailBuilderX/commit/2ae0fe5)をorigin/mainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 - 2026-10-18 ローカルCodex: AngelicaのGUI復元クラッシュを修正し、Issue #2の複製は実質水平と再確認。全4build/GUI/Java8成功、開発ZIP更新、実機確認待ち。[87d60f1](https://github.com/hi03s/SuperRailBuilderX/commit/87d60f1)をorigin/mainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 - 2026-10-18 ローカルCodex: Issue #2の原因候補を整理し、モデル名・カント値・分割境界診断を追加。全4build/関連回帰成功、開発ZIP更新。実機未確認。[fb4e4f0](https://github.com/hi03s/SuperRailBuilderX/commit/fb4e4f0)をorigin/mainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
