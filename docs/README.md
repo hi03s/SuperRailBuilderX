@@ -21,6 +21,7 @@
 - [自由端点・台車遷移・実装意図の統合調査](research/rail-transition-research.md)
 - [道床所有先・保存API・CrossTie診断](research/roadbed-ownership-investigation.md)
 - [AEの重複区間と自動分割境界](research/appleextended-overlap-rail-patch.md)
+- [カント付きカーブの段差・描画の乱れ（Issue #2）](research/cant-curve-rendering.md)
 - [作業履歴](history)
 
 説明書は操作と利用上の制限を中心に記載しています。調査結果・開発記録・未実施の確認は、調査資料と引継ぎ帳に分けて保存します。

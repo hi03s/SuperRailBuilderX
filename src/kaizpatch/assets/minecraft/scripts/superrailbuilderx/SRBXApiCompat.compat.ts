@@ -1,4 +1,5 @@
 import { ModelPackManager } from "jp.ngt.rtm.modelpack";
+import { SRBXCantDiagnostics } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXCantDiagnostics";
 import { SRBXKaizRoadbedData } from "./SRBXKaizRoadbedData";
 import { SRBXRoadbedOwnership } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXRoadbedOwnership";
 import { SRBXFreeEndpointPolicy as SRBXRailBoundary } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXFreeEndpointPolicy";
@@ -3623,6 +3624,29 @@ export class SRBXApiCompat {
 			positions[0],
 			positions[1],
 		);
+		this.logCantDiagnostics(world, core, "created");
+		if (sourceRail) {
+			try {
+				const sourceTile = world.getTileEntity(
+					sourceRail.core[0],
+					sourceRail.core[1],
+					sourceRail.core[2],
+				);
+				if (sourceTile instanceof TileEntityLargeRailBase) {
+					const sourceCore = sourceTile.getRailCore();
+					if (sourceCore)
+						this.logCantDiagnostics(
+							world,
+							sourceCore,
+							"copy-source",
+						);
+				}
+			} catch (error) {
+				NGTLog.debug(
+					`[SuperRailBuilderX cant-profile] operation=copy-source, diagnostic unavailable: ${error}`,
+				);
+			}
+		}
 		return {
 			status: "ok",
 			undoCore: corePos,
@@ -3630,6 +3654,51 @@ export class SRBXApiCompat {
 			createdAsNormalCrossing:
 				preserveSectionCores || unsafeSectionCoreFallback,
 		};
+	}
+
+	private static logCantDiagnostics(
+		world: net.minecraft.world.World,
+		core: TileEntityLargeRailCore,
+		operation: string,
+	): void {
+		// Diagnostics must never turn a successful world edit into a failure.
+		try {
+			const positions = this.getEditableRailPositions(core);
+			if (!positions || positions.length !== 2) return;
+			const cants: string[] = [];
+			let hasCant = false;
+			for (let i = 0; i < positions.length; i++) {
+				const rp = positions[i];
+				cants.push(
+					[rp.cantEdge, rp.cantCenter, rp.cantRandom].join("/"),
+				);
+				if (rp.cantEdge || rp.cantCenter || rp.cantRandom)
+					hasCant = true;
+			}
+			if (!hasCant) return;
+			const map = this.getLogicalRailMap(core);
+			if (!map) return;
+			const maps = [];
+			if (this.isSectionCore(core)) {
+				const group = core.getRailGroupCorePositions();
+				for (let i = 0; group && i < group.size(); i++) {
+					const pos = group.get(i);
+					const tile = world.getTileEntity(pos[0], pos[1], pos[2]);
+					if (!(tile instanceof TileEntityLargeRailCore))
+						throw new Error("section unavailable");
+					const sectionMap = tile.getRailMap(null);
+					if (!sectionMap) throw new Error("section map unavailable");
+					maps.push(sectionMap);
+				}
+			} else maps.push(map);
+			NGTLog.debug(
+				`[SuperRailBuilderX cant-profile] operation=${operation}, railKey=${this.getRailPositionCandidateKey(core)}, model=${core.getProperty().railModel}, edge/center/random=${cants.join(";")}, ${SRBXCantDiagnostics.profile(map)}, ${SRBXCantDiagnostics.seams(maps)}`,
+			);
+		} catch (error) {
+			NGTLog.debug(
+				`[SuperRailBuilderX cant-profile] operation=${operation}, diagnostic unavailable: ${error}`,
+			);
+		}
 	}
 
 	private static builderEndpointOwner(
@@ -4368,6 +4437,7 @@ export class SRBXApiCompat {
 					if (tile instanceof TileEntityLargeRailCore) apply(tile);
 				}
 		} else apply(core);
+		this.logCantDiagnostics(world, core, "cant-update");
 		return refreshed;
 	}
 

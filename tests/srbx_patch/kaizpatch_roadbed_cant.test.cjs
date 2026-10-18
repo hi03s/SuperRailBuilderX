@@ -49,7 +49,7 @@ class RailPosition {
 	}
 }
 const context = {
-	SRBXKaizRoadbedData: {remove() {}},
+	SRBXKaizRoadbedData: { remove() {} },
 	RTMX_COMPAT_TARGETS: {},
 	Packages: {
 		jp: {
@@ -404,4 +404,51 @@ assert.equal(
 	),
 	"ok",
 	"Endpoint Undo validation must use the stored owner and direction rather than the moved rail's metadata",
+);
+// Java arrays expose indexed access, not Array.map/every. Diagnostics are
+// bounded, read-only, and failures must never escape into world-edit handling.
+vm.runInContext(
+	fs.readFileSync(
+		"dist/assets/minecraft/scripts/superrailbuilderx/SRBXCantDiagnostics.js",
+		"utf8",
+	),
+	context,
+);
+const diagnosticLogs = [];
+context.Packages.jp.ngt.ngtlib.io.NGTLog.debug = (line) =>
+	diagnosticLogs.push(line);
+const cantPositions = Object.freeze({
+	0: Object.freeze({ cantEdge: 5, cantCenter: 5, cantRandom: 0 }),
+	1: Object.freeze({ cantEdge: -5, cantCenter: 5, cantRandom: 0 }),
+	length: 2,
+});
+api.getEditableRailPositions = () => cantPositions;
+api.isSectionCore = () => false;
+api.getRailPositionCandidateKey = () => "test-rail";
+const diagnosticMap = Object.freeze({
+	getLength: () => 10,
+	getRailHeight: () => 4.1,
+	getRailPos: (split, index) => [(index / split) * 10, 0],
+	getRailPitch: () => 0,
+	getCant: () => 5,
+});
+api.getLogicalRailMap = () => diagnosticMap;
+const diagnosticCore = Object.freeze({
+	getProperty: () => ({ railModel: "test-model" }),
+});
+api.logCantDiagnostics({}, diagnosticCore, "copy-source");
+assert(
+	diagnosticLogs[0].includes(
+		"model=test-model, edge/center/random=5/5/0;-5/5/0",
+	),
+);
+api.getLogicalRailMap = () => {
+	throw new Error("unavailable test map");
+};
+assert.doesNotThrow(() =>
+	api.logCantDiagnostics({}, diagnosticCore, "created"),
+);
+assert(diagnosticLogs[1].includes("diagnostic unavailable"));
+console.log(
+	"KaizPatch cant diagnostics preserve Java arrays and isolate diagnostic errors",
 );

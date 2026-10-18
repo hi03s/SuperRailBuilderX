@@ -1,6 +1,6 @@
 # 開発者とローカルCodexの引継ぎ帳
 
-最終更新: 2026-10-14（ローカルCodex、main）
+最終更新: 2026-10-18（ローカルCodex、main）
 
 ## 現在の状態
 
@@ -21,6 +21,7 @@
 - なし。
 
 ## 優先確認事項
+- [Issue #2](https://github.com/hi03s/SuperRailBuilderX/issues/2)のカント付きカーブ段差は未確定。KaizPatch nativeの持ち上げ高さと描画pitchの不整合が候補。モデル未特定のため形状補正は見送り、生成・コピー元・カント整形の診断を追加。開発者が再現調査予定。最新開発ZIPで標準/対象モデル、一定/変化カントを比較しlogs/latest.logを共有する。[調査と手順](research/cant-curve-rendering.md)。
 - 生成Aの0‰/非0‰の水平曲線、向きが逆の接続レールの複線コピー、生成Bの左右方向と直線停止を修正。全4build・関連回帰成功。最新開発ZIPでKaizPatch/AEの生成・UndoとBの押し直しを実機確認する。異常時は操作・時刻とlogs/latest.logを共有する。
 
 - AE中間点分岐の生成・Undo・失敗復元と描画パッチは、開発者から実機解消確認を受領（2026-10-12）。0.3.1へ含める。
@@ -45,6 +46,7 @@
 - ローカルに保持する調査ログは、最新AEログとKaiz保存APIの例外抜粋。解消を確認した分岐クラッシュの旧抜粋は削除。実機再確認後に不要なら削除する。
 
 ## 直近の完了
+- 2026-10-18 ローカルCodex: Issue #2の画像・添付ログ・実行JARを調査し、原因候補と未確定事項を整理。モデル名・カント値・分割境界診断を追加、全4build/関連回帰成功、開発ZIP更新。実機未確認。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 - 2026-10-14 ローカルCodex: 縦曲線の再分割・複線コピーの逆向き接続・生成Bの左右を修正し直線停止を追加。全4build・回帰成功、開発ZIP更新、実機未確認。[cd3caf7](https://github.com/hi03s/SuperRailBuilderX/commit/cd3caf7)はorigin/mainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 - 2026-10-12 ローカルCodex: AE分岐の補助端点と既設コアの競合を、精密座標を保った所有ブロック移設で修正。全4build・関連回帰成功、実機の生成/再読込/Undo確認待ち。[08bf7ba](https://github.com/hi03s/SuperRailBuilderX/commit/08bf7ba)はmainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
