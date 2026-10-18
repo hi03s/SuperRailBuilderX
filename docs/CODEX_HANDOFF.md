@@ -18,7 +18,7 @@
 
 ## 作業中
 
-- ローカルCodex: 接続分岐端部の座標修正と片渡り分割の実装・回帰検証完了。開発ZIP更新・差分確認・コミット/pushを行う。
+- なし。実機確認待ち。
 
 ## 優先確認事項
 - 最新開発ZIPで通常レールと接続した分岐端部の移動・Undo・再入場前後の座標一致を確認する。Kaizでは所有ブロック変更後の精密座標再設定漏れを修正。Kaiz/AEの片渡り4点分岐の固定中点分割（分岐2本＋通常2本）とUndo・失敗時の元形状保持も確認する。曲線側線の中点・接線を保つ形状調整は開発者了承済み。シーサス分割は対象外。異常時は操作・時刻とlogs/latest.logを共有する。
@@ -54,6 +54,7 @@
 - ローカルに保持する調査ログは、最新AEログとKaiz保存APIの例外抜粋。解消を確認した分岐クラッシュの旧抜粋は削除。実機再確認後に不要なら削除する。
 
 ## 直近の完了
+- 2026-10-19 ローカルCodex: 接続分岐移動の所有位置変更後NBT座標ずれを修正し、Kaiz/AEの片渡り4点分岐の固定中点分割・生成復元/Undoを追加。全4build・関連回帰・Java8成功、開発ZIP更新、実機未確認。[b0ca61f](https://github.com/hi03s/SuperRailBuilderX/commit/b0ca61f)をorigin/mainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 - 2026-10-19 ローカルCodex: 渡り線の強調/C/形状GUIを修正し、Kaiz分岐のMap版・キャッシュ・残存道床と接続端部移動の順序/失敗復元/遅延再描画を対処。全4build/関連回帰/Java8成功、開発ZIP更新、実機未確認。[011532d](https://github.com/hi03s/SuperRailBuilderX/commit/011532d)をorigin/mainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
