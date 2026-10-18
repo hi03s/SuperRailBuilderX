@@ -599,3 +599,4 @@
 - 全4build、test:kaizpatch（新規診断回帰含む）、test:rail-transition、test:runtime-dispatch、変更TS整形、文書リンク、diffチェック成功。合成レールで高さ/pitch不整合と一定カントとの差、境界の連続/不連続、上限/非有限値、Java配列相当の不変性・診断例外の隔離を確認。Minecraft実機再現とモデル固有の描画検証は未実施。
 - 最新開発ZIPを更新し、既存タグ版ZIP/両JARを保持。既存リリース・タグ・Issueへの投稿/変更なし。ユーザーのXCFは対象外。取得した全生ログは削除し、SRBX生成・カント操作だけの抜粋と画像を.cache/issue2へローカル保持。生ログはGitへ追加しない。
 - 次は標準レール/対象レール、カントなし/一定/変化を比較し、元と複製後の画像・操作順・logs/latest.logを収集する。Issueは未解決として扱う。
+- 調査・診断追加コミットfb4e4f0をorigin/mainへpush・同期済み。
