@@ -327,7 +327,7 @@ export class AppleExtendedRailCompat {
 	} | null {
 		if (!positions || positions.length < 2) return null;
 		const ordered = positions.slice();
-		if (ordered.length === 2 && ordered[0].posY > ordered[1].posY)
+		if (ordered.length === 2 && ordered[0].posY > ordered[1].posY + 1e-9)
 			ordered.reverse();
 		// Match AE's actual core owner, including the equal-block-height case.
 		// The public API chooses the second endpoint when blockY is equal.

@@ -257,16 +257,21 @@ export class AppleExtendedRoadbedPlacement {
 				RailMapBasic.fixRTMRailMapVersionCurrent,
 			);
 			nbt.setTag("State", property.writeToNBT() as NBTBase);
-			nbt.setByte("Size", 2);
-			nbt.setTag("RP0", start.writeToNBT() as NBTBase);
-			nbt.setTag("RP1", end.writeToNBT() as NBTBase);
+			// Normal cores read StartRP/EndRP; Size/RP<n> belongs to switch cores.
+			// A core block alone does not confirm that native geometry was initialized.
+			nbt.setTag("StartRP", start.writeToNBT() as NBTBase);
+			nbt.setTag("EndRP", end.writeToNBT() as NBTBase);
 			core.readFromNBT(nbt);
 			core.createRailMap();
+			const positions = core.getRailPositions();
+			if (!positions || positions.length !== 2 || !core.getRailMap(null))
+				throw new Error("normal rail geometry was not initialized");
 			if (promotion)
 				SRBXRoadbedOwnership.attachPromotion(
 					core.getTileData(),
 					promotion,
 				);
+			core.markDirty();
 			core.sendPacket();
 			success = true;
 			return true;

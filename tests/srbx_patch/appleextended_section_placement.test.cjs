@@ -149,6 +149,13 @@ class Basic {
 		this.start = start;
 		this.end = end;
 	}
+	getLength() {
+		return Math.hypot(
+			this.end.posX - this.start.posX,
+			this.end.posY - this.start.posY,
+			this.end.posZ - this.start.posZ,
+		);
+	}
 	getStartRP() {
 		return this.start;
 	}
@@ -271,6 +278,7 @@ context.Packages.jp.ngt.ngtlib = {
 	},
 };
 context.Packages.jp.ngt.rtm = {
+	RTMCore: { railGeneratingDistance: 64 },
 	RTMRail: { largeRailBase: {}, largeRailCore: {} },
 	rail: {
 		TileEntityLargeRailBase: Base,
@@ -323,6 +331,32 @@ const helper = context.AppleExtendedRailCompat,
 helper.coreKey = (core) => (core.foreign ? "foreign" : "section:new-group");
 const start = new RP(0, 4, 0),
 	end = new RP(10, 4, 0);
+// The second endpoint is the planned core of a level normal rail in AE.
+// Bezier subdivision can introduce a sub-nanometre height difference.
+const roundedStart = new RP(20, 4, 0),
+	roundedEnd = new RP(30, 4, 0);
+roundedEnd.posY = roundedStart.posY - 1e-14;
+const roundedPlan = helper.planCreation(world, [roundedStart, roundedEnd], {
+	autoSplit: false,
+});
+assert.strictEqual(
+	roundedPlan.root,
+	roundedEnd,
+	"Horizontal rounding must retain the reserved second-endpoint core",
+);
+assert.strictEqual(
+	roundedEnd.posY,
+	roundedStart.posY - 1e-14,
+	"Core ordering must not change the precise endpoints",
+);
+roundedEnd.posY = roundedStart.posY - 0.001;
+assert.strictEqual(
+	helper.planCreation(world, [roundedStart, roundedEnd], {
+		autoSplit: false,
+	}).root,
+	roundedStart,
+	"A real descent retains native lower-Y ordering",
+);
 function reset() {
 	tiles.clear();
 	events.length = 0;

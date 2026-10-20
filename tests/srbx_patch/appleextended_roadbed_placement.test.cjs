@@ -52,10 +52,24 @@ class RailCore extends RailBase {
 		if (failInitialize)
 			throw new Error("injected core initialization failure");
 		this.nbt = nbt.values;
+		// AE v2.5.3 TileEntityLargeRailCore.readRailData only reads these tags.
+		if (!omitGeometry && nbt.func_74764_b("StartRP"))
+			this.positions = [
+				nbt.func_74775_l("StartRP"),
+				nbt.func_74775_l("EndRP"),
+			];
 		super.func_145839_a(nbt);
 	}
 	createRailMap() {
 		this.maps = (this.maps || 0) + 1;
+		this.map =
+			this.positions?.length === 2 ? { positions: this.positions } : null;
+	}
+	getRailPositions() {
+		return this.positions;
+	}
+	getRailMap() {
+		return this.map;
 	}
 	sendPacket() {
 		this.packets = (this.packets || 0) + 1;
@@ -104,6 +118,7 @@ let cells = new Map(),
 	suppressTile = false;
 let failInitialize = false,
 	cleaned = 0;
+let omitGeometry = false;
 let rejectCorePlacement = false;
 const world = {
 	func_180495_p: () => ({}),
@@ -290,15 +305,21 @@ assert.equal(helper.createNormal({}, map, property, true), true);
 assert.equal(prepared, 1);
 const core = cells.get("20,4,5").tile;
 assert(core instanceof RailCore);
-assert.deepEqual(core.nbt.RP0, start.writeToNBT());
-assert.deepEqual(core.nbt.RP1, end.writeToNBT());
+assert.deepEqual(core.getRailPositions(), [
+	start.writeToNBT(),
+	end.writeToNBT(),
+]);
+assert.deepEqual(core.getRailMap().positions, core.getRailPositions());
+assert.equal(core.nbt.RP0, undefined);
+assert.equal(core.nbt.RP1, undefined);
 assert.deepEqual(core.nbt.State, property.writeToNBT());
 assert.equal(core.nbt.fixRTMRailMapVersion, 7);
-assert.equal(core.nbt.Size, 2);
+assert.equal(core.nbt.Size, undefined);
 assert.deepEqual([core.nbt.x, core.nbt.y, core.nbt.z], [20, 4, 5]);
 assert.deepEqual([core.nbt.spX, core.nbt.spY, core.nbt.spZ], [20, 4, 5]);
 assert.equal(core.maps, 1);
 assert.equal(core.packets, 1);
+assert.equal(core.dirty, 1);
 assert(
 	writes.some((value) => value.block === coreBlock),
 	"core installation remains separate from roadbed ownership preservation",
@@ -411,6 +432,21 @@ assert.deepEqual(
 	"rejected block placement restores detached owner",
 );
 assert.strictEqual(cells.get("80,4,5").tile, donor);
+rejectCorePlacement = false;
+donor = donorSetup();
+omitGeometry = true;
+assert.throws(
+	() => helper.createNormal(world, map, property, true),
+	/normal rail geometry was not initialized/,
+	"a placed core without native rail geometry must not count as success",
+);
+assert.deepEqual(
+	cells.get("20,4,5").tile.owner,
+	[80, 4, 5],
+	"empty geometry rejection restores the donor bed",
+);
+assert.strictEqual(cells.get("80,4,5").tile, donor);
+omitGeometry = false;
 console.log(
 	"AppleExtended roadbed placement ownership and normal core NBT tests passed",
 );

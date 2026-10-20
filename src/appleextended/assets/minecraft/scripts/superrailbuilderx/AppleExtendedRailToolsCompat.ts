@@ -660,6 +660,18 @@ export class AppleExtendedRailToolsCompat {
 		const owners: { [key: string]: boolean } = {};
 		const key = (rp: RailPosition) =>
 			[rp.blockX, rp.blockY, rp.blockZ].join(",");
+		const conflict = (
+			stage: string,
+			index: number,
+			actual?: RailPosition,
+		) => {
+			const group = groups[index],
+				root = group[index < switchCount ? 0 : 1];
+			NGTLog.debug(
+				`[SuperRailBuilderX AE] crossover core conflict: stage=${stage}, group=${index}, planned=${key(root)}, actual=${actual ? key(actual) : "none"}, endpointY=${group.map((p) => p.posY).join(";")}`,
+			);
+			return { status: "core_conflict" };
+		};
 		const footprints: number[][][] = [];
 		for (let i = 0; i < groupCount; i++) {
 			const group = groups[i],
@@ -748,13 +760,13 @@ export class AppleExtendedRailToolsCompat {
 		}
 		for (const i of blockedRoots)
 			if (!relocate(groups[i][i < switchCount ? 0 : 1], footprints[i]))
-				return { status: "core_conflict" };
+				return conflict("root_relocation", i);
 		// Opposite-facing midpoint owners stay on their own inward tangent side.
 		for (let i = 0; i < groupCount; i++)
 			for (let j = 0; j < groups[i].length; j++) {
 				if (j === (i < switchCount ? 0 : 1)) continue;
 				if (!relocate(groups[i][j], footprints[i]))
-					return { status: "core_conflict" };
+					return conflict("endpoint_relocation", i, groups[i][j]);
 			}
 		// Native creation checks run after owners are settled, before any mutation.
 		for (let i = 0; i < groupCount; i++) {
@@ -771,7 +783,11 @@ export class AppleExtendedRailToolsCompat {
 				key(placement.root) !== key(group[i < switchCount ? 0 : 1]) ||
 				placement.sections
 			)
-				return { status: "core_conflict" };
+				return conflict(
+					"native_plan",
+					i,
+					placement ? placement.root : undefined,
+				);
 		}
 		try {
 			if (prepare) prepare();
