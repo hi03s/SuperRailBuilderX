@@ -24,6 +24,7 @@
 - [AEの重複区間と自動分割境界](research/appleextended-overlap-rail-patch.md)
 - [カント付きカーブの段差・描画の乱れ（Issue #2）](research/cant-curve-rendering.md)
 - [GUIの描画Mod互換性](research/gui-rendering-compatibility.md)
+- [KaizPatchの片渡り判定・ワールド終了時描画の不具合](research/kaizpatch-crossover-and-render-errors.md)
 - [作業履歴](history)
 
 説明書は操作と利用上の制限を中心に記載しています。調査結果・開発記録・未実施の確認は、調査資料と引継ぎ帳に分けて保存します。

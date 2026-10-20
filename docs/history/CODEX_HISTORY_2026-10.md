@@ -687,9 +687,18 @@
 
 ## 2026-10-20 ローカルCodex: 片渡り判定の内積誤用とワールド終了時の描画クラッシュ
 
+> 撤回済み: この節の形状判定補正・描画ガードは、SRBXPatchの用途外として開発者指示により差し戻した。現在のソース/JARには含まない。原因調査のみ継続して利用する。
+
 - 開始記録8f55e3dをorigin/mainへpush後に調査。追加latest.logの21:34:19にはmask=0,1,1,0、始点(-147.995,4.063,873.105)、終点(-184.275,4.063,874.555)、yaw約272.2887/92.2887度、複線間隔4mのネイティブ拒否を記録。Kaiz実装GeometrixKt.crossStraightLineAndLineSegmentsが対側判定に外積でなくVec2d.dotを使っていることを一次ソース・実JARのjavapで確認。収集座標では平行な本線の両候補組合せを交差と誤判定し、SwitchTypeSingleCrossFixRTMV1.initがfalseを返していた。
 - SRBXPatch 1.7.10版へRailSafetyTransformerを登録。既知メソッド記述子と2つのdot呼出しに一致した場合のみ、その2呼出しを合成static外積メソッドへ差し替える。元のnull検査・分岐・stack-map frameと他メソッドの内積は保持。未知/本家修正済みの形状は変更せず、分岐生成の通常検証も迂回しない。
 - 21:34:24の前後接続曲線はindex=1の補助所有位置を(-161,4,863)→(-161,4,862)へ移し、既設コアを保持して生成成功。21:34:28のUndoも成功しており、前回のSRBX側owner修正が働いたことを確認。
 - 21:34:32はサーバー/ワールド終了後のRendering Block Entity。Renderbaru1067mm.renderRailDynamic→RailPartsRenderer.isSwitchRailでgetAllRailMaps()==nullのlengthを読みNPE。SRBXのrenderRailDynamic2補正より外側のモデル処理で発生していた。Java側のrenderRail入口にtile/mapのnullガードを入れ、未準備の間は静的/動的描画を開始せず、準備済みなら元の描画を行う。スクリプト例外の握り潰しやモデル資産の変更は行わない。
 - 検証: ローカルPythonはPATH上にはないが.cache/srbxpatch/python/python.exeが存在したため、mod/build.py --target all --testと両実JAR引数で標準ビルドを実施。Java8 JVMでnull tile/map/有効map/再null化、ASMの既知形状・未知実装保持・冪等性、収集座標の誤判定再現と補正、72方向の平行線と実交差、実Kaiz描画/幾何クラスのBasicVerifier、従来台車hook・AE回帰が成功。テストクラス/依存/パック資産非同梱とclass version52もビルド内で確認。文書リンク・差分確認。TypeScript変更がないためパックの再ビルドは未実施、実機も未実施。
 - artifacts/SRBXPatch-v1.0-1.7.10.jarを更新（SHA256:202c84fe8aa33277619e47a470fb674280719bdb3e311396250a1d73a5d1c6e4）。AE JARは同一ソースで再生成、補正は追加しない。ZIP/タグZIP/既存Draftは変更しない。最新1.7.10用JARをクライアント/サーバーへ置き換えMinecraftを再起動し、斜め直線片渡り生成・Undo・ワールド終了/再入場と接続走行を確認するよう案内。生ログは確認待ちのためローカル保持しGitへ追加しない。
+
+## 2026-10-20 ローカルCodex: SRBXPatchの用途外機能を差し戻し
+
+- 開発者からSRBXPatchは車両の自由点関係の修正に限定し、明示指示なしに機能を追加しないよう指示を受領。開始記録bc3ab86をpush後、88963eeで追加したRailSafetyTransformer・専用テスト・登録を削除し、mod以下を88963eeの親と同一へ復元した。前の追加実装が現行であるかのような導入案内も撤回。AGENTS.mdと開発文書へ用途制限を明記した。
+- Kaizの内積誤用による片渡り拒否とnull mapによる終了時描画クラッシュは未修正へ戻る。再現座標・メソッド・原因・既存の検証範囲をdocs/research/kaizpatch-crossover-and-render-errors.mdへ整理し、開発者から上流へ相談する。Issue/コメント等の投稿は行わない。SRBXパック側の補助所有位置競合修正は維持する。
+- 標準mod/build.pyで両JARを再生成し、既存Java8行動テスト・実Kaiz/AE JARのバイトコード検証が成功。modソースが追加前と同一であること、新JAR内にRailSafetyTransformer/専用テストがないことを確認。文書リンク・差分も確認。パックコードに変更がないためZIP再ビルドと実機検証は未実施。
+- 復元した1.7.10 JAR SHA256:f6490d1acad0b948b96bd4e20d2ac86e4ba05bf6e12cd1886338f4a67099a886。AE JAR SHA256:b97210dfa578a0dd8f5961d5af70740fabf4391d1e34890ae6e52be1b44ec70b。追加版を導入した場合は同名の復元版へ差し替えMinecraftを再起動する。ZIP・タグZIP・Draftは維持し、ユーザーXCFも保持する。

@@ -60,7 +60,6 @@ public final class PatchTest {
         if (!condition) throw new AssertionError(name);
     }
     public static void main(String[] args) throws Exception {
-        PatchTestRailSafety.run(args);
         Bogie b = new Bogie();
         expect(FreeEndpointHook.retainCurrent(b, 0.3, 4.0625, 0.26) == b.currentRailObj, "same-cell old roadbed must not win");
         expect(FreeEndpointHook.retainCurrent(b, 0.3, 4.0625, 0.19) == null, "reverse exit delegates");
