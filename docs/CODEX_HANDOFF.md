@@ -55,7 +55,7 @@
 - ローカルに保持する調査ログは、最新AEログとKaiz保存APIの例外抜粋。解消を確認した分岐クラッシュの旧抜粋は削除。実機再確認後に不要なら削除する。
 
 ## 直近の完了
-- 2026-10-20 ローカルCodex: 既設レールから渡り線生成時の補助所有位置競合を修正し、未特定の直線レイアウト拒否へ診断出力を追加。全4build/GUI/AE/Kaiz/遷移/dispatch成功、開発ZIP更新。実機再確認と直線側の追加ログ待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
+- 2026-10-20 ローカルCodex: 既設レールから渡り線生成時の補助所有位置競合を修正し、未特定の直線レイアウト拒否へ診断出力を追加。全4build/GUI/AE/Kaiz/遷移/dispatch成功、開発ZIP更新。[62de82a](https://github.com/hi03s/SuperRailBuilderX/commit/62de82a)をorigin/mainへpush・同期済み。実機再確認と直線側の追加ログ待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 - 2026-10-20 ローカルCodex: AGENTS.mdに着手前の開始記録コミット・pushと、終了結果の別コミット・pushを必須化。今回も開始記録[7933e23](https://github.com/hi03s/SuperRailBuilderX/commit/7933e23)を先にpushしてから編集した。終了コミット0cfac7eをorigin/mainへpush・同期済み。文書差分・リンク確認、ビルドは文書のみのため未実施。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 - 2026-10-19 ローカルCodex: 接続分岐移動の所有位置変更後NBT座標ずれを修正し、Kaiz/AEの片渡り4点分岐の固定中点分割・生成復元/Undoを追加。全4build・関連回帰・Java8成功、開発ZIP更新、実機未確認。[b0ca61f](https://github.com/hi03s/SuperRailBuilderX/commit/b0ca61f)をorigin/mainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
