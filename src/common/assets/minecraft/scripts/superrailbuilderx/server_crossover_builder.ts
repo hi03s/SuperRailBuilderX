@@ -14,8 +14,7 @@ import { SRBXCrossoverPlan } from "./SRBXCrossoverPlan";
 const VERSION = "0.3.1";
 export type CrossoverBuilderRequest =
 	{ action: "create"; plan: SRBXCrossoverPlan } | { action: "undo" };
-const hosts: WeakHashMap<Entity, EntityPlayer> = new WeakHashMap(),
-	undos: WeakHashMap<EntityVehicle, string> = new WeakHashMap();
+const hosts: WeakHashMap<Entity, EntityPlayer> = new WeakHashMap();
 function process(
 	entity: EntityVehicle,
 	host: EntityPlayer,
@@ -24,20 +23,12 @@ function process(
 	const world = SRBXApiCompat.getWorld(entity);
 	if (!request || (request.action !== "create" && request.action !== "undo"))
 		return "invalid_request";
-	if (request.action === "undo") {
-		const token = undos.get(entity);
-		if (!token) return "nothing_to_undo";
-		const r = SRBXApiCompat.undoCrossoverBuilderRail(world, host, token);
-		if (r === "undo_ok") undos.remove(entity);
-		return r;
-	}
+	if (request.action === "undo") return "undo_disabled";
 	const result = SRBXApiCompat.createCrossoverBuilderRail(
 		world,
 		host,
 		request.plan,
 	);
-	if (result.status === "ok" && result.undoToken)
-		undos.put(entity, result.undoToken);
 	if (result.status !== "ok")
 		NGTLog.debug(
 			`[SuperRailBuilderX crossover] rejected request: status=${result.status}, plan=${JSON.stringify(request.plan)}`,
@@ -77,7 +68,7 @@ function onUpdate(entity: EntityVehicle, executer: ScriptExecuter): void {
 		return;
 	}
 	if (SRBXToolSwitchServer.update(entity, host)) return;
-	d.setBoolean("crossoverBuilderCanUndo", undos.get(entity) !== null, 1);
+	d.setBoolean("crossoverBuilderCanUndo", false, 1);
 	const request = NGTOBuilderUtil.getJsonData<CrossoverBuilderRequest>(
 		d,
 		"crossoverBuilderRequest",
@@ -94,7 +85,7 @@ function onUpdate(entity: EntityVehicle, executer: ScriptExecuter): void {
 				update,
 			);
 		d.setString("crossoverBuilderResult", status, 1);
-		d.setBoolean("crossoverBuilderCanUndo", undos.get(entity) !== null, 1);
+		d.setBoolean("crossoverBuilderCanUndo", false, 1);
 		NGTLog.debug(
 			`[SuperRailBuilderX crossover] action=${request.action}, result=${status}`,
 		);

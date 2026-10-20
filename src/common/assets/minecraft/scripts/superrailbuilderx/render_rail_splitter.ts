@@ -404,7 +404,7 @@ function showHelp(sender: ICommandSender): void {
 	NGTLog.sendChatMessage(sender, "[右クリック] 分割位置を確定");
 	NGTLog.sendChatMessage(
 		sender,
-		"片渡り分岐は固定位置で分岐2本・通常2本に分割します。シーサスは対象外です。",
+		"片渡りは分岐2本・通常2本、シーサスは分岐4本・通常4本に固定位置で分割します。",
 	);
 	NGTLog.sendChatMessage(sender, "[左クリック] 選択解除");
 	NGTLog.sendChatMessage(sender, keys.getDescription("split"));
@@ -459,7 +459,7 @@ function handleResult(
 		NGTLog.sendChatMessage(
 			sender,
 			state.selected && state.selected.fourPointSwitch
-				? "§a[SuperRailBuilderX] 片渡りを分岐2本・通常2本に分割しました"
+				? "§a[SuperRailBuilderX] 渡り線を分岐レールと通常レールに分割しました"
 				: "§a[SuperRailBuilderX] 線路を2本に分割しました",
 		);
 		state.selected = null;
@@ -499,7 +499,7 @@ function handleInput(
 			NGTLog.sendChatMessage(
 				sender,
 				target && target.fourPointSwitch
-					? "§e[SuperRailBuilderX] この4点分岐は分割できません（片渡りのみ対応）"
+					? "§e[SuperRailBuilderX] この4点分岐は分割できません（形状・長さ・配置を確認）"
 					: "§e[SuperRailBuilderX] 分割可能なレールが見つかりません",
 			);
 	}
@@ -531,7 +531,8 @@ function renderToolGui(target: SplitTarget | null): void {
 			label: SRBXToolGui.formatLength(
 				target
 					? target.crossover
-						? target.crossover.lengths[0] / 2
+						? target.crossover.lengths[0] /
+							(target.crossover.switches.length === 4 ? 3 : 2)
 						: target.length * target.ratio
 					: null,
 			),
@@ -542,7 +543,8 @@ function renderToolGui(target: SplitTarget | null): void {
 			label: SRBXToolGui.formatLength(
 				target
 					? target.crossover
-						? target.crossover.lengths[1] / 2
+						? target.crossover.lengths[1] /
+							(target.crossover.switches.length === 4 ? 3 : 2)
 						: target.length * (1 - target.ratio)
 					: null,
 			),

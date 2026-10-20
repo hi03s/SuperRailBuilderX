@@ -169,7 +169,11 @@ function halves(
 }
 export class SRBXSingleCrossoverSplit {
 	static preview(points: SRBXBuilderPoint[], switchTypes: number[]) {
-		return this.fromPoints(points, switchTypes, (start, end) => {
+		const sample = (
+			start: SRBXBuilderPoint,
+			end: SRBXBuilderPoint,
+			ratio = 0.5,
+		) => {
 			const controls = [
 				start.position,
 				SRBXMath.pointAtYawPitchDistance(
@@ -204,17 +208,20 @@ export class SRBXSingleCrossoverSplit {
 			}
 			const length = lengths[128];
 			let index = 1;
-			while (index < 128 && lengths[index] < length / 2) index++;
+			while (index < 128 && lengths[index] < length * ratio) index++;
 			const span = lengths[index] - lengths[index - 1];
 			return {
 				length,
 				midpoint: lerp(
 					samples[index - 1],
 					samples[index],
-					span > 0 ? (length / 2 - lengths[index - 1]) / span : 0,
+					span > 0 ? (length * ratio - lengths[index - 1]) / span : 0,
 				),
 			};
-		});
+		};
+		return switchTypes.join(",") === "1,1,1,1"
+			? this.scissorsFromPoints(points, sample)
+			: this.fromPoints(points, switchTypes, sample);
 	}
 	/** Plan the same midpoint split without constructing a four-point native switch. */
 	static fromPoints(
@@ -246,6 +253,109 @@ export class SRBXSingleCrossoverSplit {
 				};
 			}),
 		);
+	}
+
+	static orderScissors(
+		mains: SRBXBuilderPoint[][],
+	): SRBXBuilderPoint[] | null {
+		if (mains.length !== 2 || mains.some((p) => p.length !== 2))
+			return null;
+		const a = mains[0],
+			b = mains[1].slice();
+		const dot =
+			(a[1].position[0] - a[0].position[0]) *
+				(b[1].position[0] - b[0].position[0]) +
+			(a[1].position[2] - a[0].position[2]) *
+				(b[1].position[2] - b[0].position[2]);
+		if (dot < 0) b.reverse();
+		if (Math.abs(dot) < 0.001) return null;
+		return [a[0], a[1], b[0], b[1]];
+	}
+	static scissorsFromPoints(
+		points: SRBXBuilderPoint[],
+		sample: (
+			a: SRBXBuilderPoint,
+			b: SRBXBuilderPoint,
+			ratio: number,
+		) => { midpoint: RailCorePos; length: number },
+	): SRBXSingleCrossoverSplitPlan | null {
+		if (points.length !== 4) return null;
+		const divided: SRBXBuilderPoint[][][] = [];
+		const markers: RailCorePos[] = [],
+			lengths: number[] = [];
+		for (const [a, b] of [
+			[0, 1],
+			[2, 3],
+			[0, 3],
+			[2, 1],
+		]) {
+			const first = sample(points[a], points[b], 1 / 3),
+				second = sample(points[a], points[b], 2 / 3);
+			if (!isFinite(first.length) || first.length < 19.999) return null;
+			const initial = halves({
+				start: points[a],
+				end: points[b],
+				startSwitch: true,
+				endSwitch: true,
+				...first,
+			});
+			if (!initial) return null;
+			const rest = halves({
+				start: initial[1][0],
+				end: initial[1][1],
+				startSwitch: true,
+				endSwitch: true,
+				midpoint: second.midpoint,
+				length: (first.length * 2) / 3,
+			});
+			if (!rest) return null;
+			divided.push([initial[0], rest[0], rest[1]]);
+			markers.push(first.midpoint, second.midpoint);
+			lengths.push(first.length);
+		}
+		// Straight central crossing pieces make the intersection independent of the
+		// native four-point switch and keep both routes continuous through the centre.
+		for (const i of [2, 3]) {
+			const middle = divided[i][1],
+				yaw = SRBXMath.horizontalYaw(
+					middle[0].position,
+					middle[1].position,
+				),
+				length = distance(middle[0].position, middle[1].position);
+			if (length < 3) return null;
+			middle[0].anchorYaw = yaw;
+			middle[1].anchorYaw = SRBXMath.normalizeDegrees(yaw + 180);
+			for (const p of middle) {
+				p.direction = SRBXMath.directionFromYaw(p.anchorYaw);
+				p.anchorLength = length / 3;
+			}
+			divided[i][0][1] = clone(middle[0]);
+			divided[i][0][1].anchorYaw = SRBXMath.normalizeDegrees(
+				middle[0].anchorYaw + 180,
+			);
+			divided[i][2][0] = clone(middle[1]);
+			divided[i][2][0].anchorYaw = SRBXMath.normalizeDegrees(
+				middle[1].anchorYaw + 180,
+			);
+			divided[i][0][1].direction = SRBXMath.directionFromYaw(
+				divided[i][0][1].anchorYaw,
+			);
+			divided[i][2][0].direction = SRBXMath.directionFromYaw(
+				divided[i][2][0].anchorYaw,
+			);
+		}
+		const switches = [
+			[divided[0][0][0], divided[0][0][1], divided[2][0][1]],
+			[divided[0][2][1], divided[0][2][0], divided[3][2][0]],
+			[divided[1][0][0], divided[1][0][1], divided[3][0][1]],
+			[divided[1][2][1], divided[1][2][0], divided[2][2][0]],
+		];
+		return {
+			switches,
+			normals: divided.map((p) => p[1]),
+			markers,
+			lengths: lengths.slice(0, 2),
+		};
 	}
 	static plan(
 		edges: SRBXSingleCrossoverSplitEdge[],

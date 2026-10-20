@@ -159,140 +159,76 @@ function existing(p = plan()) {
 	};
 	return p;
 }
-// Single-crossover transactions are covered by the native divided-placement fixture.
-for (const mask of [[1, 1, 1, 1]]) {
-	const p = plan();
-	p.switchTypes = mask;
-	assert.equal(tools.createCrossoverBuilderRail(world, {}, p).status, "ok");
-	assert.deepEqual(
-		created.at(-1).rps.map((rp) => rp.switchType),
-		mask,
-	);
-	assert.equal(tools.undoCrossoverBuilderRail(world, {}, "token"), "undo_ok");
-}
-const snapPlan = plan();
-Object.assign(snapPlan.points[2], {
-	kind: "rail",
-	core: [100, 0, 0],
-	index: 0,
-});
-tools.zeroExternalCant = () => {
-	throw new Error("normal cant helper must not mutate a switch");
+
+// Dedicated placement tests exercise rollback. Here verify authoritative source
+// validation, minimum native length and routing for all three native layouts.
+let nativeLength = 40,
+	planned = [];
+context.RailMapBasic = class {
+	getLength() {
+		return nativeLength;
+	}
 };
-assert.equal(
-	tools.createCrossoverBuilderRail(world, {}, snapPlan).status,
-	"ok",
-);
-assert.equal(tools.undoCrossoverBuilderRail(world, {}, "token"), "undo_ok");
-loaded = [
-	Object.assign(new RailBase(), {
-		key: "connected",
-		positions: [{ posX: 4, posY: 4, posZ: 0 }],
-	}),
-];
-assert.equal(
-	tools.createCrossoverBuilderRail(world, {}, snapPlan).status,
-	"endpoint_already_connected",
-);
-loaded = [];
-let p = plan();
-p.points[1].anchorPitch = 1;
-assert.equal(
-	tools.createCrossoverBuilderRail(world, {}, p).status,
-	"sloped_or_changed_rail",
-);
-conflict = true;
-const n = removed.length;
+context.Packages.jp.ngt.rtm.rail.util = { RailMapBasic: context.RailMapBasic };
+context.SRBXSingleCrossoverSplit = {
+	fromPoints(points, mask) {
+		return { kind: "single", points, mask };
+	},
+	scissorsFromPoints(points) {
+		return { kind: "scissors", points };
+	},
+};
+tools.createSplitCrossover = (_w, _p, plan, record, prepare, retainUndo) => {
+	assert.equal(retainUndo, false);
+	planned.push({ plan, record });
+	return { status: "ok" };
+};
+for (const mask of [
+	[1, 0, 0, 1],
+	[0, 1, 1, 0],
+	[1, 1, 1, 1],
+]) {
+	const input = plan();
+	input.switchTypes = mask;
+	assert.equal(
+		tools.createCrossoverBuilderRail(world, {}, input).status,
+		"ok",
+	);
+	assert.equal(
+		planned.at(-1).plan.kind,
+		mask.every((x) => x === 1) ? "scissors" : "single",
+	);
+	assert.equal(
+		tools.undoCrossoverBuilderRail(world, {}, "token"),
+		"undo_disabled",
+	);
+}
 assert.equal(
 	tools.createCrossoverBuilderRail(world, {}, existing()).status,
-	"core_conflict",
+	"ok",
 );
-assert.equal(removed.length, n, "preflight conflict must preserve source");
-conflict = false;
-p = existing();
-p.points[0].anchorLength = 11;
+assert.equal(planned.at(-1).record.signal, 7);
+assert.equal(planned.at(-1).record.subRails[0], subRail);
+const count = planned.length;
+const stale = existing();
+stale.points[0].anchorLength = 11;
 assert.equal(
-	tools.createCrossoverBuilderRail(world, {}, p).status,
+	tools.createCrossoverBuilderRail(world, {}, stale).status,
 	"rail_changed",
 );
-fail = true;
-assert.equal(
-	tools.createCrossoverBuilderRail(world, {}, existing()).status,
-	"switch_create_failed",
-);
-assert.equal(restored, 1, "failed replacement restores original source");
-fail = false;
-assert.equal(
-	tools.createCrossoverBuilderRail(world, {}, existing()).status,
-	"ok",
-);
-assert.strictEqual(created.at(-1).prop, property);
-assert.equal(madeCore.signal, 7);
-assert.strictEqual(madeCore.sub, subRail);
 occupied = true;
-const beforeUndo = removed.length;
 assert.equal(
-	tools.undoCrossoverBuilderRail(world, {}, "token"),
+	tools.createCrossoverBuilderRail(world, {}, existing()).status,
 	"rail_occupied",
 );
-assert.equal(
-	removed.length,
-	beforeUndo,
-	"failed Undo must preserve created switch",
-);
 occupied = false;
-assert.equal(tools.undoCrossoverBuilderRail(world, {}, "token"), "undo_ok");
-assert.equal(restored, 2);
-for (const method of ["setSignal", "addSubRail"]) {
-	const original = madeCore[method];
-	madeCore[method] = () => {
-		throw new Error("metadata failure");
-	};
-	const count = restored;
-	const removedBefore = removed.length;
-	assert.equal(
-		tools.createCrossoverBuilderRail(world, {}, existing()).status,
-		"switch_create_failed",
-	);
-	assert.equal(restored, count + 1, method + " exception restores source");
-	assert.deepEqual(
-		removed.slice(removedBefore),
-		["source", "made"],
-		"replacement switch removed before restoring source",
-	);
-	const sync = tools.consumeLastSplitClientUpdate();
-	assert.equal(
-		sync.refreshed[0].key,
-		"restored",
-		"rollback refreshes replacement source identity",
-	);
-	assert(sync.removed.some((rail) => rail.key === "made"));
-	madeCore[method] = original;
-}
-let cantChanged = false;
-const neighbor = { isLogicalRailOccupied: () => false };
-tools.connectedEndpoints = () => [{ core: neighbor, index: 0 }];
-tools.zeroExternalCant = (_core, _index, records) => {
-	records.push({ core: [200, 0, 0], railKey: "neighbor", positions: [] });
-	cantChanged = true;
-	throw new Error("cant preparation failure");
-};
-tools.restoreCantRecords = (_world, records) => {
-	assert(records.length > 0, "cant snapshot exists before failing write");
-	cantChanged = false;
-	return true;
-};
-const beforeCantFailure = removed.length;
+nativeLength = 19;
 assert.equal(
-	tools.createCrossoverBuilderRail(world, {}, existing()).status,
-	"cant_update_failed",
+	tools.createCrossoverBuilderRail(world, {}, plan()).status,
+	"rail_too_short",
 );
-assert.equal(cantChanged, false);
-assert.equal(
-	removed.length,
-	beforeCantFailure,
-	"cant failure must not remove source",
-);
+assert.equal(planned.length, count);
+assert.equal(removed.length, 0);
 console.log(
-	"AE crossover native layouts, stale source, rollback, metadata and occupied Undo passed",
+	"AE crossover authoritative source, minimum length, divided layout routing and disabled Undo passed",
 );

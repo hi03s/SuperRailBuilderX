@@ -37,7 +37,7 @@ const evaluate = (points, t) => plain(math.cubicBezierPoint(...points, t));
 const distance = (a, b) => Math.hypot(...a.map((v, i) => v - b[i]));
 const near = (a, b, message) => assert(distance(a, b) < 0.0001, message);
 // Approximate the native RailMap half-length point rather than assuming t = .5.
-function edge(start, end, startSwitch, endSwitch) {
+function edge(start, end, startSwitch, endSwitch, ratio = 0.5) {
 	const curve = controls(start, end),
 		samples = [evaluate(curve, 0)],
 		lengths = [0];
@@ -47,11 +47,11 @@ function edge(start, end, startSwitch, endSwitch) {
 	}
 	const length = lengths[lengths.length - 1];
 	let index = 1;
-	while (lengths[index] < length / 2) index++;
+	while (lengths[index] < length * ratio) index++;
 	const t =
 		(index -
 			1 +
-			(length / 2 - lengths[index - 1]) /
+			(length * ratio - lengths[index - 1]) /
 				(lengths[index] - lengths[index - 1])) /
 		8192;
 	return {
@@ -249,4 +249,88 @@ assert.equal(
 );
 console.log(
 	`Single crossover split geometry: ${cases} straight/curved/oriented cases, outer cores, connected midpoints, unchanged source and scissors rejection passed`,
+);
+
+for (const base of [
+	[point(0, 0, 0, 20), point(0, 60, 180, 20)],
+	[point(0, 0, 5, 10), point(18, 60, 205, 22)],
+])
+	for (const mode of [2, 5]) {
+		const source = context.SRBXCrossoverGeometry.plan(base, 4, mode);
+		const measured = (a, b, ratio) => edge(a, b, true, true, ratio);
+		const plan = split.scissorsFromPoints(source.points, measured);
+		assert(plan);
+		assert.equal(plan.switches.length, 4);
+		assert.equal(plan.normals.length, 4);
+		assert.equal(plan.markers.length, 8);
+		const preview = split.preview(source.points, source.switchTypes);
+		assert(preview);
+		for (const normal of plan.normals)
+			for (const endpoint of normal) {
+				const matches = plan.switches
+					.flatMap((g) => g.slice(1))
+					.filter(
+						(p) => distance(p.position, endpoint.position) < 0.001,
+					);
+				assert.equal(
+					matches.length,
+					1,
+					"each central normal endpoint connects exactly one outer switch arm",
+				);
+				assert(
+					Math.abs(
+						Math.abs(
+							math.normalizeDegrees(
+								matches[0].anchorYaw - endpoint.anchorYaw,
+							),
+						) - 180,
+					) < 0.001,
+				);
+			}
+		for (const normal of plan.normals.slice(2)) {
+			const c = controls(...normal),
+				v = normal[1].position.map((x, i) => x - normal[0].position[i]);
+			for (const p of c)
+				assert(
+					Math.abs(
+						v[0] * (p[2] - c[0][2]) - v[2] * (p[0] - c[0][0]),
+					) < 0.001,
+					"central crossing rail is straight",
+				);
+		}
+		const cross = (a, b, c) =>
+			(b[0] - a[0]) * (c[2] - a[2]) - (b[2] - a[2]) * (c[0] - a[0]);
+		const [a, b] = plan.normals[2].map((p) => p.position),
+			[c, d] = plan.normals[3].map((p) => p.position);
+		assert(
+			cross(a, b, c) * cross(a, b, d) < 0 &&
+				cross(c, d, a) * cross(c, d, b) < 0,
+			"centre routes geometrically cross",
+		);
+		for (let i = 0; i < 8; i++)
+			assert(distance(preview.markers[i], plan.markers[i]) < 0.02);
+		const ordered = split.orderScissors([
+			[source.points[0], source.points[1]],
+			[source.points[3], source.points[2]],
+		]);
+		near(
+			ordered[2].position,
+			source.points[2].position,
+			"unordered native main aligned",
+		);
+	}
+assert.equal(
+	split.scissorsFromPoints(
+		[
+			point(0, 0, 0, 2),
+			point(0, 19, 180, 2),
+			point(4, 0, 0, 2),
+			point(4, 19, 180, 2),
+		],
+		(a, b, r) => edge(a, b, true, true, r),
+	),
+	null,
+);
+console.log(
+	"Scissors thirds geometry: four switches/four normals, eight continuous endpoints, straight overlapping centre, curved/left-right and minimum length passed",
 );

@@ -30,6 +30,7 @@ const maps = [0, 4, 2].map((z) => ({
 	getRailHeight: () => 0,
 }));
 const plan = {
+	switches: [[], []],
 	markers: [
 		[20, 0, 0],
 		[20, 0, 4],
@@ -112,12 +113,26 @@ assert(
 );
 context.renderToolGui(hover);
 assert.deepEqual(labels.pop(), ["20.00", "21.00"]);
+
+availablePlan = {
+	switches: [[], [], [], []],
+	normals: [[], [], [], []],
+	markers: Array.from({ length: 8 }, (_, i) => [i, 0, i]),
+	lengths: [60, 63],
+};
+const scissorsSupported = context.findHoverTarget({}, 0);
+assert(scissorsSupported.splittable);
+markers.length = 0;
+context.renderCrossoverTarget({}, 0, scissorsSupported, true, false);
+assert.equal(markers.length, 8);
+context.renderToolGui(scissorsSupported);
+assert.deepEqual(labels.pop(), ["20.00", "21.00"]);
 availablePlan = null;
 const scissors = context.findHoverTarget({}, 0);
 assert(scissors.fourPointSwitch && !scissors.splittable);
 markers.length = highlights.length = 0;
 assert.equal(context.renderCrossoverTarget({}, 0, scissors, false, true), null);
-assert.equal(markers.length, 0, "Unsupported scissors have no split markers");
+assert.equal(markers.length, 0, "Unsupported layout has no split markers");
 assert.equal(
 	highlights.length,
 	3,

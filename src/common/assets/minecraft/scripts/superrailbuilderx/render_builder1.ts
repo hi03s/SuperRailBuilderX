@@ -1,4 +1,4 @@
-import { SRBXCrossoverGeometry, SRBXCrossoverPlan } from "./SRBXCrossoverPlan";
+﻿import { SRBXCrossoverGeometry, SRBXCrossoverPlan } from "./SRBXCrossoverPlan";
 import { SRBXCrossoverClient } from "./SRBXCrossoverClient";
 import { SRBXSingleCrossoverSplit } from "./SRBXSingleCrossoverSplit";
 import { SRBXToolWheel } from "./SRBXToolWheel";
@@ -223,7 +223,8 @@ function init(par1: ModelSetVehicle, par2: ModelObject): void {
 		false,
 		"0‰側を地上レール高へ延長",
 	);
-	keys.register("undo", Keyboard.KEY_Z, true, "直前の生成を取り消す");
+	if (!crossoverBuilder)
+		keys.register("undo", Keyboard.KEY_Z, true, "直前の生成を取り消す");
 	body = renderer.registerParts(new Parts("body"));
 	selectCursor = renderer.registerParts(new Parts("selectCursor"));
 	selectCursorMarker = renderer.registerParts(
@@ -1355,9 +1356,9 @@ function showHelp(sender: ICommandSender): void {
 			"[Ctrl+K] 始点高さ-1m",
 			"[C] 選択を解除",
 			"[Ctrl+C] 設定をリセット",
-			"[Ctrl+Z] Undo",
 			"[Q] 終了",
 			"勾配のあるレールは選択できません。既設基準線の長さ・半径は維持します。",
+			"長さの下限は20mです。生成後のUndoはできません。",
 		];
 		for (let i = 0; i < lines.length; i++)
 			NGTLog.sendChatMessage(sender, lines[i]);
@@ -1712,7 +1713,7 @@ function getDesignPair(
 
 function changeDesignLength(state: BuilderState, delta: number): void {
 	state.designLength = Math.max(
-		1,
+		crossoverBuilder ? 20 : 1,
 		Math.min(512, Math.round((state.designLength + delta) * 10) / 10),
 	);
 	state.groundTargetY = undefined;
@@ -2183,6 +2184,7 @@ function handleInput(
 		NGTLog.sendChatMessage(sender, "[SuperRailBuilderX] レール生成中...");
 	}
 	if (
+		!crossoverBuilder &&
 		keys.pressed("undo") &&
 		!state.awaitingResult &&
 		dataMap.getBoolean(dataKey("CanUndo"))
@@ -2249,7 +2251,11 @@ function render(
 	for (let i = 0; i < state.selected.length; i++)
 		renderSelectedPoint(entity, partialTicks, displayPoints[i]);
 	let previewLength: number | null = state.selected.length > 0 ? 0 : null;
-	if (state.selected.length >= 1 && displayPoints.length >= 2)
+	if (
+		!crossoverBuilder &&
+		state.selected.length >= 1 &&
+		displayPoints.length >= 2
+	)
 		previewLength = renderBezier(
 			entity,
 			partialTicks,
@@ -2273,26 +2279,28 @@ function render(
 			displayPoints[1],
 		]);
 		if (plan) {
+			previewLength = SRBXBuilderGeometry.horizontalLength(
+				displayPoints[0],
+				displayPoints[1],
+			);
 			const divided = SRBXSingleCrossoverSplit.preview(
 				plan.points,
 				plan.switchTypes,
 			);
 			if (divided) {
-				renderBezier(
-					entity,
-					partialTicks,
-					divided.switches[1][0],
-					divided.switches[1][1],
-				);
-				renderBezier(
-					entity,
-					partialTicks,
-					divided.normals[1][0],
-					divided.normals[1][1],
-				);
-				for (const points of divided.switches)
+				for (const points of divided.switches) {
+					renderBezier(entity, partialTicks, points[0], points[1]);
 					renderBezier(entity, partialTicks, points[0], points[2]);
+				}
+				for (const points of divided.normals)
+					renderBezier(entity, partialTicks, points[0], points[1]);
 			} else {
+				renderBezier(
+					entity,
+					partialTicks,
+					plan.points[0],
+					plan.points[1],
+				);
 				renderBezier(
 					entity,
 					partialTicks,

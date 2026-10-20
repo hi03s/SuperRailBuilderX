@@ -117,6 +117,7 @@ const plan = {
 		[point(0, 5, 90), point(10, 5, -90)],
 	],
 };
+const nativeSplitPlanner = tools.getSingleCrossoverSplitPlan;
 tools.getSingleCrossoverSplitPlan = () => JSON.parse(JSON.stringify(plan));
 tools.connectedEndpoints = () => [];
 let expectedSignal = 7;
@@ -339,10 +340,10 @@ for (const selected of [false, true])
 		assert.equal(created[2].property.autoSplit, false);
 		assert.equal(
 			tools.undoCrossoverBuilderRail(world, {}, "token"),
-			"undo_ok",
+			"undo_disabled",
 		);
-		assert.equal(restoredDirect, before + (selected ? 1 : 0));
-		assert.equal(removed.length, selected ? 5 : 4);
+		assert.equal(restoredDirect, before);
+		assert.equal(removed.length, selected ? 1 : 0);
 	}
 reset();
 expectedSignal = 0;
@@ -376,7 +377,7 @@ assert.equal(
 assert.equal(restoredDirect, beforeSelectedFailure + 1);
 assert.ok(sampled >= 6);
 console.log(
-	"AE direct divided single crossover free/source creation and Undo tests passed",
+	"AE direct divided single crossover free/source creation and disabled Undo tests passed",
 );
 
 reset();
@@ -401,8 +402,16 @@ const snapped = directPlan();
 Object.assign(snapped.points[2], { kind: "rail", core: [50, 4, 5], index: 0 });
 assert.equal(tools.createCrossoverBuilderRail(world, {}, snapped).status, "ok");
 assert.equal(externalCant, 0);
-assert.equal(tools.undoCrossoverBuilderRail(world, {}, "token"), "undo_ok");
-assert.equal(externalCant, 12, "external cant restored on direct free Undo");
+assert.equal(
+	tools.undoCrossoverBuilderRail(world, {}, "token"),
+	"undo_disabled",
+);
+assert.equal(
+	externalCant,
+	0,
+	"generation Undo disabled and cannot edit external cant",
+);
+externalCant = 12;
 reset();
 failAt = 2;
 assert.equal(
@@ -478,10 +487,7 @@ for (const [i, c] of created.entries()) {
 	);
 }
 assert.equal(foreignTiles.size, 4, "foreign cores retained");
-assert.equal(
-	tools.undoCrossoverBuilderRail(foreignWorld, {}, "token"),
-	"undo_ok",
-);
+assert.equal(tools.undoSplitBuilderRail(foreignWorld, {}, "token"), "undo_ok");
 assert.equal(foreignTiles.size, 4);
 reset();
 const noSpaceWorld = {
@@ -521,3 +527,112 @@ assert.equal(new Set(created.map((c) => c.r.core.join(","))).size, 4);
 assert.equal(created[1].g[0].posX, 20.5);
 assert.equal(created[1].g[0].posZ, 5.5);
 console.log("AE duplicate outer-root relocation tests passed");
+
+// Scissors generation creates four native three-point switches and four basic
+// normal middle pieces, including the two overlapping diagonal center pieces.
+const scissors = {
+	switches: [
+		[point(0, 0, 90), point(10, 0, -90), point(10, 2, -90)],
+		[point(30, 0, -90), point(20, 0, 90), point(20, 2, 90)],
+		[point(0, 5, 90), point(10, 5, -90), point(10, 3, -90)],
+		[point(30, 5, -90), point(20, 5, 90), point(20, 3, 90)],
+	],
+	normals: [
+		[point(10, 0, 90), point(20, 0, -90)],
+		[point(10, 5, 90), point(20, 5, -90)],
+		[point(10, 2, 90), point(20, 3, -90)],
+		[point(10, 3, 90), point(20, 2, -90)],
+	],
+};
+context.SRBXSingleCrossoverSplit.scissorsFromPoints = (points, sample) => {
+	assert.equal(points.length, 4);
+	sample(points[0], points[1], 1 / 3);
+	sample(points[0], points[1], 2 / 3);
+	return JSON.parse(JSON.stringify(scissors));
+};
+compat.getCore = (w, pos) =>
+	pos[0] === 99 ? nativeCore : originalGetCore(w, pos);
+for (const selected of [false, true]) {
+	reset();
+	expectedSignal = selected ? 7 : 0;
+	const input = directPlan();
+	input.switchTypes = [1, 1, 1, 1];
+	if (selected)
+		input.source = {
+			core: [99, 4, 0],
+			railKey: "source",
+			startPosition: [0.5, 4, 0.5],
+			endPosition: [20.5, 4, 0.5],
+		};
+	const result = tools.createCrossoverBuilderRail(world, {}, input);
+	assert.equal(result.status, "ok");
+	assert.equal(result.undoToken, undefined);
+	assert.deepEqual(
+		created.map((c) => c.g.length),
+		[3, 3, 3, 3, 2, 2, 2, 2],
+	);
+	for (const c of created.slice(4)) assert.equal(c.property.autoSplit, false);
+	assert.equal(new Set(created.map((c) => c.r.core.join(","))).size, 8);
+	assert.equal(restores, 0, "no temporary native four-point scissors");
+	assert.equal(
+		tools.undoCrossoverBuilderRail(world, {}, "token"),
+		"undo_disabled",
+	);
+}
+reset();
+expectedSignal = 0;
+failAt = 6;
+const brokenScissors = directPlan();
+brokenScissors.switchTypes = [1, 1, 1, 1];
+const beforeScissorsFailure = restoredDirect;
+assert.equal(
+	tools.createCrossoverBuilderRail(world, {}, brokenScissors).status,
+	"create_failed",
+);
+assert.equal(removed.length, 6);
+assert.equal(restoredDirect, beforeScissorsFailure);
+reset();
+expectedSignal = 7;
+compat.getLogicalPositions = () =>
+	[rp(0, 0), rp(30, 0), rp(0, 5), rp(30, 5)].map((p) => {
+		p.switchType = 1;
+		return p;
+	});
+core.getWorld = () => world;
+core.func_145831_w = core.getWorld;
+context.SRBXSingleCrossoverSplit.orderScissors = (mains) => mains.flat();
+const nativeEnds = compat.getLogicalPositions();
+tools.getRailMapsForTool = () => [
+	{
+		startDir: 0,
+		endDir: 4,
+		getStartRP: () => nativeEnds[0],
+		getEndRP: () => nativeEnds[1],
+	},
+	{
+		startDir: 0,
+		endDir: 4,
+		getStartRP: () => nativeEnds[2],
+		getEndRP: () => nativeEnds[3],
+	},
+	{ startDir: 1, endDir: 1 },
+	{ startDir: 7, endDir: 7 },
+];
+tools.getSingleCrossoverSplitPlan = nativeSplitPlanner;
+assert.equal(tools.getSingleCrossoverSplitPlan(core).switches.length, 4);
+assert.equal(
+	tools.splitSingleCrossover(world, {}, core, "source").status,
+	"ok",
+);
+assert.deepEqual(
+	created.map((c) => c.g.length),
+	[3, 3, 3, 3, 2, 2, 2, 2],
+);
+assert.equal(
+	tools.undoSplitBuilderRail(world, {}, "token"),
+	"undo_ok",
+	"splitter Undo retained",
+);
+console.log(
+	"AE scissors eight-piece generation, rollback and native scissors split passed",
+);

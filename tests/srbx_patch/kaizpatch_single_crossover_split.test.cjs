@@ -38,12 +38,33 @@ class Maker {
 	}
 }
 class Basic {
-	getRailPos(_split, _i) {
-		return [
-			(this.a.posZ + this.b.posZ) / 2,
-			(this.a.posX + this.b.posX) / 2,
-		];
+	getStartRP() {
+		return this.a;
 	}
+	getEndRP() {
+		return this.b;
+	}
+
+	getRailPos(split, index) {
+		const t = index / split,
+			u = 1 - t,
+			a = this.a,
+			b = this.b;
+		const ay = (a.anchorYaw * Math.PI) / 180,
+			by = (b.anchorYaw * Math.PI) / 180;
+		const x =
+			u * u * u * a.posX +
+			3 * u * u * t * (a.posX + Math.sin(ay) * a.anchorLengthHorizontal) +
+			3 * u * t * t * (b.posX + Math.sin(by) * b.anchorLengthHorizontal) +
+			t * t * t * b.posX;
+		const z =
+			u * u * u * a.posZ +
+			3 * u * u * t * (a.posZ + Math.cos(ay) * a.anchorLengthHorizontal) +
+			3 * u * t * t * (b.posZ + Math.cos(by) * b.anchorLengthHorizontal) +
+			t * t * t * b.posZ;
+		return [z, x];
+	}
+
 	getRailHeight() {
 		return this.a.posY;
 	}
@@ -98,6 +119,8 @@ vm.runInContext(
 );
 const api = Object.values(context.RTMX_COMPAT_TARGETS.kaizpatch)[0]
 	.SRBXApiCompat;
+const nativeScissorsPlanMethod = api.getSingleCrossoverSplitPlan;
+const originalRestoreMethod = api.restoreSplitSource;
 const point = (x, z, yaw, owner = [x, 4, z]) => ({
 	kind: "free",
 	position: [x, 4.0625, z],
@@ -232,6 +255,12 @@ Object.assign(api, {
 		_replace,
 		preserve,
 	) => {
+		for (const c of created)
+			if (tiles.get(key(c.pos)) === c)
+				assert(
+					protectedKeys.includes(ref(c).key),
+					"overlapping central normals protect every previously created core",
+				);
 		assert.equal(forceNormal, true);
 		assert.equal(prefer, true);
 		assert.equal(preserve, true);
@@ -459,12 +488,13 @@ for (const mask of [
 		);
 		assert.equal(broken, selected ? 1 : 0);
 		assert.equal(
-			api.undoCrossoverBuilderRail(world, {}, result.undoToken),
-			"undo_ok",
+			api.undoCrossoverBuilderRail(world, {}, "any"),
+			"undo_disabled",
 		);
-		assert.equal(restoredSources, beforeRestore + (selected ? 1 : 0));
-		assert.equal(externalCant, 5);
-		assert.equal(tiles.size, selected ? 1 : 0);
+		assert.equal(result.undoToken, undefined);
+		assert.equal(restoredSources, beforeRestore);
+		assert.equal(externalCant, selected ? 0 : 5);
+		assert.equal(tiles.size, 4);
 	}
 for (const selected of [false, true]) {
 	reset();
@@ -567,16 +597,17 @@ for (const mask of [
 	}
 	for (const c of foreign) assert.strictEqual(tiles.get(key(c.pos)), c);
 	assert.equal(
-		api.undoCrossoverBuilderRail(world, {}, result.undoToken),
-		"undo_ok",
+		api.undoCrossoverBuilderRail(world, {}, "any"),
+		"undo_disabled",
 	);
+	assert.equal(result.undoToken, undefined);
 	for (const c of foreign)
 		assert.strictEqual(
 			tiles.get(key(c.pos)),
 			c,
 			"Undo preserves every connected core",
 		);
-	assert.equal(tiles.size, 5);
+	assert.equal(tiles.size, 8);
 }
 reset();
 original.positions = oldPositions.slice(0, 2);
@@ -594,4 +625,120 @@ assert.strictEqual(tiles.get(key(protectedCore.pos)), protectedCore);
 original.pos = savedSourcePos;
 console.log(
 	"Kaiz split crossover roots relocate within each outer footprint, retain NBT coordinates and protect connected cores through Undo/no-space failure",
+);
+
+original.pos = [0, 4, 20];
+cantFailure = false;
+for (const selected of [false, true]) {
+	reset();
+	original.positions = oldPositions.slice(0, 2);
+	if (!selected) tiles.clear();
+	api.findConnectedCantEndpoints = () => [];
+	const result = api.createCrossoverBuilderRail(
+		world,
+		{},
+		request([1, 1, 1, 1], selected),
+	);
+	assert.equal(result.status, "ok");
+	assert.equal(result.undoToken, undefined);
+	assert.deepEqual(
+		created.map((c) => c.positions.length),
+		[3, 3, 3, 3, 2, 2, 2, 2],
+	);
+	assert(created.slice(4).every((c) => !c.property.autoSplit));
+	assert.equal(
+		api.undoCrossoverBuilderRail(world, {}, "any"),
+		"undo_disabled",
+	);
+}
+for (const failure of [2, 5, 8])
+	for (const selected of [false, true]) {
+		reset();
+		original.positions = oldPositions.slice(0, 2);
+		if (!selected) tiles.clear();
+		api.findConnectedCantEndpoints = () => [];
+		failAt = failure;
+		const result = api.createCrossoverBuilderRail(
+			world,
+			{},
+			request([1, 1, 1, 1], selected),
+		);
+		assert.notEqual(result.status, "ok");
+		assert.equal(tiles.size, selected ? 1 : 0);
+		assert.equal(removed.length, failure - 1);
+	}
+console.log(
+	"Kaiz scissors creation: eight non-section pieces, no native4, Undo disabled and early/mid/late failure restoration passed",
+);
+
+// Existing native four-point scissors can use the identical thirds placement.
+reset();
+original.pos = [0, 4, 0];
+tiles = new Map([[key(original.pos), original]]);
+original.positions = oldPositions.map((p) => ({ ...p, switchType: 1 }));
+const map = (a, b, diagonal) => {
+	const m = new Basic(original.positions[a], original.positions[b]);
+	m.startDir = "LEFT";
+	m.endDir = diagonal ? "LEFT" : "RIGHT";
+	return m;
+};
+api.getRailMapsForTool = () => [
+	map(0, 1, false),
+	map(3, 2, false),
+	map(0, 3, true),
+	map(2, 1, true),
+];
+const nativePlan = nativeScissorsPlanMethod.call(api, original);
+assert(nativePlan);
+assert.equal(nativePlan.switches.length, 4);
+assert.equal(nativePlan.normals.length, 4);
+api.getSingleCrossoverSplitPlan = () => nativePlan;
+api.restoreSplitSource = originalRestoreMethod;
+const splitResult = api.splitSingleCrossover(
+	world,
+	{},
+	original,
+	ref(original).key,
+);
+assert.equal(splitResult.status, "ok");
+assert(splitResult.undoToken);
+assert.equal(created.length, 8);
+assert.equal(
+	api.undoSplitBuilderRail(world, {}, splitResult.undoToken),
+	"undo_ok",
+);
+assert.equal(created.at(-1).positions.length, 4);
+assert.equal(removed.length, 8);
+console.log(
+	"Kaiz native scissors split: reordered main routes, eight-piece placement and splitter Undo preserve original4 topology",
+);
+
+reset();
+tiles.clear();
+api.findConnectedCantEndpoints = () => [];
+const minimum = request([1, 1, 1, 1], false);
+for (const i of [1, 3]) {
+	minimum.points[i].position[2] = 20;
+	minimum.points[i].ownerBlock[2] = 20;
+	minimum.points[i].markerPosition[2] = 20;
+}
+const minResult = api.createCrossoverBuilderRail(world, {}, minimum);
+assert.equal(minResult.status, "ok");
+assert.equal(created.length, 8);
+reset();
+tiles.clear();
+const tooShort = request([1, 1, 1, 1], false);
+for (const i of [1, 3]) {
+	tooShort.points[i].position[2] = 19;
+	tooShort.points[i].ownerBlock[2] = 19;
+	tooShort.points[i].markerPosition[2] = 19;
+}
+assert.equal(
+	api.createCrossoverBuilderRail(world, {}, tooShort).status,
+	"rail_too_short",
+);
+assert.equal(created.length, 0);
+assert.equal(broken, 0);
+console.log(
+	"Kaiz scissors20m accepted/19m rejected before mutation; central overlapping normal pieces protect prior cores",
 );

@@ -55,6 +55,21 @@ assert.equal(state.designLength, 60);
 context.crossoverBuilder = false;
 assert.equal(context.createDefaultState().designLength, 40);
 context.crossoverBuilder = true;
+vm.runInContext(fn(builder, "changeDesignLength"), context);
+for (const delta of [-0.1, -1, -10, -100, -1000]) {
+	state.designLength = 20;
+	context.changeDesignLength(state, delta);
+	assert.equal(state.designLength, 20, "all repeat units stop at 20m");
+}
+state.designLength = 511;
+context.changeDesignLength(state, 100);
+assert.equal(state.designLength, 512);
+context.crossoverBuilder = false;
+state.designLength = 2;
+context.changeDesignLength(state, -100);
+assert.equal(state.designLength, 1, "builder B keeps its own lower limit");
+context.crossoverBuilder = true;
+context.resetState(state);
 assert.equal(state.curveRadius, 10000);
 assert.equal(state.crossoverSpacing, 4);
 assert.equal(state.heightOffsetSixteenths, 0);
@@ -107,4 +122,59 @@ assert.deepEqual(
 );
 console.log(
 	"Crossover defaults/reset, six shape labels/icons and copy-style highlights passed",
+);
+
+const server = fs
+	.readFileSync(dir + "server_crossover_builder.js", "utf8")
+	.replace(
+		/RTMX_COMPAT_scripts_superrailbuilderx_SRBXApiCompat_\w+\.SRBXApiCompat/g,
+		"SRBXApiCompat",
+	);
+let calls = 0;
+const serverContext = vm.createContext({
+	SRBXApiCompat: {
+		getWorld: () => ({}),
+		createCrossoverBuilderRail: () => {
+			calls++;
+			return { status: "ok", undoToken: "must-not-be-retained" };
+		},
+		undoCrossoverBuilderRail: () => {
+			throw new Error("disabled Undo must never call native mutation");
+		},
+	},
+});
+vm.runInContext(fn(server, "process"), serverContext);
+assert.equal(
+	serverContext.process({}, {}, { action: "undo" }),
+	"undo_disabled",
+);
+assert.equal(
+	serverContext.process({}, {}, { action: "create", plan: {} }),
+	"ok",
+);
+assert.equal(
+	serverContext.process({}, {}, { action: "undo" }),
+	"undo_disabled",
+);
+assert.equal(calls, 1);
+assert(
+	!server.includes("undos"),
+	"server keeps no successful generation Undo tokens",
+);
+assert(!server.includes('"crossoverBuilderCanUndo", true'));
+assert.match(
+	fn(builder, "handleInput"),
+	/!crossoverBuilder\s*&&\s*keys\.pressed\("undo"\)/,
+);
+assert.match(
+	fn(builder, "init"),
+	/if \(!crossoverBuilder\)\s*keys\.register\("undo"/,
+);
+assert(
+	!fn(builder, "showHelp")
+		.split("if (SRBXApiCompat.requiresRailBoundarySnap())")[0]
+		.includes("[Ctrl+Z]"),
+);
+console.log(
+	"Crossover minimum length and disabled Undo request/input regression passed",
 );

@@ -4312,12 +4312,54 @@ export class SRBXApiCompat {
 		if (!(core instanceof TileEntityLargeRailSwitchCore)) return null;
 		const positions = this.getEditableRailPositions(core),
 			maps = this.getRailMapsForTool(core);
-		if (!positions || positions.length !== 4 || maps.length !== 3)
-			return null;
+		if (!positions || positions.length !== 4) return null;
 		let count = 0;
 		for (let i = 0; i < positions.length; i++)
 			if (positions[i].switchType === 1) count++;
-		if (count !== 2) return null;
+
+		if (count === 4 && maps.length === 4) {
+			const point = (rp: RailPosition) =>
+				this.splitPointFromRailPosition(
+					rp,
+					rp.anchorLengthHorizontal,
+					rp.anchorLengthVertical,
+				);
+			const mains = maps
+				.filter((map) => {
+					const m = map as unknown as {
+						startDir: unknown;
+						endDir: unknown;
+					};
+					return String(m.startDir) !== String(m.endDir);
+				})
+				.map((map) => [
+					point((map as RailMapBasic).getStartRP()),
+					point((map as RailMapBasic).getEndRP()),
+				]);
+			const ordered = SRBXSingleCrossoverSplit.orderScissors(mains);
+			if (!ordered) return null;
+			return SRBXSingleCrossoverSplit.scissorsFromPoints(
+				ordered,
+				(a, b, ratio) => {
+					const map = new RailMapBasic(
+							this.createBuilderFreePoint(a, true),
+							this.createBuilderFreePoint(b, true),
+							RailMapBasic.fixRTMRailMapVersionCurrent,
+						),
+						p = map.getRailPos(3, Math.round(ratio * 3));
+					return {
+						midpoint: [
+							p[1],
+							map.getRailHeight(3, Math.round(ratio * 3)),
+							p[0],
+						] as [number, number, number],
+						length: map.getLength(),
+					};
+				},
+			);
+		}
+		if (count !== 2 || maps.length !== 3) return null;
+
 		return SRBXSingleCrossoverSplit.plan(
 			maps.map((map) => {
 				const basic = map as RailMapBasic,
@@ -4420,12 +4462,9 @@ export class SRBXApiCompat {
 		const key = (rp: RailPosition) =>
 			[rp.blockX, rp.blockY, rp.blockZ].join(",");
 
-		const roots = [
-			switches[0][0],
-			switches[1][0],
-			normals[0][0],
-			normals[1][0],
-		];
+		const roots = switches
+			.map((p) => p[0])
+			.concat(normals.map((p) => p[0]));
 		const rootMaps: RailMapBasic[][] = [];
 		for (const points of switches) {
 			const shape = new RailMaker(
@@ -4738,24 +4777,18 @@ export class SRBXApiCompat {
 			}
 		}
 		const token = java.util.UUID.randomUUID().toString();
-		this.splitUndoRecords[token] = record;
-		if (direct)
-			this.crossoverUndoRecords[token] = {
-				created: record.created[0],
-				cants: record.cants || [],
-				sourceToken: token,
-			};
+		if (!direct) this.splitUndoRecords[token] = record;
 		this.lastSplitClientUpdate = {
 			removed: sourceRefs,
 			refreshed: record.created.slice().concat(externalRefresh),
 		};
 		NGTLog.debug(
-			`[SuperRailBuilderX splitter] single crossover split: original=${expectedKey}, switches=2, normals=2, normalCores=${record.created
-				.slice(2)
+			`[SuperRailBuilderX splitter] single crossover split: original=${expectedKey}, switches=${switches.length}, normals=${normals.length}, normalCores=${record.created
+				.slice(switches.length)
 				.map((p) => p.core.join(","))
 				.join(";")}, token=${token}`,
 		);
-		return { status: "ok", undoToken: token };
+		return direct ? { status: "ok" } : { status: "ok", undoToken: token };
 	}
 
 	static splitBuilderRail(
@@ -6219,17 +6252,6 @@ export class SRBXApiCompat {
 		return { status: "ok", undoToken: split.undoToken };
 	}
 
-	private static crossoverUndoRecords: {
-		[token: string]: {
-			created: SplitCreatedRail;
-			cants: CantUndoRecord;
-			sourceToken?: string;
-		};
-	} = {};
-
-	static isHorizontalBuilderRail(core: TileEntityLargeRailCore): boolean {
-		return this.isFlatBuilderRail(core);
-	}
 	static createCrossoverBuilderRail(
 		world: net.minecraft.world.World,
 		player: EntityPlayer,
@@ -6415,281 +6437,84 @@ export class SRBXApiCompat {
 			positions.push(rp);
 		}
 
-		if (plan.switchTypes.filter((v) => v === 1).length === 2) {
-			if (sourceCore && record)
-				external.push(
-					...this.findConnectedCantEndpoints(
-						world,
-						sourceCore,
-						record.positions,
-					),
-				);
-			const point = (rp: RailPosition) =>
-				this.splitPointFromRailPosition(
-					rp,
-					rp.anchorLengthHorizontal,
-					rp.anchorLengthVertical,
-				);
-			const divided = SRBXSingleCrossoverSplit.fromPoints(
-				positions.map(point),
-				plan.switchTypes,
-				(a, b) => {
-					const map = new RailMapBasic(
-						this.createBuilderFreePoint(a, true),
-						this.createBuilderFreePoint(b, true),
-						RailMapBasic.fixRTMRailMapVersionCurrent,
-					);
-					const p = map.getRailPos(2, 1);
-					return {
-						midpoint: [p[1], map.getRailHeight(2, 1), p[0]] as [
-							number,
-							number,
-							number,
-						],
-						length: map.getLength(),
-					};
-				},
-			);
-			if (!divided) return { status: "invalid_switch_layout" };
-			const directRecord: SplitUndoRecord = record || {
-				positions: [],
-				property: this.cloneRailProperty(property),
-				signal: 0,
-				subRails: new ArrayList<RailProperty>(),
-				created: [],
-				wasSectioned: false,
-				cants: [],
-			};
-			return this.splitSingleCrossover(
-				world,
-				player,
-				sourceCore,
-				plan.source ? plan.source.railKey : "",
-				{
-					plan: divided,
-					record: directRecord,
-					property,
-					protectedKeys,
-					external,
-				},
-			);
-		}
-		// Validate native geometry before removing an existing baseline.
-		const maker = new RailMaker(
-			world,
-			this.toRailPositionArray(positions),
+		const baseline = new RailMapBasic(
+			positions[0],
+			positions[1],
 			RailMapBasic.fixRTMRailMapVersionCurrent,
 		);
-		const nativeSwitch = maker.getSwitch();
-		if (!nativeSwitch) {
-			NGTLog.debug(
-				`[SuperRailBuilderX crossover] native layout rejected: source=${plan.source ? plan.source.railKey : "none"}, points=${positions.map((rp) => `${rp.posX},${rp.posY},${rp.posZ}/owner=${rp.blockX},${rp.blockY},${rp.blockZ}/dir=${rp.direction}/yaw=${rp.anchorYaw}/switch=${rp.switchType}`).join(";")}`,
-			);
-			return { status: "invalid_switch_layout" };
-		}
-		const nativeMaps = nativeSwitch.getAllRailMap();
-		for (let i = 0; i < nativeMaps.length; i++)
-			if (
-				!this.isBuilderRoadbedLoaded(
+		if (baseline.getLength() < 19.999) return { status: "rail_too_short" };
+		if (sourceCore && record)
+			external.push(
+				...this.findConnectedCantEndpoints(
 					world,
-					nativeMaps[i] as unknown as RailSectionMap,
-					property,
-				)
-			)
-				return { status: "path_unloaded" };
-		if (sourceCore) {
-			const planned = this.planSwitchMoveOwners(sourceCore, positions);
-			if (!planned) {
-				NGTLog.debug(
-					`[SuperRailBuilderX crossover] endpoint owners rejected: source=${plan.source!.railKey}, owners=${positions.map((rp) => `${rp.blockX},${rp.blockY},${rp.blockZ}`).join(";")}`,
-				);
-				return { status: "rail_overlap" };
-			}
-			for (let i = 0; i < positions.length; i++)
-				positions[i] = planned[i];
-		}
-		const owners: { [key: string]: boolean } = {};
-		for (let i = 0; i < positions.length; i++) {
-			const rp = positions[i],
-				key = [rp.blockX, rp.blockY, rp.blockZ].join(",");
-			if (owners[key]) return { status: "rail_overlap" };
-			owners[key] = true;
-			const tile = world.getTileEntity(rp.blockX, rp.blockY, rp.blockZ);
-			if (
-				tile instanceof TileEntityLargeRailCore &&
-				(!sourceCore ||
-					!tile.getRailCore() ||
-					this.getRailPositionCandidateKey(tile.getRailCore()) !==
-						this.getRailPositionCandidateKey(sourceCore))
-			)
-				return { status: "rail_overlap" };
-		}
-		if (sourceCore && record) {
-			const neighbors = this.findConnectedCantEndpoints(
-				world,
-				sourceCore,
-				record.positions,
+					sourceCore,
+					record.positions,
+				),
 			);
-			for (let i = 0; i < neighbors.length; i++)
-				external.push(neighbors[i]);
-		}
-		for (let i = 0; i < external.length; i++)
-			if (external[i].core.isLogicalRailOccupied())
-				return { status: "rail_occupied" };
-		if (sourceCore) this.breakOwnedRail(sourceCore);
-		let createdCore: TileEntityLargeRailSwitchCore | null = null;
-		try {
-			createdCore = this.createBuilderBasicSwitch(
-				world,
-				positions,
+		const point = (rp: RailPosition) =>
+			this.splitPointFromRailPosition(
+				rp,
+				rp.anchorLengthHorizontal,
+				rp.anchorLengthVertical,
+			);
+		const sample = (a: BuilderPoint, b: BuilderPoint, ratio = 0.5) => {
+			const map = new RailMapBasic(
+				this.createBuilderFreePoint(a, true),
+				this.createBuilderFreePoint(b, true),
+				RailMapBasic.fixRTMRailMapVersionCurrent,
+			);
+			const split = ratio === 0.5 ? 2 : 3,
+				index = Math.round(ratio * split),
+				p = map.getRailPos(split, index);
+			return {
+				midpoint: [p[1], map.getRailHeight(split, index), p[0]] as [
+					number,
+					number,
+					number,
+				],
+				length: map.getLength(),
+			};
+		};
+		const points = positions.map(point);
+		const divided =
+			plan.switchTypes.join(",") === "1,1,1,1"
+				? SRBXSingleCrossoverSplit.scissorsFromPoints(points, sample)
+				: SRBXSingleCrossoverSplit.fromPoints(
+						points,
+						plan.switchTypes,
+						sample,
+					);
+		if (!divided) return { status: "invalid_switch_layout" };
+		const directRecord: SplitUndoRecord = record || {
+			positions: [],
+			property: this.cloneRailProperty(property),
+			signal: 0,
+			subRails: new ArrayList<RailProperty>(),
+			created: [],
+			wasSectioned: false,
+			cants: [],
+		};
+		return this.splitSingleCrossover(
+			world,
+			player,
+			sourceCore,
+			plan.source ? plan.source.railKey : "",
+			{
+				plan: divided,
+				record: directRecord,
 				property,
 				protectedKeys,
-			);
-		} catch (error) {
-			NGTLog.debug(
-				`[SuperRailBuilderX crossover] creation exception: ${error}`,
-			);
-		}
-		if (!createdCore) {
-			const restored = record
-				? this.restoreSplitSource(world, player, record)
-				: null;
-			if (record && plan.source)
-				this.lastSplitClientUpdate = {
-					removed: [
-						{ core: plan.source.core, key: plan.source.railKey },
-					],
-					refreshed: restored ? [restored] : [],
-				};
-			return {
-				status:
-					record && !restored
-						? "split_rollback_failed"
-						: "switch_create_failed",
-			};
-		}
-		const created = {
-			core: this.getRailCorePos(createdCore),
-			key: this.getRailPositionCandidateKey(createdCore),
-		};
-		const cants: CantUndoRecord = [];
-		const refreshed: SplitCreatedRail[] = [created];
-		try {
-			if (record) {
-				createdCore.setSignal(record.signal);
-				for (let i = 0; i < record.subRails.size(); i++)
-					createdCore.addSubRail(
-						this.cloneRailProperty(record.subRails.get(i)),
-					);
-				this.markCoreDirty(createdCore);
-				this.sendRailCorePacket(createdCore);
-			}
-			for (let i = 0; i < external.length; i++) {
-				const e = external[i];
-				const changed = this.zeroRailCants(
-					world,
-					e.core,
-					[e.index],
-					cants,
-				);
-				for (let j = 0; j < changed.length; j++)
-					refreshed.push({
-						core: changed[j],
-						key: this.getRailPositionCandidateKey(e.core),
-					});
-			}
-			const token = java.util.UUID.randomUUID().toString();
-			if (record) {
-				record.created = [created];
-				record.cants = cants;
-				this.splitUndoRecords[token] = record;
-			}
-			this.crossoverUndoRecords[token] = {
-				created,
-				cants,
-				sourceToken: record ? token : undefined,
-			};
-			this.lastSplitClientUpdate = {
-				removed: plan.source
-					? [{ core: plan.source.core, key: plan.source.railKey }]
-					: [],
-				refreshed,
-			};
-			return { status: "ok", undoToken: token };
-		} catch (error) {
-			NGTLog.debug(
-				`[SuperRailBuilderX crossover] finalization exception: ${error}`,
-			);
-			const removed = this.undoBuilderRail(
-				world,
-				created.core[0],
-				created.core[1],
-				created.core[2],
-				created.key,
-			);
-			if (removed !== "ok") return { status: "split_rollback_failed" };
-			const restoredCants = this.restoreCantRecords(world, cants);
-			const restored = record
-				? this.restoreSplitSource(world, player, record)
-				: null;
-			this.lastSplitClientUpdate = {
-				removed: [created].concat(
-					plan.source
-						? [{ core: plan.source.core, key: plan.source.railKey }]
-						: [],
-				),
-				refreshed: (restored ? [restored] : []).concat(
-					restoredCants.refreshed,
-				),
-			};
-			return {
-				status:
-					restoredCants.status !== "ok" || (record && !restored)
-						? "split_rollback_failed"
-						: "switch_create_failed",
-			};
-		}
+				external,
+			},
+		);
 	}
 
 	static undoCrossoverBuilderRail(
-		world: net.minecraft.world.World,
-		player: EntityPlayer,
-		token: string,
+		_world: net.minecraft.world.World,
+		_player: EntityPlayer,
+		_token: string,
 	): string {
-		this.lastSplitClientUpdate = null;
-		const record = this.crossoverUndoRecords[token];
-		if (!record) return "nothing_to_undo";
-		if (record.sourceToken) {
-			const result = this.undoSplitBuilderRail(
-				world,
-				player,
-				record.sourceToken,
-			);
-			if (result === "undo_ok") delete this.crossoverUndoRecords[token];
-			return result;
-		}
-		for (let i = 0; i < record.cants.length; i++) {
-			const core = this.resolveCantRecordCore(world, record.cants[i]);
-			if (!core) return "undo_rail_changed";
-			if (core.isLogicalRailOccupied()) return "rail_occupied";
-		}
-		const p = record.created.core;
-		const result = this.undoBuilderRail(
-			world,
-			p[0],
-			p[1],
-			p[2],
-			record.created.key,
-		);
-		if (result !== "ok") return result;
-		const restored = this.restoreCantRecords(world, record.cants);
-		this.lastSplitClientUpdate = {
-			removed: [record.created],
-			refreshed: restored.refreshed,
-		};
-		if (restored.status !== "ok") return restored.status;
-		delete this.crossoverUndoRecords[token];
-		return "undo_ok";
+		return "undo_disabled";
 	}
 
 	static undoBranchBuilderRail(

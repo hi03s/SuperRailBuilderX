@@ -63,9 +63,6 @@ type RailRecord = {
 export class AppleExtendedRailToolsCompat {
 	private static splitUndoRecords: { [token: string]: RailRecord } = {};
 	private static cantUndoRecords: { [token: string]: CantRecord[] } = {};
-	private static crossoverUndoRecords: {
-		[token: string]: { created: CreatedRail; cants: CantRecord[] };
-	} = {};
 	private static lastSplitUpdate: {
 		removed: CreatedRail[];
 		refreshed: CreatedRail[];
@@ -482,9 +479,9 @@ export class AppleExtendedRailToolsCompat {
 		let switchCount = 0;
 		for (let i = 0; i < positions.length; i++)
 			if (positions[i].switchType === 1) switchCount++;
-		if (switchCount !== 2) return null;
+		if (switchCount !== 2 && switchCount !== 4) return null;
 		const maps = this.getRailMapsForTool(core);
-		if (maps.length !== 3) return null;
+		if (maps.length !== (switchCount === 4 ? 4 : 3)) return null;
 		const point = (rp: RailPosition): AppleExtendedBuilderPoint => ({
 			kind: "free",
 			position: [rp.posX, rp.posY, rp.posZ],
@@ -499,6 +496,37 @@ export class AppleExtendedRailToolsCompat {
 			cantCenter: rp.cantCenter,
 			cantRandom: rp.cantRandom,
 		});
+		if (switchCount === 4) {
+			const mains = maps.filter((map) => {
+				const directions = map as unknown as {
+					startDir: unknown;
+					endDir: unknown;
+				};
+				return (
+					String(directions.startDir) !== String(directions.endDir)
+				);
+			});
+			if (mains.length !== 2) return null;
+			const ordered = SRBXSingleCrossoverSplit.orderScissors(
+				mains.map((map) => [
+					point(map.getStartRP()),
+					point(map.getEndRP()),
+				]),
+			);
+			return ordered
+				? SRBXSingleCrossoverSplit.scissorsFromPoints(
+						ordered,
+						(start, end, ratio) =>
+							this.sampleSplitEdge(
+								core.getWorld(),
+								start,
+								end,
+								ratio,
+							),
+					)
+				: null;
+		}
+
 		return SRBXSingleCrossoverSplit.plan(
 			maps.map((map) => {
 				const start = map.getStartRP(),
@@ -518,6 +546,37 @@ export class AppleExtendedRailToolsCompat {
 				};
 			}),
 		);
+	}
+
+	private static sampleSplitEdge(
+		world: World,
+		start: AppleExtendedBuilderPoint,
+		end: AppleExtendedBuilderPoint,
+		ratio: number = 0.5,
+	): { midpoint: RailCorePos; length: number } {
+		const a = AppleExtendedRailCompat.resolveBuilderPoint(
+			world,
+			start,
+			true,
+		);
+		const b = AppleExtendedRailCompat.resolveBuilderPoint(world, end, true);
+		if (!a || !b) return { midpoint: [NaN, NaN, NaN], length: NaN };
+		const map = new RailMapBasic(
+			a,
+			b,
+			RailMapBasic.fixRTMRailMapVersionCurrent,
+		);
+		const divisions = Math.abs(ratio - 0.5) < 0.0001 ? 2 : 3,
+			index = Math.round(ratio * divisions),
+			middle = map.getRailPos(divisions, index);
+		return {
+			midpoint: [
+				middle[1],
+				map.getRailHeight(divisions, index),
+				middle[0],
+			],
+			length: map.getLength(),
+		};
 	}
 
 	/** Preflight the complete replacement set before removing the four-point switch. */
@@ -561,8 +620,11 @@ export class AppleExtendedRailToolsCompat {
 		plan: SRBXSingleCrossoverSplitPlan,
 		record: RailRecord,
 		prepare?: () => void,
+		retainUndo: boolean = true,
 	) {
 		const property = record.property;
+		const switchCount = plan.switches.length,
+			groupCount = switchCount + plan.normals.length;
 		const expectedKey = record.source ? record.source.key : undefined;
 		const normalProperty = ItemRail.getDefaultProperty();
 		normalProperty.readFromNBT(property.writeToNBT());
@@ -599,11 +661,11 @@ export class AppleExtendedRailToolsCompat {
 		const key = (rp: RailPosition) =>
 			[rp.blockX, rp.blockY, rp.blockZ].join(",");
 		const footprints: number[][][] = [];
-		for (let i = 0; i < 4; i++) {
+		for (let i = 0; i < groupCount; i++) {
 			const group = groups[i],
-				prop = i < 2 ? property : normalProperty;
+				prop = i < switchCount ? property : normalProperty;
 			let maps: RailMap[];
-			if (i < 2) {
+			if (i < switchCount) {
 				const list = new ArrayList<RailPosition>();
 				for (const rp of group) list.add(rp);
 				const railSwitch = new RailMaker(
@@ -677,27 +739,27 @@ export class AppleExtendedRailToolsCompat {
 		// Retain every available outer root before relocating any blocked root.
 		// Relocation keeps the outer physical endpoint, never the normal midpoint.
 		const blockedRoots: number[] = [];
-		for (let i = 0; i < 4; i++) {
-			const rp = groups[i][i < 2 ? 0 : 1],
+		for (let i = 0; i < groupCount; i++) {
+			const rp = groups[i][i < switchCount ? 0 : 1],
 				k = key(rp);
 			if (owners[k] || foreignCore([rp.blockX, rp.blockY, rp.blockZ]))
 				blockedRoots.push(i);
 			else owners[k] = true;
 		}
 		for (const i of blockedRoots)
-			if (!relocate(groups[i][i < 2 ? 0 : 1], footprints[i]))
+			if (!relocate(groups[i][i < switchCount ? 0 : 1], footprints[i]))
 				return { status: "core_conflict" };
 		// Opposite-facing midpoint owners stay on their own inward tangent side.
-		for (let i = 0; i < 4; i++)
+		for (let i = 0; i < groupCount; i++)
 			for (let j = 0; j < groups[i].length; j++) {
-				if (j === (i < 2 ? 0 : 1)) continue;
+				if (j === (i < switchCount ? 0 : 1)) continue;
 				if (!relocate(groups[i][j], footprints[i]))
 					return { status: "core_conflict" };
 			}
 		// Native creation checks run after owners are settled, before any mutation.
-		for (let i = 0; i < 4; i++) {
+		for (let i = 0; i < groupCount; i++) {
 			const group = groups[i],
-				prop = i < 2 ? property : normalProperty;
+				prop = i < switchCount ? property : normalProperty;
 			const placement = AppleExtendedRailCompat.planCreation(
 				world,
 				group,
@@ -706,7 +768,7 @@ export class AppleExtendedRailToolsCompat {
 			);
 			if (
 				!placement ||
-				key(placement.root) !== key(group[i < 2 ? 0 : 1]) ||
+				key(placement.root) !== key(group[i < switchCount ? 0 : 1]) ||
 				placement.sections
 			)
 				return { status: "core_conflict" };
@@ -737,7 +799,7 @@ export class AppleExtendedRailToolsCompat {
 					world,
 					player,
 					groups[i],
-					i < 2 ? property : normalProperty,
+					i < switchCount ? property : normalProperty,
 				);
 				if (!created)
 					throw new Error("replacement creation failed: " + i);
@@ -763,7 +825,7 @@ export class AppleExtendedRailToolsCompat {
 			};
 		}
 		const token = UUID.randomUUID().toString();
-		this.splitUndoRecords[token] = record;
+		if (retainUndo) this.splitUndoRecords[token] = record;
 		this.lastSplitUpdate = {
 			removed: record.source ? [record.source] : [],
 			refreshed: record.created.slice(),
@@ -771,7 +833,9 @@ export class AppleExtendedRailToolsCompat {
 		NGTLog.debug(
 			`[SuperRailBuilderX AE] single crossover split: source=${record.source ? record.source.core.join(",") : "free"}, replacementCores=${record.created.map((rail) => rail.core.join(",")).join(";")}`,
 		);
-		return { status: "ok", undoToken: token };
+		return retainUndo
+			? { status: "ok", undoToken: token }
+			: { status: "ok" };
 	}
 
 	static splitBuilderRail(
@@ -1580,10 +1644,16 @@ export class AppleExtendedRailToolsCompat {
 				external.push({ core, index: point.index });
 			}
 		}
+		const baseline = new RailMapBasic(
+			positions[0],
+			positions[1],
+			RailMapBasic.fixRTMRailMapVersionCurrent,
+		);
+		if (baseline.getLength() < 19.999) return { status: "rail_too_short" };
 		for (let i = 0; i < external.length; i++)
 			if (external[i].core.isLogicalRailOccupied())
 				return { status: "rail_occupied" };
-		if (plan.switchTypes.filter((value) => value === 1).length === 2) {
+		{
 			const resolvedPoints: AppleExtendedBuilderPoint[] = positions.map(
 				(rp) => ({
 					kind: "free",
@@ -1604,38 +1674,23 @@ export class AppleExtendedRailToolsCompat {
 					cantRandom: 0,
 				}),
 			);
-			const divided = SRBXSingleCrossoverSplit.fromPoints(
-				resolvedPoints,
-				plan.switchTypes,
-				(start, end) => {
-					const a = AppleExtendedRailCompat.resolveBuilderPoint(
-						world,
-						start,
-						true,
-					);
-					const b = AppleExtendedRailCompat.resolveBuilderPoint(
-						world,
-						end,
-						true,
-					);
-					if (!a || !b)
-						return { midpoint: [NaN, NaN, NaN], length: NaN };
-					const map = new RailMapBasic(
-						a,
-						b,
-						RailMapBasic.fixRTMRailMapVersionCurrent,
-					);
-					const middle = map.getRailPos(2, 1);
-					return {
-						midpoint: [
-							middle[1],
-							map.getRailHeight(2, 1),
-							middle[0],
-						],
-						length: map.getLength(),
-					};
-				},
-			);
+			const sample = (
+				start: AppleExtendedBuilderPoint,
+				end: AppleExtendedBuilderPoint,
+				ratio: number = 0.5,
+			) => this.sampleSplitEdge(world, start, end, ratio);
+			const divided =
+				plan.switchTypes.filter((v) => v === 1).length === 4
+					? SRBXSingleCrossoverSplit.scissorsFromPoints(
+							resolvedPoints,
+							sample,
+						)
+					: SRBXSingleCrossoverSplit.fromPoints(
+							resolvedPoints,
+							plan.switchTypes,
+							sample,
+						);
+
 			if (!divided) return { status: "invalid_switch_layout" };
 			const transaction: RailRecord = record || {
 				positions: [],
@@ -1664,122 +1719,9 @@ export class AppleExtendedRailToolsCompat {
 								transaction.cants!,
 							);
 				},
+				false,
 			);
 		}
-		// Preflight ignores only the source that this transaction replaces.
-		if (
-			!AppleExtendedRailCompat.planCreation(
-				world,
-				positions,
-				property,
-				plan.source ? plan.source.railKey : undefined,
-			)
-		)
-			return { status: "core_conflict" };
-		const cants = record ? record.cants! : [];
-		try {
-			for (let i = 0; i < external.length; i++)
-				// Native switches already have zero cant; the normal-rail helper
-				// recalculates a two-end profile and must not edit a switch topology.
-				if (
-					!(external[i].core instanceof TileEntityLargeRailSwitchCore)
-				)
-					this.zeroExternalCant(
-						external[i].core,
-						external[i].index,
-						cants,
-					);
-		} catch (error) {
-			NGTLog.debug(
-				`[SuperRailBuilderX AE] crossover cant preparation exception: ${error}`,
-			);
-			let restored = false;
-			try {
-				restored = this.restoreCantRecords(world, cants);
-			} catch (restoreError) {
-				NGTLog.debug(
-					`[SuperRailBuilderX AE] crossover cant rollback exception: ${restoreError}`,
-				);
-			}
-			return {
-				status: restored
-					? "cant_update_failed"
-					: "split_rollback_failed",
-			};
-		}
-		if (record && plan.source) {
-			const removed = AppleExtendedRailCompat.undoNormalRail(
-				world,
-				plan.source.core,
-				plan.source.railKey,
-			);
-			if (removed !== "ok") {
-				this.restoreCantRecords(world, cants);
-				return { status: removed };
-			}
-		}
-		let created: CreatedRail | null = null;
-		try {
-			created = AppleExtendedRailCompat.createFromPositions(
-				world,
-				player,
-				positions,
-				property,
-			);
-		} catch (error) {
-			NGTLog.debug(
-				`[SuperRailBuilderX AE] crossover creation exception: ${error}`,
-			);
-		}
-		if (!created) {
-			const restored = record
-				? this.rollbackBranch(world, player, record)
-				: this.restoreCantRecords(world, cants);
-			return {
-				status: restored
-					? "switch_create_failed"
-					: "split_rollback_failed",
-			};
-		}
-		const token = UUID.randomUUID().toString();
-		if (record) {
-			record.created.push(created);
-			try {
-				const core = AppleExtendedRailCompat.getCore(
-					world,
-					created.core,
-				);
-				if (!core) throw new Error("created crossover core missing");
-				core.setSignal(record.signal);
-				for (let i = 0; i < record.subRails.length; i++)
-					core.addSubRail(record.subRails[i]);
-				core.markDirty();
-				core.sendPacket();
-			} catch (error) {
-				NGTLog.debug(
-					`[SuperRailBuilderX AE] crossover metadata exception: ${error}`,
-				);
-				let restored = false;
-				try {
-					restored = this.rollbackBranch(world, player, record);
-				} catch (restoreError) {
-					NGTLog.debug(
-						`[SuperRailBuilderX AE] crossover metadata rollback exception: ${restoreError}`,
-					);
-				}
-				return {
-					status: restored
-						? "switch_create_failed"
-						: "split_rollback_failed",
-				};
-			}
-			this.splitUndoRecords[token] = record;
-		} else this.crossoverUndoRecords[token] = { created, cants };
-		this.lastSplitUpdate = {
-			removed: record && record.source ? [record.source] : [],
-			refreshed: [created],
-		};
-		return { status: "ok", undoToken: token };
 	}
 
 	static undoCrossoverBuilderRail(
@@ -1788,34 +1730,7 @@ export class AppleExtendedRailToolsCompat {
 		token: string,
 	): string {
 		this.lastSplitUpdate = null;
-		if (this.splitUndoRecords[token])
-			return this.undoSplitBuilderRail(world, player, token);
-		const record = this.crossoverUndoRecords[token];
-		if (!record) return "nothing_to_undo";
-		const targets = [
-			{ core: record.created.core, railKey: record.created.key },
-		];
-		for (let i = 0; i < record.cants.length; i++)
-			targets.push(record.cants[i]);
-		for (let i = 0; i < targets.length; i++) {
-			const validation = AppleExtendedRailCompat.validateUndoNormalRail(
-				world,
-				targets[i].core,
-				targets[i].railKey,
-			);
-			if (validation !== "ok") return validation;
-		}
-		const removed = AppleExtendedRailCompat.undoNormalRail(
-			world,
-			record.created.core,
-			record.created.key,
-		);
-		if (removed !== "ok") return removed;
-		if (!this.restoreCantRecords(world, record.cants))
-			return "undo_cant_restore_failed";
-		this.lastSplitUpdate = { removed: [record.created], refreshed: [] };
-		delete this.crossoverUndoRecords[token];
-		return "undo_ok";
+		return "undo_disabled";
 	}
 
 	static undoBranchBuilderRail(
