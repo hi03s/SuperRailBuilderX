@@ -1,5 +1,6 @@
 import { SRBXCrossoverGeometry, SRBXCrossoverPlan } from "./SRBXCrossoverPlan";
 import { SRBXCrossoverClient } from "./SRBXCrossoverClient";
+import { SRBXSingleCrossoverSplit } from "./SRBXSingleCrossoverSplit";
 import { SRBXToolWheel } from "./SRBXToolWheel";
 import { SRBXAcceleratedRepeat } from "./SRBXAcceleratedRepeat";
 import { SRBXEndpointAvailability } from "./SRBXEndpointAvailability";
@@ -268,7 +269,7 @@ function createDefaultState(): BuilderState {
 		curveRadius: MAX_CURVE_RADIUS,
 		curveSide: 1,
 		radiusStraightStopped: false,
-		designLength: 40,
+		designLength: crossoverBuilder ? 60 : 40,
 		heightOffsetSixteenths: 0,
 		lengthRepeat: new SRBXAcceleratedRepeat(),
 		radiusRepeat: new SRBXAcceleratedRepeat(),
@@ -2272,21 +2273,47 @@ function render(
 			displayPoints[1],
 		]);
 		if (plan) {
-			renderBezier(entity, partialTicks, plan.points[2], plan.points[3]);
-			if (plan.switchTypes[0] === 1)
+			const divided = SRBXSingleCrossoverSplit.preview(
+				plan.points,
+				plan.switchTypes,
+			);
+			if (divided) {
 				renderBezier(
 					entity,
 					partialTicks,
-					plan.points[0],
-					plan.points[3],
+					divided.switches[1][0],
+					divided.switches[1][1],
 				);
-			if (plan.switchTypes[1] === 1)
+				renderBezier(
+					entity,
+					partialTicks,
+					divided.normals[1][0],
+					divided.normals[1][1],
+				);
+				for (const points of divided.switches)
+					renderBezier(entity, partialTicks, points[0], points[2]);
+			} else {
 				renderBezier(
 					entity,
 					partialTicks,
 					plan.points[2],
-					plan.points[1],
+					plan.points[3],
 				);
+				if (plan.switchTypes[0] === 1)
+					renderBezier(
+						entity,
+						partialTicks,
+						plan.points[0],
+						plan.points[3],
+					);
+				if (plan.switchTypes[1] === 1)
+					renderBezier(
+						entity,
+						partialTicks,
+						plan.points[2],
+						plan.points[1],
+					);
+			}
 		}
 	}
 	if (!crossoverBuilder && displayPoints.length >= 2) {

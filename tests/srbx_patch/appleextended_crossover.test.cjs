@@ -66,7 +66,7 @@ const plan = () => ({
 		point(4, 0, 0),
 		point(4, 40, 180),
 	],
-	switchTypes: [1, 0, 0, 1],
+	switchTypes: [1, 1, 1, 1],
 });
 let removed = [],
 	created = [],
@@ -159,11 +159,8 @@ function existing(p = plan()) {
 	};
 	return p;
 }
-for (const mask of [
-	[1, 0, 0, 1],
-	[0, 1, 1, 0],
-	[1, 1, 1, 1],
-]) {
+// Single-crossover transactions are covered by the native divided-placement fixture.
+for (const mask of [[1, 1, 1, 1]]) {
 	const p = plan();
 	p.switchTypes = mask;
 	assert.equal(tools.createCrossoverBuilderRail(world, {}, p).status, "ok");

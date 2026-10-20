@@ -38,6 +38,15 @@ class Maker {
 	}
 }
 class Basic {
+	getRailPos(_split, _i) {
+		return [
+			(this.a.posZ + this.b.posZ) / 2,
+			(this.a.posX + this.b.posX) / 2,
+		];
+	}
+	getRailHeight() {
+		return this.a.posY;
+	}
 	constructor(a, b) {
 		this.a = a;
 		this.b = b;
@@ -338,4 +347,150 @@ assert.equal(tiles.size, 1);
 assert.equal(api.consumeLastSplitClientUpdate().refreshed.length, 1);
 console.log(
 	"Kaiz single crossover split: four owners, normal outer cores, metadata/Undo, preflight and partial failure restoration passed",
+);
+
+// Direct creation dispatch uses normal-map sampling, never a four-point native switch.
+for (const name of [
+	"SRBXMath",
+	"SRBXSingleCrossoverSplit",
+	"SRBXCrossoverValidation",
+])
+	vm.runInContext(
+		fs.readFileSync(
+			"dist/assets/minecraft/scripts/superrailbuilderx/" + name + ".js",
+			"utf8",
+		),
+		context,
+	);
+const oldPositions = original.positions;
+let restoredSources = 0,
+	externalCant = 5,
+	cantFailure = false;
+const externalCore = new Core();
+externalCore.pos = [99, 4, 0];
+Object.assign(api, {
+	validateBuilderPoint: () => "ok",
+	getRailPositionUnsupportedReason: () => "",
+	isFlatBuilderRail: () => true,
+	isSectionCore: () => true,
+	builderAngleDifference: (a, b) => a - b,
+	createBuilderProperty: () => ({ name: "held", autoSplit: true }),
+	zeroRailCants: (_w, core, _indices, records) => {
+		records.push({ core, old: externalCant });
+		externalCant = 0;
+		if (cantFailure) throw Error("injected cant failure");
+		return [externalCore.pos];
+	},
+	resolveCantRecordCore: (_w, r) => r.core,
+	restoreCantRecords: (_w, records) => {
+		for (const r of records) externalCant = r.old;
+		return {
+			status: "ok",
+			refreshed: records.length ? [ref(externalCore)] : [],
+		};
+	},
+	restoreSplitSource: (_w, _player, record) => {
+		restoredSources++;
+		assert.equal(record.positions.length, 2);
+		assert.equal(record.wasSectioned, true);
+		original.positions = record.positions;
+		original.property = record.property;
+		tiles.set(key(original.pos), original);
+		return ref(original);
+	},
+});
+const request = (mask, selected) => ({
+	points: [
+		point(0, 0, 0),
+		point(0, 40, 180),
+		point(4, 0, 0),
+		point(4, 40, 180),
+	],
+	switchTypes: mask,
+	...(selected
+		? {
+				source: {
+					core: original.pos,
+					railKey: ref(original).key,
+					startPosition: [0, 4.0625, 0],
+					endPosition: [0, 4.0625, 40],
+				},
+			}
+		: {}),
+});
+// Existing fixture maker is deliberately made to reject all four-point layouts.
+const savedMaker = context.Packages.jp.ngt.rtm.rail.util.RailMaker;
+context.Packages.jp.ngt.rtm.rail.util.RailMaker = class extends savedMaker {
+	getSwitch() {
+		assert.equal(
+			this.positions.length,
+			3,
+			"no native four-point classification or temporary core",
+		);
+		return super.getSwitch();
+	}
+};
+for (const mask of [
+	[1, 0, 0, 1],
+	[0, 1, 1, 0],
+])
+	for (const selected of [false, true]) {
+		reset();
+		original.positions = oldPositions.slice(0, 2);
+		if (!selected) tiles.clear();
+		const beforeRestore = restoredSources;
+		api.findConnectedCantEndpoints = () =>
+			selected ? [{ core: externalCore, index: 0 }] : [];
+		externalCant = 5;
+		const result = api.createCrossoverBuilderRail(
+			world,
+			{},
+			request(mask, selected),
+		);
+		assert.equal(result.status, "ok");
+		assert.deepEqual(
+			created.map((c) => c.positions.length),
+			[3, 3, 2, 2],
+		);
+		assert.equal(broken, selected ? 1 : 0);
+		assert.equal(
+			api.undoCrossoverBuilderRail(world, {}, result.undoToken),
+			"undo_ok",
+		);
+		assert.equal(restoredSources, beforeRestore + (selected ? 1 : 0));
+		assert.equal(externalCant, 5);
+		assert.equal(tiles.size, selected ? 1 : 0);
+	}
+for (const selected of [false, true]) {
+	reset();
+	original.positions = oldPositions.slice(0, 2);
+	if (!selected) tiles.clear();
+	failAt = 4;
+	api.findConnectedCantEndpoints = () => [];
+	const beforeRestore = restoredSources;
+	assert.equal(
+		api.createCrossoverBuilderRail(
+			world,
+			{},
+			request([1, 0, 0, 1], selected),
+		).status,
+		"injected_failure",
+	);
+	assert.equal(restoredSources, beforeRestore + (selected ? 1 : 0));
+	assert.equal(tiles.size, selected ? 1 : 0);
+}
+reset();
+original.positions = oldPositions.slice(0, 2);
+externalCant = 5;
+cantFailure = true;
+api.findConnectedCantEndpoints = () => [{ core: externalCore, index: 0 }];
+assert.equal(
+	api.createCrossoverBuilderRail(world, {}, request([1, 0, 0, 1], true))
+		.status,
+	"cant_update_failed",
+);
+assert.equal(externalCant, 5);
+assert.equal(tiles.size, 1);
+console.log(
+	"Kaiz direct single crossovers: free/selected, both hands, no four-point native calls, rollback, Undo and cant restoration passed",
 );

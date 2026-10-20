@@ -119,6 +119,7 @@ const plan = {
 };
 tools.getSingleCrossoverSplitPlan = () => JSON.parse(JSON.stringify(plan));
 tools.connectedEndpoints = () => [];
+let expectedSignal = 7;
 let created = [],
 	removed = [],
 	failAt = -1,
@@ -174,7 +175,7 @@ const compat = {
 	},
 	getCore: () => ({
 		setSignal(v) {
-			assert.equal(v, 7);
+			assert.equal(v, expectedSignal);
 		},
 		addSubRail(v) {
 			assert.equal(v, "sub");
@@ -270,3 +271,151 @@ assert.equal(
 assert.equal(restores, 1);
 assert.equal(removed.length, 3);
 console.log("AE single crossover split transaction tests passed");
+
+// Direct single-crossover creation shares the proven placement transaction and
+// never classifies or creates a temporary four-position native switch.
+context.validateCrossoverPlan = () => "ok";
+let sampled = 0;
+context.SRBXSingleCrossoverSplit = {
+	fromPoints(points, mask, sample) {
+		assert.equal(points.length, 4);
+		assert.equal(mask.filter((x) => x === 1).length, 2);
+		assert.equal(points[0].position[0], 0.5);
+		sample(points[0], points[1]);
+		sampled++;
+		return JSON.parse(JSON.stringify(plan));
+	},
+};
+RailMap.prototype.getRailPos = () => [0.5, 10.5];
+RailMap.prototype.getRailHeight = () => 4;
+RailMap.prototype.getLength = () => 20;
+compat.propertyFromPlayer = () => ({ writeToNBT: () => ({}) });
+compat.normalizeDegrees = (a) => a;
+const nativeCore = { ...core };
+const baseline = [rp(0, 0), rp(20, 0)];
+compat.getLogicalPositions = () => baseline;
+const originalGetCore = compat.getCore;
+compat.getCore = (w, pos) =>
+	pos[0] === 99 ? nativeCore : originalGetCore(w, pos);
+tools.isFlat = () => true;
+let restoredDirect = 0;
+tools.restoreRecord = () => {
+	restoredDirect++;
+	return { core: [99, 4, 0], key: "restored" };
+};
+const directPlan = () => ({
+	points: [point(0, 0), point(20, 0), point(0, 5), point(20, 5)].map((p) => ({
+		...p,
+		anchorPitch: 0,
+		anchorLength: 5,
+		anchorLengthVertical: 0,
+	})),
+	switchTypes: [1, 0, 0, 1],
+});
+for (const selected of [false, true])
+	for (const mask of [
+		[1, 0, 0, 1],
+		[0, 1, 1, 0],
+	]) {
+		reset();
+		expectedSignal = selected ? 7 : 0;
+		const input = directPlan();
+		input.switchTypes = mask;
+		if (selected)
+			input.source = {
+				core: [99, 4, 0],
+				railKey: "source",
+				startPosition: [0.5, 4, 0.5],
+				endPosition: [20.5, 4, 0.5],
+			};
+		const before = restoredDirect;
+		const result = tools.createCrossoverBuilderRail(world, {}, input);
+		assert.equal(result.status, "ok");
+		assert.deepEqual(
+			created.map((c) => c.g.length),
+			[3, 3, 2, 2],
+		);
+		assert.equal(restores, 0, "no temporary four-point creation");
+		assert.equal(created[2].property.autoSplit, false);
+		assert.equal(
+			tools.undoCrossoverBuilderRail(world, {}, "token"),
+			"undo_ok",
+		);
+		assert.equal(restoredDirect, before + (selected ? 1 : 0));
+		assert.equal(removed.length, selected ? 5 : 4);
+	}
+reset();
+expectedSignal = 0;
+failAt = 3;
+const beforeFreeFailure = restoredDirect;
+assert.equal(
+	tools.createCrossoverBuilderRail(world, {}, directPlan()).status,
+	"create_failed",
+);
+assert.equal(removed.length, 3);
+assert.equal(
+	restoredDirect,
+	beforeFreeFailure,
+	"free rollback cannot create source",
+);
+reset();
+expectedSignal = 7;
+failAt = 2;
+const selectedFailure = directPlan();
+selectedFailure.source = {
+	core: [99, 4, 0],
+	railKey: "source",
+	startPosition: [0.5, 4, 0.5],
+	endPosition: [20.5, 4, 0.5],
+};
+const beforeSelectedFailure = restoredDirect;
+assert.equal(
+	tools.createCrossoverBuilderRail(world, {}, selectedFailure).status,
+	"create_failed",
+);
+assert.equal(restoredDirect, beforeSelectedFailure + 1);
+assert.ok(sampled >= 6);
+console.log(
+	"AE direct divided single crossover free/source creation and Undo tests passed",
+);
+
+reset();
+expectedSignal = 0;
+let externalCant = 12;
+const externalCore = { isLogicalRailOccupied: () => false };
+compat.getCore = (w, pos) =>
+	pos[0] === 50 ? externalCore : originalGetCore(w, pos);
+tools.hasCrossoverConnection = () => false;
+tools.zeroExternalCant = (c, i, records) => {
+	assert.equal(c, externalCore);
+	records.push({ saved: externalCant });
+	externalCant = 0;
+};
+const previousRestoreCant = tools.restoreCantRecords;
+tools.restoreCantRecords = (_world, records) => {
+	for (const r of records || [])
+		if (r.saved !== undefined) externalCant = r.saved;
+	return true;
+};
+const snapped = directPlan();
+Object.assign(snapped.points[2], { kind: "rail", core: [50, 4, 5], index: 0 });
+assert.equal(tools.createCrossoverBuilderRail(world, {}, snapped).status, "ok");
+assert.equal(externalCant, 0);
+assert.equal(tools.undoCrossoverBuilderRail(world, {}, "token"), "undo_ok");
+assert.equal(externalCant, 12, "external cant restored on direct free Undo");
+reset();
+failAt = 2;
+assert.equal(
+	tools.createCrossoverBuilderRail(world, {}, snapped).status,
+	"create_failed",
+);
+assert.equal(externalCant, 12, "external cant restored on partial failure");
+reset();
+blocked = true;
+assert.equal(
+	tools.createCrossoverBuilderRail(world, {}, snapped).status,
+	"core_conflict",
+);
+assert.equal(externalCant, 12, "preflight must not mutate connected cant");
+tools.restoreCantRecords = previousRestoreCant;
+console.log("AE direct single crossover external cant rollback tests passed");

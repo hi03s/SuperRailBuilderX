@@ -4351,43 +4351,60 @@ export class SRBXApiCompat {
 	private static splitSingleCrossover(
 		world: net.minecraft.world.World,
 		player: EntityPlayer,
-		core: TileEntityLargeRailSwitchCore,
+		core: TileEntityLargeRailCore | null,
 		expectedKey: string,
+		direct?: {
+			plan: SRBXSingleCrossoverSplitPlan;
+			record: SplitUndoRecord;
+			property: RailProperty;
+			protectedKeys: string[];
+			external: { core: TileEntityLargeRailCore; index: number }[];
+		},
 	) {
-		if (this.getRailPositionCandidateKey(core) !== expectedKey)
+		if (core && this.getRailPositionCandidateKey(core) !== expectedKey)
 			return { status: "rail_changed" };
-		if (core.isLogicalRailOccupied()) return { status: "rail_occupied" };
-		const plan = this.getSingleCrossoverSplitPlan(core);
+		if (core && core.isLogicalRailOccupied())
+			return { status: "rail_occupied" };
+		const plan = direct
+			? direct.plan
+			: core
+				? this.getSingleCrossoverSplitPlan(core)
+				: null;
 		if (!plan) return { status: "single_crossover_only" };
-		const originals = this.copyRailPositions(
-				this.getEditableRailPositions(core),
-			),
-			property = this.cloneRailProperty(core.getProperty()),
-			subRails = new ArrayList<RailProperty>();
-		for (let i = 0; i < core.subRails.size(); i++)
-			subRails.add(this.cloneRailProperty(core.subRails.get(i)));
-		property.autoSplit = false;
-		const record: SplitUndoRecord = {
-			positions: originals,
-			property: this.cloneRailProperty(core.getProperty()),
-			signal: core.getSignal(),
-			subRails,
-			wasSectioned: false,
-			created: [],
-		};
-		const source = { core: this.getRailCorePos(core), key: expectedKey };
-		const connected = this.findConnectedCantEndpoints(
-			world,
-			core,
-			originals,
+		const originals = direct
+			? direct.record.positions
+			: this.copyRailPositions(this.getEditableRailPositions(core!));
+		const property = this.cloneRailProperty(
+			direct ? direct.property : core!.getProperty(),
 		);
+		property.autoSplit = false;
+		const subRails = new ArrayList<RailProperty>();
+		if (!direct)
+			for (let i = 0; i < core!.subRails.size(); i++)
+				subRails.add(this.cloneRailProperty(core!.subRails.get(i)));
+		const record: SplitUndoRecord = direct
+			? direct.record
+			: {
+					positions: originals,
+					property: this.cloneRailProperty(core!.getProperty()),
+					signal: core!.getSignal(),
+					subRails,
+					wasSectioned: false,
+					created: [],
+				};
+		const source = core
+			? { core: this.getRailCorePos(core), key: expectedKey }
+			: null;
+		const sourceRefs = source ? [source] : [];
+		const connected = direct
+			? direct.external
+			: this.findConnectedCantEndpoints(world, core!, originals);
 		for (const endpoint of connected)
 			if (endpoint.core.isLogicalRailOccupied())
 				return { status: "rail_occupied" };
-		const protectedKeys = this.getBuilderMoveProtectedRailKeys(
-			core,
-			originals,
-		);
+		const protectedKeys = direct
+			? direct.protectedKeys
+			: this.getBuilderMoveProtectedRailKeys(core!, originals);
 		const switches = plan.switches.map((points) =>
 			points.map((p, i) =>
 				this.withSwitchType(
@@ -4515,21 +4532,33 @@ export class SRBXApiCompat {
 				);
 				if (r !== "ok") {
 					this.lastSplitClientUpdate = {
-						removed: [source].concat(removed),
+						removed: sourceRefs.concat(removed),
 						refreshed: record.created.slice(0, i + 1),
 					};
 					return { status: "split_rollback_failed" };
 				}
 			}
 			record.created = [];
-			const restored = this.restoreSplitSource(world, player, record);
+			const restored = source
+				? this.restoreSplitSource(world, player, record)
+				: null;
+			const restoredCants = record.cants
+				? this.restoreCantRecords(world, record.cants)
+				: { status: "ok", refreshed: [] as SplitCreatedRail[] };
 			this.lastSplitClientUpdate = {
-				removed: [source].concat(removed),
-				refreshed: restored ? [restored] : [],
+				removed: sourceRefs.concat(removed),
+				refreshed: (restored ? [restored] : []).concat(
+					restoredCants.refreshed,
+				),
 			};
-			return { status: restored ? status : "split_rollback_failed" };
+			return {
+				status:
+					(!source || restored) && restoredCants.status === "ok"
+						? status
+						: "split_rollback_failed",
+			};
 		};
-		this.breakOwnedRail(core);
+		if (core) this.breakOwnedRail(core);
 		try {
 			for (const positions of switches) {
 				const created = this.createBuilderBasicSwitch(
@@ -4606,11 +4635,38 @@ export class SRBXApiCompat {
 			);
 			return rollback("split_create_failed");
 		}
+		const externalRefresh: SplitCreatedRail[] = [];
+		if (direct) {
+			try {
+				const cants = record.cants || (record.cants = []);
+				for (const e of direct.external) {
+					const changed = this.zeroRailCants(
+						world,
+						e.core,
+						[e.index],
+						cants,
+					);
+					for (const pos of changed)
+						externalRefresh.push({
+							core: pos,
+							key: this.getRailPositionCandidateKey(e.core),
+						});
+				}
+			} catch (error) {
+				return rollback("cant_update_failed");
+			}
+		}
 		const token = java.util.UUID.randomUUID().toString();
 		this.splitUndoRecords[token] = record;
+		if (direct)
+			this.crossoverUndoRecords[token] = {
+				created: record.created[0],
+				cants: record.cants || [],
+				sourceToken: token,
+			};
 		this.lastSplitClientUpdate = {
-			removed: [source],
-			refreshed: record.created.slice(),
+			removed: sourceRefs,
+			refreshed: record.created.slice().concat(externalRefresh),
 		};
 		NGTLog.debug(
 			`[SuperRailBuilderX splitter] single crossover split: original=${expectedKey}, switches=2, normals=2, normalCores=${record.created
@@ -4911,15 +4967,21 @@ export class SRBXApiCompat {
 			}
 			removed.push(rail);
 		}
-		const restored = this.restoreSplitSource(world, player, record);
-		if (!restored) return "undo_restore_failed";
+		const restored =
+			record.positions.length > 0
+				? this.restoreSplitSource(world, player, record)
+				: null;
+		if (record.positions.length > 0 && !restored)
+			return "undo_restore_failed";
 		const cantRestore = record.cants
 			? this.restoreCantRecords(world, record.cants)
 			: { status: "ok", refreshed: [] as SplitCreatedRail[] };
 		if (cantRestore.status !== "ok") return cantRestore.status;
 		this.lastSplitClientUpdate = {
 			removed,
-			refreshed: [restored].concat(cantRestore.refreshed),
+			refreshed: (restored ? [restored] : []).concat(
+				cantRestore.refreshed,
+			),
 		};
 		delete this.splitUndoRecords[undoToken];
 		return "undo_ok";
@@ -6270,6 +6332,66 @@ export class SRBXApiCompat {
 			}
 			rp.cantEdge = rp.cantCenter = rp.cantRandom = 0;
 			positions.push(rp);
+		}
+
+		if (plan.switchTypes.filter((v) => v === 1).length === 2) {
+			if (sourceCore && record)
+				external.push(
+					...this.findConnectedCantEndpoints(
+						world,
+						sourceCore,
+						record.positions,
+					),
+				);
+			const point = (rp: RailPosition) =>
+				this.splitPointFromRailPosition(
+					rp,
+					rp.anchorLengthHorizontal,
+					rp.anchorLengthVertical,
+				);
+			const divided = SRBXSingleCrossoverSplit.fromPoints(
+				positions.map(point),
+				plan.switchTypes,
+				(a, b) => {
+					const map = new RailMapBasic(
+						this.createBuilderFreePoint(a, true),
+						this.createBuilderFreePoint(b, true),
+						RailMapBasic.fixRTMRailMapVersionCurrent,
+					);
+					const p = map.getRailPos(2, 1);
+					return {
+						midpoint: [p[1], map.getRailHeight(2, 1), p[0]] as [
+							number,
+							number,
+							number,
+						],
+						length: map.getLength(),
+					};
+				},
+			);
+			if (!divided) return { status: "invalid_switch_layout" };
+			const directRecord: SplitUndoRecord = record || {
+				positions: [],
+				property: this.cloneRailProperty(property),
+				signal: 0,
+				subRails: new ArrayList<RailProperty>(),
+				created: [],
+				wasSectioned: false,
+				cants: [],
+			};
+			return this.splitSingleCrossover(
+				world,
+				player,
+				sourceCore,
+				plan.source ? plan.source.railKey : "",
+				{
+					plan: divided,
+					record: directRecord,
+					property,
+					protectedKeys,
+					external,
+				},
+			);
 		}
 		// Validate native geometry before removing an existing baseline.
 		const maker = new RailMaker(

@@ -168,6 +168,85 @@ function halves(
 	];
 }
 export class SRBXSingleCrossoverSplit {
+	static preview(points: SRBXBuilderPoint[], switchTypes: number[]) {
+		return this.fromPoints(points, switchTypes, (start, end) => {
+			const controls = [
+				start.position,
+				SRBXMath.pointAtYawPitchDistance(
+					start.position,
+					start.anchorYaw,
+					0,
+					start.anchorLength,
+				),
+				SRBXMath.pointAtYawPitchDistance(
+					end.position,
+					end.anchorYaw,
+					0,
+					end.anchorLength,
+				),
+				end.position,
+			];
+			const samples: RailCorePos[] = [start.position],
+				lengths = [0];
+			for (let i = 1; i <= 128; i++) {
+				samples.push(
+					SRBXMath.cubicBezierPoint(
+						controls[0],
+						controls[1],
+						controls[2],
+						controls[3],
+						i / 128,
+					),
+				);
+				lengths.push(
+					lengths[i - 1] + distance(samples[i - 1], samples[i]),
+				);
+			}
+			const length = lengths[128];
+			let index = 1;
+			while (index < 128 && lengths[index] < length / 2) index++;
+			const span = lengths[index] - lengths[index - 1];
+			return {
+				length,
+				midpoint: lerp(
+					samples[index - 1],
+					samples[index],
+					span > 0 ? (length / 2 - lengths[index - 1]) / span : 0,
+				),
+			};
+		});
+	}
+	/** Plan the same midpoint split without constructing a four-point native switch. */
+	static fromPoints(
+		points: SRBXBuilderPoint[],
+		switchTypes: number[],
+		sample: (
+			start: SRBXBuilderPoint,
+			end: SRBXBuilderPoint,
+		) => {
+			midpoint: RailCorePos;
+			length: number;
+		},
+	): SRBXSingleCrossoverSplitPlan | null {
+		if (points.length !== 4 || switchTypes.length !== 4) return null;
+		const mask = switchTypes.join(",");
+		if (mask !== "1,0,0,1" && mask !== "0,1,1,0") return null;
+		const switches: number[] = [];
+		for (let i = 0; i < 4; i++) if (switchTypes[i] === 1) switches.push(i);
+		return this.plan(
+			[[0, 1], [2, 3], switches].map(([a, b]) => {
+				const measured = sample(points[a], points[b]);
+				return {
+					start: points[a],
+					end: points[b],
+					startSwitch: switchTypes[a] === 1,
+					endSwitch: switchTypes[b] === 1,
+					midpoint: measured.midpoint,
+					length: measured.length,
+				};
+			}),
+		);
+	}
 	static plan(
 		edges: SRBXSingleCrossoverSplitEdge[],
 	): SRBXSingleCrossoverSplitPlan | null {

@@ -51,7 +51,10 @@ Object.assign(state, {
 	lastBuiltSelection: ["undo"],
 });
 context.resetState(state);
-assert.equal(state.designLength, 40);
+assert.equal(state.designLength, 60);
+context.crossoverBuilder = false;
+assert.equal(context.createDefaultState().designLength, 40);
+context.crossoverBuilder = true;
 assert.equal(state.curveRadius, 10000);
 assert.equal(state.crossoverSpacing, 4);
 assert.equal(state.heightOffsetSixteenths, 0);

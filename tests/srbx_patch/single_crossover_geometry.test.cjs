@@ -98,6 +98,22 @@ for (const base of [
 			continue;
 		}
 		edges.push(edge(points[roots[0]], points[roots[1]], true, true));
+		const direct = split.fromPoints(points, source.switchTypes, (a, b) =>
+			edge(a, b, false, false),
+		);
+		assert.deepEqual(
+			plain(direct),
+			plain(split.plan(edges)),
+			"Direct planning equals native-edge split without creating a four-point switch",
+		);
+		const preview = split.preview(points, source.switchTypes);
+		assert(preview);
+		for (let i = 0; i < 3; i++)
+			assert(
+				distance(preview.markers[i], direct.markers[i]) < 0.01,
+				"Preview/native midpoint agreement",
+			);
+
 		const original = JSON.stringify(edges);
 		for (const input of [edges, edges.map(reverse)]) {
 			const plan = split.plan(input);
