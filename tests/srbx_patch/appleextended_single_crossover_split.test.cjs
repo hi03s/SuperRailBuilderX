@@ -419,3 +419,105 @@ assert.equal(
 assert.equal(externalCant, 12, "preflight must not mutate connected cant");
 tools.restoreCantRecords = previousRestoreCant;
 console.log("AE direct single crossover external cant rollback tests passed");
+
+// Connected rails can own all four original outer endpoint blocks. Each new
+// piece keeps its physical endpoint and relocates only its owner inward.
+reset();
+expectedSignal = 0;
+const foreignTiles = new Map();
+for (const p of [
+	[0, 4, 0],
+	[20, 4, 5],
+	[20, 4, 0],
+	[0, 4, 5],
+])
+	foreignTiles.set(p.join(","), new SwitchCore());
+const foreignWorld = {
+	func_175667_e: () => true,
+	func_175625_s: (p) => foreignTiles.get([p.x, p.y, p.z].join(",")) || null,
+};
+const oldPlanCreation = compat.planCreation;
+compat.planCreation = (w, g, property, ignoredKey) => {
+	const root = g[g.length === 2 ? 1 : 0];
+	assert.ok(
+		!foreignTiles.has([root.blockX, root.blockY, root.blockZ].join(",")),
+		"root must move before native preflight",
+	);
+	return oldPlanCreation(w, g, property, ignoredKey);
+};
+const freeRecord = () => ({
+	positions: [],
+	property: compat.propertyFromPlayer(),
+	signal: 0,
+	subRails: [],
+	created: [],
+	cants: [],
+});
+const layout = JSON.parse(JSON.stringify(plan));
+assert.equal(
+	tools.createSplitCrossover(foreignWorld, {}, layout, freeRecord()).status,
+	"ok",
+);
+assert.equal(created.length, 4);
+for (const [i, c] of created.entries()) {
+	const root = c.g[i < 2 ? 0 : 1];
+	const outer = (i < 2 ? layout.switches[i] : layout.normals[i - 2])[0];
+	assert.deepEqual([root.posX, root.posY, root.posZ], outer.position);
+	assert.ok(
+		!foreignTiles.has([root.blockX, root.blockY, root.blockZ].join(",")),
+	);
+	assert.equal(root.blockX + root.offsetX, root.posX);
+	assert.equal(root.blockZ + root.offsetZ, root.posZ);
+	const dx = root.blockX + 0.5 - root.posX,
+		dz = root.blockZ + 0.5 - root.posZ;
+	assert.ok(dx * dx + dz * dz < 6.25);
+	assert.ok(
+		dx * Math.sin((root.anchorYaw * Math.PI) / 180) +
+			dz * Math.cos((root.anchorYaw * Math.PI) / 180) >=
+			-0.001,
+	);
+}
+assert.equal(foreignTiles.size, 4, "foreign cores retained");
+assert.equal(
+	tools.undoCrossoverBuilderRail(foreignWorld, {}, "token"),
+	"undo_ok",
+);
+assert.equal(foreignTiles.size, 4);
+reset();
+const noSpaceWorld = {
+	func_175667_e: () => true,
+	func_175625_s: () => new SwitchCore(),
+};
+assert.equal(
+	tools.createSplitCrossover(noSpaceWorld, {}, layout, freeRecord()).status,
+	"core_conflict",
+);
+assert.equal(created.length, 0);
+assert.equal(removed.length, 0);
+compat.planCreation = oldPlanCreation;
+console.log(
+	"AE occupied outer-root relocation and safe rejection tests passed",
+);
+
+reset();
+const duplicateLayout = JSON.parse(JSON.stringify(plan));
+duplicateLayout.switches[1][0].ownerBlock =
+	duplicateLayout.switches[0][0].ownerBlock.slice();
+assert.equal(
+	tools.createSplitCrossover(world, {}, duplicateLayout, freeRecord()).status,
+	"ok",
+);
+assert.deepEqual(
+	Array.from(created[0].r.core),
+	[0, 4, 0],
+	"unblocked earlier root reserved",
+);
+assert.deepEqual(
+	Array.from(created[2].r.core),
+	[20, 4, 0],
+	"available normal root reserved before relocation",
+);
+assert.equal(new Set(created.map((c) => c.r.core.join(","))).size, 4);
+assert.equal(created[1].g[0].posX, 20.5);
+assert.equal(created[1].g[0].posZ, 5.5);
+console.log("AE duplicate outer-root relocation tests passed");

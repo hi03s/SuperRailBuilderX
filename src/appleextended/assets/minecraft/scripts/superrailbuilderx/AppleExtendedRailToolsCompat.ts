@@ -598,28 +598,10 @@ export class AppleExtendedRailToolsCompat {
 		const owners: { [key: string]: boolean } = {};
 		const key = (rp: RailPosition) =>
 			[rp.blockX, rp.blockY, rp.blockZ].join(",");
-		for (let i = 0; i < 4; i++) {
-			const root = groups[i][i < 2 ? 0 : 1],
-				k = key(root);
-			if (owners[k]) return { status: "core_conflict" };
-			owners[k] = true;
-		}
 		const footprints: number[][][] = [];
 		for (let i = 0; i < 4; i++) {
 			const group = groups[i],
 				prop = i < 2 ? property : normalProperty;
-			const placement = AppleExtendedRailCompat.planCreation(
-				world,
-				group,
-				prop,
-				expectedKey,
-			);
-			if (
-				!placement ||
-				key(placement.root) !== key(group[i < 2 ? 0 : 1]) ||
-				placement.sections
-			)
-				return { status: "core_conflict" };
 			let maps: RailMap[];
 			if (i < 2) {
 				const list = new ArrayList<RailPosition>();
@@ -654,48 +636,81 @@ export class AppleExtendedRailToolsCompat {
 			}
 			footprints.push(footprint);
 		}
-		// Reserve every root first, then assign distinct auxiliary endpoint owners.
-		// Opposite-facing branch halves retain their shared physical midpoint.
+		const foreignCore = (p: number[]): boolean => {
+			const tile = world.getTileEntity(new BlockPos(p[0], p[1], p[2]));
+			return (
+				tile instanceof TileEntityLargeRailCore &&
+				(!expectedKey ||
+					AppleExtendedRailCompat.coreKey(tile) !== expectedKey)
+			);
+		};
+		const relocate = (rp: RailPosition, footprint: number[][]): boolean => {
+			let best: number[] | null = null,
+				distance = 6.25;
+			const angle = (rp.anchorYaw * Math.PI) / 180;
+			for (const p of footprint) {
+				if (owners[p.join(",")] || p[1] !== rp.blockY || foreignCore(p))
+					continue;
+				if (
+					(p[0] + 0.5 - rp.posX) * Math.sin(angle) +
+						(p[2] + 0.5 - rp.posZ) * Math.cos(angle) <
+					-0.001
+				)
+					continue;
+				const d =
+					Math.pow(p[0] + 0.5 - rp.posX, 2) +
+					Math.pow(p[2] + 0.5 - rp.posZ, 2);
+				if (d < distance) {
+					distance = d;
+					best = p;
+				}
+			}
+			if (!best) return false;
+			rp.blockX = best[0];
+			rp.blockY = best[1];
+			rp.blockZ = best[2];
+			// Keep precision offsets relative to the newly assigned owner block.
+			rp.setPosition(rp.posX, rp.posY, rp.posZ);
+			owners[best.join(",")] = true;
+			return true;
+		};
+		// Retain every available outer root before relocating any blocked root.
+		// Relocation keeps the outer physical endpoint, never the normal midpoint.
+		const blockedRoots: number[] = [];
+		for (let i = 0; i < 4; i++) {
+			const rp = groups[i][i < 2 ? 0 : 1],
+				k = key(rp);
+			if (owners[k] || foreignCore([rp.blockX, rp.blockY, rp.blockZ]))
+				blockedRoots.push(i);
+			else owners[k] = true;
+		}
+		for (const i of blockedRoots)
+			if (!relocate(groups[i][i < 2 ? 0 : 1], footprints[i]))
+				return { status: "core_conflict" };
+		// Opposite-facing midpoint owners stay on their own inward tangent side.
 		for (let i = 0; i < 4; i++)
 			for (let j = 0; j < groups[i].length; j++) {
 				if (j === (i < 2 ? 0 : 1)) continue;
-				const rp = groups[i][j];
-				let best: number[] | null = null,
-					distance = 6.25;
-				const angle = (rp.anchorYaw * Math.PI) / 180;
-				for (const p of footprints[i]) {
-					if (owners[p.join(",")] || p[1] !== rp.blockY) continue;
-					// Keep each midpoint owner on its own half's inward tangent side.
-					// Otherwise opposite branch halves can exchange their discovery tiles.
-					if (
-						(p[0] + 0.5 - rp.posX) * Math.sin(angle) +
-							(p[2] + 0.5 - rp.posZ) * Math.cos(angle) <
-						-0.001
-					)
-						continue;
-					const tile = world.getTileEntity(
-						new BlockPos(p[0], p[1], p[2]),
-					);
-					if (
-						tile instanceof TileEntityLargeRailCore &&
-						AppleExtendedRailCompat.coreKey(tile) !== expectedKey
-					)
-						continue;
-					const d =
-						Math.pow(p[0] + 0.5 - rp.posX, 2) +
-						Math.pow(p[2] + 0.5 - rp.posZ, 2);
-					if (d < distance) {
-						distance = d;
-						best = p;
-					}
-				}
-				if (!best) return { status: "core_conflict" };
-				rp.blockX = best[0];
-				rp.blockY = best[1];
-				rp.blockZ = best[2];
-				rp.setPosition(rp.posX, rp.posY, rp.posZ);
-				owners[best.join(",")] = true;
+				if (!relocate(groups[i][j], footprints[i]))
+					return { status: "core_conflict" };
 			}
+		// Native creation checks run after owners are settled, before any mutation.
+		for (let i = 0; i < 4; i++) {
+			const group = groups[i],
+				prop = i < 2 ? property : normalProperty;
+			const placement = AppleExtendedRailCompat.planCreation(
+				world,
+				group,
+				prop,
+				expectedKey,
+			);
+			if (
+				!placement ||
+				key(placement.root) !== key(group[i < 2 ? 0 : 1]) ||
+				placement.sections
+			)
+				return { status: "core_conflict" };
+		}
 		try {
 			if (prepare) prepare();
 		} catch (error) {

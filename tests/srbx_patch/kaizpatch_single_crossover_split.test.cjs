@@ -50,6 +50,7 @@ class Basic {
 	constructor(a, b) {
 		this.a = a;
 		this.b = b;
+		this.positions = [a, b];
 	}
 	getLength() {
 		return Math.hypot(this.a.posX - this.b.posX, this.a.posZ - this.b.posZ);
@@ -115,6 +116,8 @@ const rp = (p) => ({
 	blockX: p.ownerBlock?.[0] ?? Math.floor(p.position[0]),
 	blockY: 4,
 	blockZ: p.ownerBlock?.[2] ?? Math.floor(p.position[2]),
+	offsetX: p.position[0] - (p.ownerBlock?.[0] ?? Math.floor(p.position[0])),
+	offsetZ: p.position[2] - (p.ownerBlock?.[2] ?? Math.floor(p.position[2])),
 	anchorYaw: p.anchorYaw,
 	anchorPitch: 0,
 	anchorLengthHorizontal: p.anchorLength,
@@ -123,6 +126,8 @@ const rp = (p) => ({
 		this.posX = x;
 		this.posY = y;
 		this.posZ = z;
+		this.offsetX = x - this.blockX;
+		this.offsetZ = z - this.blockZ;
 	},
 });
 const plan = () => ({
@@ -493,4 +498,100 @@ assert.equal(externalCant, 5);
 assert.equal(tiles.size, 1);
 console.log(
 	"Kaiz direct single crossovers: free/selected, both hands, no four-point native calls, rollback, Undo and cant restoration passed",
+);
+
+// A selected section can have both physical ends sharing owner cells with
+// separate connected cores. New switch and normal roots must all avoid them.
+cantFailure = false;
+const savedSourcePos = original.pos;
+original.pos = [0, 4, 20];
+for (const mask of [
+	[1, 0, 0, 1],
+	[0, 1, 1, 0],
+]) {
+	reset();
+	original.positions = oldPositions.slice(0, 2);
+	const foreign = [];
+	for (const pos of [
+		[0, 4, 0],
+		[0, 4, 40],
+		[4, 4, 0],
+		[4, 4, 40],
+	]) {
+		const core = new Core();
+		core.pos = pos;
+		tiles.set(key(pos), core);
+		foreign.push(core);
+	}
+	api.findConnectedCantEndpoints = () => [];
+	const input = request(mask, true),
+		expected = new Set(foreign.map((c) => key(c.pos)));
+	const result = api.createCrossoverBuilderRail(world, {}, input);
+	assert.equal(result.status, "ok");
+	assert.equal(created.length, 4);
+	for (const c of created) {
+		assert(
+			!expected.has(key(c.pos)),
+			"existing core owner never overwritten",
+		);
+		const root = c.positions[0];
+		assert.equal(
+			root.blockX + root.offsetX,
+			root.posX,
+			"relocated root NBT X remains exact",
+		);
+		assert.equal(
+			root.blockZ + root.offsetZ,
+			root.posZ,
+			"relocated root NBT Z remains exact",
+		);
+		const outer = input.points.find(
+			(p) =>
+				Math.hypot(
+					p.position[0] - root.posX,
+					p.position[2] - root.posZ,
+				) < 0.001,
+		);
+		assert(
+			outer,
+			"core remains at its original outer endpoint side, not the midpoint",
+		);
+		const dx = c.pos[0] + 0.5 - root.posX,
+			dz = c.pos[2] + 0.5 - root.posZ;
+		assert(dx * dx + dz * dz < 6.25);
+		assert(
+			dx * Math.sin((root.anchorYaw * Math.PI) / 180) +
+				dz * Math.cos((root.anchorYaw * Math.PI) / 180) >=
+				-0.001,
+		);
+	}
+	for (const c of foreign) assert.strictEqual(tiles.get(key(c.pos)), c);
+	assert.equal(
+		api.undoCrossoverBuilderRail(world, {}, result.undoToken),
+		"undo_ok",
+	);
+	for (const c of foreign)
+		assert.strictEqual(
+			tiles.get(key(c.pos)),
+			c,
+			"Undo preserves every connected core",
+		);
+	assert.equal(tiles.size, 5);
+}
+reset();
+original.positions = oldPositions.slice(0, 2);
+noSpace = true;
+const protectedCore = new Core();
+protectedCore.pos = [0, 4, 0];
+tiles.set(key(protectedCore.pos), protectedCore);
+assert.equal(
+	api.createCrossoverBuilderRail(world, {}, request([1, 0, 0, 1], true))
+		.status,
+	"core_conflict",
+);
+assert.equal(broken, 0);
+assert.strictEqual(tiles.get(key(protectedCore.pos)), protectedCore);
+original.pos = savedSourcePos;
+console.log(
+	"Kaiz split crossover roots relocate within each outer footprint, retain NBT coordinates and protect connected cores through Undo/no-space failure",
 );

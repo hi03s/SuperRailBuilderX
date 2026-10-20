@@ -4419,21 +4419,102 @@ export class SRBXApiCompat {
 		const reserved: { [key: string]: boolean } = {};
 		const key = (rp: RailPosition) =>
 			[rp.blockX, rp.blockY, rp.blockZ].join(",");
-		for (const rp of [
+
+		const roots = [
 			switches[0][0],
 			switches[1][0],
 			normals[0][0],
 			normals[1][0],
-		]) {
-			if (reserved[key(rp)]) return { status: "core_conflict" };
-			reserved[key(rp)] = true;
-			const tile = world.getTileEntity(rp.blockX, rp.blockY, rp.blockZ);
-			if (
+		];
+		const rootMaps: RailMapBasic[][] = [];
+		for (const points of switches) {
+			const shape = new RailMaker(
+				world,
+				this.toRailPositionArray(points),
+				RailMapBasic.fixRTMRailMapVersionCurrent,
+			).getSwitch();
+			if (!shape) return { status: "invalid_switch_layout" };
+			rootMaps.push(Array.prototype.slice.call(shape.getAllRailMap()));
+		}
+		for (const points of normals)
+			rootMaps.push([
+				new RailMapBasic(
+					points[0],
+					points[1],
+					RailMapBasic.fixRTMRailMapVersionCurrent,
+				),
+			]);
+		const foreignCore = (p: number[]) => {
+			const tile = world.getTileEntity(p[0], p[1], p[2]);
+			return (
 				tile instanceof TileEntityLargeRailCore &&
 				this.getRailPositionCandidateKey(tile.getRailCore()) !==
 					expectedKey
-			)
+			);
+		};
+		// Reserve the roots that can stay before assigning any displaced root. A new
+		// core remains beside its outer endpoint; its physical endpoint never moves.
+		const displaced: number[] = [];
+		for (let i = 0; i < roots.length; i++) {
+			const rp = roots[i],
+				k = key(rp);
+			if (reserved[k] || foreignCore([rp.blockX, rp.blockY, rp.blockZ]))
+				displaced.push(i);
+			else reserved[k] = true;
+		}
+		for (const i of displaced) {
+			const rp = roots[i],
+				yaw = (rp.anchorYaw * Math.PI) / 180;
+			const old = key(rp);
+			let best: number[] | null = null,
+				score = 6.25;
+			for (const map of rootMaps[i]) {
+				if (
+					!this.isBuilderRoadbedLoaded(
+						world,
+						map as unknown as RailSectionMap,
+						property,
+					)
+				)
+					return { status: "path_unloaded" };
+				const blocks = this.getBuilderRoadbedBlocks(
+					map as unknown as RailSectionMap,
+					property,
+				);
+				for (const p of blocks) {
+					if (
+						p[1] !== rp.blockY ||
+						reserved[p.join(",")] ||
+						foreignCore(p)
+					)
+						continue;
+					const dx = p[0] + 0.5 - rp.posX,
+						dz = p[2] + 0.5 - rp.posZ;
+					if (dx * Math.sin(yaw) + dz * Math.cos(yaw) < -0.001)
+						continue;
+					const d = dx * dx + dz * dz;
+					if (d < score) {
+						score = d;
+						best = p;
+					}
+				}
+			}
+			if (!best) {
+				NGTLog.debug(
+					`[SuperRailBuilderX crossover] outer core owner unavailable: index=${i}, owner=${old}, position=${rp.posX},${rp.posY},${rp.posZ}`,
+				);
 				return { status: "core_conflict" };
+			}
+			const pos = [rp.posX, rp.posY, rp.posZ],
+				owner = best as number[];
+			rp.blockX = owner[0];
+			rp.blockY = owner[1];
+			rp.blockZ = owner[2];
+			rp.setPosition(pos[0], pos[1], pos[2]);
+			reserved[key(rp)] = true;
+			NGTLog.debug(
+				`[SuperRailBuilderX crossover] outer core owner relocated: index=${i}, from=${old}, to=${key(rp)}, position=${pos.join(",")}`,
+			);
 		}
 		// All auxiliary owners are planned before removing the four-marker source.
 		// Keep both normal cores at their original outer endpoints, and give the
