@@ -280,6 +280,59 @@ console.log(
 	"KaizPatch reverse planning, configured normal fallback cap and occupied endpoint core protection passed",
 );
 
+// A switch endpoint contributes its tangent/cant, never the control lengths
+// used by the short source switch. The long extension has its own preview.
+const originalResolver = api.resolveBuilderRailPoint;
+const sourceSwitch = {
+	anchorLengthHorizontal: 2,
+	anchorLengthVertical: 3,
+	switchType: 1,
+};
+api.resolveBuilderRailPoint = (_world, p) => ({
+	...toRP(p),
+	...sourceSwitch,
+	anchorPitch: p.anchorPitch,
+});
+preparation = "reverse";
+reset();
+const longStart = {
+	...point(0.35),
+	kind: "rail",
+	core: [0, 4, 0],
+	index: 0,
+	anchorYaw: 123,
+	anchorPitch: 2,
+	anchorLength: 110,
+	anchorLengthVertical: 90,
+};
+const longEnd = {
+	...point(250.35),
+	kind: "rail",
+	core: [250, 4, 0],
+	index: 1,
+	anchorYaw: -40,
+	anchorPitch: -3,
+	anchorLength: 130,
+	anchorLengthVertical: 100,
+};
+assert.equal(api.createBuilderRail(world, {}, longStart, longEnd).status, "ok");
+assert.equal(created[0].mode, "section");
+for (const requested of [longStart, longEnd]) {
+	const actual = [created[0].map.start, created[0].map.end].find(
+		(rp) => rp.posX === requested.position[0],
+	);
+	assert.equal(actual.anchorLengthHorizontal, requested.anchorLength);
+	assert.equal(actual.anchorLengthVertical, requested.anchorLengthVertical);
+	assert.equal(actual.anchorYaw, requested.anchorYaw);
+	assert.equal(actual.anchorPitch, requested.anchorPitch);
+}
+assert.equal(sourceSwitch.anchorLengthHorizontal, 2);
+assert.equal(sourceSwitch.anchorLengthVertical, 3);
+api.resolveBuilderRailPoint = originalResolver;
+console.log(
+	"KaizPatch long connected curves retain requested horizontal/vertical control lengths and tangents across reverse section planning",
+);
+
 // Switch endpoints must reject conflicting owners before deleting the source.
 api.getCoreWorld = () => world;
 const endpointSource = new Core();

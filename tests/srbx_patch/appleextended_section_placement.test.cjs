@@ -413,6 +413,16 @@ const planned = placement.plan(
 );
 const collision = new Section([1, 4, 0]);
 const createdBeforeCollision = created;
+for (const unloadedX of [1, 6]) {
+	world.func_175667_e = (p) => p.xyz[0] !== unloadedX;
+	assert.equal(placement.create(world, planned, property, true), false);
+	assert.equal(
+		created,
+		createdBeforeCollision,
+		"Unloaded core or roadbed chunks reject before any mutation",
+	);
+}
+world.func_175667_e = () => true;
 collision.getRailCore = () => collision;
 tiles.set("1,4,0", collision);
 assert.equal(

@@ -461,6 +461,7 @@ export class AppleExtendedRailCompat {
 		player: EntityPlayer,
 		positions: RailPosition[],
 		property: ResourceStateRail,
+		retrySections = false,
 	): { core: RailCorePos; key: string } | null {
 		const plan = this.planCreation(world, positions, property);
 		if (!plan) return null;
@@ -556,50 +557,59 @@ export class AppleExtendedRailCompat {
 			placementMaps,
 			creationProperty,
 		);
+		const preserveExistingNormal =
+			ordered.length === 2 &&
+			(protectedRoadbeds.length > 0 ||
+				AppleExtendedRoadbedPlacement.hasExisting(
+					world,
+					placementMaps,
+					creationProperty,
+				));
+		const nativeSections =
+			!!preservingSections &&
+			!plan.sections &&
+			!retrySections &&
+			!preserveExistingNormal;
 		try {
-			apiResult = plan.sections
-				? AppleExtendedSectionPlacementCompat.create(
-						world,
-						plan.sections,
-						creationProperty,
-						player.capabilities.isCreativeMode,
-					)
-				: ordered.length > 2
-					? AppleExtendedSwitchCompat.create(
+			apiResult =
+				plan.sections || (retrySections && preservingSections)
+					? AppleExtendedSectionPlacementCompat.create(
 							world,
-							player,
-							ordered,
+							(plan.sections || preservingSections)!,
 							creationProperty,
+							player.capabilities.isCreativeMode,
 						)
-					: protectedRoadbeds.length > 0 ||
-						  AppleExtendedRoadbedPlacement.hasExisting(
+					: ordered.length > 2
+						? AppleExtendedSwitchCompat.create(
 								world,
-								placementMaps,
+								player,
+								ordered,
 								creationProperty,
-						  )
-						? preservingSections
-							? AppleExtendedSectionPlacementCompat.create(
+							)
+						: preserveExistingNormal
+							? preservingSections
+								? AppleExtendedSectionPlacementCompat.create(
+										world,
+										preservingSections,
+										creationProperty,
+										player.capabilities.isCreativeMode,
+									)
+								: AppleExtendedRoadbedPlacement.createNormal(
+										world,
+										placementMaps[0],
+										creationProperty,
+										player.capabilities.isCreativeMode,
+									)
+							: BlockMarker.createRail(
 									world,
-									preservingSections,
+									root.blockX,
+									root.blockY,
+									root.blockZ,
+									list,
 									creationProperty,
+									true,
 									player.capabilities.isCreativeMode,
-								)
-							: AppleExtendedRoadbedPlacement.createNormal(
-									world,
-									placementMaps[0],
-									creationProperty,
-									player.capabilities.isCreativeMode,
-								)
-						: BlockMarker.createRail(
-								world,
-								root.blockX,
-								root.blockY,
-								root.blockZ,
-								list,
-								creationProperty,
-								true,
-								player.capabilities.isCreativeMode,
-							);
+								);
 		} catch (error) {
 			NGTLog.debug(`[SuperRailBuilderX AE] creation exception: ${error}`);
 			return null;
@@ -630,6 +640,25 @@ export class AppleExtendedRailCompat {
 				);
 				// Retry only when no live section owner remains. Do not replace a partial group.
 				if (!partial) {
+					if (nativeSections) {
+						NGTLog.debug(
+							"[SuperRailBuilderX AE] retrying native section failure with preserved logical geometry",
+						);
+						return this.createFromPositions(
+							world,
+							player,
+							ordered,
+							creationProperty,
+							true,
+						);
+					}
+					const length = placementMaps[0].getLength();
+					if (length > RTMCore.railGeneratingDistance) {
+						NGTLog.debug(
+							`[SuperRailBuilderX AE] section creation failed safely: length=${length}, normalLimit=${RTMCore.railGeneratingDistance}, retrySections=${retrySections}`,
+						);
+						return null;
+					}
 					const fallback = ItemRail.getDefaultProperty();
 					fallback.readFromNBT(creationProperty.writeToNBT());
 					fallback.autoSplit = false;
@@ -831,6 +860,21 @@ export class AppleExtendedRailCompat {
 		if (!startRP || !endRP) return { status: "rail_endpoint_changed" };
 		if (!this.areBoundaryPositions([startRP, endRP]))
 			return { status: "endpoint_not_on_block_boundary" };
+		// Revalidate the connected endpoint's position/heading, but use this
+		// design's control lengths rather than those of the existing neighbour.
+		startRP.anchorLengthHorizontal = start.anchorLength;
+		endRP.anchorLengthHorizontal = end.anchorLength;
+		startRP.anchorLengthVertical =
+			start.anchorLengthVertical === undefined
+				? start.anchorLength
+				: start.anchorLengthVertical;
+		endRP.anchorLengthVertical =
+			end.anchorLengthVertical === undefined
+				? end.anchorLength
+				: end.anchorLengthVertical;
+		NGTLog.debug(
+			`[SuperRailBuilderX AE] resolved design: start=${startRP.posX},${startRP.posY},${startRP.posZ}, yaw=${startRP.anchorYaw}, pitch=${startRP.anchorPitch}, lengthH=${startRP.anchorLengthHorizontal}, lengthV=${startRP.anchorLengthVertical}; end=${endRP.posX},${endRP.posY},${endRP.posZ}, yaw=${endRP.anchorYaw}, pitch=${endRP.anchorPitch}, lengthH=${endRP.anchorLengthHorizontal}, lengthV=${endRP.anchorLengthVertical}`,
+		);
 
 		const createdProperty = ItemRail.getDefaultProperty();
 		createdProperty.readFromNBT(property.writeToNBT());

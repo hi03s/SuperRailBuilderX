@@ -139,12 +139,28 @@ export class AppleExtendedSectionPlacementCompat {
 		// Revalidate every physical owner before any block mutation.
 		for (let i = 0; i < sections.length; i++) {
 			const owner = sections[i].owner;
+			const blocks = sections[i].map.getRailBlockList(property, true);
+			for (let j = -1; j < blocks.size(); j++) {
+				const p = j < 0 ? owner : blocks.get(j);
+				if (!world.isBlockLoaded(new BlockPos(p[0], p[1], p[2]))) {
+					NGTLog.debug(
+						`[SuperRailBuilderX AE] section placement blocked: section=${i}, reason=path_unloaded, block=${p[0]},${p[1]},${p[2]}`,
+					);
+					return false;
+				}
+			}
 			const tile = world.getTileEntity(
 				new BlockPos(owner[0], owner[1], owner[2]),
 			);
-			if (tile instanceof TileEntityLargeRailCore) return false;
-			if (!sections[i].map.canPlaceRail(world, creative, property))
+			if (
+				tile instanceof TileEntityLargeRailCore ||
+				!sections[i].map.canPlaceRail(world, creative, property)
+			) {
+				NGTLog.debug(
+					`[SuperRailBuilderX AE] section placement blocked: section=${i}, reason=${tile instanceof TileEntityLargeRailCore ? "core_conflict" : "native_placement"}, owner=${owner[0]},${owner[1]},${owner[2]}`,
+				);
 				return false;
+			}
 		}
 		const group = UUID.randomUUID();
 		const positions = new ArrayList<JavaIntArray>();

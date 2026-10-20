@@ -591,9 +591,19 @@ assert.strictEqual(
 	beforeCalls,
 	"all occupied owners must reject without world mutation",
 );
-// An opaque native Section failure may retry as normal only with no live owners.
+// A native Section failure first retries the same logical section geometry.
 world.func_175625_s = () => null;
 createdOwner = null;
+let manualSectionAttempts = 0,
+	lastManualSectionPlan,
+	manualSectionsSucceed = false;
+context.AppleExtendedSectionPlacementCompat.create = (_world, placement) => {
+	manualSectionAttempts++;
+	lastManualSectionPlan = placement;
+	if (!manualSectionsSucceed) return false;
+	createdOwner = placement.sections[0].start;
+	return true;
+};
 const normalApi = context.Packages.jp.ngt.rtm.rail.BlockMarker.createRail;
 context.Packages.jp.ngt.rtm.rail.BlockMarker.createRail = (...args) => {
 	if (args[5].autoSplit) {
@@ -610,6 +620,50 @@ assert.strictEqual(
 assert.strictEqual(apiCalls - retryCalls, 2);
 assert.strictEqual(receivedProperty.autoSplit, false);
 assert.strictEqual(autoProperty.autoSplit, true);
+assert.equal(manualSectionAttempts, 1);
+const longPositions = positions.map((p, i) => ({
+	...p,
+	posX: i * 300,
+	posZ: 0.5,
+	anchorLengthHorizontal: 120 + i * 10,
+	anchorLengthVertical: 0,
+}));
+manualSectionsSucceed = true;
+createdOwner = null;
+const longNativeCalls = apiCalls;
+const longBeforeRetry = JSON.stringify(longPositions);
+assert.equal(
+	helper.createFromPositions(world, player, longPositions, autoProperty).key,
+	"created",
+);
+assert.equal(
+	apiCalls - longNativeCalls,
+	1,
+	"retry does not repeat native placement",
+);
+assert.equal(manualSectionAttempts, 2);
+assert.deepEqual(
+	[
+		lastManualSectionPlan.source.start.anchorLengthHorizontal,
+		lastManualSectionPlan.source.end.anchorLengthHorizontal,
+	].sort(),
+	[120, 130],
+	"section retry preserves the designed logical controls",
+);
+assert.equal(JSON.stringify(longPositions), longBeforeRetry);
+manualSectionsSucceed = false;
+createdOwner = null;
+const failedNativeCalls = apiCalls;
+assert.equal(
+	helper.createFromPositions(world, player, longPositions, autoProperty),
+	null,
+);
+assert.equal(
+	apiCalls - failedNativeCalls,
+	1,
+	"over-limit rail must not retry as a normal rail",
+);
+assert.equal(manualSectionAttempts, 3, "manual placement retries at most once");
 createdOwner = null;
 let livePartial = false;
 world.func_175625_s = (pos) =>
@@ -620,6 +674,7 @@ context.Packages.jp.ngt.rtm.rail.BlockMarker.createRail = () => {
 	return false;
 };
 const partialCalls = apiCalls;
+const partialManualCalls = manualSectionAttempts;
 assert.strictEqual(
 	helper.createFromPositions(world, player, positions, autoProperty),
 	null,
@@ -628,6 +683,11 @@ assert.strictEqual(
 	apiCalls - partialCalls,
 	1,
 	"partial group must not be replaced by fallback",
+);
+assert.equal(
+	manualSectionAttempts,
+	partialManualCalls,
+	"partial cores prevent manual retry",
 );
 context.Packages.jp.ngt.rtm.rail.BlockMarker.createRail = normalApi;
 
@@ -906,3 +966,87 @@ assert.equal(
 	"srbxpatch_required",
 );
 console.log("AppleExtended separate patch capability guards passed");
+
+// A snapped design inherits its neighbour's heading, not its control lengths.
+{
+	const names = [
+		"validatePoint",
+		"propertyFromPlayer",
+		"resolveRailPoint",
+		"createFreePoint",
+		"areBoundaryPositions",
+		"createFromPositions",
+	];
+	const saved = Object.fromEntries(names.map((n) => [n, helper[n]]));
+	const neighbour = { anchorLengthHorizontal: 2, anchorLengthVertical: 3 };
+	let captured;
+	Object.assign(helper, {
+		validatePoint: () => "ok",
+		propertyFromPlayer: () => ({ writeToNBT: () => ({}) }),
+		resolveRailPoint: (_w, p) => ({
+			...neighbour,
+			posX: p.position[0],
+			posY: p.position[1],
+			posZ: p.position[2],
+			anchorYaw: p.anchorYaw,
+			anchorPitch: p.anchorPitch,
+		}),
+		createFreePoint: (p) => ({
+			posX: p.position[0],
+			posY: p.position[1],
+			posZ: p.position[2],
+			anchorYaw: p.anchorYaw,
+			anchorPitch: p.anchorPitch,
+		}),
+		areBoundaryPositions: () => true,
+		createFromPositions: (_w, _p, positions) => {
+			captured = positions;
+			return { core: [0, 4, 0], key: "new-design" };
+		},
+	});
+	try {
+		for (const kinds of [
+			["rail", "free"],
+			["free", "rail"],
+			["rail", "rail"],
+		]) {
+			const a = {
+				kind: kinds[0],
+				position: [0.5, 4.0625, 0.5],
+				anchorYaw: 30,
+				anchorPitch: 0,
+				anchorLength: 110,
+				anchorLengthVertical: 0,
+			};
+			const b = {
+				kind: kinds[1],
+				position: [180.5, 4.0625, 210.5],
+				anchorYaw: 210,
+				anchorPitch: 0,
+				anchorLength: 130,
+			};
+			assert.equal(helper.createNormalRail({}, {}, a, b).status, "ok");
+			assert.deepEqual(
+				Array.from(captured, (p) => p.anchorLengthHorizontal),
+				[110, 130],
+			);
+			assert.deepEqual(
+				Array.from(captured, (p) => p.anchorLengthVertical),
+				[0, 130],
+			);
+			assert.deepEqual(
+				Array.from(captured, (p) => p.anchorYaw),
+				[30, 210],
+			);
+			assert.deepEqual(neighbour, {
+				anchorLengthHorizontal: 2,
+				anchorLengthVertical: 3,
+			});
+		}
+	} finally {
+		Object.assign(helper, saved);
+	}
+	console.log(
+		"AE connected long-curve design retains requested horizontal/vertical controls on either end",
+	);
+}
