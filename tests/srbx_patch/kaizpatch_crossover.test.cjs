@@ -232,6 +232,7 @@ created.setSignal = (v) => (created.signal = v);
 created.addSubRail = () => {};
 Object.assign(api, {
 	hasFreeEndpointPatch: () => true,
+	planSwitchMoveOwners: (_source, positions) => positions,
 	validateBuilderPoint: () => "ok",
 	createBuilderProperty: () => ({ name: "held" }),
 	cloneRailProperty: (p) => ({ ...p }),

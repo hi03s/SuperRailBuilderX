@@ -38,6 +38,10 @@ function process(
 	);
 	if (result.status === "ok" && result.undoToken)
 		undos.put(entity, result.undoToken);
+	if (result.status !== "ok")
+		NGTLog.debug(
+			`[SuperRailBuilderX crossover] rejected request: status=${result.status}, plan=${JSON.stringify(request.plan)}`,
+		);
 	return result.status;
 }
 function onUpdate(entity: EntityVehicle, executer: ScriptExecuter): void {

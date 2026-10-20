@@ -1571,7 +1571,11 @@ export class SRBXApiCompat {
 		for (const rp of positions) reserved[key(rp)] = true;
 		const blocked = (x: number, y: number, z: number) => {
 			const tile = world.getTileEntity(x, y, z);
-			return tile instanceof TileEntityLargeRailCore && tile !== core;
+			return (
+				tile instanceof TileEntityLargeRailCore &&
+				tile !== core &&
+				!core.isSameLogicalRail(tile)
+			);
 		};
 		for (let i = 0; i < planned.length; i++) {
 			const rp = planned[i];
@@ -6274,7 +6278,12 @@ export class SRBXApiCompat {
 			RailMapBasic.fixRTMRailMapVersionCurrent,
 		);
 		const nativeSwitch = maker.getSwitch();
-		if (!nativeSwitch) return { status: "invalid_switch_layout" };
+		if (!nativeSwitch) {
+			NGTLog.debug(
+				`[SuperRailBuilderX crossover] native layout rejected: source=${plan.source ? plan.source.railKey : "none"}, points=${positions.map((rp) => `${rp.posX},${rp.posY},${rp.posZ}/owner=${rp.blockX},${rp.blockY},${rp.blockZ}/dir=${rp.direction}/yaw=${rp.anchorYaw}/switch=${rp.switchType}`).join(";")}`,
+			);
+			return { status: "invalid_switch_layout" };
+		}
 		const nativeMaps = nativeSwitch.getAllRailMap();
 		for (let i = 0; i < nativeMaps.length; i++)
 			if (
@@ -6285,6 +6294,17 @@ export class SRBXApiCompat {
 				)
 			)
 				return { status: "path_unloaded" };
+		if (sourceCore) {
+			const planned = this.planSwitchMoveOwners(sourceCore, positions);
+			if (!planned) {
+				NGTLog.debug(
+					`[SuperRailBuilderX crossover] endpoint owners rejected: source=${plan.source!.railKey}, owners=${positions.map((rp) => `${rp.blockX},${rp.blockY},${rp.blockZ}`).join(";")}`,
+				);
+				return { status: "rail_overlap" };
+			}
+			for (let i = 0; i < positions.length; i++)
+				positions[i] = planned[i];
+		}
 		const owners: { [key: string]: boolean } = {};
 		for (let i = 0; i < positions.length; i++) {
 			const rp = positions[i],

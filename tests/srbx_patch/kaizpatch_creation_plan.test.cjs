@@ -7,7 +7,11 @@ class Base {
 		return this;
 	}
 }
-class Core extends Base {}
+class Core extends Base {
+	isSameLogicalRail(other) {
+		return this === other || (!!this.group && this.group === other.group);
+	}
+}
 class Block {
 	constructor(core = false) {
 		this.core = core;
@@ -447,4 +451,44 @@ assert.equal(
 );
 console.log(
 	"KaizPatch endpoint NBT round-trip and connected switch auxiliary-owner relocation passed",
+);
+
+// Crossover replacement may share an endpoint owner with a connected core.
+footprint = [
+	[0, 4, 0],
+	[20, 4, 0],
+	[21, 4, 0],
+	[30, 4, 0],
+	[40, 4, 0],
+];
+tiles.clear();
+tiles.set("20,4,0", foreignOwner);
+const crossoverEndpoints = conflictEndpoints.concat(
+	offsetPosition(40.25, 4.0625, 0.5),
+);
+const crossoverOwners = planSwitchOwners.call(
+	api,
+	endpointSource,
+	crossoverEndpoints,
+);
+assert(crossoverOwners);
+assert.equal(crossoverOwners.length, 4);
+assert.equal(crossoverOwners[1].blockX, 21);
+assert.deepStrictEqual(crossoverOwners[1].decode(), [20.25, 4.0625, 0.5]);
+assert.equal(tiles.get("20,4,0"), foreignOwner);
+const section = new Core();
+section.group = endpointSource.group = "baseline";
+tiles.set("20,4,0", section);
+const sectionOwners = planSwitchOwners.call(
+	api,
+	endpointSource,
+	crossoverEndpoints,
+);
+assert.equal(
+	sectionOwners[1].blockX,
+	20,
+	"Own section cores are removed with source; no unnecessary relocation",
+);
+console.log(
+	"Crossover four-endpoint owner planning preserves connected cores, precise coordinates and source sections",
 );
