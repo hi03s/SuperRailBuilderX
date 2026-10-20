@@ -684,3 +684,12 @@
 - 開発者指示により、開始記録と終了結果の2コミットを基本とする。開始コミット7098c24をpush後に本変更へ着手。AGENTS.mdの自己SHA・同期結果追記を目的とした追加文書コミットの指示を撤廃し、結果・履歴・直近の完了を終了コミットへ集約するよう変更した。
 - 終了コミットSHAは最終報告で共有する。後から引継ぎ帳へ必要なSHA/同期結果を残す場合は次回開始コミットへまとめる。push失敗時は未同期を報告し、必要な記録は未pushの終了コミットへのamendを優先する。push済みコミットは書き換えない。
 - 検証は文書差分・リンク確認。コード変更がないためビルド/実機テストは未実施。ユーザーXCFは変更しない。
+
+## 2026-10-20 ローカルCodex: 片渡り判定の内積誤用とワールド終了時の描画クラッシュ
+
+- 開始記録8f55e3dをorigin/mainへpush後に調査。追加latest.logの21:34:19にはmask=0,1,1,0、始点(-147.995,4.063,873.105)、終点(-184.275,4.063,874.555)、yaw約272.2887/92.2887度、複線間隔4mのネイティブ拒否を記録。Kaiz実装GeometrixKt.crossStraightLineAndLineSegmentsが対側判定に外積でなくVec2d.dotを使っていることを一次ソース・実JARのjavapで確認。収集座標では平行な本線の両候補組合せを交差と誤判定し、SwitchTypeSingleCrossFixRTMV1.initがfalseを返していた。
+- SRBXPatch 1.7.10版へRailSafetyTransformerを登録。既知メソッド記述子と2つのdot呼出しに一致した場合のみ、その2呼出しを合成static外積メソッドへ差し替える。元のnull検査・分岐・stack-map frameと他メソッドの内積は保持。未知/本家修正済みの形状は変更せず、分岐生成の通常検証も迂回しない。
+- 21:34:24の前後接続曲線はindex=1の補助所有位置を(-161,4,863)→(-161,4,862)へ移し、既設コアを保持して生成成功。21:34:28のUndoも成功しており、前回のSRBX側owner修正が働いたことを確認。
+- 21:34:32はサーバー/ワールド終了後のRendering Block Entity。Renderbaru1067mm.renderRailDynamic→RailPartsRenderer.isSwitchRailでgetAllRailMaps()==nullのlengthを読みNPE。SRBXのrenderRailDynamic2補正より外側のモデル処理で発生していた。Java側のrenderRail入口にtile/mapのnullガードを入れ、未準備の間は静的/動的描画を開始せず、準備済みなら元の描画を行う。スクリプト例外の握り潰しやモデル資産の変更は行わない。
+- 検証: ローカルPythonはPATH上にはないが.cache/srbxpatch/python/python.exeが存在したため、mod/build.py --target all --testと両実JAR引数で標準ビルドを実施。Java8 JVMでnull tile/map/有効map/再null化、ASMの既知形状・未知実装保持・冪等性、収集座標の誤判定再現と補正、72方向の平行線と実交差、実Kaiz描画/幾何クラスのBasicVerifier、従来台車hook・AE回帰が成功。テストクラス/依存/パック資産非同梱とclass version52もビルド内で確認。文書リンク・差分確認。TypeScript変更がないためパックの再ビルドは未実施、実機も未実施。
+- artifacts/SRBXPatch-v1.0-1.7.10.jarを更新（SHA256:202c84fe8aa33277619e47a470fb674280719bdb3e311396250a1d73a5d1c6e4）。AE JARは同一ソースで再生成、補正は追加しない。ZIP/タグZIP/既存Draftは変更しない。最新1.7.10用JARをクライアント/サーバーへ置き換えMinecraftを再起動し、斜め直線片渡り生成・Undo・ワールド終了/再入場と接続走行を確認するよう案内。生ログは確認待ちのためローカル保持しGitへ追加しない。
