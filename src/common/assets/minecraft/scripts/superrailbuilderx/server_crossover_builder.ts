@@ -11,7 +11,7 @@ import { SRBXApiCompat } from "@target/assets/minecraft/scripts/superrailbuilder
 
 import { SRBXCrossoverPlan } from "./SRBXCrossoverPlan";
 
-const VERSION = "0.3.1";
+const VERSION = "0.3.2";
 export type CrossoverBuilderRequest =
 	{ action: "create"; plan: SRBXCrossoverPlan } | { action: "undo" };
 const hosts: WeakHashMap<Entity, EntityPlayer> = new WeakHashMap();

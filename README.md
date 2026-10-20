@@ -1,11 +1,11 @@
 # SuperRailBuilderX
 
-**Release: 0.3.1**
+**Release: 0.3.2**
 
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.7.10-62b47a)](https://www.minecraft.net/)
 [![KaizPatchX](https://img.shields.io/badge/KaizPatchX-1.10.3%2B-57b57b)](https://github.com/Kai-Z-JP/KaizPatchX)
 [![AppleExtended](https://img.shields.io/badge/AppleExtended-v2.5.3-c96f4a)](https://github.com/Kirtmuna/AppleExtended/releases/tag/v2.5.3)
-[![Release](https://img.shields.io/badge/release-0.3.1-blue)](https://github.com/hi03s/SuperRailBuilderX/releases)
+[![Release](https://img.shields.io/badge/release-0.3.2-blue)](https://github.com/hi03s/SuperRailBuilderX/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 ## 概要
@@ -33,7 +33,7 @@ AppleExtended v2.5.3では、通常・自動分割レールの生成、複線コ
 
 ## 導入方法
 
-SRBX 0.3.1は完全自由点仕様です。KaizPatchX 1.10.4 / AppleExtended v2.5.3側で対応されるまで、暫定パッチMod **SRBXPatch** を併用してください。JAR内にパックは含まれません。
+SRBX 0.3.2は完全自由点仕様です。KaizPatchX 1.10.4 / AppleExtended v2.5.3側で対応されるまで、暫定パッチMod **SRBXPatch** を併用してください。JAR内にパックは含まれません。
 
 1. KaizPatchX 1.10.4またはAppleExtended v2.5.3を導入します。
 2. [Releases](https://github.com/hi03s/SuperRailBuilderX/releases)のAssetsから、SRBXパックZIPと環境に合うSRBXPatch JARをダウンロードします。

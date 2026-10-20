@@ -4,7 +4,7 @@
 
 ## 現在の状態
 
-- SRBX 0.3.1、main。rtm-ts 0.12.0を改造せず、KaizPatch/AE/通常RTM 1.7.10/通常RTM 1.12.2の4ターゲット構成を維持。
+- SRBX 0.3.2、main。rtm-ts 0.12.0を改造せず、KaizPatch/AE/通常RTM 1.7.10/通常RTM 1.12.2の4ターゲット構成を維持。
 - KaizPatchX 1.10.4 / AppleExtended 2.5.3は完全自由点仕様。SRBXパックと対象SRBXPatch JARを併用する。基本はクライアント/サーバー双方へ導入し、SRBX未導入クライアントにはJAR不要。本家対応までの暫定処理。[導入](user-guide/srbx-free-endpoint-mod.md)。
 - 生成・移動・分割・複線・カント・分岐・Undoは共通の道床/コア保護を使用。理論両端各1タイルの所有先変更、競合時の逆順→設定上限内の通常生成、撤去前の所有先復元に対応。[道床調査](research/roadbed-ownership-investigation.md)。
 - AE重複区間・自動分割境界対策は実機確認済み（2026-10-11）。KaizのCrossTieあり/なしも実機動作を確認済み。[AE対策](research/appleextended-overlap-rail-patch.md)。
@@ -12,13 +12,13 @@
 - 長押し単位は初期値の10倍まで。A/B/分岐の固定半径は1→10m、Ctrlは100m固定。A/Bは接続済み端点を始点/終点から除外、分岐は始点だけ許可。分岐終点は分岐レールの全未接続・水平端部も候補化。実機確認待ち。
 - [組ホーム](user-guide/platform-builder.md)を追加。手持ちレール必須、左右1列、間隔2m/高さ1.5mから設定。サーバーで元線形を再検証・再計算し、共通保護とUndoを使用。ホイールは全9ツール。実機確認待ち。
 - AEのTAB拒否は非乗車追従へ乗車必須チェックを適用していたことが原因。bb224faでcompat判定と切替後のサーバーホスト引継ぎを修正しpush済み。全4build・入力/GUI/dispatch/AE回帰・Java8ホイール成功、実機再確認待ち。
-- [v0.3.1 Draft](https://github.com/hi03s/SuperRailBuilderX/releases/tag/untagged-c0ca067f4b5e8b3bf12f)を作成済み。タグは32e2467。Actions成功、本文一致・draft=true・ZIPと2 JARの添付/ダウンロード検証済み。公開は開発者の手動Publish。[リリース手順](development/releasing.md)。
-- artifactsには最新開発版`SuperRailBuilderX-0.3.1.zip`、タグ時点の`SuperRailBuilderX-0.3.1-v0.3.1.zip`、環境別SRBXPatch v1.0 JARだけを保持。今回の新機能は最新開発版のみへ反映し、既存Draft/Assetsは変更しない。
+- v0.3.1は公開済み（GitHub APIで確認）。v0.3.2は本終了コミットへタグを付け、ActionsでZIP＋両SRBXPatch付きDraftを準備する。公開は開発者の手動Publish。[リリース手順](development/releasing.md)。
+- artifactsは開発版`SuperRailBuilderX-0.3.2.zip`、配布版`SuperRailBuilderX-v0.3.2.zip`、環境別SRBXPatch v1.0 JARの4ファイル。旧0.3.1 ZIPは.cache/release-v031へ退避。既存リリースは変更しない。
 - docsは[user-guide](user-guide/)、[development](development)、[research](research/)、[history](history)へ分類。文書入口は[README](README.md)。logsは原則Git保存しない。
 
 ## 作業中
 
-- ローカルCodex: SRBXを0.3.2へ更新し、ビルド・配布ZIP/両SRBXPatch添付と手動Publish用Draftリリースを準備・検証する。
+- なし。
 
 ## 優先確認事項
 - AEの既設端点接続生成で元線の制御長を流用しプレビューとずれる不具合を修正。要求された水平/垂直制御長を使う。Kaizには同じ欠落なし（接続長大曲線の回帰追加）。自動分割のネイティブ生成で全コア未生成の場合だけ、論理曲線を保つ手動配置へ1回再試行し、部分コアがある場合は停止する。未読込区間は変更前に拒否・診断。全4build・AE/Kaiz/GUI/遷移/dispatch成功、最新ZIPで新規の長大カーブ・分割/Undo・再入場後と元分岐保持を確認する。既存の変形レールは自動修復しない。再発時は操作/時刻とlogs/latest.logを共有する。
@@ -39,20 +39,20 @@
 - Issue #2のコピー4本は始終点Pitch=0、3本は同じ高さ、残り1本は0.5mmの丸め差だけ。先日の縦曲線再分割バグとの直接関連を示す根拠はない。開発者の水平カント付き複線テストでは非再現。元レールの生成履歴と対象モデルの切り分けを続ける。
 - 生成Aの0‰/非0‰の水平曲線、向きが逆の接続レールの複線コピー、生成Bの左右方向と直線停止を修正。全4build・関連回帰成功。最新開発ZIPでKaizPatch/AEの生成・UndoとBの押し直しを実機確認する。異常時は操作・時刻とlogs/latest.logを共有する。
 
-- AE中間点分岐の生成・Undo・失敗復元と描画パッチは、開発者から実機解消確認を受領（2026-10-12）。0.3.1へ含める。
+- AE中間点分岐の生成・Undo・失敗復元と描画パッチは、開発者から実機解消確認を受領（2026-10-12）。0.3.1に収録済み。
 - KaizPatch/AEでI/Kの始点高さ限定、Uの地上高延長、BのJ/L/Ctrl/長押し加速・512m上限と半径操作、組ホームの左右・高さ・手持ち必須・生成/Undo、9ツールのホイールを確認する。異常時は操作順とlogs/latest.logを共有する。
 - A/Bの接続済み端点除外、分岐の接続済み始点選択と終点除外、分岐レール3端点へのスナップを確認する。分岐の中間点選択・水平制約は維持している。
 - AEの分岐補助道床が既設コアと重なる生成失敗を修正。端点の精密座標を保ち、補助所有ブロックだけ近傍の道床範囲内へ移す。生成・再読込・Undoで既設レールが保持されることを確認する。異常時はlogs/latest.logを共有する。
 - 道床所有履歴の専用WorldSavedDataへの変更は模擬保存/再読込まで確認済み。生成・接続移動・分割・Undoと再入場後の未選択レール保持を実機確認する。本番サーバーは操作しない。
 - 状態GUI、カントの理論レール単位選択/両端適用/0km/h/±50、CTRL中の移動ホバー抑止、分岐スナップは関連回帰成功。未確認の実機条件は操作順とログで確認する。
 - SRBX未導入/JARなしクライアント接続は設計上許可するが、実機接続は未確認。
-- v0.3.1 Draftの本文/Assets確認後に開発者が手動Publishする。ローカルCodexは公開しない。
+- v0.3.2のActions結果とDraft本文/ZIP＋2 JARを確認し、開発者が手動Publishする。タグpush後の検証結果・Draft URLは最終報告で伝え、記録だけの追加コミットは作らない。ローカルCodexは公開しない。
 
 ## 次に行うこと
 
 1. 最新main ZIPで上記の実機確認を行う。異常時は機能・操作順・時刻とlogs/latest.logを共有する。
 2. 確認結果を引継ぎ帳へ反映し、不要になったローカルログを削除する。調査結果は文書へ要約し、生ログをGitへ追加しない。
-3. v0.3.1 Draftの本文とAssetsを確認し、開発者が手動Publishを行う。
+3. v0.3.2 Draftの本文とAssets・実機確認状況を確認し、開発者が手動Publishを行う。
 
 ## 双方向連絡
 
@@ -61,6 +61,7 @@
 - ローカルに保持する調査ログは、最新AEログとKaiz保存APIの例外抜粋。解消を確認した分岐クラッシュの旧抜粋は削除。実機再確認後に不要なら削除する。
 
 ## 直近の完了
+- 2026-10-21 ローカルCodex: SRBX0.3.2へ更新し、配布ZIP・0.3.1以降の本文・両v1.0 JARを準備。全4build・関連回帰・実バイトコード検証成功。終了コミットへv0.3.2タグを付け、Draft/AssetsをActionsで作成・確認する（結果は最終報告）。開始記録0021aa8。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 - 2026-10-21 ローカルCodex: AE接続生成の制御長反映漏れと長大セクション失敗時の再生成経路を修正。Kaiz同種問題なし、回帰を追加。全4build・関連回帰成功、開発ZIP更新、実機未確認。開始記録4e905b3。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 - 2026-10-21 ローカルCodex: AE通常レールのNBT形式を修正し、空形状の成功扱いを防止。コア計画のY丸め差対策・競合段階診断を追加。全4build・関連回帰成功、開発ZIP更新、実機再確認待ち。開始記録1a09e3d。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 - 2026-10-21 ローカルCodex: 渡り線既設選択を復旧、最小30m、水平曲線のY丸め差によるコア逆転を修正。全ツールCtrl半径の長押し加速を廃止。全4build・関連回帰・Java8成功、開発ZIP更新、実機未確認。開始記録9c7dc4d。[10月履歴](history/CODEX_HISTORY_2026-10.md)。

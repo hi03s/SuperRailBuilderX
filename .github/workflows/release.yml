@@ -63,7 +63,10 @@ jobs:
               run: python3 mod/build.py --target all --test
 
             - name: Create distribution ZIP
-              run: pnpm exec rtmx zip
+              shell: bash
+              run: |
+                  find dist -type f -iname '*.xcf' -delete
+                  pnpm exec rtmx zip
 
             - name: Select and rename release asset
               id: asset
@@ -76,9 +79,8 @@ jobs:
                   fi
 
                   source_zip="${zip_files[0]}"
-                  pack_name="$(basename "$source_zip" .zip)"
                   safe_tag="${GITHUB_REF_NAME//\//-}"
-                  release_zip="artifacts/${pack_name}-${safe_tag}.zip"
+                  release_zip="artifacts/SuperRailBuilderX-${safe_tag}.zip"
                   mv "$source_zip" "$release_zip"
                   echo "path=$release_zip" >> "$GITHUB_OUTPUT"
 
