@@ -18,7 +18,7 @@
 
 ## 作業中
 
-- ローカルCodex: 1作業を原則として開始・終了の2コミットにまとめ、SHA追記だけの追加コミットを不要とする運用へ変更する。
+- なし。実機確認待ち。
 
 ## 優先確認事項
 - 渡り線生成: 10/20提供ログの21:16:18はinvalid_switch_layout（開発者記憶では接続なし直線）、21:16:21はrail_overlap（前後接続あり曲線）。Kaizの既設基準線置換時に、接続先コアと重なる補助所有位置を近傍へ移す処理を追加し全4build/関連回帰成功。直線側は原因未特定のため、失敗時の4端点座標・方向・switchTypeとリクエストを診断出力する。最新開発ZIPで両ケースを再試行し、形状名・操作・時刻とlogs/latest.logを共有する。既設コア上書き・不正形状の強制生成は行わない。
@@ -55,6 +55,7 @@
 - ローカルに保持する調査ログは、最新AEログとKaiz保存APIの例外抜粋。解消を確認した分岐クラッシュの旧抜粋は削除。実機再確認後に不要なら削除する。
 
 ## 直近の完了
+- 2026-10-20 ローカルCodex: 1作業を開始・終了の2コミットにまとめる運用へ変更。結果・履歴は終了コミットへ集約し、自己SHA/同期結果の追記だけの追加コミットは廃止。今回の開始記録は7098c24。文書差分・リンクを確認し、文書のみのためビルド未実施。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 - 2026-10-20 ローカルCodex: 既設レールから渡り線生成時の補助所有位置競合を修正し、未特定の直線レイアウト拒否へ診断出力を追加。全4build/GUI/AE/Kaiz/遷移/dispatch成功、開発ZIP更新。[62de82a](https://github.com/hi03s/SuperRailBuilderX/commit/62de82a)をorigin/mainへpush・同期済み。実機再確認と直線側の追加ログ待ち。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 - 2026-10-20 ローカルCodex: AGENTS.mdに着手前の開始記録コミット・pushと、終了結果の別コミット・pushを必須化。今回も開始記録[7933e23](https://github.com/hi03s/SuperRailBuilderX/commit/7933e23)を先にpushしてから編集した。終了コミット0cfac7eをorigin/mainへpush・同期済み。文書差分・リンク確認、ビルドは文書のみのため未実施。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 - 2026-10-19 ローカルCodex: 接続分岐移動の所有位置変更後NBT座標ずれを修正し、Kaiz/AEの片渡り4点分岐の固定中点分割・生成復元/Undoを追加。全4build・関連回帰・Java8成功、開発ZIP更新、実機未確認。[b0ca61f](https://github.com/hi03s/SuperRailBuilderX/commit/b0ca61f)をorigin/mainへpush・同期済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
