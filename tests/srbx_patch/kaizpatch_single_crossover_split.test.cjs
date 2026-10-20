@@ -119,6 +119,16 @@ vm.runInContext(
 );
 const api = Object.values(context.RTMX_COMPAT_TARGETS.kaizpatch)[0]
 	.SRBXApiCompat;
+// The client uses this public API for selecting an existing crossover base.
+const logicalMap = api.getLogicalRailMap;
+assert.equal(typeof api.isHorizontalBuilderRail, "function");
+for (const slope of [0, 0.01]) {
+	api.getLogicalRailMap = () => ({ getRailPitch: () => slope });
+	assert.equal(api.isHorizontalBuilderRail({}), slope === 0);
+}
+api.getLogicalRailMap = () => null;
+assert.equal(api.isHorizontalBuilderRail({}), false);
+api.getLogicalRailMap = logicalMap;
 const nativeScissorsPlanMethod = api.getSingleCrossoverSplitPlan;
 const originalRestoreMethod = api.restoreSplitSource;
 const point = (x, z, yaw, owner = [x, 4, z]) => ({
@@ -718,9 +728,9 @@ tiles.clear();
 api.findConnectedCantEndpoints = () => [];
 const minimum = request([1, 1, 1, 1], false);
 for (const i of [1, 3]) {
-	minimum.points[i].position[2] = 20;
-	minimum.points[i].ownerBlock[2] = 20;
-	minimum.points[i].markerPosition[2] = 20;
+	minimum.points[i].position[2] = 30;
+	minimum.points[i].ownerBlock[2] = 30;
+	minimum.points[i].markerPosition[2] = 30;
 }
 const minResult = api.createCrossoverBuilderRail(world, {}, minimum);
 assert.equal(minResult.status, "ok");
@@ -729,9 +739,9 @@ reset();
 tiles.clear();
 const tooShort = request([1, 1, 1, 1], false);
 for (const i of [1, 3]) {
-	tooShort.points[i].position[2] = 19;
-	tooShort.points[i].ownerBlock[2] = 19;
-	tooShort.points[i].markerPosition[2] = 19;
+	tooShort.points[i].position[2] = 29;
+	tooShort.points[i].ownerBlock[2] = 29;
+	tooShort.points[i].markerPosition[2] = 29;
 }
 assert.equal(
 	api.createCrossoverBuilderRail(world, {}, tooShort).status,
@@ -740,5 +750,5 @@ assert.equal(
 assert.equal(created.length, 0);
 assert.equal(broken, 0);
 console.log(
-	"Kaiz scissors20m accepted/19m rejected before mutation; central overlapping normal pieces protect prior cores",
+	"Kaiz scissors30m accepted/29m rejected before mutation; central overlapping normal pieces protect prior cores",
 );

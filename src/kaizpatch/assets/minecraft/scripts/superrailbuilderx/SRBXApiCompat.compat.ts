@@ -3579,9 +3579,14 @@ export class SRBXApiCompat {
 		NGTLog.debug(
 			`[SuperRailBuilderX builder1] creation plan: kinds=${start.kind}->${end.kind}, startBlock=${startRP.blockX},${startRP.blockY},${startRP.blockZ}, startPos=${startRP.posX},${startRP.posY},${startRP.posZ}, startDir=${startRP.direction}, startYaw=${startRP.anchorYaw}, startPitch=${startRP.anchorPitch}, startLengthH=${startRP.anchorLengthHorizontal}, startLengthV=${startRP.anchorLengthVertical}, endBlock=${endRP.blockX},${endRP.blockY},${endRP.blockZ}, endPos=${endRP.posX},${endRP.posY},${endRP.posZ}, endDir=${endRP.direction}, endYaw=${endRP.anchorYaw}, endPitch=${endRP.anchorPitch}, endLengthH=${endRP.anchorLengthHorizontal}, endLengthV=${endRP.anchorLengthVertical}`,
 		);
-		let positions = (
-			startRP.posY <= endRP.posY ? [startRP, endRP] : [endRP, startRP]
-		) as RailPosition[];
+		let positions =
+			// Curve subdivision can differ by a few ULPs on a horizontal rail.
+			// Preserve its planned core; only a real descent changes the order.
+			(
+				startRP.posY <= endRP.posY + 1e-9
+					? [startRP, endRP]
+					: [endRP, startRP]
+			) as RailPosition[];
 		NGTLog.debug(
 			`[SuperRailBuilderX builder1] generation order: ${positions[0] === startRP ? "selected" : "reversed_to_lower_y"}`,
 		);
@@ -4738,8 +4743,13 @@ export class SRBXApiCompat {
 					core: result.undoCore,
 					key: result.undoKey,
 				});
+				if (result.undoCore.join(",") !== key(points[0])) {
+					NGTLog.debug(
+						`[SuperRailBuilderX splitter] normal core mismatch: index=${i}, expected=${key(points[0])}, actual=${result.undoCore.join(",")}, startY=${points[0].posY}, endY=${points[1].posY}`,
+					);
+					return rollback("normal_core_changed");
+				}
 				if (
-					result.undoCore.join(",") !== key(points[0]) ||
 					!this.applyBuilderRailState(
 						world,
 						result,
@@ -4747,7 +4757,7 @@ export class SRBXApiCompat {
 						record.subRails,
 					)
 				)
-					return rollback("normal_core_changed");
+					return rollback("rail_state_failed");
 			}
 		} catch (error) {
 			NGTLog.debug(
@@ -5716,6 +5726,10 @@ export class SRBXApiCompat {
 		}
 	}
 
+	static isHorizontalBuilderRail(core: TileEntityLargeRailCore): boolean {
+		return this.isFlatBuilderRail(core);
+	}
+
 	private static isFlatBuilderRail(core: TileEntityLargeRailCore): boolean {
 		const map = this.getLogicalRailMap(core);
 		return (
@@ -6442,7 +6456,7 @@ export class SRBXApiCompat {
 			positions[1],
 			RailMapBasic.fixRTMRailMapVersionCurrent,
 		);
-		if (baseline.getLength() < 19.999) return { status: "rail_too_short" };
+		if (baseline.getLength() < 29.999) return { status: "rail_too_short" };
 		if (sourceCore && record)
 			external.push(
 				...this.findConnectedCantEndpoints(

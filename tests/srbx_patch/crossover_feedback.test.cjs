@@ -57,9 +57,9 @@ assert.equal(context.createDefaultState().designLength, 40);
 context.crossoverBuilder = true;
 vm.runInContext(fn(builder, "changeDesignLength"), context);
 for (const delta of [-0.1, -1, -10, -100, -1000]) {
-	state.designLength = 20;
+	state.designLength = 30;
 	context.changeDesignLength(state, delta);
-	assert.equal(state.designLength, 20, "all repeat units stop at 20m");
+	assert.equal(state.designLength, 30, "all repeat units stop at 30m");
 }
 state.designLength = 511;
 context.changeDesignLength(state, 100);
@@ -95,9 +95,40 @@ Object.assign(context, {
 		highlights.push({ target, color, alpha }),
 });
 vm.runInContext(
-	client.slice(client.indexOf("var SRBXCrossoverClient =")),
+	client
+		.slice(client.indexOf("var SRBXCrossoverClient ="))
+		.replace(
+			/RTMX_COMPAT_scripts_superrailbuilderx_SRBXApiCompat_\w+\.SRBXApiCompat/g,
+			"SRBXApiCompat",
+		),
 	context,
 );
+class RailTile {
+	getRailCore() {
+		return this;
+	}
+}
+const baseTile = new RailTile();
+let horizontal = true;
+Object.assign(context, {
+	TileEntityLargeRailBase: RailTile,
+	findHoverRail: () => ({ core: [1, 2, 3], railKey: "base" }),
+	sourcePoint: (rp) => rp,
+	SRBXCrossoverGeometry: { flat: () => true },
+	SRBXApiCompat: {
+		getWorld: () => ({}),
+		getTileEntity: () => baseTile,
+		getRailPositionUnsupportedReason: () => "",
+		getEditableRailPositions: () => [
+			{ position: [0, 0, 0] },
+			{ position: [0, 0, 60] },
+		],
+		isHorizontalBuilderRail: () => horizontal,
+	},
+});
+assert.equal(context.SRBXCrossoverClient.base({}, 0).source.railKey, "base");
+horizontal = false;
+assert.equal(context.SRBXCrossoverClient.base({}, 0), null);
 context.SRBXCrossoverClient.base = () => hover;
 const a = { railKey: "A", core: [0, 0, 0] },
 	b = { railKey: "B", core: [1, 0, 0] };

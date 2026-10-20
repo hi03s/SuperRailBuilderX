@@ -42,6 +42,12 @@ repeat.reset();
 close(repeat.update(0, 1, 10), 10);
 close(repeat.update(3200, 1, 10), 390);
 close(repeat.update(3275, 1, 10), 100);
+repeat.reset();
+close(repeat.update(0, 1, 100, false), 100);
+close(repeat.update(3200, 1, 100, false), 3900);
+close(repeat.update(3275, 1, 100, false), 100);
+close(repeat.update(120050, 1, 100, false), 155700);
+close(repeat.update(120125, 1, 100, false), 100);
 // Different render rates produce the same accumulated changes.
 function totalAt(interval) {
 	const input = new Repeat();

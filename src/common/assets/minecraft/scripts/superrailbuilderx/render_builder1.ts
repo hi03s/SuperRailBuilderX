@@ -1,4 +1,4 @@
-﻿import { SRBXCrossoverGeometry, SRBXCrossoverPlan } from "./SRBXCrossoverPlan";
+import { SRBXCrossoverGeometry, SRBXCrossoverPlan } from "./SRBXCrossoverPlan";
 import { SRBXCrossoverClient } from "./SRBXCrossoverClient";
 import { SRBXSingleCrossoverSplit } from "./SRBXSingleCrossoverSplit";
 import { SRBXToolWheel } from "./SRBXToolWheel";
@@ -1358,7 +1358,7 @@ function showHelp(sender: ICommandSender): void {
 			"[Ctrl+C] 設定をリセット",
 			"[Q] 終了",
 			"勾配のあるレールは選択できません。既設基準線の長さ・半径は維持します。",
-			"長さの下限は20mです。生成後のUndoはできません。",
+			"長さの下限は30mです。生成後のUndoはできません。",
 		];
 		for (let i = 0; i < lines.length; i++)
 			NGTLog.sendChatMessage(sender, lines[i]);
@@ -1431,7 +1431,7 @@ function showHelp(sender: ICommandSender): void {
 		);
 		NGTLog.sendChatMessage(
 			sender,
-			"長押しで累積変更量に応じて単位が10倍になります（長さは最大512m）。半径も長押しで加速します。",
+			"長押しで累積変更量に応じて単位が10倍になります（長さは最大512m）。半径も長押しで加速しますが、Ctrl併用時は100m単位のままです。",
 		);
 		if (builderB)
 			NGTLog.sendChatMessage(
@@ -1713,7 +1713,7 @@ function getDesignPair(
 
 function changeDesignLength(state: BuilderState, delta: number): void {
 	state.designLength = Math.max(
-		crossoverBuilder ? 20 : 1,
+		crossoverBuilder ? 30 : 1,
 		Math.min(512, Math.round((state.designLength + delta) * 10) / 10),
 	);
 	state.groundTargetY = undefined;
@@ -2016,6 +2016,7 @@ function handleInput(
 			System.currentTimeMillis(),
 			builderB && state.radiusStraightStopped ? 0 : direction,
 			keys.downOptionKey() ? 100 : 1,
+			!keys.downOptionKey(),
 		);
 		if (delta) changeCurveRadius(entity, partialTicks, state, delta);
 	} else state.radiusRepeat.reset();

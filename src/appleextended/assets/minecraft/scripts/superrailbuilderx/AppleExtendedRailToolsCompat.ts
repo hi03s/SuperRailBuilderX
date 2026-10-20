@@ -1649,7 +1649,7 @@ export class AppleExtendedRailToolsCompat {
 			positions[1],
 			RailMapBasic.fixRTMRailMapVersionCurrent,
 		);
-		if (baseline.getLength() < 19.999) return { status: "rail_too_short" };
+		if (baseline.getLength() < 29.999) return { status: "rail_too_short" };
 		for (let i = 0; i < external.length; i++)
 			if (external[i].core.isLogicalRailOccupied())
 				return { status: "rail_occupied" };

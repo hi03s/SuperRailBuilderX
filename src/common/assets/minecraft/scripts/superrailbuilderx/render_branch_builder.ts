@@ -832,11 +832,11 @@ function help(sender: ICommandSender) {
 	NGTLog.sendChatMessage(sender, "[→] 固定半径を増加（1m、長押しで10m）");
 	NGTLog.sendChatMessage(
 		sender,
-		"[Ctrl+←] 固定半径を減少（100m、長押しで1000m）",
+		"[Ctrl+←] 固定半径を減少（100m単位、長押し加速なし）",
 	);
 	NGTLog.sendChatMessage(
 		sender,
-		"[Ctrl+→] 固定半径を増加（100m、長押しで1000m）",
+		"[Ctrl+→] 固定半径を増加（100m単位、長押し加速なし）",
 	);
 	NGTLog.sendChatMessage(sender, keys.getDescription("build"));
 	NGTLog.sendChatMessage(sender, keys.getDescription("undo"));
@@ -915,6 +915,7 @@ function input(
 			: Number(Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) -
 					Number(Keyboard.isKeyDown(Keyboard.KEY_LEFT)),
 		ctrl ? 100 : 1,
+		!ctrl,
 	);
 	if (radiusDelta)
 		s.radius = Math.max(1, Math.min(MAX_RADIUS, s.radius + radiusDelta));

@@ -503,6 +503,13 @@ assert.equal(
 ctrl = true;
 handle();
 assert.equal(input.curveRadius, 250, "Ctrl resets A's repeat to a 100m start");
+now += 3200;
+handle();
+assert.equal(input.curveRadius, 4150);
+now += 75;
+handle();
+assert.equal(input.curveRadius, 4250, "Ctrl radius remains 100m per repeat");
+input.curveRadius = 250;
 input.curveRadiusLocked = false;
 now += 10000;
 handle();

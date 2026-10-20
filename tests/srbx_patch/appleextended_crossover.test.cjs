@@ -1,4 +1,4 @@
-﻿const fs = require("fs"),
+const fs = require("fs"),
 	vm = require("vm"),
 	assert = require("assert");
 const root = process.env.SRBX_TEST_DIST || "dist/assets/minecraft/";
@@ -222,12 +222,14 @@ assert.equal(
 	"rail_occupied",
 );
 occupied = false;
-nativeLength = 19;
+nativeLength = 30;
+assert.equal(tools.createCrossoverBuilderRail(world, {}, plan()).status, "ok");
+nativeLength = 29;
 assert.equal(
 	tools.createCrossoverBuilderRail(world, {}, plan()).status,
 	"rail_too_short",
 );
-assert.equal(planned.length, count);
+assert.equal(planned.length, count + 1);
 assert.equal(removed.length, 0);
 console.log(
 	"AE crossover authoritative source, minimum length, divided layout routing and disabled Undo passed",

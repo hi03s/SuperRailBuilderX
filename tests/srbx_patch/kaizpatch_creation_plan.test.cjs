@@ -194,12 +194,12 @@ Object.assign(api, {
 	getRailPositionCandidateKey: () => "created",
 	logBuilderTransitionState: () => {},
 });
-const generate = (length, force = false) =>
+const generate = (length, force = false, endHeight = 4.0625) =>
 	api.createBuilderRail(
 		world,
 		{},
 		point(0.35),
-		point(length + 0.35),
+		{ ...point(length + 0.35), position: [length + 0.35, endHeight, 0.5] },
 		undefined,
 		undefined,
 		undefined,
@@ -244,6 +244,25 @@ config.railGeneratingDistance = 64;
 reset();
 assert.equal(generate(80, true).status, "normal_rail_too_long");
 assert.equal(created.length, 0);
+reset();
+assert.equal(generate(20, true, 4.062499999999999).status, "ok");
+assert.equal(
+	created[0].map.start.posX,
+	0.35,
+	"Horizontal curve rounding must retain the reserved normal core",
+);
+assert.equal(
+	created[0].map.end.posY,
+	4.062499999999999,
+	"Ordering tolerance does not move precise endpoints",
+);
+reset();
+assert.equal(generate(20, true, 4.0615).status, "ok");
+assert.equal(
+	created[0].map.start.posX,
+	20.35,
+	"A real descent still starts at its lower endpoint",
+);
 reset();
 tiles.set("0,4,0", new Core());
 assert.equal(generate(20, true).status, "ok");

@@ -289,7 +289,7 @@ context.SRBXSingleCrossoverSplit = {
 };
 RailMap.prototype.getRailPos = () => [0.5, 10.5];
 RailMap.prototype.getRailHeight = () => 4;
-RailMap.prototype.getLength = () => 20;
+RailMap.prototype.getLength = () => 30;
 compat.propertyFromPlayer = () => ({ writeToNBT: () => ({}) });
 compat.normalizeDegrees = (a) => a;
 const nativeCore = { ...core };

@@ -219,6 +219,17 @@ held.add("KEY_LCONTROL");
 now += 75;
 input();
 assert.equal(state.radius, 250, "Changing Ctrl restarts at 100m");
+now += 3200;
+input();
+assert.equal(state.radius, 4150);
+now += 75;
+input();
+assert.equal(
+	state.radius,
+	4250,
+	"Ctrl radius repeat stays at 100m after forty changes",
+);
+state.radius = 250;
 state.awaiting = true;
 now += 10000;
 input();
