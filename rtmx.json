@@ -1,5 +1,5 @@
 {
-	"name": "SuperRailBuilderX-0.3.2",
+	"name": "SuperRailBuilderX-0.4.0",
 	"outDir": "dist",
 	"commonApiPolicy": "allow",
 	"targets": {

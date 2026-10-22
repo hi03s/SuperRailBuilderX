@@ -17,7 +17,7 @@ import {
 	SRBXBuilderPoint,
 } from "@target/assets/minecraft/scripts/superrailbuilderx/SRBXApiCompat";
 
-const VERSION = "0.3.2";
+const VERSION = "0.4.0";
 
 export type RailPositionMoveTarget = {
 	core: [number, number, number];

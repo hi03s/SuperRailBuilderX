@@ -819,3 +819,12 @@
 - 全4ターゲットbuild、Kaiz/AE/rail-transition/GUI/input/runtime-dispatchの回帰、変更したTS/テストのPrettier、git diff --check成功。既知の全体format警告やJitPack timeoutを再試行しない。実Minecraftでの操作/描画/走行は未確認。確認手順をカント調査とAEターゲット資料へ記載した。
 - 最新開発ZIPを132ファイル/346737 bytesへ更新。全格納ファイルとdistのSHA一致、最新スクリプト/readme、XCF/JAR/class非同梱を確認。配布版ZIP/両SRBXPatch JARは作業前後のSHA一致、ユーザーXCF2件は保持しコミットしない。logs/latest.logはカントの32行だけローカル保持し、PC情報/無関係なModログを削除、Git追加なし。タグ/リリース/上流投稿は行わない。
 - 実機では問題の選択→適用→接続先端部/中央→Undo→再入場前後と、分岐/渡り線の接続側カント平坦化/失敗復元を確認する。AEは既設コア近傍の生成、根元/端部移動、旧コアを退避先とする移動、即時表示/Undo/レバーを確認。再発時は選択順・操作・時刻と新しいlogs/latest.logをこのチャットへ共有する。
+
+## 2026-10-23 ローカルCodex: 全動作確認完了と0.4.0リリース準備
+
+- 開発者から「すべての動作が確認できた」との実機完了報告を受領。引継ぎ帳に残っていたKaiz/AEの生成・移動・分割・分岐・渡り線・カント・組ホーム・Undo・表示/再入場・走行・GUI/入力・パッチなし運用などの動作確認事項を確認済みとした。過去の履歴中の未確認記述は当時の記録として保持し、現行引継ぎから取り除く。これは開発者の実機確認であり、ローカルCodexが実機を操作したものではない。
+- 開始記録9b5b132をorigin/mainへpush後に準備。リリース基準は0.3.2、次版0.4.0は手動Publish。AE v2.5.4以降専用で、v2.5.3以前とは互換性がないことをREADME/同梱readme/本文へ明記。旧SRBXパックを除去しAEも更新して置き換える案内を追加。
+- package.json・rtmxパック名・9か所のVERSIONを0.4.0へ更新。release-notes.mdは0.3.2以降の差分だけに再構成し、パッチ任意化・AE2.5.4移行・分岐生成/移動/表示とKaiz接続カント/Undo修正、NGTOBuilder2更新案内を記載。配布workflowはZIP＋任意Kaiz用1.7.10 JARに変更。AE2.5.4には不要な旧AE用JARは添付しない。Mod/JARのソース変更は行わない。
+- 0.4.0の全4build、AE/Kaiz/rail-transition/GUI/input/runtime-dispatch/platform/free-endpoint/rail-boundary/rail-patchの関連10スクリプト、変更TS/JSONのPrettierと差分確認に成功。配布用/開発ZIPは132ファイル・346826 bytes、全エントリーとdistのSHA一致、VERSION/readme反映、XCF/JAR/class非同梱を確認。旧開発0.3.2 ZIPを削除し、過去配布ZIPと既存両JARはハッシュ保持。ユーザーXCFはコミット/配布せず保持。
+- 引継ぎ帳を現行状態へ短縮し、確認済みの長い再デバッグ一覧を解消。関連調査に実機確認完了の現行注記を追加し、過去履歴は書き換えず保持。不要になったカント32行のlogs/latest.logを削除（Git非追跡）。
+- 終了コミットへv0.4.0タグを付け、ActionsのDraft作成・本文と添付ZIP/任意Kaiz JAR・未公開状態を確認する。結果のSHA/タグ/Actions/Draft URLは最終報告で伝え、自己SHA追記用の追加コミットは作らない。開発者が手動Publishし、ローカルCodexから公開操作は行わない。

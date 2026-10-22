@@ -14,7 +14,7 @@ import {
 import { SRBXMath } from "./SRBXMath";
 import { SRBXBuilderGeometry, SRBXBuilderDesign } from "./SRBXBuilderGeometry";
 
-const VERSION = "0.3.2";
+const VERSION = "0.4.0";
 
 export type Builder1Request =
 	| {

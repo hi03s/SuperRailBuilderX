@@ -1,5 +1,7 @@
 # GUIの描画Mod互換性
 
+> 2026-10-23 確認完了: 開発者から全動作の実機確認完了の報告を受領した。本資料中の過去の未確認・確認待ちと確認手順は当時の調査記録であり、現在の動作確認残件ではない。
+
 ## Angelica 2.2.34併用時のクラッシュ（2026-10-18）
 
 `crash-2026-10-18_21.14.52-client.txt`では、生成AのGUI属性復元中に`GL13.glMultiTexCoord4f`が`IllegalStateException: Function is not supported`を送出した。Angelica 2.2.34が導入され、スタックにもAngelicaの描画経路がある。Distant Horizonsもログに現れるが、直接例外を起こしているのはSRBXの未対応GL関数呼び出し。

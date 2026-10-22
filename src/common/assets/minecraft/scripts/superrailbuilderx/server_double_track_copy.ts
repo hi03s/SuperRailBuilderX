@@ -15,7 +15,7 @@ import {
 import { SRBXMath } from "./SRBXMath";
 import { TileEntityLargeRailBase } from "jp.ngt.rtm.rail";
 
-const VERSION = "0.3.2";
+const VERSION = "0.4.0";
 const MAX_COPY_RAILS = 128;
 const MIN_RAIL_LENGTH = 2;
 

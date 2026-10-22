@@ -12,7 +12,7 @@ import {
 	SRBXBranchRequest,
 } from "@target/assets/minecraft/scripts/superrailbuilderx/SRBXApiCompat";
 
-const VERSION = "0.3.2";
+const VERSION = "0.4.0";
 export type BranchBuilderRequest =
 	{ action: "create"; plan: SRBXBranchRequest } | { action: "undo" };
 const hosts: WeakHashMap<Entity, EntityPlayer> = new WeakHashMap(),
