@@ -18,7 +18,7 @@
 
 ## 作業中
 
-- なし。
+- 2026-10-23 ローカルCodex: AE2.5.4のパッチ不要案内と動作環境・収録ツールをREADME/パックreadmeへ反映し、ツール説明書を統一する。指定4文書を削除しuser-guideをツール説明専用へ整理。ビルド・リリースは行わず次回更新へ反映する。
 
 ## 優先確認事項
 - [Issue #3](https://github.com/hi03s/SuperRailBuilderX/issues/3): 旧NGTOBuilder2.1の共有ツールキットには描画補間関数がなく、報告のTypeErrorを説明できる。開発者指示でNGTOBuilder2 2.3.2への更新案内を優先する。公開ZIPのSHA一致・関数存在と、未変更SRBX0.3.2描画のJava8失敗/更新後成功を確認。両側の旧ZIPを除去・最新版へ置換して再起動する。報告環境のリソース選択・実機解消は未確認。再発時は両側ZIP名と新規クライアントログ/クラレポを受領。SRBXコード・rtm-ts・JAR・パッチModは変更なし。[調査・手順](research/issue3-multiplayer-tool-crash.md)。
