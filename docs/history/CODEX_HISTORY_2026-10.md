@@ -760,3 +760,11 @@
 - 配布名を既存公開リリースに揃えてSuperRailBuilderX-v0.3.2.zipへ変更し、Actionsでも同名へ統一。ZIP生成前にdist内XCFだけを除外する。workflowのタグ起動・既存公開版変更拒否と両経路の--draftを確認し、手動Publishを維持する。パッチソースはv0.3.1との差なしで、新機能は追加しない。
 - 全4ターゲットbuild、GUI/入力/runtime-dispatch/Kaiz/AE/道床・遷移回帰成功。両SRBXPatchをJava8向けに再ビルドし、Kaiz1.10.4/AE2.5.3の実バイトコード検証と挙動試験成功。両JARハッシュは従来版f6490d1a…/b97210df…と一致。新たな実機操作・走行検証は未実施。
 - artifactsは開発/配布の0.3.2 ZIPと両JARの4ファイルへ整理し、旧0.3.1 ZIPは.cache/release-v031へ退避。ユーザーXCFと最新調査ログを保持しコミットへ含めない。終了コミットをmainへpush後、同じコミットへv0.3.2タグをpushし、Actions成功とDraft=true・ZIP＋2 JARの添付・本文を確認する。タグpush後の結果・リンクは最終報告で伝え、記録だけの3コミット目は作らない。
+
+
+## 2026-10-22 ローカルCodex: Issue #3の旧NGTOBuilder2同居クラッシュ調査
+
+- 開始記録d18cfdaをmainへpushして着手。Issue本文・添付クラレポからNGTOBuilder2.1同居、クライアントのrender_builder1/renderAtでの未定義関数呼出しを確認。旧1.12版共有ツールキットにgetInterpolatedPosがなく、SRBXと同じリソース名を使う。AE2.5.3のinclude展開をバイトコードで読み取り確認した。報告環境で選択された実ファイルは未確認だが、旧版優先読込で報告を説明できる。
+- SRBX専用ヘルパーを試作し全4build・GUI/dispatch/描画互換回帰に成功。その後、開発者の「NGTOBuilder2更新で治るなら相手へ要求する」という指示を受け、公開NGTOBuilder2 2.3.2 ZIPのdigestとローカルZIPのSHA一致・必要関数存在を確認。Java8 Nashornで未変更の配布SRBX0.3.2 renderAtを実行し、旧API相当の関数欠落でTypeError、2.3.2関数では座標変換・描画成功を確認した。実機マルチプレイは未検証。
+- 更新案内を優先して試作コード・テスト・package.json変更を取り下げ、全4buildでdistも現行ソースへ復元。SRBXコード/配布ZIP・rtm-ts・共有ツールキット・JAR・パッチModは変更なし。ユーザーXCF2件とlogs/latest.logを保持し、生ログをGitへ追加しない。最終成果物は[調査資料](../research/issue3-multiplayer-tool-crash.md)・文書入口・引継ぎ帳・本履歴のみ。
+- 報告者には両側の旧NGTOBuilder2.1を除去して2.3.2へ置換・再起動し、生成Aと他ツールの起動/描画を確認してもらう。再発時は両側ZIP名・新規クライアントlatest.log/クラレポ・操作順/時刻を開発者へ提出しローカルlogs/で追加調査する。Issue投稿や本番サーバー操作は行わない。

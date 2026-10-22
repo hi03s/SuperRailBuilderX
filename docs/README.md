@@ -24,6 +24,7 @@
 - [AEの重複区間と自動分割境界](research/appleextended-overlap-rail-patch.md)
 - [カント付きカーブの段差・描画の乱れ（Issue #2）](research/cant-curve-rendering.md)
 - [GUIの描画Mod互換性](research/gui-rendering-compatibility.md)
+- [Issue #3: 旧NGTOBuilder2同居時のツール起動クラッシュ](research/issue3-multiplayer-tool-crash.md)
 - [KaizPatchの片渡り判定・ワールド終了時描画の不具合](research/kaizpatch-crossover-and-render-errors.md)
 - [作業履歴](history)
 
