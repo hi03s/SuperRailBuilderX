@@ -2,11 +2,13 @@
 
 AE本体で独自に再実装するためのアルゴリズム・判定理由・参考値・検証条件は[走行先判定設計](appleextended-rail-resolution-design.md)を参照。
 
-## AE本体への取り込みと次回更新
+## AE本体への取り込みと任意利用
 
-[AppleExtended v2.5.4](https://github.com/Kirtmuna/AppleExtended/releases/tag/v2.5.4)はSRBXPatch由来の自由端点レール遷移修正を本体へ取り込んだ。AE v2.5.4以降には暫定パッチを追加しない。KaizPatchX側のSRBXPatchは引き続き必要である。利用者向けの動作環境と導入案内は[トップREADME](../../README.md#導入方法)へ集約する。
+[AppleExtended v2.5.4](https://github.com/Kirtmuna/AppleExtended/releases/tag/v2.5.4)はSRBXPatch由来の自由端点レール遷移修正を本体へ取り込んだ。AE v2.5.4以降には暫定パッチを追加しない。KaizPatchX側のSRBXPatchは自由端点の走行補正を追加するための任意Modとして扱う。利用者向けの動作環境と導入案内は[トップREADME](../../README.md#導入方法)へ集約する。
 
-2026-10-23の作業は文書更新だけで、パックのビルド・リリースは行わない。現行SRBXソースのAE compatには、`jp.hi03.srbxpatch.SRBXPatch`を検査する`hasFreeEndpointPatch`と旧`jp.apple`参照が残る。次回パック更新で、AE本体対応の判定と`jp.apple.appleextended`へのAPI移行を実装・検証してから、この導入案内を同梱readmeへ反映する。公開済み0.3.2でAE2.5.4のパッチなし動作を確認したという意味ではない。
+現行ソースでは、1.7.10/1.12両環境の`hasFreeEndpointPatch`と、未導入時に`srbxpatch_required`を返す15か所の拒否処理を廃止した。生成・移動・分割・カント・分岐などのツール動作はJavaパッチの有無に依存しない。任意Modの内部クラスやバージョンは判定せず、今後の本体修正や別パッチを妨げない。
+
+端点精度やワールド変更前の再検証・保護・失敗時復元は維持する。パッチなしでツールを実行できることと、自由端点間で列車が正常に遷移することは別であり、走行はMod本体または任意の走行補正へ任せる。AEのパッケージ/Mod ID変更は[AEターゲット資料](appleextended-target.md)にまとめる。公開済み0.3.2 ZIPは変更せず、今回のコードと同梱readmeの配布反映は次回パック更新で行う。
 
 ## 仕組みと制限
 

@@ -80,7 +80,7 @@
 		},
 		"appleextended": {
 			"compatFallbackTarget": "mc1122",
-			"runtimeDispatch": "Packages.net.minecraftforge.fml.common.Loader.isModLoaded('applelib')",
+			"runtimeDispatch": "Packages.net.minecraftforge.fml.common.Loader.isModLoaded('appleextended')",
 			"srcDirs": ["src/common", "src/appleextended"],
 			"outDir": "dist/assets/minecraft/__targets__/appleextended",
 			"scan": {
@@ -88,13 +88,13 @@
 				"forgeVersion": "14.23.5.2860",
 				"channel": "stable",
 				"mappingsVersion": "39",
-				"mods": ["com.github.Kirtmuna:AppleExtended:v2.5.3"],
+				"mods": ["com.github.Kirtmuna:AppleExtended:v2.5.4"],
 				"packages": [
 					"net.minecraft",
 					"net.minecraftforge",
 					"net.minecraftforge.fml",
 					"jp.ngt",
-					"jp.apple",
+					"jp.apple.appleextended",
 					"org.lwjgl",
 					"java.util",
 					"java.nio",

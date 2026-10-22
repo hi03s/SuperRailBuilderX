@@ -19,8 +19,11 @@ import { EntityPlayer } from "net.minecraft.entity.player";
 import { BlockPos } from "net.minecraft.util.math";
 import { World } from "net.minecraft.world";
 import { ArrayList } from "java.util";
-import { TileEntityLargeRailSectionCore } from "jp.apple.rail";
-import { RailChunkSectioner, RailMapSection } from "jp.apple.rail.util";
+import { TileEntityLargeRailSectionCore } from "jp.apple.appleextended.rail";
+import {
+	RailChunkSectioner,
+	RailMapSection,
+} from "jp.apple.appleextended.rail.util";
 import { AppleExtendedSwitchCompat } from "./AppleExtendedSwitchCompat";
 import { AppleExtendedRailProtection } from "./AppleExtendedRailProtection";
 import {

@@ -5,7 +5,7 @@
 ## 現在の状態
 
 - SRBX 0.3.2、main。rtm-ts 0.12.0を改造せず、KaizPatch/AE/通常RTM 1.7.10/通常RTM 1.12.2の4ターゲット構成を維持。
-- 公開版0.3.2のKaizPatchX 1.10.4 / AE2.5.3は完全自由点仕様で対象SRBXPatchを併用する。AE2.5.4は自由端点遷移修正を本体へ取り込んだため、次回パック更新はパッチなしへ対応する。README/同梱readmeの案内は更新済み、パックへの反映は次回。[次回対応と現行ソースの制約](development/srbxpatch.md)。
+- 現行ソースは1.7.10/1.12両環境でSRBXPatchなしのツール動作へ対応。完全自由点と既存保護は維持し、走行補正はMod本体/任意パッチへ任せる。AE基準は2.5.4で新パッケージ・新Mod IDへ移行済み。公開済み0.3.2 ZIPは未変更、配布反映は次回。[AE対応と検証](development/appleextended-target.md)・[任意パッチ](development/srbxpatch.md)。
 - 生成・移動・分割・複線・カント・分岐・Undoは共通の道床/コア保護を使用。理論両端各1タイルの所有先変更、競合時の逆順→設定上限内の通常生成、撤去前の所有先復元に対応。[道床調査](research/roadbed-ownership-investigation.md)。
 - AE重複区間・自動分割境界対策は実機確認済み（2026-10-11）。KaizのCrossTieあり/なしも実機動作を確認済み。[AE対策](research/appleextended-overlap-rail-patch.md)。
 - 生成A/BはI/Kで自由始点の選択高さ±1/16m、Ctrlで±1m、Uで地上高延長。Bの長さはJ/Lの長押し加速（初期0.1m/Ctrl10m、最大512m）、半径も加速。ホイールによる長さ変更は廃止。[A](user-guide/builder1.md)・[B](user-guide/builder2.md)。
@@ -18,10 +18,11 @@
 
 ## 作業中
 
-- 2026-10-23 ローカルCodex: 1.7.10/1.12のSRBXPatch必須判定を外し、パッチなしのツール動作へ対応する。AE2.5.4のパッケージ変更を調査・修正し、関連回帰を検証する。rtm-ts・JAR・パッチModは変更せず、リリースは行わない。
+- なし。
 
 ## 優先確認事項
-- 次回パック更新でAE2.5.4へ対応する。現行AE compatの`hasFreeEndpointPatch`は旧SRBXPatchクラスを必須とし、API参照も旧`jp.apple`のまま。本体対応の判定と`jp.apple.appleextended`への移行・生成/Undo/走行を検証してから、更新済み同梱readmeを配布へ反映する。今回は文書だけで、ビルド・ZIP/JAR更新・リリースを行わない。
+- パッチなしの実機確認待ち。KaizPatchX 1.10.4とAE2.5.4でSRBXPatch JARを外した試験環境を使い、起動・各ツールの生成/編集/Undo・再入場後・AEの自由端点遷移を確認する。Kaizの自由端点走行補正は任意SRBXPatchへ依存し得る。全4build/関連回帰は成功、通常型生成はJitPack timeoutのため公式AE2.5.4 dev JARで型生成し検証。再発時はツール・操作順・時刻とlogs/latest.logを共有。配布ZIP/JAR・リリースは未更新。
+- リポジトリ全体のformat:checkは既存・今回未変更の19ファイルで警告。今回変更したソース/テスト/設定のPrettier確認と差分確認は成功。無関係な整形変更は行っていない。
 - [Issue #3](https://github.com/hi03s/SuperRailBuilderX/issues/3): 旧NGTOBuilder2.1の共有ツールキットには描画補間関数がなく、報告のTypeErrorを説明できる。開発者指示でNGTOBuilder2 2.3.2への更新案内を優先する。公開ZIPのSHA一致・関数存在と、未変更SRBX0.3.2描画のJava8失敗/更新後成功を確認。両側の旧ZIPを除去・最新版へ置換して再起動する。報告環境のリソース選択・実機解消は未確認。再発時は両側ZIP名と新規クライアントログ/クラレポを受領。SRBXコード・rtm-ts・JAR・パッチModは変更なし。[調査・手順](research/issue3-multiplayer-tool-crash.md)。
 - AEの既設端点接続生成で元線の制御長を流用しプレビューとずれる不具合を修正。要求された水平/垂直制御長を使う。Kaizには同じ欠落なし（接続長大曲線の回帰追加）。自動分割のネイティブ生成で全コア未生成の場合だけ、論理曲線を保つ手動配置へ1回再試行し、部分コアがある場合は停止する。未読込区間は変更前に拒否・診断。全4build・AE/Kaiz/GUI/遷移/dispatch成功、最新ZIPで新規の長大カーブ・分割/Undo・再入場後と元分岐保持を確認する。既存の変形レールは自動修復しない。再発時は操作/時刻とlogs/latest.logを共有する。
 - AEの渡り線通常レール欠落は、通常コアへ分岐用NBTを書いていたSRBX不具合を修正（StartRP/EndRPへ変更）。空形状検知・撤去/道床復元を追加。core_conflictにはY丸めによる計画コア逆転対策と段階診断を追加したが、現ログだけでは全競合の原因は断定できない。全4build・AE/Kaiz/GUI/遷移/dispatch成功。最新開発ZIPで空き場所へ片渡り/シーサスを再生成し、全通常区間の描画・走行・再入場前後を確認する。既存の空コアは自動復元しない。再発時は形状/操作/時刻とlogs/latest.log（crossover core conflict行を含む）を共有する。
@@ -52,7 +53,7 @@
 
 ## 次に行うこと
 
-1. 次回更新時にAE2.5.4のAPI移行・パッチ不要判定を実装し、検証後に同梱readmeと合わせてパックをビルドする。Issue #3はNGTOBuilder2 2.3.2への置換結果を確認する。実機で異常があれば機能・操作順・時刻とlogs/latest.logを共有する。
+1. 最新ソースを試験環境でパッチなし実機確認し、次回パック更新でコードと同梱readmeを配布へ反映する。JitPack取得が復旧した環境では通常型生成も確認する。Issue #3はNGTOBuilder2 2.3.2への置換結果を確認する。異常時は機能・操作順・時刻とlogs/latest.logを共有する。
 2. 確認結果を引継ぎ帳へ反映し、不要になったローカルログを削除する。調査結果は文書へ要約し、生ログをGitへ追加しない。
 3. v0.3.2 Draftの本文とAssets・実機確認状況を確認し、開発者が手動Publishを行う。
 
@@ -63,6 +64,7 @@
 - ローカルに保持する調査ログは、最新AEログとKaiz保存APIの例外抜粋。解消を確認した分岐クラッシュの旧抜粋は削除。実機再確認後に不要なら削除する。
 
 ## 直近の完了
+- 2026-10-23 ローカルCodex: 両版15か所のJavaパッチ必須判定を廃止、AE2.5.4のパッケージ/Mod IDと型生成基準を移行。公式JARでの型生成・全4build・関連回帰成功、実機未確認。配布ZIP/JAR・リリース未変更。開始記録978ef47。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 - 2026-10-23 ローカルCodex: README/同梱readmeをAE2.5.4のパッチ不要・2環境表記・全9ツールへ更新。9説明書を統一し指定4文書を削除、内部仕様とリンクを整理。文書検証のみ、ビルド・リリースなし、パック反映は次回。開始記録965f3ed。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 - 2026-10-22 ローカルCodex: Issue #3の旧NGTOBuilder2共有API競合を調査し、2.3.2更新案内を整理。Java8で未変更SRBX描画の失敗/更新後成功を確認、実機未確認。試作修正は取り下げ文書のみ。開始記録d18cfda。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 - 2026-10-21 ローカルCodex: SRBX0.3.2へ更新し、配布ZIP・0.3.1以降の本文・両v1.0 JARを準備。全4build・関連回帰・実バイトコード検証成功。終了コミットへv0.3.2タグを付け、Draft/AssetsをActionsで作成・確認する（結果は最終報告）。開始記録0021aa8。[10月履歴](history/CODEX_HISTORY_2026-10.md)。

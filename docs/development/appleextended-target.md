@@ -1,6 +1,20 @@
 # AppleExtended target
 
-SRBXはAppleExtended正式リリース`v2.5.3`（タグcommit `6f74d99`）を対応基準とする。AE固有処理は`src/appleextended/assets/minecraft/scripts/superrailbuilderx`へ隔離し、AE本体に同等APIが追加されたものから削除する。
+SRBXはAppleExtended正式リリース`v2.5.4`を対応基準とする。AE固有処理は`src/appleextended/assets/minecraft/scripts/superrailbuilderx`へ隔離し、AE本体に同等APIが追加されたものから削除する。
+
+## AE2.5.4への移行
+
+- [公式リリース](https://github.com/Kirtmuna/AppleExtended/releases/tag/v2.5.4)で、`jp.apple`配下のクラスが`jp.apple.appleextended`へ移動した。SRBXが使用する`TileEntityLargeRailSectionCore`、`RailChunkSectioner`、`RailMapSection`のimportを変更した。`jp.ngt`配下は今回のパッケージ変更の対象外である。
+- [Mod IDの定義](https://github.com/Kirtmuna/AppleExtended/blob/v2.5.4/gradle.properties)も`applelib`から`appleextended`へ変わった。旧判定ではAEが通常RTM用ターゲットへ落ちるため、`rtmx.json`の実行時dispatchを新Mod IDへ変更した。KaizPatchXの優先順位と通常RTMへのfallbackは維持する。
+- 型生成の依存タグとscan対象パッケージも更新する。旧AE2.5.3との併用・互換性維持を目的とした動的な旧パッケージ参照は追加しない。
+- Java側のSRBXPatch検出と、未導入時の編集拒否を廃止した。生成・移動・分割・カント・分岐・渡り線はパッチなしで通常の検証へ進む。座標・対象キー・在線・ロード状態・既設コア/道床の保護は維持する。
+- AE2.5.4は自由端点の走行補正を本体へ取り込んだ。SRBXパック側の描画互換処理は別の処理なので維持し、暫定JavaパッチやMod本体は変更しない。
+
+### 移行時の検証
+
+2026-10-23、全4ターゲットのbuildと、AE/Kaiz・GUI・入力・組ホーム・道床/遷移・自由端点・dispatch・レール描画/境界の回帰が成功した。Javaパッチを仮定するテストfixtureを取り除き、未導入時も生成/編集へ進むこと、形状不正と在線時の拒否、AEの新パッケージだけを持つfixtureでの動作を確認した。実Minecraft上の操作・走行は未確認である。
+
+通常の型生成はJitPackのv2.5.4 POM取得がread timeoutになったため、同じ処理を繰り返さず公式リリースの`AppleExtended-forge1.12.2-2.5.4-dev.jar`で検証した。公開digestと一致するSHA-256は`120e26f6625f1466aa58deed74389230cf7d08fc3368761f36f20da909a974c0`。既存1.12.2のscanner classpathから旧AE JARをこのJARへ差し替え、`groovy-all-2.4.15.jar`を補い、rtm-ts既存scannerでAE型とマッピングを生成した。ARIS依存のATSクラスとLWJGLのASM依存クラス計7件はskipされたが、SRBXで使用するクラスは生成・型チェックできた。rtm-tsやJARの中身は変更していない。再現用のclasspathとスクリプトはローカル`.cache/ae254-scanner-paths.json`、`.cache/ae254-generate-from-release.cjs`へ保持する。
 
 ## 最新AEで利用する機能
 
@@ -66,7 +80,7 @@ AEでは`ModelPackManager.modelConstructed`による全体構築完了を待ち�
 - 通常・自動分割レールの端点/全体移動、クライアント同期、Undo（実機再検証待ち）
 - レール生成A、複線コピー、自動分割生成、Undo
 - 通常・自動分割レールの分割、中央/端点分岐、カント整形とUndo
-- `Loader.isModLoaded("applelib")`による`mc1122`より優先した実行時選択
+- `Loader.isModLoaded("appleextended")`による`mc1122`より優先した実行時選択
 - その他の差分がない1.12.2処理の`compatFallbackTarget: "mc1122"`利用
 
 未対応:

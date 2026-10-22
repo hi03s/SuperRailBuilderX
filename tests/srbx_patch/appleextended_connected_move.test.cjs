@@ -117,9 +117,11 @@ const context = {
 				ngtlib: { io: { NGTLog: { debug() {} } } },
 			},
 			apple: {
-				rail: {
-					TileEntityLargeRailSectionCore: Core,
-					util: { RailChunkSectioner: { split } },
+				appleextended: {
+					rail: {
+						TileEntityLargeRailSectionCore: Core,
+						util: { RailChunkSectioner: { split } },
+					},
 				},
 			},
 		},

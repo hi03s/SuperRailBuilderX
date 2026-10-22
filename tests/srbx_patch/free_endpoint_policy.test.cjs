@@ -64,7 +64,8 @@ for (const target of ["kaizpatch", "appleextended"]) {
 		source,
 		/requiresRailBoundarySnap = function \(\) \{\s*return false;/,
 	);
-	assert(source.includes("jp.hi03.srbxpatch.SRBXPatch"));
+	assert(!source.includes("jp.hi03.srbxpatch.SRBXPatch"));
+	assert(!source.includes("srbxpatch_required"));
 }
 assert(
 	!fs.existsSync(
@@ -72,5 +73,5 @@ assert(
 	),
 );
 console.log(
-	"Precise free endpoints, matching patch capability and retired debug registration passed",
+	"Precise free endpoints without a required Java patch and retired debug registration passed",
 );

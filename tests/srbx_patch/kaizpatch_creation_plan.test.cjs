@@ -166,7 +166,6 @@ let preparation = "reverse",
 	created = [];
 const resultCore = new Core();
 Object.assign(api, {
-	hasFreeEndpointPatch: () => true,
 	validateBuilderPoint: () => "ok",
 	createBuilderSourceProperty: () => null,
 	createBuilderProperty: () => ({ autoSplit: true }),

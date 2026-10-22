@@ -210,7 +210,6 @@ const reset = () => {
 };
 const ref = (c) => ({ core: c.pos, key: "core:" + key(c.pos) });
 Object.assign(api, {
-	hasFreeEndpointPatch: () => true,
 	getSingleCrossoverSplitPlan: () => plan(),
 	getRailCorePos: (c) => c.pos,
 	getRailPositionCandidateKey: (c) => ref(c).key,

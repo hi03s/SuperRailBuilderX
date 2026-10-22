@@ -209,30 +209,6 @@ export class SRBXApiCompat {
 		return false;
 	}
 
-	/** Clients need only the separate model pack; Java capability is checked on writes. */
-	private static hasFreeEndpointPatch(): boolean {
-		try {
-			const type = java.lang.Class.forName("jp.hi03.srbxpatch.SRBXPatch");
-			const classes = java.lang.reflect.Array.newInstance(
-				java.lang.Class.class,
-				0,
-			);
-			const args = java.lang.reflect.Array.newInstance(
-				java.lang.Class.forName("java.lang.Object"),
-				0,
-			);
-			return (
-				String(
-					type
-						.getMethod("isFreeEndpointEnabled", classes)
-						.invoke(null, args),
-				) === "true"
-			);
-		} catch (error) {
-			return false;
-		}
-	}
-
 	private static sendRailCorePacket(core: TileEntityLargeRailCore): void {
 		const nbt = new NBTTagCompound(),
 			positions = this.getEditableRailPositions(core);
@@ -1238,7 +1214,6 @@ export class SRBXApiCompat {
 		restorePoint?: BuilderPoint,
 	): string {
 		const isSwitch = core instanceof TileEntityLargeRailSwitchCore;
-		if (!this.hasFreeEndpointPatch()) return "srbxpatch_required";
 		if (!isSwitch && !this.canMoveRailPosition(core)) return "unsupported";
 		if (core.isLogicalRailOccupied()) return "occupied";
 		const positions = this.getEditableRailPositions(core);
@@ -1763,7 +1738,6 @@ export class SRBXApiCompat {
 		preserveEndpointGeometry = false,
 	): string {
 		this.lastRailPositionMoveCores = [];
-		if (!this.hasFreeEndpointPatch()) return "srbxpatch_required";
 		if (!player) return "missing_player";
 		if (
 			!core ||
@@ -1934,7 +1908,6 @@ export class SRBXApiCompat {
 		z: number,
 		preserveEndpointGeometry = false,
 	): string {
-		if (!this.hasFreeEndpointPatch()) return "srbxpatch_required";
 		if (!this.canMoveRailPosition(core)) return "unsupported";
 		const positions = this.getEditableRailPositions(core);
 		if (!positions || index < 0 || index >= positions.length)
@@ -3466,8 +3439,6 @@ export class SRBXApiCompat {
 		preserveEndpointGeometry = false,
 		requireHeldRailItem = false,
 	) {
-		if (!this.hasFreeEndpointPatch())
-			return { status: "srbxpatch_required" };
 		const startValidation = this.validateBuilderPoint(start);
 		if (startValidation !== "ok") return { status: startValidation };
 		const endValidation = this.validateBuilderPoint(end);
@@ -4809,8 +4780,6 @@ export class SRBXApiCompat {
 		ratio: number,
 	) {
 		this.lastSplitClientUpdate = null;
-		if (!this.hasFreeEndpointPatch())
-			return { status: "srbxpatch_required" };
 		if (!isFinite(ratio) || ratio <= 0 || ratio >= 1)
 			return { status: "invalid_split_position" };
 		const tile = world.getTileEntity(
@@ -5310,8 +5279,6 @@ export class SRBXApiCompat {
 		targets: CantTarget[],
 	) {
 		this.lastCantClientUpdate = [];
-		if (!this.hasFreeEndpointPatch())
-			return { status: "srbxpatch_required" };
 		if (!targets || targets.length === 0) return { status: "no_selection" };
 		const records: CantUndoRecord = [];
 		const pending: {
@@ -5938,8 +5905,6 @@ export class SRBXApiCompat {
 		},
 	) {
 		this.lastSplitClientUpdate = null;
-		if (!this.hasFreeEndpointPatch())
-			return { status: "srbxpatch_required" };
 		if (
 			!request ||
 			this.validateBuilderPoint(request.branchStart) !== "ok" ||
@@ -6272,8 +6237,6 @@ export class SRBXApiCompat {
 		plan: SRBXCrossoverPlan,
 	) {
 		this.lastSplitClientUpdate = null;
-		if (!this.hasFreeEndpointPatch())
-			return { status: "srbxpatch_required" };
 		const validation = validateCrossoverPlan(plan);
 		if (validation !== "ok") return { status: validation };
 		let sourceCore: TileEntityLargeRailCore | null = null;

@@ -13,7 +13,7 @@ import { World } from "net.minecraft.world";
 import { NBTBase, NBTTagCompound } from "net.minecraft.nbt";
 import { Block } from "net.minecraft.block";
 import { SRBXRoadbedOwnership } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXRoadbedOwnership";
-import { TileEntityLargeRailSectionCore } from "jp.apple.rail";
+import { TileEntityLargeRailSectionCore } from "jp.apple.appleextended.rail";
 
 /** Preserve existing rail blocks before any block or ownership write. */
 export class AppleExtendedRoadbedPlacement {

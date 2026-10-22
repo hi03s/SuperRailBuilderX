@@ -31,15 +31,17 @@ SuperRailBuilderXは、KaizPatchXとAppleExtended向けのレール制作支援�
 
 1. 使用するKaizPatchXまたはAppleExtendedを導入します。
 2. [Releases](https://github.com/hi03s/SuperRailBuilderX/releases)からSRBXパックZIPをダウンロードし、クライアントとサーバーの`mods`へ配置します。シングルプレイでは使用する環境の`mods`へ配置します。
-3. KaizPatchXでは、SRBXPatchをクライアントとサーバーの両方へ追加します。
+3. KaizPatchXで自由端点の走行補正を使う場合は、SRBXPatchをクライアントとサーバーの両方へ追加します。ツールはパッチ未導入でも使用できます。
 4. 起動後、自動車モデル選択画面からSuperRailBuilderXで始まるツールを選びます。
 
-| 環境                  | SRBXPatch                         |
-| --------------------- | --------------------------------- |
-| KaizPatchX 1.10.4+    | `SRBXPatch-v1.0-1.7.10.jar`が必要 |
-| AppleExtended v2.5.4+ | 不要                              |
+| 環境                  | SRBXPatch                                                     |
+| --------------------- | ------------------------------------------------------------- |
+| KaizPatchX 1.10.4+    | 任意：自由端点の走行補正には`SRBXPatch-v1.0-1.7.10.jar`を使用 |
+| AppleExtended v2.5.4+ | 不要                                                          |
 
 [AppleExtended v2.5.4](https://github.com/Kirtmuna/AppleExtended/releases/tag/v2.5.4)では自由端点のレール遷移修正が本体へ取り込まれたため、SRBXPatchは不要です。
+
+SRBXは両環境ともパッチなしでツールを実行できます。自由端点をまたぐ列車の走行は、使用するMod本体または追加した走行補正に依存します。
 
 ## 収録ツール
 

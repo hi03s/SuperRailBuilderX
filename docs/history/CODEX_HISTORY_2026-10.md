@@ -776,3 +776,15 @@
 - 現行ソースには旧AE API参照とSRBXPatch必須判定があるため、トップREADMEの導入案内は次回更新向けと明記し、次回のAPI移行・本体対応判定を引継ぎへ残した。今回は文書のみで実装・rtm-ts/JAR/パッチMod変更は行わず、ビルド・ZIP生成・リリース・タグ操作もしない。終了コミットは[skip ci]を付け、src/common/readme.txt変更による自動ビルドも抑止する。公開版/既存artifactsへは反映しない。
 - 9ツールの説明書を使い方/操作/設定と動作/制限に統一。欠けていたレール移動の独立説明書を作成した。生成系4文書と既設編集系5文書を独立分担し、ローカルCodexが表示・参照・全体整合を確認。旧説明書の内部仕様は[ツール実装情報](../development/rail-tool-implementation.md)へ統合した。tool-gui.md/tool-wheel.md/usage.md/srbx-free-endpoint-mod.mdは指定どおり削除し、現行資料のリンクと過去履歴のGUI参照リンクを更新。過去の作成記録としての文書名は履歴へ残す。
 - AGENTS.mdへuser-guideはツール説明書だけを配置する方針と共通章構成を記載。文書リンク・見出し・9ツール一覧・削除対象・Markdown整形・差分を確認。実機検証とビルド/コード回帰は文書のみのため未実施。既存ユーザーXCF2件とlogs/latest.logは保持しコミット対象外とする。
+
+
+## 2026-10-23 ローカルCodex: パッチ非依存化とAE2.5.4の名前空間・Mod ID移行
+
+- 開始記録978ef47をmainへpushして着手。Kaiz側8・AE側7か所のSRBXPatch未導入時の早期拒否と、旧Javaクラスを反射検出するhasFreeEndpointPatchを除去した。1.7.10/1.12のツール実行は任意パッチへ依存せず、自由点精度・対象/座標再検証・在線/ロード/既設コア/道床保護・Undo/失敗復元は維持する。列車の自由端点遷移は本体または任意の走行補正へ任せる。通常RTMターゲットの非対応機能を新たに有効化する変更ではない。
+- AE2.5.4パッケージ変更を独立分担で調査し、5ファイル7 importをjp.apple.appleextendedへ移行。併せてMod IDもapplelibからappleextendedへ変わることを一次ソースと公式dev JARのTagsで確認した。rtmx.jsonの依存・scanパッケージ・runtimeDispatchを変更し、Kaiz優先と通常RTM fallbackは維持する。旧2.5.3は対応基準外とし、動的な旧API aliasは追加しない。
+- 通常の型生成はJitPackのv2.5.4 POM read timeoutで失敗。再試行を繰り返さず、公開digestとSHA一致する公式AE2.5.4 dev JARを既存scannerへ渡し、groovyを補ってAE型/マッピングを生成した。使用3クラスは新名前空間に存在し、旧railパッケージはない。SRBX未使用のARIS/ASM依存クラス7件がskipされたが、使用クラスの生成・全4buildに成功。再現手順とhashは[AEターゲット](../development/appleextended-target.md)、調査用データは.cacheへ保持する。
+- Javaパッチがあることを強制するfixtureを削除し、パッチ未導入での生成・編集経路と、形状不正/在線の拒否を回帰で確認。AE namespace fixtureと新Mod IDのdispatch/Kaiz共存ケースを更新した。全4build、free-endpoint/runtime-dispatch/Kaiz/AE/GUI/platform/rail-transition/input/rail-patch/rail-boundaryの全10スクリプトが成功した。実Minecraft上の操作・走行は未確認。
+- README/同梱readmeはKaizの走行補正を任意とし、両版のツールはパッチ不要と案内。AEターゲット・パッチ資料・遷移調査と引継ぎを更新した。rtm-ts・参照専用ツールキット・Mod/JARの中身は変更せず、配布ZIP/JAR生成・タグ・リリースも行わない。検証用distだけを再生成し、終了コミットはCIをスキップして自動パッチJAR生成も行わない。既存ユーザーXCF2件・logs/latest.logは保持しコミットしない。
+- 開発者の実機確認は、試験環境でSRBXPatchを外し、Kaiz1.10.4/AE2.5.4の起動・生成/複線/組ホーム/分割/移動/カント/分岐/渡り線と対応Undo、再入場後を確認する。AEでは自由端点を跨ぐ双方向走行も確認し、Kaizの旧本体での遷移制限はツールのパッチ未導入拒否と区別する。異常時はツール・操作順・時刻とlogs/latest.logを開発者がこのチャットへ共有する。
+
+- 補足検証: pnpm format:checkは既存の未変更19ファイルで失敗。警告対象が今回の変更ファイルと重ならないことを確認し、変更した全TS/CJS/rtmx設定のPrettier確認は成功した。無関係な整形は行わない。文書リンク113件とdiff --checkも成功。

@@ -15,7 +15,7 @@ import {
 } from "jp.ngt.rtm.rail";
 import { ResourceStateRail } from "jp.ngt.rtm.modelpack.state";
 import { RailPosition } from "jp.ngt.rtm.rail.util";
-import { TileEntityLargeRailSectionCore } from "jp.apple.rail";
+import { TileEntityLargeRailSectionCore } from "jp.apple.appleextended.rail";
 import { EntityPlayer } from "net.minecraft.entity.player";
 import { NBTBase, NBTTagCompound } from "net.minecraft.nbt";
 import { BlockPos } from "net.minecraft.util.math";

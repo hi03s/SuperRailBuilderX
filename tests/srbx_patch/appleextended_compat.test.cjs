@@ -107,12 +107,14 @@ const context = {
 				},
 			},
 			apple: {
-				rail: {
-					TileEntityLargeRailSectionCore: SectionCore,
-					util: {
-						RailMapSection,
-						RailChunkSectioner: {
-							split: () => ({ size: () => 0 }),
+				appleextended: {
+					rail: {
+						TileEntityLargeRailSectionCore: SectionCore,
+						util: {
+							RailMapSection,
+							RailChunkSectioner: {
+								split: () => ({ size: () => 0 }),
+							},
 						},
 					},
 				},
@@ -186,7 +188,6 @@ load("superrailbuilderx/AppleExtendedRailCompat.js");
 loadCompat("superrailbuilderx", "SRBXApiCompat.");
 const api = Object.values(context.RTMX_COMPAT_TARGETS.appleextended)[0]
 	.SRBXApiCompat;
-api.hasFreeEndpointPatch = () => true;
 const helper = context.AppleExtendedRailCompat;
 // Planning must honor the actual RTM config and try reversed sections before
 // normal fallback. All callbacks here are read-only; no creation API is used.
@@ -214,7 +215,8 @@ const helper = context.AppleExtendedRailCompat;
 		}),
 	);
 	config.railGeneratingDistance = 64;
-	const sectioner = context.Packages.jp.apple.rail.util.RailChunkSectioner;
+	const sectioner =
+		context.Packages.jp.apple.appleextended.rail.util.RailChunkSectioner;
 	const oldSplit = sectioner.split,
 		oldPlan = context.AppleExtendedSectionPlacementCompat.plan;
 	const conflict = new RailCore();
@@ -509,15 +511,16 @@ const sectionOwners = [
 	{ ...positions[1], blockZ: 81 },
 	{ ...positions[0], blockZ: 32 },
 ];
-context.Packages.jp.apple.rail.util.RailChunkSectioner.split = () => ({
-	size: () => 2,
-	get: (index) => ({
-		getStartRP: () => sectionOwners[index],
-		getEndRP: () => positions[0],
-		getStartRatio: () => index / 2,
-		getEndRatio: () => (index + 1) / 2,
-	}),
-});
+context.Packages.jp.apple.appleextended.rail.util.RailChunkSectioner.split =
+	() => ({
+		size: () => 2,
+		get: (index) => ({
+			getStartRP: () => sectionOwners[index],
+			getEndRP: () => positions[0],
+			getStartRatio: () => index / 2,
+			getEndRatio: () => (index + 1) / 2,
+		}),
+	});
 const autoProperty = { autoSplit: true, writeToNBT: () => ({}) };
 let createdOwner = null;
 let receivedProperty = null;
@@ -947,25 +950,64 @@ console.log(
 	"AppleExtended public switch endpoint dispatch preserves route indices",
 );
 
-api.hasFreeEndpointPatch = () => false;
-assert.equal(
-	api.createBuilderRail({}, {}, {}, {}).status,
-	"srbxpatch_required",
+// The Java patch is absent: each public editing entry point still delegates.
+assert.equal(api.hasFreeEndpointPatch, undefined);
+{
+	const world = {},
+		player = {},
+		point = {},
+		request = {},
+		targets = [];
+	const calls = [];
+	const cases = [
+		[
+			helper,
+			"createNormalRail",
+			() => api.createBuilderRail(world, player, point, point),
+		],
+		[
+			railTools,
+			"splitBuilderRail",
+			() => api.splitBuilderRail(world, player, [0, 0, 0], "key", 0.5),
+		],
+		[railTools, "applyRailCants", () => api.applyRailCants(world, targets)],
+		[
+			railTools,
+			"createBranchBuilderRail",
+			() => api.createBranchBuilderRail(world, player, request),
+		],
+		[
+			railTools,
+			"createCrossoverBuilderRail",
+			() => api.createCrossoverBuilderRail(world, player, request),
+		],
+	];
+	for (const [owner, name, run] of cases) {
+		const original = owner[name];
+		const result = { status: "ok", marker: name };
+		owner[name] = (...args) => {
+			calls.push(name);
+			assert.strictEqual(args[0], world);
+			return result;
+		};
+		try {
+			assert.strictEqual(run(), result);
+		} finally {
+			owner[name] = original;
+		}
+	}
+	assert.equal(calls.length, 5);
+	// Occupancy validation must still reject a switch before any world mutation.
+	endpointSwitch.isLogicalRailOccupied = () => true;
+	assert.equal(
+		api.validateRailPositionMove(endpointSwitch, 2, 8, 4, 6, 9, 4, 6),
+		"occupied",
+	);
+	endpointSwitch.isLogicalRailOccupied = () => false;
+}
+console.log(
+	"AppleExtended patch-free tools retain normal delegation and occupancy protection",
 );
-assert.equal(
-	api.validateRailPositionMove({}, 0, 0, 0, 0, 0, 0, 0),
-	"srbxpatch_required",
-);
-assert.equal(
-	api.splitBuilderRail({}, {}, [0, 0, 0], "", 0.5).status,
-	"srbxpatch_required",
-);
-assert.equal(api.applyRailCants({}, []).status, "srbxpatch_required");
-assert.equal(
-	api.createBranchBuilderRail({}, {}, {}).status,
-	"srbxpatch_required",
-);
-console.log("AppleExtended separate patch capability guards passed");
 
 // A snapped design inherits its neighbour's heading, not its control lengths.
 {

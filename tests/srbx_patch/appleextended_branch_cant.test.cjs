@@ -126,7 +126,11 @@ const context = {
 			},
 		},
 		jp: {
-			apple: { rail: { TileEntityLargeRailSectionCore: Section } },
+			apple: {
+				appleextended: {
+					rail: { TileEntityLargeRailSectionCore: Section },
+				},
+			},
 			ngt: {
 				ngtlib: {
 					io: { NGTLog: { debug() {} } },

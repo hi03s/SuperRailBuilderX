@@ -1,7 +1,7 @@
 import { SRBXRailBoundary } from "./SRBXRailBoundary";
 import { RailMap } from "jp.ngt.rtm.rail.util";
 
-/** Precise endpoints for KaizPatch and AE; server writes require SRBXPatch. */
+/** Precise endpoints for KaizPatch and AE, independent of optional Java patches. */
 export class SRBXFreeEndpointPolicy {
 	static isBoundary(
 		position: [number, number, number],

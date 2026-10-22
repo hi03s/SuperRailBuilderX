@@ -253,9 +253,14 @@ context.Packages.java = {
 context.Packages.jp = {
 	ngt: {},
 	apple: {
-		rail: {
-			TileEntityLargeRailSectionCore: Section,
-			util: { RailMapSection: SectionMap, RailChunkSectioner: { split } },
+		appleextended: {
+			rail: {
+				TileEntityLargeRailSectionCore: Section,
+				util: {
+					RailMapSection: SectionMap,
+					RailChunkSectioner: { split },
+				},
+			},
 		},
 	},
 };

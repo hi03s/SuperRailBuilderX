@@ -8,11 +8,11 @@ for (const file of [
 ]) {
 	const source = fs.readFileSync(file, "utf8");
 	for (const [version, mods, expected] of [
-		["2.4.24", ["applelib"], "appleextended"],
+		["2.4.24", ["appleextended"], "appleextended"],
 		["2.4.24", [], "mc1122"],
 		["1.7.10", [], "mc1710"],
 		["KaizPatchX", [], "kaizpatch"],
-		["KaizPatchX", ["applelib"], "kaizpatch"],
+		["KaizPatchX", ["appleextended"], "kaizpatch"],
 	]) {
 		const context = {
 			Packages: {

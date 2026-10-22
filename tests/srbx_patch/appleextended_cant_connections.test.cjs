@@ -39,7 +39,11 @@ const context = {
 					},
 				},
 			},
-			apple: { rail: { TileEntityLargeRailSectionCore: SectionCore } },
+			apple: {
+				appleextended: {
+					rail: { TileEntityLargeRailSectionCore: SectionCore },
+				},
+			},
 		},
 		java: {
 			util: {

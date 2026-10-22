@@ -298,18 +298,11 @@ console.log(
 );
 
 context.Packages.jp.ngt.rtm.rail.TileEntityLargeRailSwitchCore = class {};
-// Experimental branch requires the server hook before any world mutation.
+// Tools preserve precise endpoints without requiring an installed Java patch.
 assert.equal(api.requiresRailBoundarySnap(), false);
-assert.equal(
-	api.validateRailPositionMove({}, 0, 0, 0, 0, 0, 0, 0),
-	"srbxpatch_required",
-);
-assert.equal(
-	api.createBuilderRail({}, {}, {}, {}).status,
-	"srbxpatch_required",
-);
-api.hasFreeEndpointPatch = () => true;
-// Interior points are preserved after capability validation.
+assert.equal(api.hasFreeEndpointPatch, undefined);
+assert.equal(api.createBuilderRail({}, {}, {}, {}).status, "invalid_point");
+// Interior points are preserved after ordinary world/geometry validation.
 api.canMoveRailPosition = () => true;
 api.isSectionCore = () => false;
 context.Packages.jp.ngt.rtm.rail.TileEntityLargeRailSwitchCore = class {};
@@ -380,15 +373,30 @@ const freePoint = {
 	kind: "free",
 	position: [0.35, 4.0625, 20.3],
 };
-api.hasFreeEndpointPatch = () => false;
 assert.equal(
-	api.createBuilderRail({}, {}, railPoint, freePoint).status,
-	"srbxpatch_required",
-	"Missing server hook blocks free-point creation before writes",
+	api.createBuilderRail({}, {}, railPoint, {
+		...freePoint,
+		position: railPoint.position,
+	}).status,
+	"rail_too_short",
+	"A missing patch must not bypass geometric validation",
 );
-api.hasFreeEndpointPatch = () => true;
+assert.equal(
+	api.validateRailPositionMove(
+		{ isLogicalRailOccupied: () => true },
+		0,
+		0.35,
+		4.0625,
+		0,
+		0.35,
+		4.0625,
+		2.3,
+	),
+	"occupied",
+	"A missing patch must not bypass occupied-rail protection",
+);
 console.log(
-	"KaizPatch free-point validation and capability guard tests passed",
+	"KaizPatch patch-free endpoints retain geometry and occupancy validation",
 );
 
 const angledBoundary = {

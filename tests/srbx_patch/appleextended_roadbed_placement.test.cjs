@@ -160,7 +160,11 @@ const BlockUtil = {
 const context = {
 	Packages: {
 		jp: {
-			apple: { rail: { TileEntityLargeRailSectionCore: class {} } },
+			apple: {
+				appleextended: {
+					rail: { TileEntityLargeRailSectionCore: class {} },
+				},
+			},
 			ngt: {
 				ngtlib: {
 					block: { BlockUtil },

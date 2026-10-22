@@ -1,6 +1,6 @@
 import { RailPosition } from "jp.ngt.rtm.rail.util";
 import { TileEntityLargeRailCore } from "jp.ngt.rtm.rail";
-import { TileEntityLargeRailSectionCore } from "jp.apple.rail";
+import { TileEntityLargeRailSectionCore } from "jp.apple.appleextended.rail";
 
 /**
  * Compile-only smoke sample for AppleExtended's free RailPosition API.

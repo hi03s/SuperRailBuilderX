@@ -9,8 +9,11 @@ import {
 	TileEntityLargeRailCore,
 } from "jp.ngt.rtm.rail";
 import { RailMap, RailMapBasic, RailPosition } from "jp.ngt.rtm.rail.util";
-import { RailChunkSectioner, RailMapSection } from "jp.apple.rail.util";
-import { TileEntityLargeRailSectionCore } from "jp.apple.rail";
+import {
+	RailChunkSectioner,
+	RailMapSection,
+} from "jp.apple.appleextended.rail.util";
+import { TileEntityLargeRailSectionCore } from "jp.apple.appleextended.rail";
 import { World } from "net.minecraft.world";
 import { BlockPos } from "net.minecraft.util.math";
 import { NBTBase, NBTTagCompound } from "net.minecraft.nbt";

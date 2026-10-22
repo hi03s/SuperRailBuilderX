@@ -247,7 +247,6 @@ const free = {
 const end = { ...free, position: [0, 0, 40] };
 let endpointFallbackCalled = false;
 const apiFixture = {
-	hasFreeEndpointPatch: () => true,
 	validateBuilderPoint: () => "ok",
 	validatePoint: () => "ok",
 	createBuilderSourceProperty: () => ({ model: "existing" }),
