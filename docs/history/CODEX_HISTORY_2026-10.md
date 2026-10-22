@@ -372,7 +372,7 @@
 - 分岐生成はレール生成Aと同様に固定ONなら設定半径、OFFでプレビューがあれば近似半径を表示し、無限大は「直線」。起点選択中の新線長を描画済み48分割の3D折線から集計する。終点候補なしは0.00 m、起点未選択は空欄。元レール側の残存区間は含めない。GUIによるRailMap新規作成/ワールド書込なし。
 - 検証済み: 全4ターゲットbuild（warningなし）、全package回帰スクリプト、変更TS/テスト整形、diff --check。test:guiは共通描画の全GL状態復元/エラー停止/アイコン座標/白文字、各ツールの表示値、実renderでの分割ホバー/選択/無効候補/描画pass・Minecraft画面条件、分岐の実プレビュー3D長を検証。実Java 8u51で全6ツールの生成アダプターと共通GUIの文字/空行/投影維持を実行し成功（GLは模擬）。
 - main ZIPを更新し、共通GUIと全6ツールの呼出、gui_base.xcf非同梱を確認（103ファイル）。SHA256 d584a613d1d2385d3991fc30dc9caddb6cf343bd22c418ef7ac1aef6ef9cf678。
-- 未実施: KaizPatch/AEでの実GPU・実ワールド表示確認。更新ZIPへ置換して再起動し、全ツールの設定変更/選択/解除、別画面開閉、ツール切替/終了、GLエラーとレール描画の正常性を確認する。異常時はツール名、操作、logs/latest.logを共有。[共通GUI仕様/手順](../user-guide/tool-gui.md)。
+- 未実施: KaizPatch/AEでの実GPU・実ワールド表示確認。更新ZIPへ置換して再起動し、全ツールの設定変更/選択/解除、別画面開閉、ツール切替/終了、GLエラーとレール描画の正常性を確認する。異常時はツール名、操作、logs/latest.logを共有。[共通GUI仕様/手順](../research/gui-rendering-compatibility.md)。
 - 同期: 実装9a1f77aをorigin/mainへpush成功。完了項目を引継ぎ帳の作業中から除去。
 
 ## 2026-10-11 ローカルCodex: カントのレール単位選択と操作・ヘルプ改善
@@ -768,3 +768,11 @@
 - SRBX専用ヘルパーを試作し全4build・GUI/dispatch/描画互換回帰に成功。その後、開発者の「NGTOBuilder2更新で治るなら相手へ要求する」という指示を受け、公開NGTOBuilder2 2.3.2 ZIPのdigestとローカルZIPのSHA一致・必要関数存在を確認。Java8 Nashornで未変更の配布SRBX0.3.2 renderAtを実行し、旧API相当の関数欠落でTypeError、2.3.2関数では座標変換・描画成功を確認した。実機マルチプレイは未検証。
 - 更新案内を優先して試作コード・テスト・package.json変更を取り下げ、全4buildでdistも現行ソースへ復元。SRBXコード/配布ZIP・rtm-ts・共有ツールキット・JAR・パッチModは変更なし。ユーザーXCF2件とlogs/latest.logを保持し、生ログをGitへ追加しない。最終成果物は[調査資料](../research/issue3-multiplayer-tool-crash.md)・文書入口・引継ぎ帳・本履歴のみ。
 - 報告者には両側の旧NGTOBuilder2.1を除去して2.3.2へ置換・再起動し、生成Aと他ツールの起動/描画を確認してもらう。再発時は両側ZIP名・新規クライアントlatest.log/クラレポ・操作順/時刻を開発者へ提出しローカルlogs/で追加調査する。Issue投稿や本番サーバー操作は行わない。
+
+
+## 2026-10-23 ローカルCodex: AE2.5.4導入案内とツール説明書の統一
+
+- 開始記録965f3edをmainへpushして着手。トップREADMEとパック同梱readmeを更新し、動作環境をKaizPatchX 1.10.4+ / AppleExtended v2.5.4+の2項目に限定。AE公式2.5.4リリースのSRBXPatch由来の自由端点遷移修正取り込みを確認し、AEはパッチ不要、Kaizは継続必要と案内した。収録9ツールを同じ一覧へ揃え、欠けていたカント整形・分岐生成・渡り線などを補った。
+- 現行ソースには旧AE API参照とSRBXPatch必須判定があるため、トップREADMEの導入案内は次回更新向けと明記し、次回のAPI移行・本体対応判定を引継ぎへ残した。今回は文書のみで実装・rtm-ts/JAR/パッチMod変更は行わず、ビルド・ZIP生成・リリース・タグ操作もしない。終了コミットは[skip ci]を付け、src/common/readme.txt変更による自動ビルドも抑止する。公開版/既存artifactsへは反映しない。
+- 9ツールの説明書を使い方/操作/設定と動作/制限に統一。欠けていたレール移動の独立説明書を作成した。生成系4文書と既設編集系5文書を独立分担し、ローカルCodexが表示・参照・全体整合を確認。旧説明書の内部仕様は[ツール実装情報](../development/rail-tool-implementation.md)へ統合した。tool-gui.md/tool-wheel.md/usage.md/srbx-free-endpoint-mod.mdは指定どおり削除し、現行資料のリンクと過去履歴のGUI参照リンクを更新。過去の作成記録としての文書名は履歴へ残す。
+- AGENTS.mdへuser-guideはツール説明書だけを配置する方針と共通章構成を記載。文書リンク・見出し・9ツール一覧・削除対象・Markdown整形・差分を確認。実機検証とビルド/コード回帰は文書のみのため未実施。既存ユーザーXCF2件とlogs/latest.logは保持しコミット対象外とする。

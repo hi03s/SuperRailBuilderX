@@ -1,12 +1,11 @@
 ========== ========== ==========
 
-  SuperRailBuilderX 0.2.0
+  SuperRailBuilderX
 
 ========== ========== ==========
 
 製作者: ひー@hi03
-リリースバージョン: 0.2.0
-最終更新日: 2026/10/4
+説明書更新日: 2026/10/23
 
 
 【重要・使用前に必ずお読みください】
@@ -21,27 +20,25 @@ SuperRailBuilderXを使用する前に、対象ワールドのバックアップ
 
 ○概要
 
-KaizPatchX向けのレール制作支援ツール集です。
-レールの新規敷設、複線コピー、既設線の分割、端点・線形の移動を行います。
-自動車モデルとして収録されています。地面に設置して右クリックで使用します。
-AppleExtended v2.5.3にも対応しています。
+KaizPatchXとAppleExtended向けのレール制作支援ツール集です。
+レールの新規敷設、複線コピー、組ホーム、既設線の分割、端点・線形の移動、カント整形、分岐・渡り線生成を行います。
+9ツールを自動車モデルとして収録しています。地面に設置して右クリックで使用します。
 
 
 ○動作環境
 
-・Minecraft 1.7.10
-・RealTrainMod
-・KaizPatchX 1.10.3以降
-またはMinecraft 1.12.2 / AppleExtended v2.5.3
-
-主要なワールド変更機能はKaizPatchXとAppleExtended v2.5.3に対応しています。
-通常RTM 1.7.10およびMinecraft 1.12.2では、非対応機能はワールドを変更せず停止します。
+・KaizPatchX 1.10.4+
+・AppleExtended v2.5.4+
 
 
 ○導入方法
 
-RealTrainModとKaizPatchX、またはAppleExtended v2.5.3を導入した状態で、このパックをmodsフォルダーへ入れてください。
-自動車モデル選択画面から「SuperRailBuilderX_builder1」（機能名: レール生成A）または「SuperRailBuilderX」で始まるモデルを選択します。
+使用するKaizPatchXまたはAppleExtendedを導入し、SRBXパックZIPをmodsフォルダーへ入れてください。
+マルチプレイではクライアントとサーバーの両方へ配置します。
+自動車モデル選択画面から「SuperRailBuilderX」で始まるツールを選択します。
+
+・KaizPatchX 1.10.4+: SRBXPatch-v1.0-1.7.10.jarをクライアントとサーバーの両方へ追加してください。
+・AppleExtended v2.5.4+: SRBXPatchは不要です。自由端点のレール遷移修正はAE本体へ取り込まれています。
 
 
 ○共通操作
@@ -49,37 +46,53 @@ RealTrainModとKaizPatchX、またはAppleExtended v2.5.3を導入した状態�
 ・右クリック: 対象の選択、選択状態の切替、位置の確定
 ・左クリック: 選択または確定を1段階戻す
 ・Enter: プレビューした処理を適用
-・Ctrl+Z: そのツールで直前に適用した処理を取り消す
+・Ctrl+Z: 直前の処理を取り消す（渡り線生成は対象外）
+・Tab: ツール切り替えホイールを開く
 ・H: チャット欄へ操作ヘルプを表示
 ・Q: ツールを終了
 
-Undo情報はツール終了、スクリプト再読み込み、サーバー再起動後には失われます。
+Undo情報はツール終了、ツール切り替え、スクリプト再読み込み、サーバー再起動後には失われます。
 詳細なキー操作は使用中にHキーで確認してください。
 
 
-○モデル一覧
+○収録ツール
 
-└自動車モデル
-　├レール生成A
-　│  2点を選択して、曲線・勾配・縦曲線を含むレールを新規敷設します。
-　├SuperRailBuilderX_DoubleTrackCopy
-　│  既設レールを複数選択し、指定間隔で平行レールを生成します。
-　├SuperRailBuilderX_RailSplitter
-　│  既設レールを指定位置で2本へ分割します。
-　├SuperRailBuilderX_RailMover
-　│  既設レールの端点移動、単体・複数レールの平行移動を行います。
-　├SuperRailBuilderX_CantFormatter
-　│  設計速度と軌間から通常レール端点のカントを一括整形します。
-　└SuperRailBuilderX_BranchBuilder
-　　 既設レールを分割し、自由点または別レール端点へ単純分岐を生成します。
+・レール生成A（SuperRailBuilderX_builder1）
+  始点と終点を選び、曲線・勾配・縦曲線を含むレールを敷設します。
 
-レール移動ツールで複数平行移動する場合、2本目以降は選択済みレールへ接続するレールだけを追加できます。
+・レール生成B（SuperRailBuilderX_builder2）
+  始点を選び、設定した長さ・半径・勾配でレールを敷設します。
+
+・複線コピー（SuperRailBuilderX_DoubleTrackCopy）
+  既設レールを選び、指定間隔で平行なレールを生成します。
+
+・組ホーム（SuperRailBuilderX_PlatformBuilder）
+  線路に沿って左右どちらか1列へ、指定間隔・高さで手持ちモデルを敷設します。
+
+・線路分割（SuperRailBuilderX_RailSplitter）
+  既設レールを指定位置で分割します。片渡り・シーサスの分岐にも対応します。
+
+・レール移動（SuperRailBuilderX_RailMover）
+  既設レールの端点移動や、単体・複数レールの平行移動を行います。
+
+・カント整形（SuperRailBuilderX_CantFormatter）
+  設計速度と軌間からカントを計算し、選択したレールへ適用します。
+
+・分岐生成（SuperRailBuilderX_BranchBuilder）
+  既設レールの途中から自由点や別レールの端点へ分岐を生成します。
+
+・渡り線生成（SuperRailBuilderX_CrossoverBuilder）
+  自由始点や既設レールを基準に、片渡り線・シーサスクロッシングを生成します。
+
+各ツールの説明書:
+https://github.com/hi03s/SuperRailBuilderX/tree/main/docs/user-guide
 
 
 ○主な制限
 
 ・列車が在線しているレールは変更できません。
-・分岐器は線路分割・レール移動の対象外です。
+・分岐レールの平行移動はできません。端点移動や対応する分岐の分割は各説明書を確認してください。
+・渡り線生成はUndoできません。
 ・見た目上接していても、配置条件によってレール間を正常に遷移できない場合があります。
 ・Undoでは、レール生成時に破壊された通常ブロックなどは復元されません。
 

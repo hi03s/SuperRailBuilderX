@@ -4,7 +4,7 @@
 
 ## 現在の結論
 
-mainは両環境とも完全自由点仕様を使用し、SRBXパックと独立したSRBXPatchを併用する。端点をブロック境界へ丸める試作は撤回済み。現行パッチの配布・実装・適用範囲は[SRBXPatch](../user-guide/srbx-free-endpoint-mod.md)を正とする。
+mainは両環境とも完全自由点仕様を使用する。端点をブロック境界へ丸める試作は撤回済み。KaizPatchXと旧AE2.5.3向けのSRBXPatchは車両のレール遷移を補う暫定処理である。AE2.5.4では本体へ取り込まれたため、次回パック更新はパッチなしの構成へ対応する。現行ソースの対応状況と適用範囲は[SRBXPatchの開発資料](../development/srbxpatch.md)を参照する。
 
 `RailPosition#setPosition`で精密な端点を指定できること、幾何学上の端点が一致すること、台車が別レールへ正常に遷移できることは別の条件である。ブロック内部の独立レール接続では、台車の現在RailMapと、予測位置の道床が指す所有コアが食い違う。
 
@@ -102,7 +102,7 @@ Aでは予測点が旧床セルを出ない間、旧mapの端へ戻る。Bでは
 
 既存描画パッチはrendererのScriptEngine内のJavaScript関数を差し替える仕組みであり、台車のprivateメソッドやstaticなJava探索呼出しを置換できない。走行診断のreflection読取りもJavaメソッドの差替えにはならない。このため、既存Mod JARやrtm-tsを編集せず、起動時にJava探索へhookする独立coremodを選んだ。
 
-Kaizは現在mapの保持条件を補い、端点越えをnative探索へ委譲する。AEは現在mapの保持に加え、自由端点越えの精密接続探索と同グループsection優先を補う。候補の不整合・曖昧さ・未対応状態では標準処理へ戻す。現在の制限は[SRBXPatch](../user-guide/srbx-free-endpoint-mod.md)を参照する。
+Kaizは現在mapの保持条件を補い、端点越えをnative探索へ委譲する。AE2.5.3向けパッチは現在mapの保持に加え、自由端点越えの精密接続探索と同グループsection優先を補う。候補の不整合・曖昧さ・未対応状態では標準処理へ戻す。適用範囲と制限は[SRBXPatchの開発資料](../development/srbxpatch.md)を参照する。
 
 ### 撤回: ブロック境界へ端点を補正する方式
 

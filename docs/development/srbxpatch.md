@@ -2,6 +2,12 @@
 
 AE本体で独自に再実装するためのアルゴリズム・判定理由・参考値・検証条件は[走行先判定設計](appleextended-rail-resolution-design.md)を参照。
 
+## AE本体への取り込みと次回更新
+
+[AppleExtended v2.5.4](https://github.com/Kirtmuna/AppleExtended/releases/tag/v2.5.4)はSRBXPatch由来の自由端点レール遷移修正を本体へ取り込んだ。AE v2.5.4以降には暫定パッチを追加しない。KaizPatchX側のSRBXPatchは引き続き必要である。利用者向けの動作環境と導入案内は[トップREADME](../../README.md#導入方法)へ集約する。
+
+2026-10-23の作業は文書更新だけで、パックのビルド・リリースは行わない。現行SRBXソースのAE compatには、`jp.hi03.srbxpatch.SRBXPatch`を検査する`hasFreeEndpointPatch`と旧`jp.apple`参照が残る。次回パック更新で、AE本体対応の判定と`jp.apple.appleextended`へのAPI移行を実装・検証してから、この導入案内を同梱readmeへ反映する。公開済み0.3.2でAE2.5.4のパッチなし動作を確認したという意味ではない。
+
 ## 仕組みと制限
 
 SRBXPatchの変更範囲は車両の自由点接続・レール遷移に限定する。明示的な開発者指示がない限り、KaizPatch/AEの形状判定・描画など別用途の機能を追加しない。調査で見つかった上流不具合は再現条件と原因を文書化し、開発者から上流へ連絡する。[Kaizの片渡り判定・終了時描画の調査](../research/kaizpatch-crossover-and-render-errors.md)に記録した一時的な追加補正は撤回済み。
