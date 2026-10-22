@@ -19,7 +19,7 @@
 
 ## 作業中
 
-- なし。
+- 2026-10-23 ローカルCodex: Kaizカント整形で強調された接続レールへ適用されないログを調査・修正し、直前のAE分岐/移動/表示修正を含む波及性を点検する。rtm-ts/JAR/パッチModは変更せず、回帰検証と最新開発ZIP生成まで行う。
 
 ## 優先確認事項
 - 今回AEログの01:07:24/47はroot所有位置と既設コア競合、01:10:31は根元のfinal switchTypeを変更できない不具合。所有位置退避とNBT再構成、表示キャッシュ更新を修正。最新開発ZIPで同じ端点から生成→根元/他端部移動→再入場前の形状・道床→Undo・再生成を確認し、退避先のレバー転換も確認する。01:06:20/24/28のrail_not_foundは要求キーが旧ログにないため未確定。再発時は操作/時刻と新しいlogs/latest.log（core resolution failed/switch validation failed/client rail refresh failed行を含む）を共有する。全4build/関連回帰/ZIP確認成功、実機未確認。
