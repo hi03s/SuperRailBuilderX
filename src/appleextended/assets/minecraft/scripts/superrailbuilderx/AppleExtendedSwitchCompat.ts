@@ -57,15 +57,25 @@ export class AppleExtendedSwitchCompat {
 				for (let j = 0; j < blocks.size(); j++) {
 					const b = blocks.get(j),
 						p = [b[0], b[1], b[2]];
+					if (reserved[key(p)] || p[1] !== rp.blockY) continue;
+					// Move preflight ignores the source group, including a source
+					// core that becomes a free relocation target after removal.
+					const candidate = new RailPosition(
+						p[0],
+						p[1],
+						p[2],
+						rp.direction,
+						rp.switchType,
+					);
 					if (
-						reserved[key(p)] ||
-						p[1] !== rp.blockY ||
-						BlockUtil.getTileEntity(
-							world,
-							p[0],
-							p[1],
-							p[2],
-						) instanceof TileEntityLargeRailCore
+						blocked
+							? blocked(candidate)
+							: BlockUtil.getTileEntity(
+									world,
+									p[0],
+									p[1],
+									p[2],
+								) instanceof TileEntityLargeRailCore
 					)
 						continue;
 					const distance =

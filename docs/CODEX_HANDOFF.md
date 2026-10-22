@@ -14,14 +14,17 @@
 - [組ホーム](user-guide/platform-builder.md)を追加。手持ちレール必須、左右1列、間隔2m/高さ1.5mから設定。サーバーで元線形を再検証・再計算し、共通保護とUndoを使用。ホイールは全9ツール。実機確認待ち。
 - AEのTAB拒否は非乗車追従へ乗車必須チェックを適用していたことが原因。bb224faでcompat判定と切替後のサーバーホスト引継ぎを修正しpush済み。全4build・入力/GUI/dispatch/AE回帰・Java8ホイール成功、実機再確認待ち。
 - v0.3.1は公開済み（GitHub APIで確認）。v0.3.2は本終了コミットへタグを付け、ActionsでZIP＋両SRBXPatch付きDraftを準備する。公開は開発者の手動Publish。[リリース手順](development/releasing.md)。
-- artifactsは開発版`SuperRailBuilderX-0.3.2.zip`（2026-10-23、パッチ非依存化/AE2.5.4/分岐生成・根元移動・表示更新の修正を反映）、配布版`SuperRailBuilderX-v0.3.2.zip`、環境別SRBXPatch v1.0 JARの4ファイル。配布版ZIPと両JARは保持し、既存リリースは変更しない。実機確認が必要な本体変更は開発ZIP生成まで行う。
+- artifactsは開発版`SuperRailBuilderX-0.3.2.zip`（2026-10-23、パッチ非依存化/AE2.5.4/分岐生成・移動・表示/Kaiz接続カントの修正を反映）、配布版`SuperRailBuilderX-v0.3.2.zip`、環境別SRBXPatch v1.0 JARの4ファイル。配布版ZIPと両JARは保持し、既存リリースは変更しない。実機確認が必要な本体変更は開発ZIP生成まで行う。
 - docsは[user-guide](user-guide/)、[development](development)、[research](research/)、[history](history)へ分類。user-guideは9ツールの説明書だけを配置し、共通4章へ統一。導入・動作環境はトップREADME/同梱readme、内部仕様は開発資料へ集約。文書入口は[README](README.md)。logsは原則Git保存しない。
+
+- Kaizカントの接続探索を強調表示と同じ端点照合へ統一し、Undoの全対象事前検証を追加。分岐/渡り線の共有経路とAE修正の波及も点検し、AE移動前検証の旧コア再利用拒否を修正。全4build・関連回帰成功、最新開発ZIPで実機確認待ち。[カント調査](research/cant-curve-rendering.md)。
 
 ## 作業中
 
-- 2026-10-23 ローカルCodex: Kaizカント整形で強調された接続レールへ適用されないログを調査・修正し、直前のAE分岐/移動/表示修正を含む波及性を点検する。rtm-ts/JAR/パッチModは変更せず、回帰検証と最新開発ZIP生成まで行う。
+- なし。
 
 ## 優先確認事項
+- Kaizで問題のカント選択を再実行し、強調された接続レールの端部/中央、適用→Undo、再入場前後を確認する。分岐/渡り線の接続側平坦化と失敗復元も確認。再発時は選択順・時刻とlogs/latest.log（cant/affected rails/cant-profile）を共有する。AEでは移動元の旧コアを退避先に再利用するケースも確認する。
 - 今回AEログの01:07:24/47はroot所有位置と既設コア競合、01:10:31は根元のfinal switchTypeを変更できない不具合。所有位置退避とNBT再構成、表示キャッシュ更新を修正。最新開発ZIPで同じ端点から生成→根元/他端部移動→再入場前の形状・道床→Undo・再生成を確認し、退避先のレバー転換も確認する。01:06:20/24/28のrail_not_foundは要求キーが旧ログにないため未確定。再発時は操作/時刻と新しいlogs/latest.log（core resolution failed/switch validation failed/client rail refresh failed行を含む）を共有する。全4build/関連回帰/ZIP確認成功、実機未確認。
 - パッチなしの実機確認待ち。最新開発ZIPをKaizPatchX 1.10.4/AE2.5.4へ導入し、SRBXPatch JARを外した試験環境で起動・各ツールの生成/編集/Undo・再入場後・AEの自由端点遷移を確認する。Kaizの走行補正は任意SRBXPatchへ依存し得る。全4build/関連回帰成功、通常型生成はJitPack timeoutのため公式AE2.5.4 dev JARで検証済み。今回ZIP内スクリプト/readmeと不要データ除外も確認。再発時はツール・操作順・時刻とlogs/latest.logを共有。配布版ZIP/JAR・リリースは未更新。
 - リポジトリ全体のformat:checkは既存・今回未変更の19ファイルで警告。今回変更したソース/テスト/設定のPrettier確認と差分確認は成功。無関係な整形変更は行っていない。
@@ -55,7 +58,7 @@
 
 ## 次に行うこと
 
-1. 最新開発ZIPで今回のAE分岐生成・根元移動・即時表示とrail_not_foundの再発有無を確認する。異常時は機能・操作順・時刻と新しいlogs/latest.logを共有する。パッチなし実機確認と次回リリース準備も継続し、JitPack復旧時は通常型生成を確認する。
+1. 最新開発ZIPでKaiz接続カントの適用/UndoとAE分岐生成・根元移動・即時表示とrail_not_foundの再発有無を確認する。異常時は機能・操作順・時刻と新しいlogs/latest.logを共有する。パッチなし実機確認と次回リリース準備も継続し、JitPack復旧時は通常型生成を確認する。
 2. 確認結果を引継ぎ帳へ反映し、不要になったローカルログを削除する。調査結果は文書へ要約し、生ログをGitへ追加しない。
 3. v0.3.2 Draftの本文とAssets・実機確認状況を確認し、開発者が手動Publishを行う。
 
@@ -63,9 +66,10 @@
 
 - 新規リポジトリ/フォーク/Issue/PR/コメント投稿は禁止。既存ブランチ・コミット・push・ビルドだけを行う。
 - rtm-ts、参照専用ツールキット、本番サーバーを変更しない。コミットメッセージは日本語。
-- ローカルに保持する調査ログは、今回のAE分岐/移動に必要な行へ整理したlogs/latest.logとKaiz保存APIの例外抜粋。生ログのPC情報・無関係なMod出力は保持しない。実機再確認後に不要なら削除する。
+- ローカルに保持する調査ログは、今回のKaizカントに必要な32行へ整理したlogs/latest.logとKaiz保存APIの例外抜粋。生ログのPC情報・無関係なMod出力は保持しない。実機再確認後に不要なら削除する。
 
 ## 直近の完了
+- 2026-10-23 ローカルCodex: Kaiz接続カント探索とUndo途中復元を修正。AE直前修正の波及点検で旧コア退避先の過剰拒否も修正。全4build・関連回帰成功、開発ZIP132ファイル照合済み、実機未確認。開始記録ac4d748。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 - 2026-10-23 ローカルCodex: AE分岐のroot所有位置競合、根元移動のfinalフィールド誤代入、旧分岐キャッシュ保持を修正。rail_not_foundは厳格照合を維持して診断追加。全4build/関連回帰成功・開発ZIP更新、実機再確認待ち。開始記録d733aa1。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 - 2026-10-23 ローカルCodex: 実機確認が必要な本体変更は開発ZIP生成まで行う方針をAGENTS.mdへ記録。全4build/ZIP生成と格納132ファイルの要点を確認し、パッチ非依存化/AE2.5.4対応の開発ZIPを更新。配布版ZIP/両JARはハッシュ保持、実機未確認。開始記録b946bbb。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 - 2026-10-23 ローカルCodex: 両版15か所のJavaパッチ必須判定を廃止、AE2.5.4のパッケージ/Mod IDと型生成基準を移行。公式JARでの型生成・全4build・関連回帰成功、実機未確認。配布ZIP/JAR・リリース未変更。開始記録978ef47。[10月履歴](history/CODEX_HISTORY_2026-10.md)。

@@ -515,3 +515,138 @@ assert(diagnosticLogs[1].includes("diagnostic unavailable"));
 console.log(
 	"KaizPatch cant diagnostics preserve Java arrays and isolate diagnostic errors",
 );
+
+// The highlighted neighbor can share a free endpoint while the block lookup
+// resolves to the source itself, nothing, or an unrelated roadbed owner.
+const cantPoint = (x, yaw) =>
+	Object.assign(new RailPosition(), {
+		posX: x,
+		posY: 4.0625,
+		posZ: 0.35,
+		anchorYaw: yaw,
+		cantEdge: 0,
+		cantCenter: 0,
+		cantRandom: 0,
+	});
+const cantCore = (id, key, positions) =>
+	Object.assign(new RailCore(), {
+		id,
+		key,
+		positions,
+		occupied: false,
+		getRailCore() {
+			return this;
+		},
+		isSameLogicalRail(other) {
+			return other.key === this.key;
+		},
+		isLogicalRailOccupied() {
+			return this.occupied;
+		},
+	});
+const selectedCant = cantCore(1, "source", [
+	cantPoint(0.35, 0),
+	cantPoint(30, 180),
+]);
+const connectedCant = cantCore(2, "neighbor", [
+	cantPoint(0.35, 180),
+	cantPoint(-30, 0),
+]);
+const sameYawCant = cantCore(3, "same-yaw", [
+	cantPoint(0.35, 0),
+	cantPoint(60, 180),
+]);
+const sourceSection = cantCore(4, "source", selectedCant.positions);
+const unrelatedCant = cantCore(5, "unrelated", [
+	cantPoint(0.352, 0),
+	cantPoint(90, 180),
+]);
+const cantCores = [
+	selectedCant,
+	connectedCant,
+	sameYawCant,
+	sourceSection,
+	unrelatedCant,
+];
+let blockOwner = selectedCant,
+	cantWrites = 0;
+const cantWorld = {
+	func_147438_o: (x) =>
+		x === 999 ? blockOwner : cantCores.find((c) => c.id === x),
+};
+api.getEditableRailPositions = (c) => c.positions;
+api.getRailPositionCandidateKey = (c) => c.key;
+api.getRailCorePos = (c) => [c.id, 4, 0];
+api.getLoadedRailCores = () => cantCores;
+api.getBuilderConnectionBlock = () => [999, 4, 0];
+api.getHorizontalAnchorYaw = (p) => p.anchorYaw;
+api.getRailPositionUnsupportedReason = (c) => c.unsupported || "";
+api.areBoundaryPositions = () => true;
+api.updateCantRail = (_world, c, positions) => {
+	cantWrites++;
+	c.positions = api.copyRailPositions(positions);
+	return [[c.id, 4, 0]];
+};
+context.java = {
+	util: {
+		UUID: { randomUUID: () => ({ toString: () => "cant-regression" }) },
+	},
+};
+const cantTarget = {
+	core: [1, 4, 0],
+	railKey: "source",
+	index: 0,
+	position: [0.35, 4.0625, 0.35],
+	angle: 5,
+	yaw: 0,
+	mode: "edge",
+};
+for (const owner of [selectedCant, null, unrelatedCant, connectedCant]) {
+	blockOwner = owner;
+	const found = api.findConnectedCantEndpoints(
+		cantWorld,
+		selectedCant,
+		selectedCant.positions,
+	);
+	assert.deepEqual(
+		Array.from(found, (n) => `${n.core.key}:${n.index}`).sort(),
+		["neighbor:0", "same-yaw:0"],
+	);
+	const result = api.applyRailCants(cantWorld, [cantTarget]);
+	assert.equal(result.status, "ok");
+	assert.equal(selectedCant.positions[0].cantEdge, 5);
+	assert.equal(connectedCant.positions[0].cantEdge, -5);
+	assert.equal(sameYawCant.positions[0].cantEdge, 5);
+	assert.equal(unrelatedCant.positions[0].cantEdge, 0);
+	assert.equal(connectedCant.positions[1].cantEdge, 0);
+	const writes = cantWrites;
+	connectedCant.occupied = true;
+	assert.equal(
+		api.undoRailCants(cantWorld, result.undoToken),
+		"rail_occupied",
+	);
+	assert.equal(
+		cantWrites,
+		writes,
+		"Undo must validate all connected rails before writing",
+	);
+	connectedCant.occupied = false;
+	assert.equal(api.undoRailCants(cantWorld, result.undoToken), "undo_ok");
+	assert.equal(selectedCant.positions[0].cantEdge, 0);
+	assert.equal(connectedCant.positions[0].cantEdge, 0);
+	assert.equal(sameYawCant.positions[0].cantEdge, 0);
+}
+for (const reason of ["rail_occupied", "unsupported_rail"]) {
+	connectedCant.occupied = reason === "rail_occupied";
+	connectedCant.unsupported = reason === "unsupported_rail" ? reason : "";
+	const writes = cantWrites;
+	assert.equal(api.applyRailCants(cantWorld, [cantTarget]).status, reason);
+	assert.equal(
+		cantWrites,
+		writes,
+		"Connected rail guards must reject before writing",
+	);
+}
+console.log(
+	"Kaiz cant free-endpoint propagation, deduplication, guards and atomic Undo passed",
+);

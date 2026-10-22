@@ -2,6 +2,12 @@
 
 SRBXはAppleExtended正式リリース`v2.5.4`を対応基準とする。AE固有処理は`src/appleextended/assets/minecraft/scripts/superrailbuilderx`へ隔離し、AE本体に同等APIが追加されたものから削除する。
 
+## 2026-10-23 分岐修正の波及確認
+
+根元所有位置の退避は生成・移動前検証・失敗復元・Undoの共通経路を確認した。移動前検証では削除予定の自分の旧コアを無視するが、退避先候補だけは一律に既存コアを拒否しており、唯一の候補が旧コアだと`rail_overlap`になる不一致を追加修正した。候補にも同じ障害判定を適用し、他レールのコア保護・同一高さ・2.5m未満・線形内の制約は維持する。回帰では旧コア再利用、他コア拒否、通常生成の既存コア拒否と入力不変を確認した。
+
+finalな`switchType`への直接代入は残っていない。所有位置退避はNBT複製で精密座標・方向・役割・カントを保持し、再生成とUndoも同じ経路を使用する。旧`switchObj`と`openedRails`の破棄は移動・分割・カントの共通クライアント更新から呼ばれ、遅延NBT再受信も再更新する。全4buildとAE/Kaiz・道床/遷移の回帰成功、実機は未確認。既存コア近くの生成→根元/端部移動→即時表示→Undoを確認し、退避先のレバー位置も確認する。
+
 ## AE2.5.4への移行
 
 - [公式リリース](https://github.com/Kirtmuna/AppleExtended/releases/tag/v2.5.4)で、`jp.apple`配下のクラスが`jp.apple.appleextended`へ移動した。SRBXが使用する`TileEntityLargeRailSectionCore`、`RailChunkSectioner`、`RailMapSection`のimportを変更した。`jp.ngt`配下は今回のパッケージ変更の対象外である。

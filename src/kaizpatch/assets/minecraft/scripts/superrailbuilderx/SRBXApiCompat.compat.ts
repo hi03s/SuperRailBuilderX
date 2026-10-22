@@ -5195,27 +5195,41 @@ export class SRBXApiCompat {
 			const source = positions[i];
 			const block = this.getBuilderConnectionBlock(source);
 			const tile = world.getTileEntity(block[0], block[1], block[2]);
-			if (!(tile instanceof TileEntityLargeRailBase)) continue;
-			const core = tile.getRailCore();
-			if (
-				!core ||
-				core === sourceCore ||
-				sourceCore.isSameLogicalRail(core)
-			)
-				continue;
-			const connected = this.getEditableRailPositions(core);
-			for (let index = 0; index < connected.length; index++) {
-				const rp = connected[index];
+			// A free endpoint/borrowed roadbed can resolve to this rail (or no
+			// rail), even though another logical rail shares its precise endpoint.
+			// Use the same loaded-core search as the client's affected highlight.
+			const candidates = this.getLoadedRailCores(
+				world,
+				source.posX,
+				source.posZ,
+				48,
+			);
+			if (tile instanceof TileEntityLargeRailBase) {
+				const neighbor = tile.getRailCore();
+				if (neighbor) candidates.push(neighbor);
+			}
+			for (let c = 0; c < candidates.length; c++) {
+				const core = candidates[c];
 				if (
-					Math.abs(rp.posX - source.posX) > 0.001 ||
-					Math.abs(rp.posY - source.posY) > 0.001 ||
-					Math.abs(rp.posZ - source.posZ) > 0.001
+					!core ||
+					core === sourceCore ||
+					sourceCore.isSameLogicalRail(core)
 				)
 					continue;
-				const id = `${this.getRailPositionCandidateKey(core)}:${index}`;
-				if (!seen[id]) {
-					seen[id] = true;
-					result.push({ core, index });
+				const connected = this.getEditableRailPositions(core);
+				for (let index = 0; index < connected.length; index++) {
+					const rp = connected[index];
+					if (
+						Math.abs(rp.posX - source.posX) > 0.001 ||
+						Math.abs(rp.posY - source.posY) > 0.001 ||
+						Math.abs(rp.posZ - source.posZ) > 0.001
+					)
+						continue;
+					const id = `${this.getRailPositionCandidateKey(core)}:${index}`;
+					if (!seen[id]) {
+						seen[id] = true;
+						result.push({ core, index });
+					}
 				}
 			}
 		}
@@ -5402,6 +5416,9 @@ export class SRBXApiCompat {
 				this.updateCantRail(world, entry.core, entry.positions),
 			);
 		}
+		NGTLog.debug(
+			`[SuperRailBuilderX cant] affected rails: count=${keys.length}, keys=${keys.slice(0, 32).join(";")}`,
+		);
 		const token = java.util.UUID.randomUUID().toString();
 		this.cantUndoRecords[token] = records;
 		return { status: "ok", undoToken: token };
@@ -5414,6 +5431,7 @@ export class SRBXApiCompat {
 		this.lastCantClientUpdate = [];
 		const records = this.cantUndoRecords[undoToken];
 		if (!records) return "nothing_to_undo";
+		const cores: TileEntityLargeRailCore[] = [];
 		for (let i = 0; i < records.length; i++) {
 			const record = records[i];
 			const tile = world.getTileEntity(
@@ -5430,8 +5448,12 @@ export class SRBXApiCompat {
 			)
 				return "undo_rail_changed";
 			if (core.isLogicalRailOccupied()) return "rail_occupied";
+			cores.push(core);
+		}
+		// Validate every connected rail before restoring any of them.
+		for (let i = 0; i < records.length; i++) {
 			this.lastCantClientUpdate = this.lastCantClientUpdate.concat(
-				this.updateCantRail(world, core, record.positions),
+				this.updateCantRail(world, cores[i], records[i].positions),
 			);
 		}
 		delete this.cantUndoRecords[undoToken];

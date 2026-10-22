@@ -21,7 +21,9 @@ class NBT {
 	}
 }
 class RP {
-	constructor(type = 0) {
+	constructor(type = 0, y, z, direction, switchType) {
+		const ownerX = type;
+		if (switchType !== undefined) type = switchType;
 		Object.defineProperty(this, "switchType", { value: type });
 		this.blockX = type;
 		this.blockY = 4;
@@ -30,6 +32,12 @@ class RP {
 		this.posY = 4.0625;
 		this.posZ = 0.5;
 		this.direction = 2;
+		if (switchType !== undefined) {
+			this.blockX = ownerX;
+			this.blockY = y;
+			this.blockZ = z;
+			this.direction = direction;
+		}
 	}
 	writeToNBT() {
 		const nbt = new NBT();
@@ -409,3 +417,37 @@ for (const candidates of [
 	assert.equal(JSON.stringify(positions), original);
 }
 console.log("AppleExtended protected switch root owner relocation passed");
+
+// Before a move removes its source, that source core is still present in
+// the only free owner candidate. The preflight callback must govern both
+// the original owner and relocation candidates, while rejecting foreigners.
+map.getRailBlockList = () => ({
+	size: () => 2,
+	get: (i) =>
+		[
+			[0, 4, 0],
+			[1, 4, 0],
+		][i],
+});
+blockUtil.getTileEntity = () => foreign;
+const movePlan = switchTools.planPositions(
+	world,
+	positions,
+	property,
+	(owner) => owner.blockX === 0,
+);
+assert(movePlan, "Removed source core may be reused during move preflight");
+assert.equal(movePlan[0].blockX, 1);
+assert.equal(movePlan[0].posX, positions[0].posX);
+assert.equal(JSON.stringify(positions), original);
+assert.equal(
+	switchTools.planPositions(world, positions, property, () => true),
+	null,
+	"Foreign core candidates remain protected",
+);
+assert.equal(
+	switchTools.planPositions(world, positions, property),
+	null,
+	"Creation without an ignored source still rejects occupied candidates",
+);
+console.log("AppleExtended move preflight source owner reuse passed");
