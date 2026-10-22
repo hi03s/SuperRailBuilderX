@@ -828,3 +828,9 @@
 - 0.4.0の全4build、AE/Kaiz/rail-transition/GUI/input/runtime-dispatch/platform/free-endpoint/rail-boundary/rail-patchの関連10スクリプト、変更TS/JSONのPrettierと差分確認に成功。配布用/開発ZIPは132ファイル・346826 bytes、全エントリーとdistのSHA一致、VERSION/readme反映、XCF/JAR/class非同梱を確認。旧開発0.3.2 ZIPを削除し、過去配布ZIPと既存両JARはハッシュ保持。ユーザーXCFはコミット/配布せず保持。
 - 引継ぎ帳を現行状態へ短縮し、確認済みの長い再デバッグ一覧を解消。関連調査に実機確認完了の現行注記を追加し、過去履歴は書き換えず保持。不要になったカント32行のlogs/latest.logを削除（Git非追跡）。
 - 終了コミットへv0.4.0タグを付け、ActionsのDraft作成・本文と添付ZIP/任意Kaiz JAR・未公開状態を確認する。結果のSHA/タグ/Actions/Draft URLは最終報告で伝え、自己SHA追記用の追加コミットは作らない。開発者が手動Publishし、ローカルCodexから公開操作は行わない。
+
+## 2026-10-23 ローカルCodex: リリースActions起動後の停止ルール
+
+- 0.4.0準備コミット78ca1fcとv0.4.0タグをpushし、Build draft release（39832788933）の起動を確認済み。生成待ち中に開発者から、トークン節約のためActions起動後は一旦停止し、開発者の手動Publish報告をもって完了にする指示を受領。
+- AGENTS.mdとリリース手順に恒久ルールを追加。起動後の繰り返し進捗取得・完了/Draft/Assets確認を行わず、失敗や追加確認を依頼された場合だけ再開する。前項の終了後確認予定はこの指示で取り消し、引継ぎ帳を「Actions起動済み・手動Publish報告待ち」へ更新。タグ対象の78ca1fcは変更しない。
+- 新たな運用指示による独立した文書変更として追加コミットする。文書差分のみを確認し、ビルドやGitHub Actionsの再確認は行わない。

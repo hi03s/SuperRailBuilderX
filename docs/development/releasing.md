@@ -8,8 +8,9 @@ GitHub Actionsは、`v`から始まるタグがpushされたときだけモデ�
 2. `release-notes.md`を含むリリース対象の変更をmainへcommit・pushする。
 3. mainのリリース対象コミットへ`vX.Y.Z`形式のタグを付ける。
 4. `git push origin vX.Y.Z`でタグをpushする。
-5. GitHub Actionsの「Build draft release」が成功したことを確認する。
-6. GitHub上でDraft Releaseの本文と添付ZIP・Kaiz用JARを確認し、問題がなければ手動でPublishする。
+5. ローカルCodexはGitHub Actionsの「Build draft release」の起動を確認し、タグとActions URLを伝えて一旦作業を止める。GitHub側の生成待ち・進捗の繰り返し取得・Draft/Assets確認は行わない。
+6. 開発者がActions結果、Draft Releaseの本文と添付ZIP・Kaiz用JARを確認し、手動でPublishする。
+7. 開発者から手動Publishの報告を受けて、リリース作業を完了扱いにする。失敗や追加確認の依頼があった場合だけローカルCodexが調査を再開する。
 
 `release-notes.md`はActionsで自動生成しません。リリース準備のたびに、前回のリリース以降の実装・修正だけが記載されていることを確認してください。
 

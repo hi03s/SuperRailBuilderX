@@ -11,23 +11,23 @@
 - 両環境ともSRBXPatchなしでツールを使用可能。AE2.5.4以降は走行補正も本体対応でパッチ不要。Kaizの自由端点走行補正には任意のSRBXPatch v1.0を使用。[任意パッチ](development/srbxpatch.md)。
 - 渡り線生成Undo・分岐全体の平行移動は対象外。過去の変形レール/空コアの自動修復は行わない。上流由来の既知の形状判定/描画問題は[報告資料](research/kaizpatch-crossover-and-render-errors.md)を保持し、SRBXPatchへ用途外機能は追加しない。
 - 0.4.0の変更は0.3.2以降のパッチ任意化・AE2.5.4移行・分岐/移動/表示・接続カント/Undo修正・説明書整理。[リリース本文](../release-notes.md)。NGTOBuilder2併用時は2.3.2へ更新する。[Issue #3調査](research/issue3-multiplayer-tool-crash.md)。
-- 0.4.0は**手動Publish**。終了コミットをv0.4.0タグの対象とし、Actionsで未公開DraftとパックZIP＋Kaiz用任意JARを準備・検証する。AE用旧JARは添付しない。タグ/Actions/Draftの結果は最終報告で伝える。[手順](development/releasing.md)。
+- 0.4.0は**Actions起動済み・開発者の手動Publish報告待ち**。対象は78ca1fc、タグv0.4.0。[リリースActions](https://github.com/hi03s/SuperRailBuilderX/actions/runs/39832788933)でDraftとパックZIP＋Kaiz用任意JARを準備する。AE用旧JARは添付しない。以後の生成待ち・完了/Draft/Assets確認はローカルCodexでは行わない。[手順](development/releasing.md)。
 - artifactsの最新パックは開発版SuperRailBuilderX-0.4.0.zipと配布用SuperRailBuilderX-v0.4.0.zip。132ファイル/346826 bytes、distとの全件SHA一致・最新VERSION/readme・XCF/JAR/class非同梱を確認。旧開発0.3.2 ZIPは削除、過去配布ZIP/両v1.0 JARは保持・未変更。
 - 通常型生成はJitPack v2.5.4 POM timeoutの既知制約あり。ローカルは公式AE2.5.4 dev JARと既存scannerで型生成済み。4ターゲットbuildと回帰成功。全体formatには既存未変更19ファイルの警告があり、変更分の確認は成功。詳細はAE資料へ集約。
 - docs/user-guideは9ツールの説明書だけを配置。開発資料/調査/過去記録は各専用ディレクトリへ分類。[文書入口](README.md)。
 
 ## 作業中
 
-- なし。
+- 2026-10-23 ローカルCodex: 0.4.0のローカル準備・タグpush・Actions起動確認済み。作業を一旦停止し、開発者の手動Publish報告を待つ。
 
 ## 優先確認事項
 
 - **動作確認事項はすべて確認済み。** 開発者の実機完了報告に基づき、従来の再確認待ち一覧を解消した。
-- 残るリリース操作は、0.4.0 Draftの本文/Assetsを確認して開発者が手動Publishすること。ローカルCodexは公開しない。
+- 開発者がActions結果・0.4.0 Draft本文/Assetsを確認し、手動Publishを報告する。報告を受けて作業完了とする。ローカルCodexは待機・定期確認・公開操作を行わない。
 
 ## 次に行うこと
 
-1. 最終報告の0.4.0 Draft URLとAssetsを確認し、開発者が手動Publishする。
+1. 開発者の手動Publish報告を受けて0.4.0の作業中項目を完了へ更新する。失敗や追加確認の依頼があった場合だけ調査を再開する。
 2. 新しい不具合があれば操作順・時刻と新しいログで調査を開始する。過去の確認手順を未完了として再掲しない。
 
 ## 双方向連絡
