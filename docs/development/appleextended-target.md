@@ -73,6 +73,18 @@ AEでは`ModelPackManager.modelConstructed`による全体構築完了を待ち�
 
 `getLogicalRailPositions()`は未初期化コアで`null`を返す場合がある。分岐生成の候補探索・端点強調は配列と両端の存在を確認し、未準備コアをスキップする。`[SuperRailBuilderX branch] unready rail skipped`は処理段階ごとに1回だけ記録し、後続フレームで初期化が完了したコアは再び対象にする。
 
+### 既設端点からの分岐生成と分岐移動（2026-10-23）
+
+実機ログの01:07:24/01:07:47の`switch_create_failed`は、分岐rootの所有ブロックが既設の別コアと競合していた。直後の2点レール生成成功は元線路の復元であり、分岐の生成成功ではない。既設コアは保持し、rootも補助端点と同様に同じ高さ・道床範囲内・距離2.5m未満の空き所有ブロックへ退避する。精密端点・方向・分岐の役割は維持する。空き位置がなければ生成を拒否し、元レールの復元へ進む。
+
+AEの`RailPosition.switchType`はJavaのfinalフィールドである。移動先の自由点へ後から代入すると、根元の役割が0のままになり`RailMaker.getSwitch()`がnullを返す。移動先NBTの`SwitchType`を元端点の役割に設定してからRailPositionを作り直す。これにより根元と他端部の移動・Undoで役割を維持する。形状が成立しない場合は撤去前に拒否し、`[SuperRailBuilderX AE move] switch validation failed`へ段階・キー・端点番号・所有/精密座標・役割・向きを記録する。
+
+またAE2.5.4の`TileEntityLargeRailSwitchCore.readRailData`は新しいRailPositionを読み込んでもprivateな`switchObj`を残し、`createRailMap`も非nullなら再構築しない。SRBXのクライアント更新時に`switchObj`と`openedRails`をクリアしてから再構築し、レールと道床の再描画を要求する。既存の遅延NBT再更新も同じ経路を使う。キャッシュ処理に失敗した場合は描画呼出しへ例外を伝播させず、`[SuperRailBuilderX AE] client rail refresh failed`を1回出力する。JARやMod側へは修正を追加しない。
+
+01:06:20/24/28の`rail_not_found`は、要求座標・キーが旧ログにないため原因未確定である。既存処理は指定座標だけでなくロード済みコアの同一キーも探索しているため、キー不一致を無視した救済は行わない。新しい`[SuperRailBuilderX RailPosition] core resolution failed`へ要求座標/キー・実コアキー・ロード済み候補を出力する。候補scanの`sectionedCores=0`はAEではsectionの不在を証明しない。
+
+実機再確認は、問題が出た既設端点から分岐生成→既設保持→根元/他端部移動→再入場前の表示と道床→Undo→再生成の順に行う。所有ブロックを退避した場合、レバーの参照位置も退避先へ移るため転換操作も確認する。移動失敗が残る場合は操作・時刻と新しい`logs/latest.log`を開発者へ共有し、上記3診断接頭辞を含む箇所を比較する。全4buildと関連回帰による模擬検証と、実Minecraft上の再確認を区別する。
+
 ## 対応範囲と制限
 
 対応範囲:

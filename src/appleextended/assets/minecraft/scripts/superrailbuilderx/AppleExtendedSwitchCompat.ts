@@ -26,6 +26,7 @@ export class AppleExtendedSwitchCompat {
 		positions: RailPosition[],
 		maps: import("jp.ngt.rtm.rail.util").RailMap[],
 		property: ResourceStateRail,
+		blocked?: (owner: RailPosition) => boolean,
 	): RailPosition[] | null {
 		const reserved: { [key: string]: boolean } = {},
 			used: { [key: string]: boolean } = {};
@@ -36,26 +37,21 @@ export class AppleExtendedSwitchCompat {
 		for (let i = 0; i < positions.length; i++) {
 			const rp = positions[i],
 				owner = [rp.blockX, rp.blockY, rp.blockZ];
-			const occupied =
-				BlockUtil.getTileEntity(
-					world,
-					owner[0],
-					owner[1],
-					owner[2],
-				) instanceof TileEntityLargeRailCore;
+			const occupied = blocked
+				? blocked(rp)
+				: BlockUtil.getTileEntity(
+						world,
+						owner[0],
+						owner[1],
+						owner[2],
+					) instanceof TileEntityLargeRailCore;
 			if (!occupied && !used[key(owner)]) {
 				used[key(owner)] = true;
 				continue;
 			}
-			if (i === 0) {
-				NGTLog.debug(
-					`[SuperRailBuilderX AE] switch creation rejected: occupied root owner=${key(owner)}`,
-				);
-				return null;
-			}
 			let target: number[] | null = null,
 				best = 6.25;
-			// Stay inside the rail's footprint so native Undo removes the auxiliary base.
+			// Stay inside the rail's footprint so native Undo removes each owner.
 			for (const map of maps) {
 				const blocks = map.getRailBlockList(property, true);
 				for (let j = 0; j < blocks.size(); j++) {
@@ -83,7 +79,7 @@ export class AppleExtendedSwitchCompat {
 			}
 			if (!target) {
 				NGTLog.debug(
-					`[SuperRailBuilderX AE] switch auxiliary owner blocked: index=${i}, owner=${key(owner)}, logical=${rp.posX},${rp.posY},${rp.posZ}`,
+					`[SuperRailBuilderX AE] switch owner blocked: index=${i}, owner=${key(owner)}, logical=${rp.posX},${rp.posY},${rp.posZ}`,
 				);
 				return null;
 			}
@@ -104,10 +100,36 @@ export class AppleExtendedSwitchCompat {
 			planned[i] = relocated;
 			reserved[key(target)] = used[key(target)] = true;
 			NGTLog.debug(
-				`[SuperRailBuilderX AE] switch auxiliary owner relocated: index=${i}, from=${key(owner)}, to=${key(target)}, logical=${rp.posX},${rp.posY},${rp.posZ}`,
+				`[SuperRailBuilderX AE] switch owner relocated: index=${i}, from=${key(owner)}, to=${key(target)}, logical=${rp.posX},${rp.posY},${rp.posZ}`,
 			);
 		}
 		return planned;
+	}
+
+	static planPositions(
+		world: World,
+		positions: RailPosition[],
+		property: ResourceStateRail,
+		blocked?: (owner: RailPosition) => boolean,
+	): RailPosition[] | null {
+		const list = new ArrayList<RailPosition>();
+		for (const rp of positions) list.add(rp);
+		const maker = new RailMaker(
+			world,
+			list,
+			RailMapBasic.fixRTMRailMapVersionCurrent,
+		);
+		const railSwitch = maker.getSwitch();
+		if (!railSwitch) return null;
+		const maps = railSwitch.getAllRailMap();
+		if (!maps || maps.length === 0) return null;
+		return this.planOwners(
+			world,
+			positions,
+			Array.prototype.slice.call(maps),
+			property,
+			blocked,
+		);
 	}
 
 	static create(
@@ -118,16 +140,7 @@ export class AppleExtendedSwitchCompat {
 	): boolean {
 		if (!positions || positions.length < 3 || positions.some((rp) => !rp))
 			return false;
-		// Keep the root fixed; relocate only auxiliary owners, never existing cores.
-		if (
-			BlockUtil.getTileEntity(
-				world,
-				positions[0].blockX,
-				positions[0].blockY,
-				positions[0].blockZ,
-			) instanceof TileEntityLargeRailCore
-		)
-			return false;
+		// Keep logical endpoints fixed and use only free in-footprint owners.
 		const list = new ArrayList<RailPosition>();
 		for (let i = 0; i < positions.length; i++) list.add(positions[i]);
 		let maker = new RailMaker(

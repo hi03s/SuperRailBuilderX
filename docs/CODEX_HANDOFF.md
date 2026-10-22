@@ -8,19 +8,21 @@
 - 現行ソースは1.7.10/1.12両環境でSRBXPatchなしのツール動作へ対応。完全自由点と既存保護は維持し、走行補正はMod本体/任意パッチへ任せる。AE基準は2.5.4で新パッケージ・新Mod IDへ移行済み。最新開発ZIPへ反映済み、公開済み0.3.2 ZIPは未変更。[AE対応と検証](development/appleextended-target.md)・[任意パッチ](development/srbxpatch.md)。
 - 生成・移動・分割・複線・カント・分岐・Undoは共通の道床/コア保護を使用。理論両端各1タイルの所有先変更、競合時の逆順→設定上限内の通常生成、撤去前の所有先復元に対応。[道床調査](research/roadbed-ownership-investigation.md)。
 - AE重複区間・自動分割境界対策は実機確認済み（2026-10-11）。KaizのCrossTieあり/なしも実機動作を確認済み。[AE対策](research/appleextended-overlap-rail-patch.md)。
+- AE分岐生成のroot所有コア競合、分岐根元移動のfinal switchType代入、NBT受信後の旧switchObj保持を修正。精密座標と既設保護を維持し、段階診断/キャッシュ例外ガードを追加。最新開発ZIPへ反映、実機再確認待ち。[原因・手順](development/appleextended-target.md)。
 - 生成A/BはI/Kで自由始点の選択高さ±1/16m、Ctrlで±1m、Uで地上高延長。Bの長さはJ/Lの長押し加速（初期0.1m/Ctrl10m、最大512m）、半径も加速。ホイールによる長さ変更は廃止。[A](user-guide/builder1.md)・[B](user-guide/builder2.md)。
 - 長押し単位は初期値の10倍まで。A/B/分岐の固定半径は1→10m、Ctrlは100m固定。A/Bは接続済み端点を始点/終点から除外、分岐は始点だけ許可。分岐終点は分岐レールの全未接続・水平端部も候補化。実機確認待ち。
 - [組ホーム](user-guide/platform-builder.md)を追加。手持ちレール必須、左右1列、間隔2m/高さ1.5mから設定。サーバーで元線形を再検証・再計算し、共通保護とUndoを使用。ホイールは全9ツール。実機確認待ち。
 - AEのTAB拒否は非乗車追従へ乗車必須チェックを適用していたことが原因。bb224faでcompat判定と切替後のサーバーホスト引継ぎを修正しpush済み。全4build・入力/GUI/dispatch/AE回帰・Java8ホイール成功、実機再確認待ち。
 - v0.3.1は公開済み（GitHub APIで確認）。v0.3.2は本終了コミットへタグを付け、ActionsでZIP＋両SRBXPatch付きDraftを準備する。公開は開発者の手動Publish。[リリース手順](development/releasing.md)。
-- artifactsは開発版`SuperRailBuilderX-0.3.2.zip`（2026-10-23、パッチ非依存化/AE2.5.4対応を反映）、配布版`SuperRailBuilderX-v0.3.2.zip`、環境別SRBXPatch v1.0 JARの4ファイル。配布版ZIPと両JARは保持し、既存リリースは変更しない。実機確認が必要な本体変更は開発ZIP生成まで行う。
+- artifactsは開発版`SuperRailBuilderX-0.3.2.zip`（2026-10-23、パッチ非依存化/AE2.5.4/分岐生成・根元移動・表示更新の修正を反映）、配布版`SuperRailBuilderX-v0.3.2.zip`、環境別SRBXPatch v1.0 JARの4ファイル。配布版ZIPと両JARは保持し、既存リリースは変更しない。実機確認が必要な本体変更は開発ZIP生成まで行う。
 - docsは[user-guide](user-guide/)、[development](development)、[research](research/)、[history](history)へ分類。user-guideは9ツールの説明書だけを配置し、共通4章へ統一。導入・動作環境はトップREADME/同梱readme、内部仕様は開発資料へ集約。文書入口は[README](README.md)。logsは原則Git保存しない。
 
 ## 作業中
 
-- 2026-10-23 ローカルCodex: AE実機ログの分岐生成失敗・線路移動失敗・分岐移動後の表示未更新を調査・修正する。rtm-ts/JAR/パッチModは変更せず、回帰検証と最新開発ZIP生成まで行う。
+- なし。
 
 ## 優先確認事項
+- 今回AEログの01:07:24/47はroot所有位置と既設コア競合、01:10:31は根元のfinal switchTypeを変更できない不具合。所有位置退避とNBT再構成、表示キャッシュ更新を修正。最新開発ZIPで同じ端点から生成→根元/他端部移動→再入場前の形状・道床→Undo・再生成を確認し、退避先のレバー転換も確認する。01:06:20/24/28のrail_not_foundは要求キーが旧ログにないため未確定。再発時は操作/時刻と新しいlogs/latest.log（core resolution failed/switch validation failed/client rail refresh failed行を含む）を共有する。全4build/関連回帰/ZIP確認成功、実機未確認。
 - パッチなしの実機確認待ち。最新開発ZIPをKaizPatchX 1.10.4/AE2.5.4へ導入し、SRBXPatch JARを外した試験環境で起動・各ツールの生成/編集/Undo・再入場後・AEの自由端点遷移を確認する。Kaizの走行補正は任意SRBXPatchへ依存し得る。全4build/関連回帰成功、通常型生成はJitPack timeoutのため公式AE2.5.4 dev JARで検証済み。今回ZIP内スクリプト/readmeと不要データ除外も確認。再発時はツール・操作順・時刻とlogs/latest.logを共有。配布版ZIP/JAR・リリースは未更新。
 - リポジトリ全体のformat:checkは既存・今回未変更の19ファイルで警告。今回変更したソース/テスト/設定のPrettier確認と差分確認は成功。無関係な整形変更は行っていない。
 - [Issue #3](https://github.com/hi03s/SuperRailBuilderX/issues/3): 旧NGTOBuilder2.1の共有ツールキットには描画補間関数がなく、報告のTypeErrorを説明できる。開発者指示でNGTOBuilder2 2.3.2への更新案内を優先する。公開ZIPのSHA一致・関数存在と、未変更SRBX0.3.2描画のJava8失敗/更新後成功を確認。両側の旧ZIPを除去・最新版へ置換して再起動する。報告環境のリソース選択・実機解消は未確認。再発時は両側ZIP名と新規クライアントログ/クラレポを受領。SRBXコード・rtm-ts・JAR・パッチModは変更なし。[調査・手順](research/issue3-multiplayer-tool-crash.md)。
@@ -53,7 +55,7 @@
 
 ## 次に行うこと
 
-1. 最新開発ZIPでパッチなし実機確認し、次回リリースへ反映する。JitPack取得が復旧した環境では通常型生成も確認する。Issue #3はNGTOBuilder2 2.3.2への置換結果を確認する。異常時は機能・操作順・時刻とlogs/latest.logを共有する。
+1. 最新開発ZIPで今回のAE分岐生成・根元移動・即時表示とrail_not_foundの再発有無を確認する。異常時は機能・操作順・時刻と新しいlogs/latest.logを共有する。パッチなし実機確認と次回リリース準備も継続し、JitPack復旧時は通常型生成を確認する。
 2. 確認結果を引継ぎ帳へ反映し、不要になったローカルログを削除する。調査結果は文書へ要約し、生ログをGitへ追加しない。
 3. v0.3.2 Draftの本文とAssets・実機確認状況を確認し、開発者が手動Publishを行う。
 
@@ -61,9 +63,10 @@
 
 - 新規リポジトリ/フォーク/Issue/PR/コメント投稿は禁止。既存ブランチ・コミット・push・ビルドだけを行う。
 - rtm-ts、参照専用ツールキット、本番サーバーを変更しない。コミットメッセージは日本語。
-- ローカルに保持する調査ログは、最新AEログとKaiz保存APIの例外抜粋。解消を確認した分岐クラッシュの旧抜粋は削除。実機再確認後に不要なら削除する。
+- ローカルに保持する調査ログは、今回のAE分岐/移動に必要な行へ整理したlogs/latest.logとKaiz保存APIの例外抜粋。生ログのPC情報・無関係なMod出力は保持しない。実機再確認後に不要なら削除する。
 
 ## 直近の完了
+- 2026-10-23 ローカルCodex: AE分岐のroot所有位置競合、根元移動のfinalフィールド誤代入、旧分岐キャッシュ保持を修正。rail_not_foundは厳格照合を維持して診断追加。全4build/関連回帰成功・開発ZIP更新、実機再確認待ち。開始記録d733aa1。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 - 2026-10-23 ローカルCodex: 実機確認が必要な本体変更は開発ZIP生成まで行う方針をAGENTS.mdへ記録。全4build/ZIP生成と格納132ファイルの要点を確認し、パッチ非依存化/AE2.5.4対応の開発ZIPを更新。配布版ZIP/両JARはハッシュ保持、実機未確認。開始記録b946bbb。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 - 2026-10-23 ローカルCodex: 両版15か所のJavaパッチ必須判定を廃止、AE2.5.4のパッケージ/Mod IDと型生成基準を移行。公式JARでの型生成・全4build・関連回帰成功、実機未確認。配布ZIP/JAR・リリース未変更。開始記録978ef47。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 - 2026-10-23 ローカルCodex: README/同梱readmeをAE2.5.4のパッチ不要・2環境表記・全9ツールへ更新。9説明書を統一し指定4文書を削除、内部仕様とリンクを整理。文書検証のみ、ビルド・リリースなし、パック反映は次回。開始記録965f3ed。[10月履歴](history/CODEX_HISTORY_2026-10.md)。

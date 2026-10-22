@@ -796,3 +796,15 @@
 - 直近eccb70fのパッチ非依存化・AE2.5.4の名前空間/Mod ID対応を全4ターゲットで再ビルドした。直前に成功した関連回帰からソースの追加変更はないため、回帰の繰り返しは行わず、今回の成果物確認へ進んだ。dist配下のXCFだけを除外し、pnpm exec rtmx zipでartifacts/SuperRailBuilderX-0.3.2.zipを生成（132ファイル、345226 bytes）。
 - ZIP内の両版compatに旧パッチ必須判定がないこと、AE新名前空間と新Mod IDの存在、同梱readmeとソースの一致、XCF/JAR/class非同梱を確認。配布版SuperRailBuilderX-v0.3.2.zipと両SRBXPatch JARは作業前後のSHA-256一致を確認した。実機の操作・走行は未確認で、引継ぎ帳に最新開発ZIPでの確認を残す。
 - 既存ユーザーXCF2件とlogs/latest.logは保持する。rtm-ts・スクリプト・Mod/JARは今回追加変更なし、配布版ZIP更新・タグ・リリースは行わない。運用と成果物の記録を終了コミットへまとめ、mainへpushする。ZIPはローカルartifactsに保持しGitへ追加しない。
+
+
+## 2026-10-23 ローカルCodex: AE分岐生成・根元移動・表示キャッシュの修正
+
+- 開始記録d733aa1をmainへpushして着手。AE実機ログから分岐生成失敗・線路移動失敗・移動成功後の表示残存を調査した。分岐生成とrail_not_foundの読み取り調査を独立分担し、ローカルCodexが根元移動・クライアント表示・最終統合を担当した。rtm-ts、参照専用toolkit、JAR/Modは変更しない。
+- 01:07:24/47のswitch_create_failedは、分岐rootの所有ブロックが既設の別コアと重なり、planCreationが保護拒否したことを確認。直後の2点レール成功は失敗復元だった。分岐rootも同Y・道床内・距離2.5m未満の空きownerへ退避するよう補助所有位置の既存処理を拡張した。精密端点・direction・SwitchType・既設コア保持は維持し、空き候補なしは拒否/復元する。AE実JARのSwitchBasic/Pointは精密座標から形状を作ることを確認。レバー参照位置も退避先になるため、利用者説明と実機手順へ記載した。
+- 01:10:31のinvalid_switchは、AE RailPosition.switchTypeがfinalであるのに、移動先の自由点（役割0）へ後から代入していたSRBX不具合と判断。移動先NBTのSwitchTypeを元端点の役割に設定してから再構成する。変更不可フィールドと根元数の制約を再現したfixtureで根元移動・Undoを確認した。ネイティブ形状不成立は撤去前に拒否し、段階/キー/端点番号/所有・精密座標/役割/向きをswitch validation failedへ出力する。検証例外も元レール撤去前に安全に拒否する。
+- 成功した分岐移動の表示残存は、AE2.5.4のreadRailDataがswitchObjを維持し、createRailMapが非nullのcacheを再計算しない実JARの挙動と一致。クライアントでswitchObj/openedRailsをクリアして再構築し、レール/道床を更新する。既存の遅延NBT再試行もこの処理を使う。キャッシュ更新例外は描画へ伝播させずclient rail refresh failedを1回診断する。Mod側への追加パッチは作らない。
+- 01:06:20/24/28のrail_not_foundは、旧ログに要求キー/座標がないため原因未確定。既存は所有位置だけでなく全ロード済み候補の同一キーを探索しており、単なる代表コア移動と断定できない。厳格照合は維持し、要求座標/キー・実キー・候補をcore resolution failedへ出す診断を追加した。missing identityとowner移動の同一キー解決の回帰も追加。AEのsectionedCores=0をsection不在の根拠には使わない。
+- 全4ターゲットbuild、AE/rail-transition/GUI/input/Kaiz/runtime-dispatch/rail-patch/free-endpoint/platformの関連9スクリプト、新規診断の個別回帰、変更分Prettierとdiff確認が成功。根元退避の競合・候補なし・高さ/距離制限、根元/他端部移動とUndo/失敗復元、同ownerで古いcache/遅延NBT/例外ガードを検証した。実Minecraftの再確認は未実施。
+- artifacts/SuperRailBuilderX-0.3.2.zipを更新（132ファイル、346326 bytes）。全ZIPエントリーとdistのハッシュ一致、XCF/JAR/class非同梱、配布版ZIP/両SRBXPatch JARの作業前後SHA一致を確認した。ユーザーXCF2件は保持してコミットせず、配布版・タグ・リリースは変更しない。logs/latest.logは必要なSRBX分岐/移動/生成の246行へ整理し、PC情報・無関係なModログ・生ログ全文を残さずGitにも追加しない。
+- 開発者へ最新開発ZIPで元の既設端点から分岐生成→既設保持→根元/他端部移動→再入場前の形状/道床→Undo/再生成と退避先レバーを確認してもらう。失敗が残る場合は操作/時刻と新しいlogs/latest.logをこのチャットへ共有する。追加診断はcore resolution failed / switch validation failed / client rail refresh failed。結果と残件は引継ぎ帳と[AEターゲット資料](../development/appleextended-target.md)へ集約した。

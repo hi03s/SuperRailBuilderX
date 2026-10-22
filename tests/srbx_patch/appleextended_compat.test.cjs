@@ -252,6 +252,30 @@ const helper = context.AppleExtendedRailCompat;
 	assert.equal(fallback.property.autoSplit, false);
 	sectioner.split = oldSplit;
 	context.AppleExtendedSectionPlacementCompat.plan = oldPlan;
+
+	// A switch at a connected endpoint must reach the safe owner planner
+	// before the generic occupied-core guard rejects it.
+	const junction = [rp(32.35), rp(40.35), rp(48.35)];
+	const original = JSON.stringify(junction);
+	let ownerPlans = 0;
+	context.AppleExtendedSwitchCompat = {
+		planPositions(w, points, property, blocked) {
+			assert.equal(w, conflictWorld);
+			assert.equal(property, prop);
+			assert.equal(blocked(points[0]), true);
+			ownerPlans++;
+			return [{ ...points[0], blockX: 33 }, points[1], points[2]];
+		},
+	};
+	const switchPlan = helper.planCreation(conflictWorld, junction, prop);
+	assert.equal(ownerPlans, 1);
+	assert.equal(switchPlan.root.blockX, 33);
+	assert.equal(switchPlan.root.posX, junction[0].posX);
+	assert.equal(JSON.stringify(junction), original);
+	context.AppleExtendedSwitchCompat.planPositions = () => null;
+	assert.equal(helper.planCreation(conflictWorld, junction, prop), null);
+	assert.equal(JSON.stringify(junction), original);
+	delete context.AppleExtendedSwitchCompat;
 }
 // Connecting reverses the endpoint heading; edge cant must reverse with it.
 const savedClone = helper.cloneRailPosition;

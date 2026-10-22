@@ -6,6 +6,7 @@ const directory =
 	"dist/assets/minecraft/__targets__/appleextended/scripts/superrailbuilderx";
 const tiles = new Map();
 const blocks = new Set();
+const messages = [];
 class RailCore {
 	constructor(pos, key) {
 		this.pos = pos;
@@ -61,7 +62,11 @@ const context = {
 		},
 		jp: {
 			ngt: {
-				ngtlib: { io: { NGTLog: { debug() {} } } },
+				ngtlib: {
+					io: {
+						NGTLog: { debug: (message) => messages.push(message) },
+					},
+				},
 				rtm: {
 					rail: {
 						TileEntityLargeRailCore: RailCore,
@@ -152,3 +157,50 @@ world.field_72995_K = false;
 api.removeRailClientGhost(world, [0, 4, 0], "old");
 assert.strictEqual(tiles.get(old1.pos), old1);
 console.log("AppleExtended replaced-root ghost cleanup tests passed");
+
+// Native AE retains switchObj when a same-position NBT packet updates RPs.
+const SwitchCore =
+	context.Packages.jp.ngt.rtm.rail.TileEntityLargeRailSwitchCore;
+const cached = new SwitchCore("0,4,0", "core:0,4,0");
+cached.geometry = "moved root";
+cached.switchObj = { geometry: "old" };
+cached.openedRails = {
+	stale: true,
+	clear() {
+		this.stale = false;
+	},
+};
+cached.getClass = () => ({
+	getName: () => "jp.ngt.rtm.rail.TileEntityLargeRailSwitchCore",
+	getDeclaredField: (name) => ({
+		setAccessible() {},
+		get: (object) => object[name],
+		set: (object, value) => {
+			object[name] = value;
+		},
+	}),
+});
+cached.createRailMap = () => {
+	if (!cached.switchObj) cached.switchObj = { geometry: cached.geometry };
+};
+cached.func_145831_w = () => world;
+api.refreshRailCoreClient(cached);
+assert.equal(cached.switchObj.geometry, "moved root");
+assert.equal(cached.openedRails.stale, false);
+assert.equal(cached.shouldRerenderRail, true);
+assert.equal(cached.shouldRerenderBlock, true);
+cached.geometry = "late NBT";
+api.refreshRailCoreClient(cached);
+assert.equal(cached.switchObj.geometry, "late NBT");
+cached.getClass = () => {
+	throw Error("unsupported cache access");
+};
+assert.doesNotThrow(() => api.refreshRailCoreClient(cached));
+assert.doesNotThrow(() => api.refreshRailCoreClient(cached));
+assert.equal(
+	messages.filter((m) => m.includes("client rail refresh failed")).length,
+	1,
+);
+console.log(
+	"AE same-owner switch refresh, late NBT and guarded cache failure passed",
+);

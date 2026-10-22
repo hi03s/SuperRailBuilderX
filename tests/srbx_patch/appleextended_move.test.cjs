@@ -15,6 +15,23 @@ const property = () => ({
 });
 const messages = [];
 const clone = (rp) => ({ ...rp });
+// Match the real Java final switchType field and its SwitchType NBT tag.
+function serializedPosition(values, role = 0) {
+	const position = { ...values };
+	Object.defineProperty(position, "switchType", {
+		value: role,
+		enumerable: true,
+	});
+	position.writeToNBT = () => ({
+		values: { ...position },
+		role,
+		func_74774_a(name, value) {
+			assert.equal(name, "SwitchType");
+			this.role = value;
+		},
+	});
+	return position;
+}
 const coordinate = (rp) => [rp.posX, rp.posY, rp.posZ];
 let current;
 let attempts;
@@ -62,22 +79,24 @@ const helper = {
 	getLogicalPositions: (core) => core.positions,
 	isSectionCore: (core) => core.section,
 	cloneRailPosition: clone,
-	resolveBuilderPoint: (_world, point) => ({
-		posX: point.position[0],
-		posY: point.position[1],
-		posZ: point.position[2],
-		blockX: Math.floor(point.position[0]),
-		blockY: 4,
-		blockZ: 2,
-		direction: point.direction,
-		anchorYaw: point.anchorYaw,
-		anchorPitch: point.anchorPitch,
-		anchorLengthHorizontal: point.anchorLength,
-		anchorLengthVertical: point.anchorLengthVertical ?? point.anchorLength,
-		cantEdge: point.cantEdge,
-		cantCenter: point.cantCenter,
-		cantRandom: point.cantRandom,
-	}),
+	resolveBuilderPoint: (_world, point) =>
+		serializedPosition({
+			posX: point.position[0],
+			posY: point.position[1],
+			posZ: point.position[2],
+			blockX: Math.floor(point.position[0]),
+			blockY: 4,
+			blockZ: 2,
+			direction: point.direction,
+			anchorYaw: point.anchorYaw,
+			anchorPitch: point.anchorPitch,
+			anchorLengthHorizontal: point.anchorLength,
+			anchorLengthVertical:
+				point.anchorLengthVertical ?? point.anchorLength,
+			cantEdge: point.cantEdge,
+			cantCenter: point.cantCenter,
+			cantRandom: point.cantRandom,
+		}),
 	createFromPositions(_world, _player, positions) {
 		attempts.push(Array.from(positions, coordinate));
 		if (failures-- > 0) return null;
@@ -98,8 +117,21 @@ const context = {
 					rail: {
 						TileEntityLargeRailSwitchCore: SwitchCore,
 						util: {
+							RailPosition: {
+								readFromNBT: (nbt) =>
+									serializedPosition(nbt.values, nbt.role),
+							},
 							RailMaker: class {
+								constructor(_world, positions) {
+									this.positions = positions;
+								}
 								getSwitch() {
+									if (
+										this.positions.filter(
+											(rp) => rp.switchType === 1,
+										).length !== 1
+									)
+										return null;
 									return {
 										getAllRailMap: () => [
 											{
@@ -288,9 +320,9 @@ function resetSwitch(failedAttempts = 0) {
 	Object.setPrototypeOf(current, SwitchCore.prototype);
 	current.section = false;
 }
-function moveSwitch(x, preserve = false) {
+function moveSwitch(x, preserve = false, index = 2) {
 	const positions = current.positions;
-	const destination = api.point(positions[2]);
+	const destination = api.point(positions[index]);
 	destination.position = [x, 4, 2];
 	return api.move(
 		current,
@@ -301,7 +333,7 @@ function moveSwitch(x, preserve = false) {
 		api.point(positions[1]),
 		{},
 		preserve,
-		{ index: 2, point: destination },
+		{ index, point: destination },
 	);
 }
 resetSwitch();
@@ -349,6 +381,33 @@ world.func_175667_e = (pos) => pos.position[0] !== 99;
 assert.strictEqual(moveSwitch(35), "path_unloaded");
 assert.strictEqual(breaks, 0, "unloaded route cannot delete the source switch");
 world.func_175667_e = () => true;
+resetSwitch();
+assert.strictEqual(
+	moveSwitch(5, false, 0),
+	"ok",
+	"root role survives immutable Java field",
+);
+assert.strictEqual(current.positions[0].switchType, 1);
+assert.deepStrictEqual(attempts[0], [
+	[5, 4, 2],
+	[25, 4, 2],
+	[31, 4, 2],
+]);
+assert.strictEqual(
+	moveSwitch(1, true, 0),
+	"ok",
+	"root Undo keeps the switch role",
+);
+assert.strictEqual(current.positions[0].switchType, 1);
+resetSwitch();
+current.positions[0].switchType = 0;
+assert.strictEqual(moveSwitch(35), "invalid_switch");
+assert.strictEqual(breaks, 0);
+assert(
+	messages.some((line) =>
+		line.includes("switch validation failed: stage=layout"),
+	),
+);
 console.log(
 	"AppleExtended switch endpoint move, rollback, and Undo tests passed",
 );

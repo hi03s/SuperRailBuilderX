@@ -192,6 +192,24 @@ function resolveCurrentCore(
 			SRBXApiCompat.getRailPositionCandidateKey(loaded[i]) === expectedKey
 		)
 			return loaded[i];
+	// Keep the identity check strict: never edit a nearby replacement rail.
+	try {
+		const actual =
+			tile instanceof TileEntityLargeRailBase ? tile.getRailCore() : null;
+		const actualKey = actual
+			? SRBXApiCompat.getRailPositionCandidateKey(actual)
+			: "none";
+		const samples: string[] = [];
+		for (let i = 0; i < loaded.length && samples.length < 6; i++)
+			samples.push(SRBXApiCompat.getRailPositionCandidateKey(loaded[i]));
+		NGTLog.debug(
+			`[SuperRailBuilderX RailPosition] core resolution failed: requested=${position.join(",")}, expectedKey=${expectedKey}, tile=${tile ? "present" : "missing"}, actualKey=${actualKey}, loaded=${loaded.length}, samples=${samples.join(";")}`,
+		);
+	} catch (error) {
+		NGTLog.debug(
+			`[SuperRailBuilderX RailPosition] core resolution diagnostic failed: ${error}`,
+		);
+	}
 	return null;
 }
 

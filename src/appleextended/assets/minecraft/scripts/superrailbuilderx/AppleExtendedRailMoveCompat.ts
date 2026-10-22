@@ -219,8 +219,14 @@ export class AppleExtendedRailMoveCompat {
 				moved.push(
 					AppleExtendedRailCompat.cloneRailPosition(positions[i]),
 				);
-			selected.switchType = positions[switchEndpoint.index].switchType;
-			moved[switchEndpoint.index] = selected;
+			// switchType is a final Java field. Rebuild from NBT with the original
+			// role instead of assigning it (which leaves a moved root as type 0).
+			const selectedNbt = selected.writeToNBT();
+			selectedNbt.setByte(
+				"SwitchType",
+				positions[switchEndpoint.index].switchType,
+			);
+			moved[switchEndpoint.index] = RailPosition.readFromNBT(selectedNbt);
 		}
 		if (!moved[0] || !moved[1]) return "rail_endpoint_changed";
 		if (
@@ -245,24 +251,36 @@ export class AppleExtendedRailMoveCompat {
 			);
 		const property = this.cloneProperty(core.getResourceState());
 		if (isSwitch) {
-			const list = new ArrayList<RailPosition>();
-			for (const rp of moved) list.add(rp);
-			const railSwitch = new RailMaker(
-				world,
-				list,
-				RailMapBasic.fixRTMRailMapVersionCurrent,
-			).getSwitch();
-			if (!railSwitch) return "invalid_switch";
-			const maps = railSwitch.getAllRailMap();
-			if (!maps || maps.length === 0) return "invalid_switch";
-			// Validate the entire switch footprint before removing any source tile.
-			for (let i = 0; i < maps.length; i++) {
-				const blocks = maps[i].getRailBlockList(property, true);
-				for (let j = 0; j < blocks.size(); j++) {
-					const b = blocks.get(j);
-					if (!world.isBlockLoaded(new BlockPos(b[0], b[1], b[2])))
-						return "path_unloaded";
+			const rejectSwitch = (stage: string, error?: unknown): string => {
+				NGTLog.debug(
+					`[SuperRailBuilderX AE move] switch validation failed: stage=${stage}, key=${expectedKey}, index=${switchEndpoint.index}, positions=${moved.map((rp) => `owner=${rp.blockX},${rp.blockY},${rp.blockZ},pos=${rp.posX},${rp.posY},${rp.posZ},role=${rp.switchType},yaw=${rp.anchorYaw}`).join(";")}, error=${error === undefined ? "none" : String(error)}`,
+				);
+				return "invalid_switch";
+			};
+			try {
+				const list = new ArrayList<RailPosition>();
+				for (const rp of moved) list.add(rp);
+				const railSwitch = new RailMaker(
+					world,
+					list,
+					RailMapBasic.fixRTMRailMapVersionCurrent,
+				).getSwitch();
+				if (!railSwitch) return rejectSwitch("layout");
+				const maps = railSwitch.getAllRailMap();
+				if (!maps || maps.length === 0) return rejectSwitch("maps");
+				// Validate the entire switch footprint before removing any source tile.
+				for (let i = 0; i < maps.length; i++) {
+					const blocks = maps[i].getRailBlockList(property, true);
+					for (let j = 0; j < blocks.size(); j++) {
+						const b = blocks.get(j);
+						if (
+							!world.isBlockLoaded(new BlockPos(b[0], b[1], b[2]))
+						)
+							return "path_unloaded";
+					}
 				}
+			} catch (error) {
+				return rejectSwitch("exception", error);
 			}
 		}
 		// An endpoint may share another rail's roadbed without owning its core.

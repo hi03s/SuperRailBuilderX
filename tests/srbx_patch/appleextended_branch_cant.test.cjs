@@ -353,3 +353,59 @@ assert.equal(JSON.stringify(positions), original);
 console.log(
 	"AppleExtended protected auxiliary switch owner relocation and failure guard passed",
 );
+
+// Endpoint branching can put the switch root on the connected rail's core.
+// Relocate the owner inside the footprint without changing the junction or type.
+blockUtil.getTileEntity = (_world, x) => (x === 0 ? foreign : core);
+map.getRailBlockList = () => ({
+	size: () => 4,
+	get: (i) =>
+		[
+			[0, 4, 0],
+			[1, 4, 0],
+			[4, 4, 0],
+			[8, 4, 0],
+		][i],
+});
+const rootPlan = switchTools.planPositions(world, positions, property);
+assert.equal(rootPlan[0].blockX, 1);
+assert.equal(rootPlan[0].posX, positions[0].posX);
+assert.equal(rootPlan[0].posY, positions[0].posY);
+assert.equal(rootPlan[0].posZ, positions[0].posZ);
+assert.equal(rootPlan[0].switchType, 1);
+assert.equal(rootPlan[0].direction, positions[0].direction);
+assert.equal(JSON.stringify(positions), original);
+writes.length = 0;
+assert.equal(switchTools.create(world, player, positions, property), true);
+assert(!writes.some((p) => p[0] === 0), "Connected core is never overwritten");
+assert.equal(core.positions[0].blockX, 1);
+assert.equal(core.positions[0].posX, positions[0].posX);
+assert.equal(core.positions[0].switchType, 1);
+
+// No free owner, a different height, and candidates beyond the existing
+// 2.5-block limit must all leave the existing rails and inputs untouched.
+for (const candidates of [
+	[
+		[0, 4, 0],
+		[4, 4, 0],
+		[8, 4, 0],
+	],
+	[
+		[0, 4, 0],
+		[1, 5, 0],
+	],
+	[
+		[0, 4, 0],
+		[3, 4, 0],
+	],
+]) {
+	map.getRailBlockList = () => ({
+		size: () => candidates.length,
+		get: (i) => candidates[i],
+	});
+	writes.length = 0;
+	assert.equal(switchTools.create(world, player, positions, property), false);
+	assert.equal(writes.length, 0);
+	assert.equal(JSON.stringify(positions), original);
+}
+console.log("AppleExtended protected switch root owner relocation passed");

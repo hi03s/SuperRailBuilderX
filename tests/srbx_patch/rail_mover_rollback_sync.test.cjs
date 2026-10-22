@@ -30,6 +30,7 @@ restored.key = "restored";
 let moved = [],
 	fail = true;
 const sent = {};
+const messages = [];
 const api = {
 	getWorld: () => ({}),
 	getTileEntity: (_w, x, y, z) => tiles.get([x, y, z].join(",")),
@@ -53,7 +54,11 @@ const context = {
 		jp: {
 			ngt: {
 				rtm: { rail: { TileEntityLargeRailBase: RailBase } },
-				ngtlib: { io: { NGTLog: { debug() {} } } },
+				ngtlib: {
+					io: {
+						NGTLog: { debug: (message) => messages.push(message) },
+					},
+				},
 			},
 		},
 		net: { minecraft: { entity: { player: { EntityPlayer: class {} } } } },
@@ -90,3 +95,22 @@ fail = false;
 assert.strictEqual(context.applyUndo(entity, {}, {}), "undo_ok");
 assert.strictEqual(context.undoRecords.get(entity), null);
 console.log("Rail mover rollback synchronization and Undo retry tests passed");
+assert.strictEqual(
+	context.resolveCurrentCore({}, [0, 4, 0], "unknown-group"),
+	null,
+);
+assert(
+	messages.some(
+		(m) =>
+			m.includes("core resolution failed:") &&
+			m.includes("expectedKey=unknown-group"),
+	),
+);
+assert.strictEqual(
+	context.resolveCurrentCore({}, [0, 4, 0], "restored"),
+	restored,
+	"same-key owner relocation remains resolvable without accepting another rail",
+);
+console.log(
+	"Missing identity diagnostics preserve strict keys and relocated-owner lookup",
+);

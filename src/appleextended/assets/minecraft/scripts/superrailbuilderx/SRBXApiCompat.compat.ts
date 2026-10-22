@@ -163,14 +163,47 @@ export class SRBXApiCompat {
 		this.refreshRailCoreClient(core);
 	}
 
+	private static clientRefreshWarning = false;
+
 	static refreshRailCoreClient(core: TileEntityLargeRailCore): void {
 		if (!core) return;
-		core.createRailMap();
-		core.shouldRerenderRail = true;
-		const world = core.getWorld();
-		const pos = core.getPos();
-		const state = world.getBlockState(pos);
-		world.notifyBlockUpdate(pos, state, state, 3);
+		try {
+			if (core instanceof TileEntityLargeRailSwitchCore) {
+				// AE's incoming NBT replaces RPs without clearing switchObj.
+				// createRailMap alone keeps the old geometry until world reload.
+				let cls = (
+					core as unknown as { getClass(): java.lang.Class<unknown> }
+				).getClass();
+				while (
+					cls &&
+					String(cls.getName()) !==
+						"jp.ngt.rtm.rail.TileEntityLargeRailSwitchCore"
+				)
+					cls = cls.getSuperclass() as typeof cls;
+				if (!cls) throw new Error("switch map cache class unavailable");
+				const mapField = cls.getDeclaredField("switchObj");
+				mapField.setAccessible(true);
+				mapField.set(core, null);
+				const openedField = cls.getDeclaredField("openedRails");
+				openedField.setAccessible(true);
+				const opened = openedField.get(core) as java.util.List<unknown>;
+				if (opened) opened.clear();
+			}
+			core.createRailMap();
+			core.shouldRerenderRail = true;
+			core.shouldRerenderBlock = true;
+			const world = core.getWorld();
+			const pos = core.getPos();
+			const state = world.getBlockState(pos);
+			world.notifyBlockUpdate(pos, state, state, 3);
+		} catch (error) {
+			if (!this.clientRefreshWarning) {
+				this.clientRefreshWarning = true;
+				NGTLog.debug(
+					`[SuperRailBuilderX AE] client rail refresh failed: ${error}`,
+				);
+			}
+		}
 	}
 
 	static usesGeometryRailHighlight(): boolean {

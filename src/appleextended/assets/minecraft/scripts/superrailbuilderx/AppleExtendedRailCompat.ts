@@ -329,7 +329,22 @@ export class AppleExtendedRailCompat {
 		sections?: AppleExtendedSectionPlacement;
 	} | null {
 		if (!positions || positions.length < 2) return null;
-		const ordered = positions.slice();
+		let ordered = positions.slice();
+		if (
+			ordered.length > 2 &&
+			this.corePlacementBlocked(world, ordered[0], ignoredKey)
+		) {
+			// A connected endpoint can share a foreign core's block. Preserve
+			// that rail and the logical junction by moving only our owner.
+			const planned = AppleExtendedSwitchCompat.planPositions(
+				world,
+				ordered,
+				property,
+				(owner) => this.corePlacementBlocked(world, owner, ignoredKey),
+			);
+			if (!planned) return null;
+			ordered = planned;
+		}
 		if (ordered.length === 2 && ordered[0].posY > ordered[1].posY + 1e-9)
 			ordered.reverse();
 		// Match AE's actual core owner, including the equal-block-height case.
