@@ -11,15 +11,14 @@
 - 両環境ともSRBXPatchなしでツールを使用可能。AE2.5.4以降は走行補正も本体対応でパッチ不要。Kaizの自由端点走行補正には任意のSRBXPatch v1.0を使用。[任意パッチ](development/srbxpatch.md)。
 - 渡り線生成Undo・分岐全体の平行移動は対象外。過去の変形レール/空コアの自動修復は行わない。上流由来の既知の形状判定/描画問題は[報告資料](research/kaizpatch-crossover-and-render-errors.md)を保持し、SRBXPatchへ用途外機能は追加しない。
 - 0.4.0の変更は0.3.2以降のパッチ任意化・AE2.5.4移行・分岐/移動/表示・接続カント/Undo修正・説明書整理。[リリース本文](../release-notes.md)。NGTOBuilder2併用時は2.3.2へ更新する。[Issue #3調査](research/issue3-multiplayer-tool-crash.md)。
-- 0.4.0は**Actions起動済み・開発者の手動Publish報告待ち**。対象は78ca1fc、タグv0.4.0。[リリースActions](https://github.com/hi03s/SuperRailBuilderX/actions/runs/39832788933)でDraftとパックZIP＋Kaiz用任意JARを準備する。AE用旧JARは添付しない。以後の生成待ち・完了/Draft/Assets確認はローカルCodexでは行わない。[手順](development/releasing.md)。
+- 0.4.0は**Draft本文更新済み・開発者の手動Publish報告待ち**。対象は78ca1fc、タグv0.4.0。開発者からActions完了の報告を受領し、追加依頼で本文をv0.3.2と同じ3章の利用者向け構成へ統一した。未公開状態・タグ・添付物は維持。定期的な生成待ち・完了確認は行わない。[手順](development/releasing.md)。
 - artifactsの最新パックは開発版SuperRailBuilderX-0.4.0.zipと配布用SuperRailBuilderX-v0.4.0.zip。132ファイル/346826 bytes、distとの全件SHA一致・最新VERSION/readme・XCF/JAR/class非同梱を確認。旧開発0.3.2 ZIPは削除、過去配布ZIP/両v1.0 JARは保持・未変更。
 - 通常型生成はJitPack v2.5.4 POM timeoutの既知制約あり。ローカルは公式AE2.5.4 dev JARと既存scannerで型生成済み。4ターゲットbuildと回帰成功。全体formatには既存未変更19ファイルの警告があり、変更分の確認は成功。詳細はAE資料へ集約。
 - docs/user-guideは9ツールの説明書だけを配置。開発資料/調査/過去記録は各専用ディレクトリへ分類。[文書入口](README.md)。
 
 ## 作業中
 
-- 2026-10-23 ローカルCodex: 開発者の追加依頼により、v0.3.2の構成を参照して0.4.0 Draft本文を利用者向けに統一する。本文だけを更新し、タグ/Assets/公開状態は変更しない。
-- 2026-10-23 ローカルCodex: 0.4.0のローカル準備・タグpush・Actions起動確認済み。作業を一旦停止し、開発者の手動Publish報告を待つ。
+- 2026-10-23 ローカルCodex: 0.4.0のローカル準備・タグpush・Draft本文整理済み。作業を一旦停止し、開発者の手動Publish報告を待つ。
 
 ## 優先確認事項
 
@@ -39,6 +38,8 @@
 - ユーザー作業中のbutton_template.xcf変更とgui_base.xcfは保持し、コミット/配布物へ含めない。
 
 ## 直近の完了
+
+- 2026-10-23 ローカルCodex: 追加依頼により0.4.0 Draft本文をv0.3.2と同じ3章へ統一し、開発情報を削除。ローカル本文とGitHub本文の一致・未公開/タグ/添付物の保持を確認、ビルド/Actions再実行なし。開始記録b23a37f。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 - 2026-10-23 ローカルCodex: 開発者の全動作実機確認完了を反映。0.4.0のVERSION・案内・本文とZIPを準備し、AE旧版非互換とパッチ不要を明記。全4build・関連10スクリプト・変更分整形・ZIP照合成功。開始記録9b5b132。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 - 2026-10-23 ローカルCodex: Kaiz接続カント/UndoとAE旧コア再利用を修正（e02eb6f）。その前のAE分岐生成/根元移動/表示修正（2bec4d7）、パッチ任意化/AE2.5.4移行（eccb70f）も実機確認済み。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
