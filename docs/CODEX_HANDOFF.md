@@ -18,7 +18,7 @@
 
 ## 作業中
 
-- なし。
+- 2026-10-23 ローカルCodex: 1.7.10/1.12のSRBXPatch必須判定を外し、パッチなしのツール動作へ対応する。AE2.5.4のパッケージ変更を調査・修正し、関連回帰を検証する。rtm-ts・JAR・パッチModは変更せず、リリースは行わない。
 
 ## 優先確認事項
 - 次回パック更新でAE2.5.4へ対応する。現行AE compatの`hasFreeEndpointPatch`は旧SRBXPatchクラスを必須とし、API参照も旧`jp.apple`のまま。本体対応の判定と`jp.apple.appleextended`への移行・生成/Undo/走行を検証してから、更新済み同梱readmeを配布へ反映する。今回は文書だけで、ビルド・ZIP/JAR更新・リリースを行わない。
