@@ -1,4 +1,4 @@
-import { ModelPackManager } from "jp.ngt.rtm.modelpack";
+import { SRBXServerModelLookup } from "@common/assets/minecraft/scripts/superrailbuilderx/SRBXServerModelLookup";
 import {
 	SRBXSingleCrossoverSplit,
 	SRBXSingleCrossoverSplitPlan,
@@ -180,11 +180,14 @@ export class SRBXApiCompat {
 	}
 	static switchToolModel(entity: unknown, model: string): boolean {
 		const vehicle = entity as jp.ngt.rtm.entity.vehicle.EntityVehicle;
-		const set = ModelPackManager.INSTANCE.getModelSet(
-			vehicle.getModelType(),
-			model,
-		) as jp.ngt.rtm.modelpack.modelset.ModelSetBase;
-		if (!set || set.isDummy()) return false;
+		if (
+			!SRBXServerModelLookup.hasModel(
+				vehicle,
+				vehicle.getModelType(),
+				model,
+			)
+		)
+			return false;
 		vehicle.setModelName(model);
 		vehicle.getModelSet();
 		return true;

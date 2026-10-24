@@ -6,6 +6,22 @@ AEマルチ環境での生成失敗は、AE v2.5.4に含まれるNGTLibのブロ
 
 KaizPatchX 1.10.4の同じクラス階層にはAEと同じtooltip型の問題は見つからなかった。一方、両環境のSRBXカント更新には、サーバーからクライアント専用の再描画フィールドへ代入する箇所があったため、クライアントワールドだけで実行するよう修正した。Kaizの非strict Nashornでは存在しないフィールドへの代入が黙殺されるため、これを今回のクラッシュ原因と断定しない。
 
+その後のKaizマルチ再確認では、**ツール切り替えがModelPackManager内のIModelNGT型解決で失敗する別件**が見つかった。下記のとおりSRBXのKaiz/通常1.7.10側へ公開MethodHandlesによる回避を追加した。tooltip問題がないという先の判断は、モデル管理APIの安全性を保証するものではない。
+
+## Kaizマルチのツール切り替え失敗
+
+提出された`fml-server-latest.log`の13:50:14・13:50:20・13:50:22・13:50:27に、`[SuperRailBuilderX wheel] switch failed: java.lang.NoClassDefFoundError: jp/ngt/ngtlib/renderer/model/IModelNGT`と`result=internal_error`がある。所有者/騎乗者は一致し、生成要求は成功しているため、ホイール要求の未送信や版照合による拒否ではない。
+
+KaizPatchX 1.10.4の実JARの`ModelPackManager`には、`setModelFile(String,IModelNGT)`・`getModelFile(String)`・`loadModel(...)`があり、前2者にはclient限定注釈がない。SRBXの切り替え前の`ModelPackManager.INSTANCE.getModelSet(...)`をNashornが解決すると、無関係な描画用メソッドの型も列挙され、専用サーバーで欠落する。モデル管理クラス自身の宣言なので、`getDeclaredMethod`でも全宣言型の解決が発生して回避できない。
+
+SRBXは共通ヘルパー`SRBXServerModelLookup`を用意し、Kaizと通常1.7.10のcompatから呼ぶ。Java標準の`MethodHandles.publicLookup()`で、公開`INSTANCE`フィールド、`getModelSet(String,String):ModelSetBase`、`ModelSetBase.isDummy():boolean`の正確なシグネチャだけを解決する。private API・`setAccessible`・クライアント型の追加は使わない。元と同じモデル種別・名前で検索し、null/ダミーならモデル名を変更しない。有効時の`setModelName`と`getModelSet`による更新は既存のまま維持する。
+
+AEは1.12系の`getResourceSet`を使い、提出済みAEログでも切り替え成功があるため、このKaiz向け検索経路は適用しない。AE v2.5.4の`loadModel`にはclient注釈があることも確認した。1.7.10の全9ツール・シングル/マルチへ共通で適用される。Mod/JAR・参照ツールキット・rtm-ts・SRBXPatchは変更しない。
+
+`pnpm test:model-lookup '<JDK 8 home>'`は、managerとModelSetBase自身にclient型メソッドを持つfixtureを使い、その型を拒否するClassLoader/Java 8/Nashornで旧アクセスの失敗と新ヘルパーの成功を確認する。null/不明/ダミー/有効モデル、ハンドルキャッシュ、ネイティブ例外の伝播と、生成済みKaiz/1.7.10 compatの切り替え順・失敗時無変更も検証する。実機では両側最新ZIPで生成A→B→分割など複数方向の切り替え、切り替え後の操作とQ終了を確認する。再発時は操作・時刻と両側ログを提出する。
+
+上流報告は開発者が行う。報告対象はKaizPatchX 1.10.4のモデル管理クラスに残るclient専用型のメソッド宣言であり、専用サーバーでのNashornアクセス時にも型解決できる宣言へ整理してもらいたい。実機での回避確認はまだ完了していない。
+
 ## ログと原因の切り分け
 
 - `latest-server.log`の11:20:25と11:20:33に、生成A/Bの線形計算後、`creation exception: java.lang.NoClassDefFoundError: net/minecraft/client/util/ITooltipFlag`、続いて`create_failed`。

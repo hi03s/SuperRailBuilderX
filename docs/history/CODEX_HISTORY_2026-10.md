@@ -880,3 +880,13 @@
 - 旧回帰では同じDataMapへpublishを即時適用していたため、通信往復中の表示を検証できなかった。別VM/別DataMap/送受信キューの同期回帰を追加し、50ms/300msの片道遅延、起動/ツール切り替え直後の無通知・送信拒否、5秒境界、タイムアウト後の復帰、実版/プロトコル不一致、ack送信順を検証。変更前distではpending期待の回帰が失敗し、修正後に成功。環境名はタイミング想定で実機確認ではない。
 - 全4ターゲットbuild、version-guard（288通りの実server拒否を含む）/input/GUI/AE/Kaiz/runtime-dispatch回帰、変更分Prettier/diff確認成功。Java8/Nashornの実UUID/WeakHashMap/System/Java Stringでも照合成功。開発ZIPは133ファイル/350747 bytesで全件dist SHA一致・最新scripts/readme・XCF/JAR/class非同梱。配布用ZIP/両JARは従前SHAを保持。
 - docs/development/client-server-version-guard.mdへ現在の判定と原因を統合。実機では両側最新ZIPで起動直後・切り替え直後の誤通知がなく通常操作できること、実不一致拒否/Q終了をAE/Kaiz各シングル/マルチで再確認する。異常時は操作/時刻と両側ログを依頼。タグ/Draft/Assets/リリース本文/版番号は変更せずActionsも起動しない。ユーザーXCF2件も保持・コミット除外。
+
+## 2026-10-24 ローカルCodex: Kaizマルチの切り替え失敗と通常CI失敗
+
+- 開発者からfml-server-latest.logでKaizマルチの切り替え失敗を報告。開始記録3e135a8をpush後に調査。13:50:14/20/22/27のwheel要求は所有者/騎乗者一致で届いていたが、IModelNGT欠落でinternal_error。生成成功の直後であり、版照合・要求未送信ではない。元ログは全例外と末尾を確認し、変更/Git追加しない。
+- 実KaizPatchX 1.10.4 JARのModelPackManagerにはclient型IModelNGTを使うsetModelFile/getModelFileがclient注釈なしで存在する。NashornがINSTANCE/getModelSetを解決すると無関係な宣言も列挙されて失敗する。自身のメソッド宣言であるためgetDeclaredMethodでも同じ失敗をfixtureで再現。共通SRBXServerModelLookupを追加し、Java標準MethodHandles.publicLookupで公開INSTANCE/getModelSet/isDummyの正確なdescriptorだけを解決する方式へ変更。private API/setAccessibleは使わない。
+- Kaizと同じ経路を使う通常1.7.10のcompatへ適用。null/不明/ダミーモデルはモデル変更前に拒否し、有効時のsetModelName/getModelSetとホスト引継ぎは維持。全9ツール/シングル/マルチへ適用される。AEのgetResourceSet経路と提出ログ上の成功、実AE loadModelのclient注釈を確認し、AE向け変更は行わない。上流報告要点と実機手順をdocs/research/dedicated-server-side-api.mdへ統合。
+- 作業中に追加でActions失敗の確認依頼を受領。GitHub pluginで通常CI run40063901380/job120782994126を確認。ビルドは成功、test:rail-patchがunescaped Java replacement group referenceで失敗していた。版照合のRequest末尾判定の正規表現記号がRTMのMatcher.replaceFirstの置換記号となる原因。substringと連結へ変更し、拒否条件/キー変換とテストの厳格性を維持。docs/development/client-server-version-guard.mdへ原因を記載。
+- 通常CIへversion-guard回帰を追加し、既存Java25の型生成/パッチビルド後にJava8を導入してdedicated-server/model-lookup interopも実行するよう更新。CIのZIP生成からもXCFを除外する。タグ/Draft/Assets/リリース本文は変更せず、失敗した旧コミットの再実行もしない。終了pushで通常CIが自動起動するが、待機・完了の繰り返し確認は行わない。
+- 全4ターゲットbuild成功。CIで実行する10スクリプト（rail-patch/runtime-dispatch/GUI/AE/input/Kaiz/rail-boundary/free-endpoint/train-debugと追加version-guard）、Java8の既存dedicated-server、新model-lookup回帰が成功。新回帰は実Nashorn/欠落型ClassLoaderで旧直接アクセス失敗と新helper成功、null/不明/ダミー/有効・ハンドルキャッシュ・例外伝播、生成済みKaiz/1.7.10 compatの検索前検証/更新順を確認。変更分Prettier（YAML含む）/diff確認成功。実機と終了push後のCI完了は未確認。
+- 開発ZIPは134ファイル/351728 bytes、全件dist SHA一致・最新scripts/readme・XCF/JAR/class非同梱。配布用ZIP/両JARは従前SHAを保持し、rtm-ts・参照toolkit・Mod/JAR・パッチソースを変更しない。ユーザーXCF2件と元ログは保持してコミット除外。両側最新ZIPで生成A/B/分割等の切り替えと切り替え後の操作/Q終了を確認し、異常時は操作/時刻と両側ログを依頼する。

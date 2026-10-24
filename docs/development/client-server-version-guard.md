@@ -30,4 +30,10 @@
 
 旧回帰は同じDataMap上でpublishを即時実行しており、通常の非同期往復と起動入力を検証できていなかった。現在は待機状態を区別し、上記の別DataMap同期回帰を追加した。全9ツールで共通処理を使うKaizPatchにも同じ条件が波及するため、両環境へ共通修正を適用する。Mod/JAR・参照ツールキットの変更は不要。
 
+### include展開との互換性とCI
+
+通常CIの[run 40063901380](https://github.com/hi03s/SuperRailBuilderX/actions/runs/40063901380)はビルド成功後、`test:rail-patch`の`unescaped Java replacement group reference`で失敗した。版照合の結果キー変換に使った正規表現の末尾記号が、RTMのinclude展開時のJava置換文字列として解釈されるためだった。SRBX側をsubstringと連結へ変更し、元のキー変換結果と拒否条件を維持した。読込実装や回帰テストの制約を緩める対処はしない。
+
+全rendererのネストしたinclude展開を検証する`test:rail-patch`は継続必須。CIへ`test:version-guard`と、Java 8を使う`test:dedicated-server`・`test:model-lookup`を追加した。Java 25が必要な型生成とパッチビルドの後にJava 8へ切り替える。これは通常main CIの修正で、公開待ちDraft/タグ/Assetsの再生成ではない。
+
 実機ではAE/Kaizの両側を同じ最新ZIPへ揃えて通常操作/Undo/切り替えを確認する。新サーバー+旧クライアント、新クライアント+旧サーバーでは編集できず、Qで終了できることを確認する。異常時は操作・時刻と`logs/latest-client.log`・`logs/latest-server.log`を提出する。

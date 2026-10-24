@@ -16,6 +16,7 @@
 		"test:rail-patch": "node tests/srbx_patch/patch_source.test.cjs",
 		"test:runtime-dispatch": "node tests/srbx_patch/runtime_dispatch.test.cjs",
 		"test:dedicated-server": "node tests/srbx_patch/dedicated_server_interop.test.cjs",
+		"test:model-lookup": "node tests/srbx_patch/model_lookup_interop.test.cjs",
 		"test:version-guard": "node tests/srbx_patch/version_guard.test.cjs && node tests/srbx_patch/version_guard_routes.test.cjs && node tests/srbx_patch/version_guard_sync.test.cjs",
 		"test:gui": "node tests/srbx_patch/builder1_gui_state.test.cjs && node tests/srbx_patch/builder1_snap.test.cjs && node tests/srbx_patch/tool_gui_rows.test.cjs && node tests/srbx_patch/builder_geometry.test.cjs && node tests/srbx_patch/copy_orientation.test.cjs && node tests/srbx_patch/copy_cant_source.test.cjs && node tests/srbx_patch/crossover_geometry.test.cjs && node tests/srbx_patch/crossover_feedback.test.cjs && node tests/srbx_patch/crossover_split_client.test.cjs && node tests/srbx_patch/single_crossover_geometry.test.cjs",
 		"test:platform": "node tests/srbx_patch/platform_builder.test.cjs",

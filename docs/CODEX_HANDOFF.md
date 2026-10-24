@@ -12,7 +12,7 @@
 - 渡り線生成Undo・分岐全体の平行移動は対象外。過去の変形レール/空コアの自動修復は行わない。上流由来の既知の形状判定/描画問題は[報告資料](research/kaizpatch-crossover-and-render-errors.md)を保持し、SRBXPatchへ用途外機能は追加しない。
 - 0.4.0の変更は0.3.2以降のパッチ任意化・AE2.5.4移行・分岐/移動/表示・接続カント/Undo修正・説明書整理。[リリース本文](../release-notes.md)。NGTOBuilder2併用時は2.3.2へ更新する。[Issue #3調査](research/issue3-multiplayer-tool-crash.md)。
 - 0.4.0は**Draft本文更新済み・開発者の手動Publish報告待ち**。対象は78ca1fc、タグv0.4.0。開発者からActions完了の報告を受領し、追加依頼で本文をv0.3.2と同じ3章の利用者向け構成へ統一した。未公開状態・タグ・添付物は維持。定期的な生成待ち・完了確認は行わない。[手順](development/releasing.md)。
-- artifactsの最新開発版SuperRailBuilderX-0.4.0.zipは専用サーバー回避・null受信保護・版照合と同期待ち誤通知の修正を反映（133ファイル/350747 bytes、distとの全件SHA一致・最新VERSION/readme・XCF/JAR/class非同梱）。配布用SuperRailBuilderX-v0.4.0.zipは以前の346826 bytesを保持し、両JARとともに未変更。旧開発0.3.2 ZIPは削除、過去配布ZIP/両v1.0 JARは保持・未変更。
+- artifactsの最新開発版SuperRailBuilderX-0.4.0.zipは専用サーバー回避・版照合・Kaiz切り替え回避・include互換修正を反映（134ファイル/351728 bytes、distとの全件SHA一致・最新VERSION/readme・XCF/JAR/class非同梱）。配布用SuperRailBuilderX-v0.4.0.zipは以前の346826 bytesを保持し、両JARとともに未変更。旧開発0.3.2 ZIPは削除、過去配布ZIP/両v1.0 JARは保持・未変更。
 - 通常型生成はJitPack v2.5.4 POM timeoutの既知制約あり。ローカルは公式AE2.5.4 dev JARと既存scannerで型生成済み。4ターゲットbuildと回帰成功。全体formatには既存未変更19ファイルの警告があり、変更分の確認は成功。詳細はAE資料へ集約。
 - docs/user-guideは9ツールの説明書だけを配置。開発資料/調査/過去記録は各専用ディレクトリへ分類。[文書入口](README.md)。
 
@@ -22,7 +22,6 @@
 
 ## 作業中
 
-- 2026-10-24 ローカルCodex: KaizPatchマルチのツール切り替え失敗をfml-server-latest.logから調査し、SRBX側の原因と波及範囲を確認して修正・検証・開発ZIPへ反映する。
 - 2026-10-23 ローカルCodex: 0.4.0のローカル準備・タグpush・Draft本文整理済み。作業を一旦停止し、開発者の手動Publish報告を待つ。
 
 ## 優先確認事項
@@ -31,7 +30,8 @@
 
 - AE/Kaizの専用サーバーで両側を同じ最新開発ZIPへ統一し、生成A/B・自動分割・渡り線・既設道床接続・移動/分割/分岐・カント/Undo・再入場を確認する。開発者確認の版不一致（client 0.3.2/server 0.4.0）は確認済み2原因を覆さず、原因確認だけのログ再採取は不要。修正後の機能確認は必要で、正常なら再提出不要、異常時は操作/時刻とlogs/latest-client.log・latest-server.logを共有する。同じ0.4.0表記の過去開発ZIPも除去する。[調査](research/dedicated-server-side-api.md#srbxの版不一致による影響2026-10-24追記)。
 - 同版の確認不能通知は起動/切り替え直後のnonce応答待ちが原因。共通処理へpending（無通知・編集不可）と5秒後の確認失敗を区別する修正を反映済み。AE/Kaizシングル/マルチで起動・切り替え直後の誤通知が消え、照合後に操作できること、不一致拒否/Q終了を実機確認する。全4build・288拒否・別DataMap遅延同期・Java8/Nashorn・関連回帰は成功。[設計・原因](development/client-server-version-guard.md)。
-- AE側のBlockContainerCustom/BlockCustom.addInformationにSideOnly漏れを確認。SRBX回避は実装済みだが、上流の恒久修正は開発者から報告する。Kaizに同じtooltip問題は見つからず、render fieldガードのみ追加。
+- AE側のtooltip注釈漏れとは別に、KaizのModelPackManagerにもclient型IModelNGTの宣言漏れがあり、マルチの切り替え失敗を起こす。Kaiz/通常1.7.10へ公開MethodHandlesによる回避を実装し、Java8/Nashornで再現→修正後成功。両側最新ZIPで複数ツールへの切り替え・操作/Q終了を実機確認する。上流の恒久修正は開発者から報告する。[報告資料](research/dedicated-server-side-api.md)。
+- 通常CIの[40063901380](https://github.com/hi03s/SuperRailBuilderX/actions/runs/40063901380)の失敗は、版照合の正規表現末尾記号がRTM include展開で置換記号になる別件。substringへ変更して失敗テストを含む全CIスクリプトをローカル確認済み。版照合/Java8専用サーバー回帰もCIへ追加。通常pushで再実行されるが待機・完了確認は行わず、開発者に結果確認を任せる。Draft/タグ/Assetsは変更しない。
 - 開発者がActions結果・0.4.0 Draft本文/Assetsを確認し、手動Publishを報告する。報告を受けて作業完了とする。ローカルCodexは待機・定期確認・公開操作を行わない。
 
 ## 次に行うこと
@@ -47,6 +47,8 @@
 - ユーザー作業中のbutton_template.xcf変更とgui_base.xcfは保持し、コミット/配布物へ含めない。
 
 ## 直近の完了
+
+- 2026-10-24 ローカルCodex: KaizのIModelNGT欠落による切り替え失敗を公開API限定呼び出しで回避し、通常CIのinclude展開失敗も修正。全4build・Java8/全CIスクリプト成功、開発ZIP更新、実機/CI完了は未確認。開始記録3e135a8。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 - 2026-10-24 ローカルCodex: 同版0.4.0の起動直後の応答待ちをエラー通知していた問題を修正し、Kaizへも共通適用。全4build・非同期照合/288拒否・関連回帰とZIP照合成功、実機再確認待ち。開始記録7f12d76。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 

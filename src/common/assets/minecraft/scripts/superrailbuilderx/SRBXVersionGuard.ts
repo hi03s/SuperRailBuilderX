@@ -127,14 +127,13 @@ export class SRBXVersionGuard {
 			if (status === "ok") continue;
 			rejected = true;
 			NGTOBuilderUtil.resetJsonData(data, key);
+			const prefix = key.substring(0, key.length - "Request".length);
 			const result =
-				key === "railPositionMove"
-					? "applyResult"
-					: key.replace(/Request$/, "Result");
+				key === "railPositionMove" ? "applyResult" : prefix + "Result";
 			const update =
 				key === "railPositionMove"
 					? "railPositionUpdatedCores"
-					: key.replace(/Request$/, "ClientUpdate");
+					: prefix + "ClientUpdate";
 			NGTOBuilderUtil.resetJsonData(data, update);
 			if (key === "railPositionMove")
 				NGTOBuilderUtil.resetJsonData(data, "railPositionRemovedRails");
@@ -147,10 +146,7 @@ export class SRBXVersionGuard {
 				key === "doubleTrackCopyRequest" ||
 				key === "platformBuilderRequest"
 			)
-				NGTOBuilderUtil.resetJsonData(
-					data,
-					key.replace(/Request$/, "RemovedRails"),
-				);
+				NGTOBuilderUtil.resetJsonData(data, prefix + "RemovedRails");
 			data.setString(result, status, 1);
 			const message = `[SuperRailBuilderX] バージョンを確認できないか一致しない要求を拒否しました。両側を同じ最新パックへ更新してください (request=${key}, status=${status}, client=${object ? String(object.srbxVersion) : "unknown"}/${object ? String(object.srbxProtocol) : "unknown"}, server=${SRBX_LOCAL_VERSION}/${SRBX_LOCAL_PROTOCOL})`;
 			NGTLog.sendChatMessage(sender as ICommandSender, `§c${message}`);

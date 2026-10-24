@@ -63,6 +63,7 @@ jobs:
               run: |
                   pnpm test:rail-patch
                   pnpm test:runtime-dispatch
+                  pnpm test:version-guard
                   pnpm test:gui
                   pnpm test:appleextended
                   pnpm test:input
@@ -70,8 +71,19 @@ jobs:
                   pnpm test:rail-boundary
                   pnpm test:free-endpoint
                   pnpm test:train-debug
+            - name: Set up Java 8 for dedicated-server interop tests
+              uses: actions/setup-java@v4
+              with:
+                  distribution: temurin
+                  java-version: "8"
+            - name: Dedicated-server Nashorn regression tests
+              run: |
+                  pnpm test:dedicated-server
+                  pnpm test:model-lookup
             - name: Package client model pack
-              run: pnpm exec rtmx zip
+              run: |
+                  find dist -type f -iname '*.xcf' -delete
+                  pnpm exec rtmx zip
             - uses: actions/upload-artifact@v4
               if: always()
               with:
