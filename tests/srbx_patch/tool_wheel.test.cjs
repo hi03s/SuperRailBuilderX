@@ -87,6 +87,7 @@ function setup() {
 		},
 	};
 	const context = vm.createContext({
+		System: { nanoTime: () => 0 },
 		WeakHashMap: class extends Map {
 			put(k, v) {
 				this.set(k, v);

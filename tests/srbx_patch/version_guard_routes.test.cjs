@@ -103,6 +103,7 @@ function fixture(onUpdateScript) {
 		doFollowing() {},
 	};
 	const context = vm.createContext({
+		System: { nanoTime: () => 0 },
 		UUID: { randomUUID: () => "fixture-nonce" },
 		WeakHashMap: class {
 			constructor() {

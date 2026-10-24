@@ -44,7 +44,9 @@ const util = {
 		data.setString(key, "", 1);
 	},
 };
+let now = 0;
 const context = vm.createContext({
+	System: { nanoTime: () => now },
 	UUID: {
 		randomUUID: (() => {
 			let next = 0;
@@ -102,7 +104,7 @@ const data = new Data();
 data.setString("srbxServerVersion", "0.3.2", 1);
 data.setString("srbxServerProtocol", "old", 1);
 data.setString("VERSIONS", "0.4.0", 1);
-assert.equal(guard.clientStatus(data), "version_mismatch");
+assert.equal(guard.clientStatus(data), "pending");
 guard.publish(data);
 assert.equal(guard.clientStatus(data), "ok");
 assert(
@@ -135,7 +137,7 @@ const fresh = new Data();
 fresh.values = { ...data.values };
 assert.equal(
 	guard.clientStatus(fresh),
-	"version_unverified",
+	"pending",
 	"a new DataMap must not trust a copied handshake",
 );
 assert.notEqual(

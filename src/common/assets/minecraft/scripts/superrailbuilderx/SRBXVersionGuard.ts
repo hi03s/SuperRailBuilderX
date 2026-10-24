@@ -1,5 +1,6 @@
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { UUID, WeakHashMap } from "java.util";
+import { System } from "java.lang";
 import { DataMap } from "jp.ngt.rtm.modelpack.state";
 import { ICommandSender } from "net.minecraft.command";
 import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
@@ -9,7 +10,7 @@ const SRBX_LOCAL_VERSION = "0.4.0";
 const SRBX_LOCAL_PROTOCOL = "1";
 export const SRBX_VERSION = SRBX_LOCAL_VERSION;
 export const SRBX_PROTOCOL = SRBX_LOCAL_PROTOCOL;
-type Status = "ok" | "version_mismatch" | "version_unverified";
+type Status = "ok" | "pending" | "version_mismatch" | "version_unverified";
 type Stamp = {
 	srbxVersion?: unknown;
 	srbxProtocol?: unknown;
@@ -18,26 +19,29 @@ type Stamp = {
 
 export class SRBXVersionGuard {
 	private static clientNonces = new WeakHashMap<DataMap, string>();
+	private static clientStarted = new WeakHashMap<DataMap, number>();
 	private static clientNonce(data: DataMap): string {
 		let nonce = this.clientNonces.get(data);
 		if (!nonce) {
 			nonce = String(UUID.randomUUID());
 			this.clientNonces.put(data, nonce);
+			this.clientStarted.put(data, Number(System.nanoTime()));
 		}
 		if (String(data.getString("srbxVersionChallenge")) !== nonce)
 			data.setString("srbxVersionChallenge", nonce, 1);
 		return nonce;
 	}
 	static publish(data: DataMap): void {
-		const challenge = String(data.getString("srbxVersionChallenge"));
-		if (String(data.getString("srbxVersionAck")) !== challenge)
-			data.setString("srbxVersionAck", challenge, 1);
 		if (String(data.getString("srbxServerVersion")) !== SRBX_LOCAL_VERSION)
 			data.setString("srbxServerVersion", SRBX_LOCAL_VERSION, 1);
 		if (
 			String(data.getString("srbxServerProtocol")) !== SRBX_LOCAL_PROTOCOL
 		)
 			data.setString("srbxServerProtocol", SRBX_LOCAL_PROTOCOL, 1);
+		// The acknowledgement follows the advertised version on the wire.
+		const challenge = String(data.getString("srbxVersionChallenge"));
+		if (String(data.getString("srbxVersionAck")) !== challenge)
+			data.setString("srbxVersionAck", challenge, 1);
 	}
 	private static status(version: unknown, protocol: unknown): Status {
 		if (
@@ -54,14 +58,15 @@ export class SRBXVersionGuard {
 	}
 	static clientStatus(data: DataMap): Status {
 		const nonce = this.clientNonce(data);
-		const status = this.status(
+		if (String(data.getString("srbxVersionAck")) !== nonce)
+			return Number(System.nanoTime()) - this.clientStarted.get(data) <
+				5000000000
+				? "pending"
+				: "version_unverified";
+		return this.status(
 			String(data.getString("srbxServerVersion")),
 			String(data.getString("srbxServerProtocol")),
 		);
-		return status === "ok" &&
-			String(data.getString("srbxVersionAck")) !== nonce
-			? "version_unverified"
-			: status;
 	}
 	static send(data: DataMap, key: string, request: object): boolean {
 		if (this.clientStatus(data) !== "ok") return false;
@@ -77,6 +82,7 @@ export class SRBXVersionGuard {
 	}
 	static notifyClient(data: DataMap, sender: unknown): void {
 		const status = this.clientStatus(data);
+		if (status === "pending") return;
 		if (status === "ok") {
 			if (data.getString("srbxVersionNotice"))
 				data.setString("srbxVersionNotice", "", 0);
@@ -87,7 +93,7 @@ export class SRBXVersionGuard {
 		const notice = `${status}:${server}:${protocol}`;
 		if (String(data.getString("srbxVersionNotice")) === notice) return;
 		data.setString("srbxVersionNotice", notice, 0);
-		const message = `[SuperRailBuilderX] ${status === "version_mismatch" ? "バージョンが一致しないため操作できません" : "サーバーのバージョンを確認できないため操作できません"}。両側を同じ最新パックへ更新してください (client=${SRBX_LOCAL_VERSION}/${SRBX_LOCAL_PROTOCOL}, server=${server || "unknown"}/${protocol || "unknown"})`;
+		const message = `[SuperRailBuilderX] ${status === "version_mismatch" ? "バージョンが一致しないため操作できません" : "サーバーとの版照合が完了しないため操作できません"}。両側のパックと接続状態を確認してください (status=${status}, client=${SRBX_LOCAL_VERSION}/${SRBX_LOCAL_PROTOCOL}, server=${server || "unknown"}/${protocol || "unknown"})`;
 		NGTLog.sendChatMessage(sender as ICommandSender, `§c${message}`);
 		NGTLog.debug(message);
 	}

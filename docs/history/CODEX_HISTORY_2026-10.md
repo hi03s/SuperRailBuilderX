@@ -871,3 +871,12 @@
 - クライアント共通ホイール入口で未確認/不一致時の入力・プレビューを停止し、Q終了は維持。切り替え要求も版付きJSONへ変更。全9モデル/8server/7rendererの既存共通入口を利用し、参照toolkit・rtm-ts・Mod/JARの変更はない。README/同梱readme、開発用の版更新手順、調査資料を更新。
 - pnpm buildの全4ターゲット成功。pnpm test:version-guardで厳格な版/nonce/JSON判定・過去ack再利用拒否・版定数整合・実8serverの288要求拒否を確認。input/GUI/AE/Kaiz/rail-transition/platform/runtime-dispatch回帰と変更分Prettier/diff確認が成功。Java8/Nashornの実UUID/WeakHashMap/Java Stringで照合成功、既存dedicated-server interop回帰も成功。実機での新旧片側混在拒否と通常編集は未確認。
 - 開発ZIPは133ファイル/350576 bytes、全件dist SHA一致・最新照合スクリプト/readme・XCF/JAR/class非同梱。配布用ZIP/両JARは従前SHAを保持。タグ/Draft/Assets/リリース本文/版番号は変更せずActionsも起動していない。元latest.logとユーザーXCF2件を保持、Gitには追加しない。両側が旧版のままの場合に新保護を後付けすることはできず、同版表記の旧開発ZIPも混在させない。
+
+## 2026-10-24 ローカルCodex: 同版SRBXの起動直後の照合誤通知
+
+- 開発者からAEシングル/マルチの同版でも不一致表示になるとの報告を受領。開始記録7f12d76をpush後、再提出latest-client.log/latest-server.logを調査。clientの13:40:20・13:40:29・13:40:51はclient=0.4.0/1, server=0.4.0/1の確認不能通知で、実不一致の通知ではなかった。直後の生成・分割・移動・組ホーム/Undo等には成功があり、server側にも生成・切り替え成功がある。nonceの初回応答待ちで即座に確認不能を出すコードと整合する。新規ログに上記時刻の版拒否やITooltipFlag再発は見つからなかった。全ログの例外/末尾も確認し、生ログは変更せずGit追加しない。
+- 共通SRBXVersionGuardにpendingを追加。新しいnonceの応答前は入力/編集を止めたまま通知しない。単調時計System.nanoTimeで5秒経過後にversion_unverifiedとなり、操作時に確認失敗を通知、遅延応答後は自動復帰する。実版不一致は新しいack確認後に判定。サーバーは版/プロトコルの公開後にackを送信し、古い広告を途中で判定することも避ける。サーバーの要求拒否条件は維持する。
+- Kaizも全9ツールが同じ共通入口を使うため、起動/切り替え・シングル/マルチいずれにも同条件で波及する。共通側の修正を両環境へ反映し、compat・参照toolkit・rtm-ts・Mod/JAR・パッチは未変更。
+- 旧回帰では同じDataMapへpublishを即時適用していたため、通信往復中の表示を検証できなかった。別VM/別DataMap/送受信キューの同期回帰を追加し、50ms/300msの片道遅延、起動/ツール切り替え直後の無通知・送信拒否、5秒境界、タイムアウト後の復帰、実版/プロトコル不一致、ack送信順を検証。変更前distではpending期待の回帰が失敗し、修正後に成功。環境名はタイミング想定で実機確認ではない。
+- 全4ターゲットbuild、version-guard（288通りの実server拒否を含む）/input/GUI/AE/Kaiz/runtime-dispatch回帰、変更分Prettier/diff確認成功。Java8/Nashornの実UUID/WeakHashMap/System/Java Stringでも照合成功。開発ZIPは133ファイル/350747 bytesで全件dist SHA一致・最新scripts/readme・XCF/JAR/class非同梱。配布用ZIP/両JARは従前SHAを保持。
+- docs/development/client-server-version-guard.mdへ現在の判定と原因を統合。実機では両側最新ZIPで起動直後・切り替え直後の誤通知がなく通常操作できること、実不一致拒否/Q終了をAE/Kaiz各シングル/マルチで再確認する。異常時は操作/時刻と両側ログを依頼。タグ/Draft/Assets/リリース本文/版番号は変更せずActionsも起動しない。ユーザーXCF2件も保持・コミット除外。
