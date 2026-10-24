@@ -209,3 +209,108 @@ assert(
 console.log(
 	"Crossover minimum length and disabled Undo request/input regression passed",
 );
+
+// A failed free crossover has no restored source. Older servers sent
+// refreshed:[null]; render callbacks must finish handling that failure.
+for (const [file, kind] of [
+	["render_builder1.js", "crossover"],
+	["render_branch_builder.js", "branch"],
+	["render_rail_splitter.js", "splitter"],
+]) {
+	const code = fs
+		.readFileSync(dir + file, "utf8")
+		.replace(
+			/RTMX_COMPAT_scripts_superrailbuilderx_SRBXApiCompat_\w+\.SRBXApiCompat/g,
+			"SRBXApiCompat",
+		);
+	for (const payload of [
+		{ removed: [], refreshed: [null] },
+		{
+			removed: [
+				null,
+				{ core: [1, 2, 3], key: "old" },
+				{ core: [4, 5, 6], key: "same" },
+			],
+			refreshed: [null, { core: [4, 5, 6], key: "same" }],
+		},
+		{ removed: null, refreshed: null },
+	]) {
+		let result = "create_failed",
+			removedKeys = [],
+			refreshed = 0,
+			messages = [],
+			warnings = [];
+		const data = {
+			getString: () => result,
+			setString: (_key, value) => {
+				result = value;
+			},
+			setBoolean() {},
+		};
+		const tile = new RailTile();
+		const ctx = vm.createContext({
+			crossoverBuilder: true,
+			dataKey: (suffix) => suffix,
+			resultMessage: (value) => value,
+			TileEntityLargeRailBase: RailTile,
+			NGTOBuilderUtil: {
+				getJsonData: () => JSON.parse(JSON.stringify(payload)),
+				resetJsonData() {},
+			},
+			NGTLog: {
+				sendChatMessage: (_sender, text) => messages.push(text),
+				debug: (text) => warnings.push(text),
+			},
+			SRBXApiCompat: {
+				getWorld: () => ({}),
+				getTileEntity: () => tile,
+				removeRailClientGhost: (_world, _pos, key) =>
+					removedKeys.push(key),
+				refreshRailCoreClient: () => refreshed++,
+			},
+		});
+		vm.runInContext(fn(code, "handleResult"), ctx);
+		const state = {
+			awaitingResult: true,
+			pendingAction: "create",
+			awaiting: true,
+			pending: "create",
+			ignored: {},
+			ignoredRailKeys: {},
+			selected: ["keep"],
+		};
+		const entity = { getResourceState: () => ({ getDataMap: () => data }) };
+		assert.doesNotThrow(() => ctx.handleResult({}, entity, state), kind);
+		assert.equal(
+			result,
+			"",
+			"Failure is consumed rather than crashing on every frame",
+		);
+		assert.equal(
+			kind === "branch" ? state.awaiting : state.awaitingResult,
+			false,
+		);
+		assert(messages.some((text) => text.includes("create_failed")));
+		assert.deepEqual(
+			state.selected,
+			["keep"],
+			"Failure preserves selection for retry",
+		);
+		if (Array.isArray(payload.removed) && payload.removed.length) {
+			assert.deepEqual(
+				removedKeys,
+				["old"],
+				"Refreshed identity must never be removed as a ghost",
+			);
+			assert.equal(refreshed, 1);
+		}
+		if (
+			Array.isArray(payload.refreshed) &&
+			payload.refreshed.includes(null)
+		)
+			assert.equal(warnings.length, 1);
+	}
+}
+console.log(
+	"Crossover/branch/splitter result handling tolerates null rollback entries and preserves valid updates",
+);

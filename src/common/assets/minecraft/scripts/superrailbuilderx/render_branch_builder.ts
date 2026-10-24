@@ -672,27 +672,39 @@ function handleResult(sender: ICommandSender, e: EntityVehicle, s: State) {
 		"branchBuilderClientUpdate",
 	);
 	if (u) {
+		const rawRefreshed = Array.isArray(u.refreshed) ? u.refreshed : [];
+		const rawRemoved = Array.isArray(u.removed) ? u.removed : [];
+		const refreshed = rawRefreshed.filter((rail) => !!rail);
+		const removed = rawRemoved.filter((rail) => !!rail);
+		if (
+			refreshed.length !== rawRefreshed.length ||
+			removed.length !== rawRemoved.length
+		)
+			NGTLog.debug(
+				"[SuperRailBuilderX client update] ignored null rail entries: tool=branch",
+			);
+
 		const world = SRBXApiCompat.getWorld(e),
 			fresh: { [k: string]: boolean } = {};
-		for (let i = 0; i < u.refreshed.length; i++)
-			fresh[u.refreshed[i].key] = true;
-		for (let i = 0; i < u.removed.length; i++) {
-			if (!fresh[u.removed[i].key]) {
-				s.ignored[u.removed[i].key] = true;
+		for (let i = 0; i < refreshed.length; i++)
+			fresh[refreshed[i].key] = true;
+		for (let i = 0; i < removed.length; i++) {
+			if (!fresh[removed[i].key]) {
+				s.ignored[removed[i].key] = true;
 				SRBXApiCompat.removeRailClientGhost(
 					world,
-					u.removed[i].core,
-					u.removed[i].key,
+					removed[i].core,
+					removed[i].key,
 				);
 			}
 		}
-		for (let i = 0; i < u.refreshed.length; i++) {
-			delete s.ignored[u.refreshed[i].key];
+		for (let i = 0; i < refreshed.length; i++) {
+			delete s.ignored[refreshed[i].key];
 			const t = SRBXApiCompat.getTileEntity(
 				world,
-				u.refreshed[i].core[0],
-				u.refreshed[i].core[1],
-				u.refreshed[i].core[2],
+				refreshed[i].core[0],
+				refreshed[i].core[1],
+				refreshed[i].core[2],
 			);
 			if (t instanceof TileEntityLargeRailBase) {
 				const c = t.getRailCore();

@@ -359,6 +359,13 @@ assert.equal(
 	beforeFreeFailure,
 	"free rollback cannot create source",
 );
+const freeFailureUpdate = tools.consumeLastSplitClientUpdate();
+assert.equal(
+	freeFailureUpdate.refreshed.length,
+	0,
+	"Free creation rollback has no restored source; never send [null]",
+);
+assert(freeFailureUpdate.removed.every((rail) => rail && rail.key));
 reset();
 expectedSignal = 7;
 failAt = 2;

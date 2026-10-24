@@ -1568,19 +1568,35 @@ function handleResult(
 			refreshed: Array<{ core: [number, number, number]; key: string }>;
 		}>(dataMap, dataKey("ClientUpdate"));
 		if (update) {
+			const rawRefreshed = Array.isArray(update.refreshed)
+				? update.refreshed
+				: [];
+			const rawRemoved = Array.isArray(update.removed)
+				? update.removed
+				: [];
+			const refreshed = rawRefreshed.filter((rail) => !!rail);
+			const removed = rawRemoved.filter((rail) => !!rail);
+			if (
+				refreshed.length !== rawRefreshed.length ||
+				removed.length !== rawRemoved.length
+			)
+				NGTLog.debug(
+					"[SuperRailBuilderX client update] ignored null rail entries: tool=crossover",
+				);
+
 			const world = SRBXApiCompat.getWorld(entity);
 			const fresh: { [key: string]: boolean } = {};
-			for (let i = 0; i < update.refreshed.length; i++)
-				fresh[update.refreshed[i].key] = true;
-			for (let i = 0; i < update.removed.length; i++)
-				if (!fresh[update.removed[i].key])
+			for (let i = 0; i < refreshed.length; i++)
+				fresh[refreshed[i].key] = true;
+			for (let i = 0; i < removed.length; i++)
+				if (!fresh[removed[i].key])
 					SRBXApiCompat.removeRailClientGhost(
 						world,
-						update.removed[i].core,
-						update.removed[i].key,
+						removed[i].core,
+						removed[i].key,
 					);
-			for (let i = 0; i < update.refreshed.length; i++) {
-				const p = update.refreshed[i].core;
+			for (let i = 0; i < refreshed.length; i++) {
+				const p = refreshed[i].core;
 				const tile = SRBXApiCompat.getTileEntity(
 					world,
 					p[0],

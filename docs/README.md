@@ -16,6 +16,7 @@
 - [正式リリース手順](development/releasing.md)
 - [AEターゲット](development/appleextended-target.md)
 - [専用サーバーのSideOnly型解決とSRBX回避](research/dedicated-server-side-api.md)
+- [渡り線生成失敗後のクライアントクラッシュ](research/crossover-client-result-crash.md)
 - [共通のレール生成と自由点処理](development/rail-generation-and-free-positioning.md)
 - [各ツールの実装情報](development/rail-tool-implementation.md)
 - [SRBXPatchの実装・ビルド・探索性能](development/srbxpatch.md)

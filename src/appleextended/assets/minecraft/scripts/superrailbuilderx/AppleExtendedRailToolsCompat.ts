@@ -1193,7 +1193,10 @@ export class AppleExtendedRailToolsCompat {
 		if (record.source) removed.push(record.source);
 		// A rollback also replaces the section UUID. Refresh the restored group,
 		// even when the requested branch itself failed.
-		this.lastSplitUpdate = { removed, refreshed: [restored] };
+		this.lastSplitUpdate = {
+			removed,
+			refreshed: restored ? [restored] : [],
+		};
 		return this.restoreCantRecords(world, record.cants);
 	}
 

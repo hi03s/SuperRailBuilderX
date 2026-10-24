@@ -853,3 +853,12 @@
 - 全4build、AE/Kaiz/rail-transition/GUI/runtime-dispatch/platform/free-endpointとJava8の関連8検証が成功。変更分Prettierとdiffを確認。型生成は既存の公式AE2.5.4型を利用し、既知JitPack timeoutの再試行はしない。実Minecraft専用サーバーの修正確認は未実施、開発者へ手順と両側ログ提出を依頼する。
 - 開発ZIPを132ファイル/347698 bytesへ更新し、全エントリーとdistのSHA一致、最新scripts/readme、XCF/JAR/class非同梱を確認。配布用0.4.0 ZIPと両JARのSHAは保持。タグ/Draft/Assets/リリース本文/バージョンは変更せず、リリースActionsも起動しない。ユーザーXCF2件は保持しコミットしない。
 - 生ログは関連SRBX行とパック検出名だけに絞ってローカル保持し、無関係なModログ/PC情報/ユーザー名を残さずGitへも追加しない。調査・上流報告の要点はdocs/research/dedicated-server-side-api.mdへ集約し、文書入口とAE資料にリンク。
+
+## 2026-10-24 ローカルCodex: 渡り線失敗後のクライアントnull参照クラッシュ
+
+- 開発者がlogs/latest.logを再提出し、レール描画スクリプトとSRBXの責任範囲の別件調査を依頼。開始記録a554960をpush後に解析。前回削除したクライアント末尾はGit非追跡でコミットから復元できず、今回は元ログを未変更で保持する。AGENTS.mdへ末尾FATAL/全Caused byの確認と未調査例外の保持を明記。
+- 11:20:44の末尾はOn render script: SuperRailBuilderX_CrossoverBuilder→render_builder1.js→handleResultのCannot get property key of null。レールモデル固有の描画関数は根本スタックに出ておらず、SRBXツール車両の描画中の結果処理が直接原因。サーバーのITooltipFlag欠落自体とは別だが、その生成失敗でrollbackへ進むことが発火条件になった。
+- 自由始点のAE rollbackBranchではsourceがなくrestored=nullにもかかわらずrefreshed:[restored]を構築。旧クライアントhandleResultはrefreshed[i].keyを無検証参照していた。通信JSON自体は未記録だが、この経路と旧実コードで同じ例外を回帰再現。送信側は復元対象がない場合[]へ、受信側の渡り線/分岐/分割はnull要素/配列を除外し診断ログを出して失敗処理を継続するよう修正。
+- 回帰では自由rollbackにnullを送らないこと、3ツールの旧refreshed:[null]/null混在/配列nullに対する例外防止、失敗通知・待機解除・選択保持・有効な削除/再描画・同一キーの保護を確認。修正前のテストはCannot read properties of null(reading key)で失敗し、修正後は全ケース成功。
+- 全4build、GUI/AE/Kaiz/rail-transition/runtime-dispatch回帰と変更分Prettier/diff確認が成功。開発ZIPは132ファイル/348137 bytes、全エントリーのdist SHA一致とXCF/JAR/class非同梱を確認。配布用ZIP/両JARはハッシュ保持。Mod/レールモデル/参照toolkit/タグ/Draft/Assetsを変更せず、リリースActionsも起動しない。
+- 原因・切り分けと実機手順はdocs/research/crossover-client-result-crash.mdへ集約。実機では両側最新ZIPで自由生成失敗後の失敗表示と再操作、成功時描画、既設基準/分岐/分割の失敗とUndoを再確認する。元latest.logは再確認が終わるまで変更・Git追加せず保持する。ユーザーXCF2件も保持・コミット除外。

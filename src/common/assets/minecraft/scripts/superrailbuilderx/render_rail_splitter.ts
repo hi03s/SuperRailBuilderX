@@ -430,18 +430,34 @@ function handleResult(
 			"railSplitterClientUpdate",
 		) || null;
 	if (clientUpdate) {
+		const rawRefreshed = Array.isArray(clientUpdate.refreshed)
+			? clientUpdate.refreshed
+			: [];
+		const rawRemoved = Array.isArray(clientUpdate.removed)
+			? clientUpdate.removed
+			: [];
+		const refreshed = rawRefreshed.filter((rail) => !!rail);
+		const removed = rawRemoved.filter((rail) => !!rail);
+		if (
+			refreshed.length !== rawRefreshed.length ||
+			removed.length !== rawRemoved.length
+		)
+			NGTLog.debug(
+				"[SuperRailBuilderX client update] ignored null rail entries: tool=splitter",
+			);
+
 		const world = SRBXApiCompat.getWorld(entity);
 		const refreshedKeys: { [key: string]: boolean } = {};
-		for (let i = 0; i < clientUpdate.refreshed.length; i++)
-			refreshedKeys[clientUpdate.refreshed[i].key] = true;
-		for (let i = 0; i < clientUpdate.removed.length; i++) {
-			const rail = clientUpdate.removed[i];
+		for (let i = 0; i < refreshed.length; i++)
+			refreshedKeys[refreshed[i].key] = true;
+		for (let i = 0; i < removed.length; i++) {
+			const rail = removed[i];
 			if (refreshedKeys[rail.key]) continue;
 			state.ignoredRailKeys[rail.key] = true;
 			SRBXApiCompat.removeRailClientGhost(world, rail.core, rail.key);
 		}
-		for (let i = 0; i < clientUpdate.refreshed.length; i++) {
-			const rail = clientUpdate.refreshed[i];
+		for (let i = 0; i < refreshed.length; i++) {
+			const rail = refreshed[i];
 			delete state.ignoredRailKeys[rail.key];
 			const tile = SRBXApiCompat.getTileEntity(
 				world,
