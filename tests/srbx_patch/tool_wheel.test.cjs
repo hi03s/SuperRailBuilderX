@@ -22,8 +22,29 @@ assert.deepEqual(
 	],
 );
 const alias = "RTMX_COMPAT_scripts_superrailbuilderx_SRBXApiCompat_1js5ute";
+const stampSwitch = (target) =>
+	JSON.stringify({
+		target: String(target),
+		srbxVersion: "0.4.0",
+		srbxProtocol: "1",
+		srbxNonce: "wheel-session",
+	})
+		.split(",")
+		.join("☆");
+const switchTarget = (s) =>
+	s.values.srbxToolSwitchRequest
+		? JSON.parse(
+				String(s.values.srbxToolSwitchRequest).split("☆").join(","),
+			).target
+		: s.values.srbxToolSwitchRequest;
 function setup() {
-	const values = { hostPlayerEntityId: "7" },
+	const values = {
+			hostPlayerEntityId: "7",
+			srbxServerVersion: "0.4.0",
+			srbxServerProtocol: "1",
+			srbxVersionChallenge: "wheel-session",
+			srbxVersionAck: "wheel-session",
+		},
 		held = new Set();
 	const data = {
 		getBoolean: (key) => !!values[key],
@@ -66,6 +87,12 @@ function setup() {
 		},
 	};
 	const context = vm.createContext({
+		WeakHashMap: class extends Map {
+			put(k, v) {
+				this.set(k, v);
+			}
+		},
+		UUID: { randomUUID: () => "wheel-session" },
 		EntityPlayer: Player,
 		Keyboard: {
 			isKeyDown: (key) => held.has(key),
@@ -77,7 +104,21 @@ function setup() {
 		Mouse: { isButtonDown: () => false, setCursorPosition: () => {} },
 		NGTUtilClient: { getMinecraft: () => mc },
 		MCWrapperClient: { getPlayer: () => player },
-		NGTLog: { debug: () => {} },
+		NGTLog: { debug: () => {}, sendChatMessage: () => {} },
+		NGTOBuilderUtil: {
+			sendJsonData: (d, k, r) =>
+				d.setString(k, JSON.stringify(r).split(",").join("☆"), 1),
+			getJsonData: (d, k) => {
+				try {
+					return JSON.parse(
+						String(d.getString(k)).split("☆").join(","),
+					);
+				} catch (_) {
+					return null;
+				}
+			},
+			resetJsonData: (d, k) => d.setString(k, "", 1),
+		},
 		GuiScreen: function () {},
 		Java: {
 			extend: (type, overrides) =>
@@ -95,6 +136,13 @@ function setup() {
 		[alias]: { SRBXApiCompat: compat },
 	});
 	vm.runInContext(catalog, context);
+	vm.runInContext(
+		read("SRBXVersionGuard").replace(
+			/^var \w+ = Packages\.[^;]+;\r?\n/gm,
+			"",
+		),
+		context,
+	);
 	const wheel = read("SRBXToolWheel");
 	vm.runInContext(wheel.slice(wheel.indexOf("var wheelActive =")), context);
 	const server = read("SRBXToolSwitchServer");
@@ -138,11 +186,7 @@ for (let i = 0; i < s.context.SRBX_TOOLS.length; i++) {
 assert.equal(s.context.wheelIndex(0, 0, 4), 4);
 let screen = s.open();
 assert.equal(screen.func_73868_f(), false, "Multiplayer keeps running");
-assert.equal(
-	s.values.srbxToolSwitchRequest,
-	undefined,
-	"TAB press does not switch",
-);
+assert.equal(switchTarget(s), undefined, "TAB press does not switch");
 screen.func_73863_a(200, 150, 0);
 screen.func_73869_a("", "LEFT");
 screen.func_73863_a(200, 150, 0);
@@ -160,12 +204,12 @@ assert.equal(
 );
 s.held.delete("TAB");
 screen.func_73876_c();
-assert.equal(s.values.srbxToolSwitchRequest, "SuperRailBuilderX_builder2");
+assert.equal(switchTarget(s), "SuperRailBuilderX_builder2");
 assert.equal(s.mc.field_71462_r, null);
 assert.equal(s.focused(), 1);
 assert(s.context.SRBXToolSwitchServer.update(s.entity, s.player));
 assert.equal(s.model(), "SuperRailBuilderX_builder2");
-assert.equal(s.values.srbxToolSwitchRequest, "");
+assert.equal(switchTarget(s), "");
 assert.equal(s.values.srbxToolSwitchResult, "ok");
 assert.equal(
 	s.context.SRBXToolSwitchServer.update(s.entity, s.player),
@@ -178,14 +222,14 @@ screen.func_73863_a(286, 200, 0);
 assert.equal(s.selected(), 3, "Mouse selects clockwise rail mover sector");
 s.held.delete("TAB");
 screen.func_73876_c();
-assert.equal(s.values.srbxToolSwitchRequest, "SuperRailBuilderX_RailMover");
+assert.equal(switchTarget(s), "SuperRailBuilderX_RailMover");
 s = setup();
 screen = s.open();
 screen.func_73864_a(286, 200, 1);
 assert.equal(s.mc.field_71462_r, screen, "Right click does not confirm");
 screen.func_73864_a(286, 200, 0);
 assert.equal(
-	s.values.srbxToolSwitchRequest,
+	switchTarget(s),
 	"SuperRailBuilderX_RailMover",
 	"Left click chooses the click coordinates before another draw",
 );
@@ -211,7 +255,7 @@ assert.equal(
 s.held.clear();
 screen.func_73876_c();
 assert.equal(
-	s.values.srbxToolSwitchRequest,
+	switchTarget(s),
 	undefined,
 	"Center release leaves the tool unchanged",
 );
@@ -220,7 +264,7 @@ screen = s.open();
 screen.func_73869_a("", "RIGHT");
 screen.func_73864_a(200, 150, 0);
 assert.equal(
-	s.values.srbxToolSwitchRequest,
+	switchTarget(s),
 	undefined,
 	"Clicking the hole cancels even after arrow selection",
 );
@@ -250,7 +294,7 @@ assert.equal(s.values.srbxWheelInputBlocked, false);
 s = setup();
 screen = s.open();
 screen.func_73869_a("", "ESC");
-assert.equal(s.values.srbxToolSwitchRequest, undefined, "ESC cancels");
+assert.equal(switchTarget(s), undefined, "ESC cancels");
 assert(
 	s.context.SRBXToolWheel.update(s.entity, true),
 	"Held TAB after cancel cannot reopen",
@@ -262,9 +306,9 @@ screen = s.open();
 s.entity.field_70128_L = true;
 screen.func_73876_c();
 assert.equal(s.mc.field_71462_r, null);
-assert.equal(s.values.srbxToolSwitchRequest, undefined);
+assert.equal(switchTarget(s), undefined);
 s = setup();
-s.values.railPositionMove = "pending";
+s.values.railPositionMove = stampSwitch("pending");
 s.held.add("TAB");
 assert(s.context.SRBXToolWheel.update(s.entity, true));
 assert.equal(s.mc.field_71462_r, null);
@@ -274,8 +318,8 @@ for (const [target, status, busy, owner] of [
 	["SuperRailBuilderX_CantFormatter", "invalid_mount", false, false],
 ]) {
 	s = setup();
-	s.values.srbxToolSwitchRequest = target;
-	if (busy) s.values.railPositionMove = "pending";
+	s.values.srbxToolSwitchRequest = stampSwitch(target);
+	if (busy) s.values.railPositionMove = stampSwitch("pending");
 	if (!owner) s.setRider({ func_145782_y: () => 99 });
 	assert.equal(
 		s.context.SRBXToolSwitchServer.update(s.entity, s.player),
@@ -287,26 +331,28 @@ for (const [target, status, busy, owner] of [
 // Java-backed strings and separate wrappers for the same world entity.
 s = setup();
 s.values.hostPlayerEntityId = new String("7");
-s.values.srbxToolSwitchRequest = new String("SuperRailBuilderX_builder2");
+s.values.srbxToolSwitchRequest = stampSwitch(
+	new String("SuperRailBuilderX_builder2"),
+);
 s.setRider({ func_145782_y: () => 7 });
 assert(s.context.SRBXToolSwitchServer.update(s.entity, s.player));
 assert.equal(s.values.srbxToolSwitchResult, "ok");
 assert.equal(s.model(), "SuperRailBuilderX_builder2");
 s = setup();
 s.values.hostPlayerEntityId = "99";
-s.values.srbxToolSwitchRequest = "SuperRailBuilderX_builder2";
+s.values.srbxToolSwitchRequest = stampSwitch("SuperRailBuilderX_builder2");
 assert.equal(s.context.SRBXToolSwitchServer.update(s.entity, s.player), false);
 assert.equal(s.values.srbxToolSwitchResult, "invalid_owner");
 s = setup();
 s.setRider(null);
-s.values.srbxToolSwitchRequest = "SuperRailBuilderX_builder2";
+s.values.srbxToolSwitchRequest = stampSwitch("SuperRailBuilderX_builder2");
 assert.equal(s.context.SRBXToolSwitchServer.update(s.entity, s.player), false);
 assert.equal(s.values.srbxToolSwitchResult, "invalid_mount");
 // 1.12.2/AE follows by position and deliberately has no vehicle mount.
 s = setup();
 s.compat.usesMountedToolHost = () => false;
 s.setRider(null);
-s.values.srbxToolSwitchRequest = "SuperRailBuilderX_builder2";
+s.values.srbxToolSwitchRequest = stampSwitch("SuperRailBuilderX_builder2");
 assert(s.context.SRBXToolSwitchServer.update(s.entity, s.player));
 assert.equal(s.values.srbxToolSwitchHost, "7");
 assert.equal(s.context.SRBXToolSwitchServer.restoreHost(s.entity), s.player);
@@ -328,12 +374,14 @@ for (const [pending, owner, ended] of [
 s = setup();
 s.compat.usesMountedToolHost = () => false;
 s.setRider({ func_145782_y: () => 99 });
-s.values.srbxToolSwitchRequest = "SuperRailBuilderX_builder2";
+s.values.srbxToolSwitchRequest = stampSwitch("SuperRailBuilderX_builder2");
 assert.equal(s.context.SRBXToolSwitchServer.update(s.entity, s.player), false);
 assert.equal(s.values.srbxToolSwitchResult, "invalid_mount");
 for (const status of ["missing_model", "internal_error"]) {
 	s = setup();
-	s.values.srbxToolSwitchRequest = "SuperRailBuilderX_CantFormatter";
+	s.values.srbxToolSwitchRequest = stampSwitch(
+		"SuperRailBuilderX_CantFormatter",
+	);
 	s.compat.switchToolModel = () => {
 		if (status === "internal_error") throw Error("missing");
 		return false;
@@ -358,7 +406,7 @@ for (const visible of [false, "throw"]) {
 		null,
 		"Invisible/failed menu cancels safely",
 	);
-	assert.equal(s.values.srbxToolSwitchRequest, undefined);
+	assert.equal(switchTarget(s), undefined);
 }
 for (const tool of [
 	"builder1",
@@ -390,6 +438,25 @@ assert(
 	!gui.includes("Gui.drawRect("),
 	"Wheel rectangles use runtime SRG names",
 );
+// Version failures stop tool input, keep Q exit available and refuse legacy wheel requests.
+for (const version of ["0.3.2", ""]) {
+	s = setup();
+	s.values.srbxServerVersion = version;
+	s.held.add("TAB");
+	assert.equal(s.context.SRBXToolWheel.update(s.entity, true), true);
+	assert.equal(s.mc.field_71462_r, null);
+	assert.equal(s.values.srbxToolSwitchRequest, undefined);
+	s.context.Keyboard.KEY_Q = "Q";
+	s.held.add("Q");
+	assert(s.context.SRBXToolWheel.update(s.entity, true));
+	assert.equal(s.values.isEndEdit, true);
+}
+s = setup();
+s.values.srbxToolSwitchRequest = "SuperRailBuilderX_builder2";
+assert(s.context.SRBXToolSwitchServer.update(s.entity, s.player));
+assert.equal(s.model(), "SuperRailBuilderX_builder1");
+assert.equal(s.values.srbxToolSwitchRequest, "");
+assert.equal(s.values.srbxToolSwitchResult, "version_unverified");
 console.log(
 	"Tool wheel mouse/arrows/release/cancel/input isolation and server ownership/busy/model guards passed",
 );

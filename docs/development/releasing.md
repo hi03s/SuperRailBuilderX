@@ -4,7 +4,7 @@ GitHub Actionsは、`v`から始まるタグがpushされたときだけモデ�
 
 ## リリースする
 
-1. package.json、rtmx.jsonのパック名、ツール内VERSION、READMEのバージョンを揃える。前回のリリースタグ以降の変更を確認し、リポジトリルートの`release-notes.md`を更新する。
+1. package.json、rtmx.jsonのパック名、ツール内VERSION、SRBXVersionGuard.tsのSRBX_LOCAL_VERSION、READMEのバージョンを揃え、`pnpm test:version-guard`を実行する。要求形式や互換性の条件を変更するときはSRBX_LOCAL_PROTOCOLも更新する。前回のリリースタグ以降の変更を確認し、リポジトリルートの`release-notes.md`を更新する。
 2. `release-notes.md`を含むリリース対象の変更をmainへcommit・pushする。
 3. mainのリリース対象コミットへ`vX.Y.Z`形式のタグを付ける。
 4. `git push origin vX.Y.Z`でタグをpushする。

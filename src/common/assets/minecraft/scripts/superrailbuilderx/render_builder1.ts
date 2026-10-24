@@ -1,3 +1,4 @@
+import { SRBXVersionGuard } from "./SRBXVersionGuard";
 import { SRBXCrossoverGeometry, SRBXCrossoverPlan } from "./SRBXCrossoverPlan";
 import { SRBXCrossoverClient } from "./SRBXCrossoverClient";
 import { SRBXSingleCrossoverSplit } from "./SRBXSingleCrossoverSplit";
@@ -1322,7 +1323,7 @@ function sendRequest(
 		| { action: "undo" },
 ): void {
 	const dataMap = entity.getResourceState().getDataMap();
-	NGTOBuilderUtil.sendJsonData(dataMap, dataKey("Request"), request);
+	if (!SRBXVersionGuard.send(dataMap, dataKey("Request"), request)) return;
 	dataMap.setString(dataKey("Result"), "waiting", 1);
 	state.awaitingResult = true;
 	state.pendingAction = request.action;

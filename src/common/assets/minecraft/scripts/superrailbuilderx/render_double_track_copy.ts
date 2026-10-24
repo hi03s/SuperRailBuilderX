@@ -1,3 +1,4 @@
+import { SRBXVersionGuard } from "./SRBXVersionGuard";
 import { SRBXToolWheel } from "./SRBXToolWheel";
 import { SRBXToolGui } from "./SRBXToolGui";
 import { ResourceLocation } from "net.minecraft.util";
@@ -725,7 +726,8 @@ function sendRequest(
 	request: DoubleTrackCopyRequest,
 ): void {
 	const dataMap = entity.getResourceState().getDataMap();
-	NGTOBuilderUtil.sendJsonData(dataMap, "doubleTrackCopyRequest", request);
+	if (!SRBXVersionGuard.send(dataMap, "doubleTrackCopyRequest", request))
+		return;
 	dataMap.setString("doubleTrackCopyResult", "waiting", 1);
 	state.awaitingResult = true;
 	state.pendingAction = request.action;

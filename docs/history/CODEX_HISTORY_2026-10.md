@@ -862,3 +862,12 @@
 - 回帰では自由rollbackにnullを送らないこと、3ツールの旧refreshed:[null]/null混在/配列nullに対する例外防止、失敗通知・待機解除・選択保持・有効な削除/再描画・同一キーの保護を確認。修正前のテストはCannot read properties of null(reading key)で失敗し、修正後は全ケース成功。
 - 全4build、GUI/AE/Kaiz/rail-transition/runtime-dispatch回帰と変更分Prettier/diff確認が成功。開発ZIPは132ファイル/348137 bytes、全エントリーのdist SHA一致とXCF/JAR/class非同梱を確認。配布用ZIP/両JARはハッシュ保持。Mod/レールモデル/参照toolkit/タグ/Draft/Assetsを変更せず、リリースActionsも起動しない。
 - 原因・切り分けと実機手順はdocs/research/crossover-client-result-crash.mdへ集約。実機では両側最新ZIPで自由生成失敗後の失敗表示と再操作、成功時描画、既設基準/分岐/分割の失敗とUndoを再確認する。元latest.logは再確認が終わるまで変更・Git追加せず保持する。ユーザーXCF2件も保持・コミット除外。
+
+## 2026-10-24 ローカルCodex: SRBX両側の版不一致と編集要求の保護
+
+- 開発者から当時はclient 0.3.2/server 0.4.0であったとの訂正と、調査への影響確認・不一致時の実行停止を依頼。開始記録f5de7e9を独立してpush後に調査・実装した。
+- v0.3.2/v0.4.0の比較ではrender_builder1に差分なし、server_crossover_builderはVERSIONのみ、SRBXCrossoverPlanも差分なし。AppleExtendedRailToolsCompatはパッケージ移行のみで、自由rollbackのrefreshed:[null]は両タグに存在した。ITooltipFlagはサーバー単独/実AE JARで再現済みのため、いずれも不一致で原因判断は覆らない。旧clientの旧AEパッケージ参照など別件混在の余地はあり、最新ZIPへ揃えた機能再確認は必要。正常ならログ再提出不要、異常時のみ操作・時刻と両側ログを依頼する。
+- SRBXVersionGuardを共通側へ追加。版0.4.0/protocol 1を完全一致判定し、UUID challengeへの現在のサーバー応答も要求する。クライアントのWeakHashMapにnonceを保持し、保存された過去広告/ackだけで旧サーバーを許可しない。各要求には版・プロトコル・nonceを付け、serverの共通入口で8編集要求（Undo含む）+切り替えを処理前に検証する。版なし旧要求や不正JSONも拒否。古いクライアント更新情報を消して結果・チャット・NGTLogへ理由を出し、そのtickの処理を止める。
+- クライアント共通ホイール入口で未確認/不一致時の入力・プレビューを停止し、Q終了は維持。切り替え要求も版付きJSONへ変更。全9モデル/8server/7rendererの既存共通入口を利用し、参照toolkit・rtm-ts・Mod/JARの変更はない。README/同梱readme、開発用の版更新手順、調査資料を更新。
+- pnpm buildの全4ターゲット成功。pnpm test:version-guardで厳格な版/nonce/JSON判定・過去ack再利用拒否・版定数整合・実8serverの288要求拒否を確認。input/GUI/AE/Kaiz/rail-transition/platform/runtime-dispatch回帰と変更分Prettier/diff確認が成功。Java8/Nashornの実UUID/WeakHashMap/Java Stringで照合成功、既存dedicated-server interop回帰も成功。実機での新旧片側混在拒否と通常編集は未確認。
+- 開発ZIPは133ファイル/350576 bytes、全件dist SHA一致・最新照合スクリプト/readme・XCF/JAR/class非同梱。配布用ZIP/両JARは従前SHAを保持。タグ/Draft/Assets/リリース本文/版番号は変更せずActionsも起動していない。元latest.logとユーザーXCF2件を保持、Gitには追加しない。両側が旧版のままの場合に新保護を後付けすることはできず、同版表記の旧開発ZIPも混在させない。

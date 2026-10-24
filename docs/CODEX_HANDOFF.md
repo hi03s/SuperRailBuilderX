@@ -12,7 +12,7 @@
 - 渡り線生成Undo・分岐全体の平行移動は対象外。過去の変形レール/空コアの自動修復は行わない。上流由来の既知の形状判定/描画問題は[報告資料](research/kaizpatch-crossover-and-render-errors.md)を保持し、SRBXPatchへ用途外機能は追加しない。
 - 0.4.0の変更は0.3.2以降のパッチ任意化・AE2.5.4移行・分岐/移動/表示・接続カント/Undo修正・説明書整理。[リリース本文](../release-notes.md)。NGTOBuilder2併用時は2.3.2へ更新する。[Issue #3調査](research/issue3-multiplayer-tool-crash.md)。
 - 0.4.0は**Draft本文更新済み・開発者の手動Publish報告待ち**。対象は78ca1fc、タグv0.4.0。開発者からActions完了の報告を受領し、追加依頼で本文をv0.3.2と同じ3章の利用者向け構成へ統一した。未公開状態・タグ・添付物は維持。定期的な生成待ち・完了確認は行わない。[手順](development/releasing.md)。
-- artifactsの最新開発版SuperRailBuilderX-0.4.0.zipは専用サーバー回避を反映（132ファイル/348137 bytes、distとの全件SHA一致・最新VERSION/readme・XCF/JAR/class非同梱）。配布用SuperRailBuilderX-v0.4.0.zipは以前の346826 bytesを保持し、両JARとともに未変更。旧開発0.3.2 ZIPは削除、過去配布ZIP/両v1.0 JARは保持・未変更。
+- artifactsの最新開発版SuperRailBuilderX-0.4.0.zipは専用サーバー回避・null受信保護・版照合を反映（133ファイル/350576 bytes、distとの全件SHA一致・最新VERSION/readme・XCF/JAR/class非同梱）。配布用SuperRailBuilderX-v0.4.0.zipは以前の346826 bytesを保持し、両JARとともに未変更。旧開発0.3.2 ZIPは削除、過去配布ZIP/両v1.0 JARは保持・未変更。
 - 通常型生成はJitPack v2.5.4 POM timeoutの既知制約あり。ローカルは公式AE2.5.4 dev JARと既存scannerで型生成済み。4ターゲットbuildと回帰成功。全体formatには既存未変更19ファイルの警告があり、変更分の確認は成功。詳細はAE資料へ集約。
 - docs/user-guideは9ツールの説明書だけを配置。開発資料/調査/過去記録は各専用ディレクトリへ分類。[文書入口](README.md)。
 
@@ -22,14 +22,14 @@
 
 ## 作業中
 
-- 2026-10-24 ローカルCodex: AEマルチ不具合へのSRBXバージョン不一致の影響と再採取要否を調べ、全ツールで不一致/未確認時に編集要求を実行しない保護を実装・検証・開発ZIPへ反映する。
 - 2026-10-23 ローカルCodex: 0.4.0のローカル準備・タグpush・Draft本文整理済み。作業を一旦停止し、開発者の手動Publish報告を待つ。
 
 ## 優先確認事項
 
 - 渡り線の自由生成が失敗してもクライアントが落ちず、失敗表示→再試行できることを最新開発ZIPで確認する。元logs/latest.logは全スタックを含めて未変更で保持し、再確認完了後に整理する。レールモデルの描画スクリプトは今回の直接原因ではない。
 
-- AE/Kaizの専用サーバーで両側を同じ最新開発ZIPへ統一し、生成A/B・自動分割・渡り線・既設道床接続・移動/分割/分岐・カント/Undo・再入場を確認する。AEのclientログ検出名は旧0.3.2、serverは0.4.0だったため旧ZIP残存にも注意。異常時は操作/時刻とlogs/latest-client.log・latest-server.log（creation exceptionの欠落型/path/sideを含む）を共有する。
+- AE/Kaizの専用サーバーで両側を同じ最新開発ZIPへ統一し、生成A/B・自動分割・渡り線・既設道床接続・移動/分割/分岐・カント/Undo・再入場を確認する。開発者確認の版不一致（client 0.3.2/server 0.4.0）は確認済み2原因を覆さず、原因確認だけのログ再採取は不要。修正後の機能確認は必要で、正常なら再提出不要、異常時は操作/時刻とlogs/latest-client.log・latest-server.logを共有する。同じ0.4.0表記の過去開発ZIPも除去する。[調査](research/dedicated-server-side-api.md#srbxの版不一致による影響2026-10-24追記)。
+- 全9ツールへ版/プロトコル/接続応答照合を追加済み。不一致・不明時の編集/Undo/切り替え停止とQ終了、旧側との混在拒否をAE/Kaiz実機で確認する。全4build・288通りのサーバー拒否・Java8/Nashorn・関連回帰は成功。[設計](development/client-server-version-guard.md)。
 - AE側のBlockContainerCustom/BlockCustom.addInformationにSideOnly漏れを確認。SRBX回避は実装済みだが、上流の恒久修正は開発者から報告する。Kaizに同じtooltip問題は見つからず、render fieldガードのみ追加。
 - 開発者がActions結果・0.4.0 Draft本文/Assetsを確認し、手動Publishを報告する。報告を受けて作業完了とする。ローカルCodexは待機・定期確認・公開操作を行わない。
 
@@ -46,6 +46,8 @@
 - ユーザー作業中のbutton_template.xcf変更とgui_base.xcfは保持し、コミット/配布物へ含めない。
 
 ## 直近の完了
+
+- 2026-10-24 ローカルCodex: 版不一致でも既知2原因の判断が維持できることを履歴から確認し、全ツールへ版不一致/未確認時の要求拒否と接続応答照合を実装。全4build・関連回帰・開発ZIP照合成功、両側最新ZIPの実機確認待ち。開始記録f5de7e9。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 
 - 2026-10-24 ローカルCodex: 渡り線失敗後のクライアントnull.keyクラッシュをSRBXの送受信処理と特定・修正。3ツールのnull混在回帰/AE自由rollback/全4buildと関連回帰成功、開発ZIP更新。元ログは保持、実機再確認待ち。開始記録a554960。[10月履歴](history/CODEX_HISTORY_2026-10.md)。
 

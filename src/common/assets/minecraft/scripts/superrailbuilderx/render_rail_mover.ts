@@ -1,3 +1,4 @@
+import { SRBXVersionGuard } from "./SRBXVersionGuard";
 import { SRBXToolWheel } from "./SRBXToolWheel";
 import { SRBXToolGui } from "./SRBXToolGui";
 import { ResourceLocation } from "net.minecraft.util";
@@ -1396,7 +1397,8 @@ function handleInput(
 			};
 		}
 		if (!request) return;
-		NGTOBuilderUtil.sendJsonData(dataMap, "railPositionMove", request);
+		if (!SRBXVersionGuard.send(dataMap, "railPositionMove", request))
+			return;
 		dataMap.setString("applyResult", "waiting", 1);
 		state.awaitingResult = true;
 		state.pendingAction = "move";
@@ -1508,9 +1510,12 @@ function handleInput(
 		!state.awaitingResult &&
 		dataMap.getBoolean("railMoverCanUndo")
 	) {
-		NGTOBuilderUtil.sendJsonData(dataMap, "railPositionMove", {
-			action: "undo",
-		} as RailPositionMoveRequest);
+		if (
+			!SRBXVersionGuard.send(dataMap, "railPositionMove", {
+				action: "undo",
+			} as RailPositionMoveRequest)
+		)
+			return;
 		dataMap.setString("applyResult", "waiting", 1);
 		state.awaitingResult = true;
 		state.pendingAction = "undo";

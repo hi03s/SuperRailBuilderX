@@ -1,3 +1,4 @@
+import { SRBXVersionGuard } from "./SRBXVersionGuard";
 import { SRBXToolGui } from "./SRBXToolGui";
 import { SRBXAcceleratedRepeat } from "./SRBXAcceleratedRepeat";
 import { SRBXEndpointAvailability } from "./SRBXEndpointAvailability";
@@ -656,7 +657,7 @@ function radiusPanel(
 }
 function send(e: EntityVehicle, s: State, r: BranchBuilderRequest) {
 	const d = e.getResourceState().getDataMap();
-	NGTOBuilderUtil.sendJsonData(d, "branchBuilderRequest", r);
+	if (!SRBXVersionGuard.send(d, "branchBuilderRequest", r)) return;
 	d.setString("branchBuilderResult", "waiting", 1);
 	s.awaiting = true;
 	s.pending = r.action;

@@ -12,6 +12,7 @@ import {
 	wheelLayout,
 } from "./SRBXTools";
 import { SRBXApiCompat } from "@target/assets/minecraft/scripts/superrailbuilderx/SRBXApiCompat";
+import { SRBXVersionGuard } from "./SRBXVersionGuard";
 
 declare const Java: {
 	extend(type: unknown, overrides: unknown): new () => GuiScreen;
@@ -22,6 +23,27 @@ let wheelDisabled = false;
 
 export class SRBXToolWheel {
 	static update(entity: EntityVehicle, primaryPass: boolean): boolean {
+		const versionData = entity.getResourceState().getDataMap();
+		const status = SRBXVersionGuard.clientStatus(versionData);
+		const player = MCWrapperClient.getPlayer();
+		if (status !== "ok") {
+			if (
+				primaryPass &&
+				player &&
+				(status === "version_mismatch" ||
+					Keyboard.isKeyDown(Keyboard.KEY_TAB) ||
+					Keyboard.isKeyDown(Keyboard.KEY_RETURN) ||
+					Keyboard.isKeyDown(Keyboard.KEY_Z) ||
+					Mouse.isButtonDown(0) ||
+					Mouse.isButtonDown(1))
+			)
+				SRBXVersionGuard.notifyClient(versionData, player);
+			if (Keyboard.isKeyDown(Keyboard.KEY_Q))
+				versionData.setBoolean("isEndEdit", true, 1);
+			return true;
+		}
+		if (primaryPass && player)
+			SRBXVersionGuard.notifyClient(versionData, player);
 		if (wheelActive) return true;
 		const mc = NGTUtilClient.getMinecraft();
 		const data = entity.getResourceState().getDataMap();
@@ -56,12 +78,17 @@ export class SRBXToolWheel {
 			done = true;
 			wheelActive = false;
 			wheelReleased = true;
-			if (apply && selected !== current && !entity.isDead)
-				data.setString(
-					"srbxToolSwitchRequest",
-					SRBX_TOOLS[selected].model,
-					1,
-				);
+			if (apply && selected !== current && !entity.isDead) {
+				if (
+					!SRBXVersionGuard.send(data, "srbxToolSwitchRequest", {
+						target: SRBX_TOOLS[selected].model,
+					})
+				)
+					SRBXVersionGuard.notifyClient(
+						data,
+						MCWrapperClient.getPlayer(),
+					);
+			}
 			mc.displayGuiScreen(null as GuiScreen);
 			mc.setIngameFocus();
 		};

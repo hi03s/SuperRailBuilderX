@@ -1,3 +1,4 @@
+import { SRBXVersionGuard } from "./SRBXVersionGuard";
 import { SRBXToolWheel } from "./SRBXToolWheel";
 import { SRBXToolGui } from "./SRBXToolGui";
 import { ResourceLocation } from "net.minecraft.util";
@@ -388,7 +389,7 @@ function sendRequest(
 	request: RailSplitterRequest,
 ): void {
 	const dataMap = entity.getResourceState().getDataMap();
-	NGTOBuilderUtil.sendJsonData(dataMap, "railSplitterRequest", request);
+	if (!SRBXVersionGuard.send(dataMap, "railSplitterRequest", request)) return;
 	dataMap.setString("railSplitterResult", "waiting", 1);
 	state.awaitingResult = true;
 	state.pendingAction = request.action;

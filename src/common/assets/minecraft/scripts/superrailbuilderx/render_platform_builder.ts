@@ -1,3 +1,4 @@
+import { SRBXVersionGuard } from "./SRBXVersionGuard";
 import { SRBXPlatformGeometry } from "./SRBXPlatformGeometry";
 import { SRBXToolWheel } from "./SRBXToolWheel";
 import { SRBXToolGui } from "./SRBXToolGui";
@@ -473,7 +474,8 @@ function sendRequest(
 	request: PlatformBuilderRequest,
 ): void {
 	const dataMap = entity.getResourceState().getDataMap();
-	NGTOBuilderUtil.sendJsonData(dataMap, "platformBuilderRequest", request);
+	if (!SRBXVersionGuard.send(dataMap, "platformBuilderRequest", request))
+		return;
 	dataMap.setString("platformBuilderResult", "waiting", 1);
 	state.awaitingResult = true;
 	state.pendingAction = request.action;

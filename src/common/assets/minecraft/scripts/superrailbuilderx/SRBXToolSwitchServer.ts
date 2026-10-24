@@ -3,11 +3,14 @@ import { EntityPlayer } from "net.minecraft.entity.player";
 import { NGTLog } from "jp.ngt.ngtlib.io";
 import { SRBXApiCompat } from "@target/assets/minecraft/scripts/superrailbuilderx/SRBXApiCompat";
 import { SRBX_TOOLS, SRBX_TOOL_REQUESTS, toolIndex } from "./SRBXTools";
+import { SRBXVersionGuard } from "./SRBXVersionGuard";
+import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
 
 export class SRBXToolSwitchServer {
 	/** Consume the server's handoff when a different tool starts its script. */
 	static restoreHost(entity: EntityVehicle): EntityPlayer | null {
 		const data = entity.getResourceState().getDataMap();
+		SRBXVersionGuard.publish(data);
 		const pending = String(data.getString("srbxToolSwitchHost"));
 		if (!pending) return null;
 		data.setString("srbxToolSwitchHost", "", 1);
@@ -27,8 +30,14 @@ export class SRBXToolSwitchServer {
 	/** Run after host/exit validation, before processing the current tool's requests. */
 	static update(entity: EntityVehicle, host: EntityPlayer): boolean {
 		const data = entity.getResourceState().getDataMap();
-		const target = String(data.getString("srbxToolSwitchRequest"));
-		if (!target) return false;
+		SRBXVersionGuard.publish(data);
+		if (SRBXVersionGuard.rejectServerRequests(data, host)) return true;
+		if (!data.getString("srbxToolSwitchRequest")) return false;
+		const request = NGTOBuilderUtil.getJsonData<{ target: string }>(
+			data,
+			"srbxToolSwitchRequest",
+		);
+		const target = request ? String(request.target) : "";
 		data.setString("srbxToolSwitchRequest", "", 1);
 		const index = toolIndex(target);
 		const hostId = String(host.getEntityId());

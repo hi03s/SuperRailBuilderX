@@ -1,3 +1,4 @@
+import { SRBXVersionGuard } from "./SRBXVersionGuard";
 import { SRBXToolWheel } from "./SRBXToolWheel";
 import { SRBXToolGui } from "./SRBXToolGui";
 import { ResourceLocation } from "net.minecraft.util";
@@ -244,7 +245,7 @@ function panel(
 }
 function send(entity: EntityVehicle, s: State, request: CantFormatterRequest) {
 	const d = entity.getResourceState().getDataMap();
-	NGTOBuilderUtil.sendJsonData(d, "cantFormatterRequest", request);
+	if (!SRBXVersionGuard.send(d, "cantFormatterRequest", request)) return;
 	d.setString("cantFormatterResult", "waiting", 1);
 	s.awaiting = true;
 	s.pending = request.action;
