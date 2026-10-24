@@ -3,7 +3,6 @@ import { SRBXRoadbedOwnership } from "@common/assets/minecraft/scripts/superrail
 import { AppleExtendedRoadbedPlacement } from "./AppleExtendedRoadbedPlacement";
 import { RTMCore, RTMItem } from "jp.ngt.rtm";
 import {
-	BlockMarker,
 	TileEntityLargeRailBase,
 	TileEntityLargeRailCore,
 } from "jp.ngt.rtm.rail";
@@ -474,6 +473,73 @@ export class AppleExtendedRailCompat {
 		return { ordered, root, property: creationProperty };
 	}
 
+	private static nativeCreateRailMethod: java.lang.reflect.Method | null =
+		null;
+
+	private static createNativeRail(
+		world: World,
+		x: number,
+		y: number,
+		z: number,
+		positions: java.util.List<RailPosition>,
+		property: ResourceStateRail,
+		setRail: boolean,
+		creative: boolean,
+	): boolean {
+		// Nashorn's normal static lookup scans inherited public methods. AE's
+		// BlockContainerCustom tooltip signature contains a missing client type
+		// on a dedicated server. Resolve only BlockMarker's public declaration;
+		// the native implementation and all of its placement checks stay intact.
+		if (!this.nativeCreateRailMethod) {
+			const loader = (
+				world as unknown as { getClass(): java.lang.Class<unknown> }
+			)
+				.getClass()
+				.getClassLoader();
+			const type = (name: string) =>
+				java.lang.Class.forName(name, false, loader);
+			const parameters = java.lang.reflect.Array.newInstance(
+				type("java.lang.Class"),
+				8,
+			) as java.lang.Class<unknown>[];
+			parameters[0] = type("net.minecraft.world.World");
+			parameters[1] =
+				parameters[2] =
+				parameters[3] =
+					java.lang.Integer.TYPE;
+			parameters[4] = type("java.util.List");
+			parameters[5] = type(
+				"jp.ngt.rtm.modelpack.state.ResourceStateRail",
+			);
+			parameters[6] = parameters[7] = type("java.lang.Boolean")
+				.getField("TYPE")
+				.get(null) as java.lang.Class<unknown>;
+			this.nativeCreateRailMethod = (
+				type("jp.ngt.rtm.rail.BlockMarker") as unknown as {
+					getDeclaredMethod(
+						name: string,
+						parameters: java.lang.Class<unknown>[],
+					): java.lang.reflect.Method;
+				}
+			).getDeclaredMethod("createRail", parameters);
+		}
+		const args = java.lang.reflect.Array.newInstance(
+			java.lang.Class.forName("java.lang.Object"),
+			8,
+		) as unknown[];
+		args[0] = world;
+		args[1] = java.lang.Integer.valueOf(x);
+		args[2] = java.lang.Integer.valueOf(y);
+		args[3] = java.lang.Integer.valueOf(z);
+		args[4] = positions;
+		args[5] = property;
+		args[6] = setRail;
+		args[7] = creative;
+		return (
+			String(this.nativeCreateRailMethod.invoke(null, args)) === "true"
+		);
+	}
+
 	static createFromPositions(
 		world: World,
 		player: EntityPlayer,
@@ -588,6 +654,14 @@ export class AppleExtendedRailCompat {
 			!plan.sections &&
 			!retrySections &&
 			!preserveExistingNormal;
+		const creationPath =
+			plan.sections || (retrySections && preservingSections)
+				? "section-preserving"
+				: ordered.length > 2
+					? "switch"
+					: preserveExistingNormal
+						? "roadbed-preserving"
+						: "native";
 		try {
 			apiResult =
 				plan.sections || (retrySections && preservingSections)
@@ -618,7 +692,7 @@ export class AppleExtendedRailCompat {
 										creationProperty,
 										player.capabilities.isCreativeMode,
 									)
-							: BlockMarker.createRail(
+							: this.createNativeRail(
 									world,
 									root.blockX,
 									root.blockY,
@@ -629,7 +703,19 @@ export class AppleExtendedRailCompat {
 									player.capabilities.isCreativeMode,
 								);
 		} catch (error) {
-			NGTLog.debug(`[SuperRailBuilderX AE] creation exception: ${error}`);
+			let detail = String(error);
+			try {
+				const javaError = (
+					error as { javaException?: { getCause(): unknown } }
+				)?.javaException;
+				const cause = javaError?.getCause();
+				if (cause) detail += `; cause=${cause}`;
+			} catch (_diagnosticError) {
+				// A diagnostic must not interrupt the existing failure/restore path.
+			}
+			NGTLog.debug(
+				`[SuperRailBuilderX AE] creation exception: ${detail}, path=${creationPath}, side=${world.isRemote ? "client" : "server"}`,
+			);
 			return null;
 		} finally {
 			AppleExtendedRailProtection.restore(world, protectedRoadbeds);

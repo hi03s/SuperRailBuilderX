@@ -189,6 +189,9 @@ loadCompat("superrailbuilderx", "SRBXApiCompat.");
 const api = Object.values(context.RTMX_COMPAT_TARGETS.appleextended)[0]
 	.SRBXApiCompat;
 const helper = context.AppleExtendedRailCompat;
+// The native Java bridge has a separate dedicated-server interop regression.
+helper.createNativeRail = (...args) =>
+	context.Packages.jp.ngt.rtm.rail.BlockMarker.createRail(...args);
 // Planning must honor the actual RTM config and try reversed sections before
 // normal fallback. All callbacks here are read-only; no creation API is used.
 {

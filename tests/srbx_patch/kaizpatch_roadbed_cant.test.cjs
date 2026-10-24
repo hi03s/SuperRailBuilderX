@@ -582,6 +582,54 @@ api.getBuilderConnectionBlock = () => [999, 4, 0];
 api.getHorizontalAnchorYaw = (p) => p.anchorYaw;
 api.getRailPositionUnsupportedReason = (c) => c.unsupported || "";
 api.areBoundaryPositions = () => true;
+// The native cant writer also runs on dedicated servers, where Kaiz removes
+// shouldRerenderRail. Keep map updates and synchronization independent of it.
+for (const remote of [false, true]) {
+	let mapUpdates = 0,
+		dirtyUpdates = 0,
+		packets = 0,
+		blockUpdates = 0,
+		renderUpdates = 0;
+	const target = {
+		positions: [cantPoint(0, 0), cantPoint(20, 180)],
+		setRailPositions(positions) {
+			this.positions = positions;
+		},
+		createRailMap() {
+			mapUpdates++;
+		},
+		set shouldRerenderRail(value) {
+			assert.equal(remote, true, "server must not access a client field");
+			assert.equal(value, true);
+			renderUpdates++;
+		},
+	};
+	const original = [
+		api.markCoreDirty,
+		api.sendRailCorePacket,
+		api.logCantDiagnostics,
+	];
+	api.markCoreDirty = () => dirtyUpdates++;
+	api.sendRailCorePacket = () => packets++;
+	api.logCantDiagnostics = () => {};
+	const updated = api.updateCantRail(
+		{ field_72995_K: remote, func_147471_g: () => blockUpdates++ },
+		target,
+		[cantPoint(0, 0), cantPoint(20, 180)].map((p) => ({
+			...p,
+			cantEdge: 4,
+		})),
+	);
+	assert.equal(updated.length, 1);
+	assert.equal(target.positions[0].cantEdge, 4);
+	assert.deepEqual(
+		[mapUpdates, dirtyUpdates, packets, blockUpdates],
+		[1, 1, 1, 1],
+	);
+	assert.equal(renderUpdates, remote ? 1 : 0);
+	[api.markCoreDirty, api.sendRailCorePacket, api.logCantDiagnostics] =
+		original;
+}
 api.updateCantRail = (_world, c, positions) => {
 	cantWrites++;
 	c.positions = api.copyRailPositions(positions);

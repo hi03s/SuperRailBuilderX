@@ -841,3 +841,15 @@
 - release-notes.mdを「0.3.2からの追加・操作変更」「主な不具合修正」「配布物・導入方法」の3章へ再構成。AE旧版非互換/パッチ不要、Kaiz任意パッチ、NGTOBuilder2更新案内、利用者に必要なレバー位置や既存制限は保持。内部API・Mod ID・NBT・ビルド/テスト・実機報告受領/引継ぎ・Draft/Publish運用などの開発情報は削除した。今後の構成方針をリリース手順へ記載。
 - GitHub Release 421074399の本文を更新し、ローカル本文との一致・draft=true・タグv0.4.0・タイトル・AssetsのID/名称/サイズ保持を確認。APIが本文のみのPATCHでDraftのタグ参照を未設定へ変更したため、元のtag_nameとdraftを明示して復元した。Gitタグや添付物の再作成、公開、ビルド/Actions再実行は行わない。今後のAPI編集でも両項目を明示する。
 - 前回本文との3章見出し一致、開発向け情報の除去、git diff --checkを確認。引継ぎを手動Publish報告待ちへ戻す。
+
+## 2026-10-24 ローカルCodex: AE専用サーバーの型解決とKaiz側のサイド依存
+
+- 開始記録fcb4ffeをorigin/mainへpushし、latest-client/latest-serverを調査。AEサーバーの11:20:25/33（生成A/B）と11:20:44（渡り線）でITooltipFlag欠落によるcreate_failedを確認。client側の検出パック名は0.3.2、serverは0.4.0で、再確認時は両側の同一ZIPへの統一も必要。ただしサーバー内で欠落する型の原因とは別に扱う。
+- 実AE2.5.4 dev JARのBlockContainerCustomとBlockCustomのaddInformation(ItemStack,World,List,ITooltipFlag)にSideOnlyなしを確認。SideOnly除去＋client型拒否をインメモリで行う実JAR用ClassLoaderでBlockMarker/BlockLargeRailBase.getMethods失敗、Class.forNameとBlockMarker.getDeclaredMethod成功を再現。既存JARは読取のみ、未改変。上流への報告は開発者へ任せ、再現条件と対象メソッドを専用サーバー調査資料へ記載。
+- SRBXは公開static createRailだけを限定反射で取得し、継承メソッドのNashorn列挙を回避。Worldクラスのloaderで宣言を取得、Integerとbooleanの8引数・オブジェクト同一性・native実装/戻り値・例外を維持。メソッドをキャッシュし、private APIやsetAccessibleは使用しない。通常/自動分割の全生成と移動/分割/コピー/組ホーム/分岐/渡り線/Undoの共通経路に適用。
+- 同じ親クラスの問題が既設道床のgetMetaFromStateにも波及するため、通常/Section/分岐配置ではBlock.getStateId(state)経由でmetadataを抽出。実MinecraftのstateId packingと同値であることを確認。回帰ではブロックインスタンスの呼出をthrowさせ、metadata=9が退避/復元へ渡ることを確認。
+- Kaiz1.10.4のBlockMarkerはvanilla BlockContainer直系で、該当client型を使うメソッドのSideOnlyもあり、AE同種問題は未発見。ただしカント更新でclient専用shouldRerenderRailへserverから代入する箇所があった。AE通常/Sectionにも同様の処理があり、world.isRemoteガードを追加。server/clientのmap・dirty・packet・block同期は維持。非strict Nashornは不存在フィールド代入を黙殺するので、これを既発クラッシュと断定しない。
+- Java8恒久テストdedicated_server_interopは実distのbridge関数を実行し、通常lookup失敗と回避成功、引数/true/false/キャッシュ/native例外伝播を検証。両版カント回帰はclient専用フィールドsetterでserverアクセスを検知し、通常/Section・client再描画とserver同期を確認。生成例外ログへpath/sideとInvocationTargetExceptionのcause診断を追加。
+- 全4build、AE/Kaiz/rail-transition/GUI/runtime-dispatch/platform/free-endpointとJava8の関連8検証が成功。変更分Prettierとdiffを確認。型生成は既存の公式AE2.5.4型を利用し、既知JitPack timeoutの再試行はしない。実Minecraft専用サーバーの修正確認は未実施、開発者へ手順と両側ログ提出を依頼する。
+- 開発ZIPを132ファイル/347698 bytesへ更新し、全エントリーとdistのSHA一致、最新scripts/readme、XCF/JAR/class非同梱を確認。配布用0.4.0 ZIPと両JARのSHAは保持。タグ/Draft/Assets/リリース本文/バージョンは変更せず、リリースActionsも起動しない。ユーザーXCF2件は保持しコミットしない。
+- 生ログは関連SRBX行とパック検出名だけに絞ってローカル保持し、無関係なModログ/PC情報/ユーザー名を残さずGitへも追加しない。調査・上流報告の要点はdocs/research/dedicated-server-side-api.mdへ集約し、文書入口とAE資料にリンク。

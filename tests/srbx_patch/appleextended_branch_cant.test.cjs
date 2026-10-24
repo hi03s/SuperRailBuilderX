@@ -232,7 +232,11 @@ const cantPositions = [
 	{ cantEdge: 5, cantCenter: 2, cantRandom: 0 },
 	{ cantEdge: -1, cantCenter: 2, cantRandom: 0 },
 ];
-const updated = tools.updateCants(section, cantPositions);
+const updated = tools.updateCants(
+	{ field_72995_K: false },
+	section,
+	cantPositions,
+);
 assert.strictEqual(updated.length, 1);
 assert.ok(
 	section.nbt.values.RailSection.values.LogicalStartRP,

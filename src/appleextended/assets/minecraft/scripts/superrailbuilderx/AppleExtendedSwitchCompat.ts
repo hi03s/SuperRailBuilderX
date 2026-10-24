@@ -237,7 +237,8 @@ export class AppleExtendedSwitchCompat {
 					const record = SRBXRoadbedOwnership.capturePromotion(
 						prior,
 						Block.getIdFromBlock(block),
-						block.getMetaFromState(world.getBlockState(pos)),
+						(Block.getStateId(world.getBlockState(pos)) >>> 12) &
+							15,
 						(c) => AppleExtendedRoadbedPlacement.ownerKey(c),
 						(tile, nbt) => {
 							tile.writeToNBT(nbt);

@@ -220,7 +220,7 @@ export class AppleExtendedSectionPlacementCompat {
 						? SRBXRoadbedOwnership.capturePromotion(
 								beforeCore,
 								Block.getIdFromBlock(beforeBlock),
-								beforeBlock.getMetaFromState(
+								(Block.getStateId(
 									world.getBlockState(
 										new BlockPos(
 											owner[0],
@@ -228,7 +228,9 @@ export class AppleExtendedSectionPlacementCompat {
 											owner[2],
 										),
 									),
-								),
+								) >>>
+									12) &
+									15,
 								(c) =>
 									AppleExtendedRoadbedPlacement.ownerKey(c),
 								(tile, nbt) => {

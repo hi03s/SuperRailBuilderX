@@ -202,7 +202,7 @@ export class AppleExtendedRoadbedPlacement {
 				? SRBXRoadbedOwnership.capturePromotion(
 						beforeCore,
 						Block.getIdFromBlock(beforeBlock),
-						beforeBlock.getMetaFromState(
+						(Block.getStateId(
 							world.getBlockState(
 								new BlockPos(
 									start.blockX,
@@ -210,7 +210,9 @@ export class AppleExtendedRoadbedPlacement {
 									start.blockZ,
 								),
 							),
-						),
+						) >>>
+							12) &
+							15,
 						(c) => this.ownerKey(c),
 						(tile, nbt) => {
 							tile.writeToNBT(nbt);

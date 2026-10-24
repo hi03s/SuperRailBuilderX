@@ -278,7 +278,13 @@ context.Packages.jp.ngt.ngtlib = {
 				);
 			},
 			getTileEntity: (_w, x, y, z) => tiles.get(key([x, y, z])),
-			getBlock: () => ({ func_176201_c: () => 0 }),
+			getBlock: () => ({
+				func_176201_c: () => {
+					throw new Error(
+						"Do not introspect a rail block on a dedicated server",
+					);
+				},
+			}),
 		},
 	},
 };
@@ -303,7 +309,12 @@ context.Packages.jp.ngt.rtm = {
 };
 context.Packages.net = {
 	minecraft: {
-		block: { Block: { func_149682_b: () => 1 } },
+		block: {
+			Block: {
+				func_149682_b: () => 1,
+				func_176210_f: () => 1 | (9 << 12),
+			},
+		},
 		util: { math: { BlockPos: Pos } },
 		nbt: { NBTTagCompound: Nbt },
 	},
@@ -331,6 +342,12 @@ for (const n of [
 	"AppleExtendedRailCompat",
 ])
 	vm.runInContext(fs.readFileSync(dir + n + ".js", "utf8"), context);
+const promotionMetadata = [];
+const originalCapturePromotion = context.SRBXRoadbedOwnership.capturePromotion;
+context.SRBXRoadbedOwnership.capturePromotion = function (...args) {
+	promotionMetadata.push(args[2]);
+	return originalCapturePromotion.apply(this, args);
+};
 const helper = context.AppleExtendedRailCompat,
 	placement = context.AppleExtendedSectionPlacementCompat;
 helper.coreKey = (core) => (core.foreign ? "foreign" : "section:new-group");
@@ -465,4 +482,10 @@ assert.deepEqual(tiles.get("0,4,0").owner, [0, 4, 0]);
 assert.deepEqual(tiles.get("10,4,0").owner, [10, 4, 0]);
 console.log(
 	"AppleExtended free section ownership, logical geometry, SRG NBT and failure protection tests passed",
+);
+
+assert(promotionMetadata.length > 0);
+assert(
+	promotionMetadata.every((meta) => meta === 9),
+	"Metadata must come from vanilla packed state ID without rail-block introspection",
 );

@@ -252,7 +252,7 @@ const updated = sectionA.positions.map((position) => ({
 	cantEdge: 4,
 	cantCenter: 2,
 }));
-assert.equal(tools.updateCants(sectionA, updated).length, 2);
+assert.equal(tools.updateCants(world, sectionA, updated).length, 2);
 assert.equal(
 	sectionB.positions[0].cantEdge,
 	4,
@@ -444,4 +444,53 @@ tools.switchPosition = originalSwitchPosition;
 tools.restoreRecord = originalRestore;
 console.log(
 	"AppleExtended interior branch generation, Undo and rollback: passed",
+);
+
+// Client-only fields are removed from dedicated-server rail cores.
+for (const sectioned of [false, true]) {
+	const member = sectioned
+		? Object.assign(
+				new SectionCore(),
+				core(99, "guard", [rp(0, 0), rp(20, 180)]),
+			)
+		: core(99, "guard", [rp(0, 0), rp(20, 180)]);
+	let clientWrites = 0,
+		maps = 0,
+		dirty = 0,
+		packets = 0;
+	const sideWorld = { field_72995_K: false };
+	Object.defineProperty(member, "shouldRerenderRail", {
+		set(value) {
+			assert(
+				sideWorld.field_72995_K,
+				"Server must never write a client-only render field",
+			);
+			assert.equal(value, true);
+			clientWrites++;
+		},
+	});
+	member.getRailGroupCorePositions = () => list([[99, 4, 0]]);
+	member.writeSectionData = (nbt) => {
+		nbt.tags.RailSection = new Compound();
+	};
+	member.readSectionData = () => {};
+	member.createRailMap = () => maps++;
+	member.func_70296_d = () => dirty++;
+	member.sendPacket = () => packets++;
+	helper.getCore = () => member;
+	helper.getLogicalPositions = (c) => c.positions;
+	helper.isSectionCore = () => sectioned;
+	for (const position of member.positions)
+		position.writeToNBT = function () {
+			return { ...this };
+		};
+	tools.updateCants(sideWorld, member, member.positions);
+	assert.equal(clientWrites, 0);
+	sideWorld.field_72995_K = true;
+	tools.updateCants(sideWorld, member, member.positions);
+	assert.equal(clientWrites, 1);
+	assert.deepEqual([maps, dirty, packets], [2, 2, 2]);
+}
+console.log(
+	"AE normal/section cant updates keep server synchronization without client fields",
 );

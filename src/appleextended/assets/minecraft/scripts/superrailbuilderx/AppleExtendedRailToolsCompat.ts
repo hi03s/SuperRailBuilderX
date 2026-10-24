@@ -85,6 +85,7 @@ export class AppleExtendedRailToolsCompat {
 	}
 
 	private static updateCants(
+		world: World,
 		core: TileEntityLargeRailCore,
 		positions: RailPosition[],
 	): RailCorePos[] {
@@ -98,7 +99,6 @@ export class AppleExtendedRailToolsCompat {
 		if (AppleExtendedRailCompat.isSectionCore(core)) {
 			const updated: RailCorePos[] = [];
 			const group = core.getRailGroupCorePositions();
-			const world = core.getWorld();
 			for (let i = 0; i < group.size(); i++) {
 				const pos = group.get(i);
 				const member = AppleExtendedRailCompat.getCore(world, [
@@ -122,7 +122,7 @@ export class AppleExtendedRailToolsCompat {
 				);
 				member.readSectionData(nbt);
 				member.createRailMap();
-				member.shouldRerenderRail = true;
+				if (world.isRemote) member.shouldRerenderRail = true;
 				member.markDirty();
 				member.sendPacket();
 				updated.push(this.corePos(member));
@@ -131,7 +131,7 @@ export class AppleExtendedRailToolsCompat {
 		}
 		core.setRailPositions(target);
 		core.createRailMap();
-		core.shouldRerenderRail = true;
+		if (world.isRemote) core.shouldRerenderRail = true;
 		core.markDirty();
 		core.sendPacket();
 		return [this.corePos(core)];
@@ -276,7 +276,7 @@ export class AppleExtendedRailToolsCompat {
 				entry.positions[1].cantCenter = center;
 			}
 			this.lastCantUpdate = this.lastCantUpdate.concat(
-				this.updateCants(entry.core, entry.positions),
+				this.updateCants(world, entry.core, entry.positions),
 			);
 		}
 		const token = UUID.randomUUID().toString();
@@ -309,7 +309,7 @@ export class AppleExtendedRailToolsCompat {
 				return "undo_rail_changed";
 			if (core.isLogicalRailOccupied()) return "rail_occupied";
 			this.lastCantUpdate = this.lastCantUpdate.concat(
-				this.updateCants(core, records[i].positions),
+				this.updateCants(world, core, records[i].positions),
 			);
 		}
 		delete this.cantUndoRecords[token];
@@ -453,7 +453,7 @@ export class AppleExtendedRailToolsCompat {
 				core.isLogicalRailOccupied()
 			)
 				return false;
-			this.updateCants(core, records[i].positions);
+			this.updateCants(world, core, records[i].positions);
 		}
 		return true;
 	}
@@ -1198,6 +1198,7 @@ export class AppleExtendedRailToolsCompat {
 	}
 
 	private static zeroExternalCant(
+		world: World,
 		core: TileEntityLargeRailCore,
 		index: number,
 		records: CantRecord[],
@@ -1227,7 +1228,7 @@ export class AppleExtendedRailToolsCompat {
 		const center = (updated[0].cantEdge - updated[1].cantEdge) / 2;
 		updated[0].cantCenter = center;
 		updated[1].cantCenter = center;
-		this.updateCants(core, updated);
+		this.updateCants(world, core, updated);
 	}
 
 	private static zeroBranchConnections(
@@ -1245,6 +1246,7 @@ export class AppleExtendedRailToolsCompat {
 			);
 			for (let j = 0; j < connected.length; j++)
 				this.zeroExternalCant(
+					world,
 					connected[j].core,
 					connected[j].index,
 					records,
@@ -1261,7 +1263,12 @@ export class AppleExtendedRailToolsCompat {
 					AppleExtendedRailCompat.coreKey(sourceCore) &&
 				request.branchEnd.index !== undefined
 			)
-				this.zeroExternalCant(core, request.branchEnd.index, records);
+				this.zeroExternalCant(
+					world,
+					core,
+					request.branchEnd.index,
+					records,
+				);
 		}
 	}
 
@@ -1730,6 +1737,7 @@ export class AppleExtendedRailToolsCompat {
 							)
 						)
 							this.zeroExternalCant(
+								world,
 								endpoint.core,
 								endpoint.index,
 								transaction.cants!,

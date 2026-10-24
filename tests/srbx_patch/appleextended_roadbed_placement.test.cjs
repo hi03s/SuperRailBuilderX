@@ -3,7 +3,7 @@ const fs = require("fs"),
 	assert = require("assert");
 class RailBlock {
 	func_176201_c() {
-		return 0;
+		throw new Error("Do not introspect a rail block on a dedicated server");
 	}
 }
 class RailBase {
@@ -191,6 +191,7 @@ const context = {
 				block: {
 					Block: {
 						func_149682_b: () => 1,
+						func_176210_f: () => 1 | (9 << 12),
 						func_149729_e: () => normalBlock,
 					},
 				},
@@ -234,6 +235,12 @@ vm.runInContext(
 	),
 	context,
 );
+const promotionMetadata = [];
+const originalCapturePromotion = context.SRBXRoadbedOwnership.capturePromotion;
+context.SRBXRoadbedOwnership.capturePromotion = function (...args) {
+	promotionMetadata.push(args[2]);
+	return originalCapturePromotion.apply(this, args);
+};
 const helper = context.AppleExtendedRoadbedPlacement;
 const list = (positions) => ({
 	size: () => positions.length,
@@ -453,4 +460,10 @@ assert.strictEqual(cells.get("80,4,5").tile, donor);
 omitGeometry = false;
 console.log(
 	"AppleExtended roadbed placement ownership and normal core NBT tests passed",
+);
+
+assert(promotionMetadata.length > 0);
+assert(
+	promotionMetadata.every((meta) => meta === 9),
+	"Metadata must come from vanilla packed state ID without rail-block introspection",
 );

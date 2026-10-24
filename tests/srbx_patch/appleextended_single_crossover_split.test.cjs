@@ -387,7 +387,7 @@ const externalCore = { isLogicalRailOccupied: () => false };
 compat.getCore = (w, pos) =>
 	pos[0] === 50 ? externalCore : originalGetCore(w, pos);
 tools.hasCrossoverConnection = () => false;
-tools.zeroExternalCant = (c, i, records) => {
+tools.zeroExternalCant = (_world, c, i, records) => {
 	assert.equal(c, externalCore);
 	records.push({ saved: externalCant });
 	externalCant = 0;

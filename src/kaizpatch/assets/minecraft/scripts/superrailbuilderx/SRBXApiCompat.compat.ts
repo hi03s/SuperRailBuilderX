@@ -5121,7 +5121,8 @@ export class SRBXApiCompat {
 				target.setRailPositions(targetPositions);
 			}
 			target.createRailMap();
-			target.shouldRerenderRail = true;
+			// Kaiz strips this client-only field on dedicated servers.
+			if (world.isRemote) target.shouldRerenderRail = true;
 			this.markCoreDirty(target);
 			this.sendRailCorePacket(target);
 			world.markBlockForUpdate(
