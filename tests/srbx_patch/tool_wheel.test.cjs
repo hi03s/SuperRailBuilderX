@@ -1,3 +1,4 @@
+const packageVersion = require("../../package.json").version;
 const fs = require("fs"),
 	vm = require("vm"),
 	assert = require("assert");
@@ -25,7 +26,7 @@ const alias = "RTMX_COMPAT_scripts_superrailbuilderx_SRBXApiCompat_1js5ute";
 const stampSwitch = (target) =>
 	JSON.stringify({
 		target: String(target),
-		srbxVersion: "0.4.0",
+		srbxVersion: packageVersion,
 		srbxProtocol: "1",
 		srbxNonce: "wheel-session",
 	})
@@ -40,7 +41,7 @@ const switchTarget = (s) =>
 function setup() {
 	const values = {
 			hostPlayerEntityId: "7",
-			srbxServerVersion: "0.4.0",
+			srbxServerVersion: packageVersion,
 			srbxServerProtocol: "1",
 			srbxVersionChallenge: "wheel-session",
 			srbxVersionAck: "wheel-session",

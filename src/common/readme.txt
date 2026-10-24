@@ -1,6 +1,6 @@
 ========== ========== ==========
 
-  SuperRailBuilderX 0.4.0
+  SuperRailBuilderX 1.0.0
 
 ========== ========== ==========
 
@@ -33,8 +33,8 @@ KaizPatchXとAppleExtended向けのレール制作支援ツール集です。
 
 ○導入方法
 
-SRBX 0.4.0のAE向け実装はAppleExtended v2.5.4以降専用です。v2.5.3以前とは互換性がありません。
-AEを更新し、旧SRBXパックを削除してから0.4.0へ置き換えてください。
+SRBX 1.0.0のAE向け実装はAppleExtended v2.5.4以降専用です。v2.5.3以前とは互換性がありません。
+AEを更新し、旧SRBXパックを削除してから1.0.0へ置き換えてください。
 
 使用するKaizPatchXまたはAppleExtendedを導入し、SRBXパックZIPをmodsフォルダーへ入れてください。
 マルチプレイではクライアントとサーバーの両方へ配置します。

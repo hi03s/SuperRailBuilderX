@@ -890,3 +890,12 @@
 - 通常CIへversion-guard回帰を追加し、既存Java25の型生成/パッチビルド後にJava8を導入してdedicated-server/model-lookup interopも実行するよう更新。CIのZIP生成からもXCFを除外する。タグ/Draft/Assets/リリース本文は変更せず、失敗した旧コミットの再実行もしない。終了pushで通常CIが自動起動するが、待機・完了の繰り返し確認は行わない。
 - 全4ターゲットbuild成功。CIで実行する10スクリプト（rail-patch/runtime-dispatch/GUI/AE/input/Kaiz/rail-boundary/free-endpoint/train-debugと追加version-guard）、Java8の既存dedicated-server、新model-lookup回帰が成功。新回帰は実Nashorn/欠落型ClassLoaderで旧直接アクセス失敗と新helper成功、null/不明/ダミー/有効・ハンドルキャッシュ・例外伝播、生成済みKaiz/1.7.10 compatの検索前検証/更新順を確認。変更分Prettier（YAML含む）/diff確認成功。実機と終了push後のCI完了は未確認。
 - 開発ZIPは134ファイル/351728 bytes、全件dist SHA一致・最新scripts/readme・XCF/JAR/class非同梱。配布用ZIP/両JARは従前SHAを保持し、rtm-ts・参照toolkit・Mod/JAR・パッチソースを変更しない。ユーザーXCF2件と元ログは保持してコミット除外。両側最新ZIPで生成A/B/分割等の切り替えと切り替え後の操作/Q終了を確認し、異常時は操作/時刻と両側ログを依頼する。
+
+## 2026-10-24 ローカルCodex: 1.0.0の手動Publish用リリース準備
+
+- 開発者から全問題の解決・実機確認完了と1.0.0の手動Publish準備を依頼。開始記録8cbe948を独立push後に作業し、途中の再開依頼も同作業として継続。GitHubのlatest Releaseはv0.4.0でdraft=falseと確認し、過去の0.4.0公開待ち状態を解消した。AE/Kaizシングル/マルチの専用サーバー回避・渡り線null受信・版照合/同期待ち誤通知・ツール切り替えの実機確認をすべて確認済みとする。原因資料の状態も更新し、再確認待ちを残さない。
+- package.json、rtmx名、全server VERSION・rail mover renderer VERSION・共通版照合、README/同梱readmeを1.0.0へ統一。版照合の要求protocol 1と機能は維持。版照合/ホイール回帰の一致側fixtureはpackage.jsonの版を使うよう変更し、旧版拒否ケースは維持。pnpm-lockはパッケージ自身の版を持たないため変更不要。
+- release-notes.mdは公開済み0.4.0以降の変更だけとし、前回と同じ「0.4.0からの追加・操作変更」「主な不具合修正」「配布物・導入方法」の3章へ統一。版照合の追加、AEマルチ生成・Kaizマルチ切り替え・渡り線失敗時クラッシュ・同期待ち誤通知・スクリプト読込の修正、両側同版導入、AE旧版非互換/パッチ不要、任意Kaiz JARを記載。内部API・実装・検証・CI/Draft運用は本文へ記載しない。既存release workflowがこの本文からDraftを生成する。
+- 全4ターゲットpnpm build成功。version-guard/input/rail-patch/runtime-dispatch/GUI/AE/Kaiz/rail-transition/platform/rail-boundary/free-endpoint/train-debug/dedicated-server/model-lookupの14群が成功（後2群はJava8/Nashorn）。関連テストには288通りの実server要求拒否・非同期照合・client型欠落回避を含む。変更分Prettierとdiff確認成功。既知のJitPack POM timeout条件ではgenを再試行せず、既存の正規生成済み型を使用。全体formatの既存19ファイル警告は今回の変更外。
+- 開発/配布用ZIPはSuperRailBuilderX-1.0.0.zip / SuperRailBuilderX-v1.0.0.zip、134ファイル/351723 bytes。同一SHA256=962E8E46CB160192CE8C18E449A46C0E4D2C158A849FEA3A674EA96DB2B8DE8D、全エントリーdist SHA一致、最新1.0.0 scripts/readme、XCF/JAR/class非同梱を確認。旧開発0.4.0 ZIPを削除し、過去配布ZIPと両v1.0 JARのSHAを保持。ユーザーXCF2件・生ログをGit追加せず、rtm-ts/参照toolkit/Mod/JAR・パッチソースは未変更。
+- 終了コミットをmainへpushし、同コミットへv1.0.0を付けてタグpushする。リリースActionsの起動確認で「Actions起動済み・開発者の手動Publish報告待ち」として停止する。引継ぎ帳へ対象タグとタグで絞ったActions URLを記載。GitHub側の生成待ち・進捗の繰り返し取得・完了後Draft/Assets確認・Publishは行わず、開発者の手動Publish報告を受けてリリース作業完了とする。

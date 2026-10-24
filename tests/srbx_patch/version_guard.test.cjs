@@ -1,3 +1,4 @@
+const packageVersion = require("../../package.json").version;
 const fs = require("fs"),
 	vm = require("vm"),
 	assert = require("assert");
@@ -82,7 +83,7 @@ vm.runInContext(
 );
 const guard = context.SRBXVersionGuard;
 const stamp = {
-	srbxVersion: "0.4.0",
+	srbxVersion: packageVersion,
 	srbxProtocol: "1",
 	srbxNonce: "test-nonce",
 };
@@ -103,13 +104,16 @@ const updateKey = (key) =>
 const data = new Data();
 data.setString("srbxServerVersion", "0.3.2", 1);
 data.setString("srbxServerProtocol", "old", 1);
-data.setString("VERSIONS", "0.4.0", 1);
+data.setString("VERSIONS", packageVersion, 1);
 assert.equal(guard.clientStatus(data), "pending");
 guard.publish(data);
 assert.equal(guard.clientStatus(data), "ok");
 assert(
 	data.writes.some(
-		(w) => w[0] === "srbxServerVersion" && w[1] === "0.4.0" && w[2] === 1,
+		(w) =>
+			w[0] === "srbxServerVersion" &&
+			w[1] === packageVersion &&
+			w[2] === 1,
 	),
 );
 assert(
@@ -127,7 +131,7 @@ const original = {
 const before = JSON.stringify(original);
 assert(guard.send(data, "builder1Request", original));
 assert.equal(JSON.stringify(original), before);
-assert.equal(sent[sent.length - 1].srbxVersion, "0.4.0");
+assert.equal(sent[sent.length - 1].srbxVersion, packageVersion);
 assert.equal(sent[sent.length - 1].srbxProtocol, "1");
 assert.equal(sent[sent.length - 1].target, "tool");
 assert.equal(sent[sent.length - 1].srbxNonce, data.getString("srbxVersionAck"));
@@ -171,7 +175,7 @@ const cases = [
 	[{ ...stamp, srbxVersion: "0.3.2" }, "version_mismatch"],
 	[{ ...stamp, srbxProtocol: "2" }, "version_mismatch"],
 	[{}, "version_unverified"],
-	[{ srbxVersion: "0.4.0" }, "version_unverified"],
+	[{ srbxVersion: packageVersion }, "version_unverified"],
 	[{ ...stamp, srbxProtocol: 1 }, "version_unverified"],
 	[{ ...stamp, srbxNonce: undefined }, "version_unverified"],
 	[{ ...stamp, srbxNonce: "wrong-nonce" }, "version_unverified"],

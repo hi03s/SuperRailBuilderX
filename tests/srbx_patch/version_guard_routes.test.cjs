@@ -120,7 +120,7 @@ function fixture(onUpdateScript) {
 		NGTOBuilderUtil: util,
 		NGTLog: { debug() {}, sendChatMessage() {} },
 		EntityPlayer: class {},
-		VERSION: "0.4.0",
+		VERSION: packageVersion,
 		hosts: { get: () => host, put() {} },
 		undoRecords: { get: forbidden },
 		undos: { get: forbidden },
@@ -165,10 +165,10 @@ for (const server of servers) {
 		for (const request of [
 			{ action: "apply" },
 			{ action: "apply", srbxVersion: "0.3.2", srbxProtocol: "1" },
-			{ action: "apply", srbxVersion: "0.4.0", srbxProtocol: "1" },
+			{ action: "apply", srbxVersion: packageVersion, srbxProtocol: "1" },
 			{
 				action: "apply",
-				srbxVersion: "0.4.0",
+				srbxVersion: packageVersion,
 				srbxProtocol: "1",
 				srbxNonce: "old-nonce",
 			},
@@ -196,7 +196,7 @@ for (const server of servers) {
 					? "version_mismatch"
 					: "version_unverified",
 			);
-			assert.equal(f.data.getString("srbxServerVersion"), "0.4.0");
+			assert.equal(f.data.getString("srbxServerVersion"), packageVersion);
 			executions++;
 		}
 	}
@@ -209,7 +209,7 @@ matched.data.setString(
 	"builder1Request",
 	JSON.stringify({
 		action: "apply",
-		srbxVersion: "0.4.0",
+		srbxVersion: packageVersion,
 		srbxProtocol: "1",
 		srbxNonce: "fixture-nonce",
 	}),

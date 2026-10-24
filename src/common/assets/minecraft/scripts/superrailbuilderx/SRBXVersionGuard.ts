@@ -6,7 +6,7 @@ import { ICommandSender } from "net.minecraft.command";
 import { NGTOBuilderUtil } from "../lib_hi03toolkit_1_0/lib_NGTOBuilderUtil";
 import { SRBX_TOOL_REQUESTS } from "./SRBXTools";
 
-const SRBX_LOCAL_VERSION = "0.4.0";
+const SRBX_LOCAL_VERSION = "1.0.0";
 const SRBX_LOCAL_PROTOCOL = "1";
 export const SRBX_VERSION = SRBX_LOCAL_VERSION;
 export const SRBX_PROTOCOL = SRBX_LOCAL_PROTOCOL;

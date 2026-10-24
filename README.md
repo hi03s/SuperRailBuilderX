@@ -1,10 +1,10 @@
 # SuperRailBuilderX
 
-**Release: 0.4.0**
+**Release: 1.0.0**
 
 [![KaizPatchX](https://img.shields.io/badge/KaizPatchX-1.10.4%2B-57b57b)](https://github.com/Kai-Z-JP/KaizPatchX)
 [![AppleExtended](https://img.shields.io/badge/AppleExtended-v2.5.4%2B-c96f4a)](https://github.com/Kirtmuna/AppleExtended/releases/tag/v2.5.4)
-[![Release](https://img.shields.io/badge/release-0.4.0-blue)](https://github.com/hi03s/SuperRailBuilderX/releases)
+[![Release](https://img.shields.io/badge/release-1.0.0-blue)](https://github.com/hi03s/SuperRailBuilderX/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 ## 概要
@@ -27,7 +27,7 @@ SuperRailBuilderXは、KaizPatchXとAppleExtended向けのレール制作支援�
 
 ## 導入方法
 
-**SRBX 0.4.0のAE向け実装はAppleExtended v2.5.4以降専用です。v2.5.3以前とは互換性がありません。AEを更新し、旧SRBXパックを削除してから0.4.0へ置き換えてください。**
+**SRBX 1.0.0のAE向け実装はAppleExtended v2.5.4以降専用です。v2.5.3以前とは互換性がありません。AEを更新し、旧SRBXパックを削除してから1.0.0へ置き換えてください。**
 
 1. 使用するKaizPatchXまたはAppleExtendedを導入します。
 2. [Releases](https://github.com/hi03s/SuperRailBuilderX/releases)からSRBXパックZIPをダウンロードし、クライアントとサーバーの`mods`へ配置します。シングルプレイでは使用する環境の`mods`へ配置します。
